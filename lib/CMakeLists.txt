@@ -7,6 +7,8 @@ qt_add_library(libatproto STATIC
     client.cpp
     xjson.h
     xjson.cpp
+    lexicon/app_bsky_actor.h
+    lexicon/app_bsky_actor.cpp
 )
 
 

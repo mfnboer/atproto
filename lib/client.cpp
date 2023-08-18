@@ -41,6 +41,7 @@ void Client::sessionCreated(const QJsonDocument& json, const createSessionSucces
     }
 
     try {
+        // TODO: define lexicon struct
         XJsonObject root(json.object());
         mUserHandle = root.getRequiredString("handle");
         mUserDid = root.getRequiredString("did");
@@ -75,28 +76,16 @@ void Client::getProfile(const QString& user, const getProfileSuccessCb& successC
 void Client::getProfileSuccess(const QJsonDocument& json, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "getProfile:" << json;
-    UserProfile profile;
 
     try {
-        XJsonObject root(json.object());
-        profile.mDid = root.getRequiredString("did");
-        profile.mHandle = root.getRequiredString("handle");
-        profile.mDisplayName = root.getOptionalString("displayName");
-        profile.mAvatar = root.getOptionalString("avatar");
-        profile.mBanner = root.getOptionalString("banner");
-        profile.mDescription = root.getOptionalString("description");
-        profile.mFollowersCount = root.getOptionalInt("followersCount");
-        profile.mFollowsCount = root.getOptionalInt("followsCount");
-        profile.mPostsCount = root.getOptionalInt("postsCount");
+        const AppBskyActor::ProfileViewDetailed profile = AppBskyActor::fromJson(json);
+        if (successCb)
+            successCb(profile);
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
         if (errorCb)
             errorCb(e.msg());
-        return;
     }
-
-    if (successCb)
-        successCb(profile);
 }
 
 void Client::requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb)
