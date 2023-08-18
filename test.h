@@ -25,8 +25,8 @@ public:
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
         mBsky->createSession(user, password,
             [this, user]{ mBsky->getProfile(user,
-                                               [this](const ATProto::UserProfile& profile){ mProfile = profile; emit profileChanged(); },
-                    [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
+                [this](const AppBskyActor::ProfileViewDetailed& profile){ mProfile = profile; emit profileChanged(); },
+                [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
             },
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
     }
@@ -41,7 +41,7 @@ signals:
 
 private:
     std::unique_ptr<ATProto::Client> mBsky;
-    UserProfile mProfile;
+    AppBskyActor::ProfileViewDetailed mProfile;
 };
 
 }
