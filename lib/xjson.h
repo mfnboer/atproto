@@ -28,8 +28,8 @@ public:
 
     QString getRequiredString(const QString& key) const;
     int getRequiredInt(const QString& key) const;
-    QString getOptionalString(const QString& key, const QString& dflt = {}) const;
-    int getOptionalInt(const QString& key, int dflt = 0) const;
+    std::optional<QString> getOptionalString(const QString& key) const;
+    std::optional<int> getOptionalInt(const QString& key) const;
     QUrl getOptionalUrl(const QString& key) const;
 
 private:

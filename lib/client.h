@@ -3,6 +3,7 @@
 #pragma once
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
+#include "lexicon/com_atproto_server.h"
 
 namespace ATProto {
 
@@ -54,10 +55,7 @@ private:
 
     std::unique_ptr<Xrpc::Client> mXrpc;
     bool mSessionCreated = false;
-    QString mUserHandle;
-    QString mUserDid;
-    QString mAccessJwt;
-    QString mRefreshJwt;
+    ComATProtoServer::Session mSession;
 };
 
 }

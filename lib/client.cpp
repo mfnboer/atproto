@@ -32,33 +32,18 @@ void Client::sessionCreated(const QJsonDocument& json, const createSessionSucces
 {
     qDebug() << "Session created:" << json;
 
-    if (!json.isObject())
-    {
-        qWarning() << "JSON missing from createSession reply";
-        if (errorCb)
-            errorCb("JSON missing from createSession reply");
-        return;
-    }
-
     try {
-        // TODO: define lexicon struct
-        XJsonObject root(json.object());
-        mUserHandle = root.getRequiredString("handle");
-        mUserDid = root.getRequiredString("did");
-        mAccessJwt = root.getRequiredString("accessJwt");
-        mRefreshJwt = root.getRequiredString("refreshJwt");
+        mSession = ComATProtoServer::fromJson(json);
+        mSessionCreated = true;
+        qDebug() << "Handle:" << mSession.mHandle;
+
+        if (successCb)
+            successCb();
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
         if (errorCb)
             errorCb(e.msg());
-        return;
     }
-
-    qDebug() << "Handle:" << mUserHandle;
-    mSessionCreated = true;
-
-    if (successCb)
-        successCb();
 }
 
 void Client::getProfile(const QString& user, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
@@ -70,7 +55,7 @@ void Client::getProfile(const QString& user, const getProfileSuccessCb& successC
         [this, errorCb](const QString& err, const QJsonDocument& reply){
             requestFailed(err, reply, errorCb);
         },
-        mAccessJwt);
+        mSession.mAccessJwt);
 }
 
 void Client::getProfileSuccess(const QJsonDocument& json, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)

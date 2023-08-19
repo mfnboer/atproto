@@ -31,10 +31,10 @@ public:
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
     }
 
-    QString getAvatar() const { return mProfile.mAvatar; }
-    QString getBanner() const { return mProfile.mBanner; }
-    QString getDisplayName() const { return mProfile.mDisplayName; }
-    QString getDescription() const { return mProfile.mDescription; }
+    QString getAvatar() const { return mProfile.mAvatar.value_or(QString()); }
+    QString getBanner() const { return mProfile.mBanner.value_or(QString()); }
+    QString getDisplayName() const { return mProfile.mDisplayName.value_or(QString()); }
+    QString getDescription() const { return mProfile.mDescription.value_or(QString()); }
 
 signals:
     void profileChanged();
