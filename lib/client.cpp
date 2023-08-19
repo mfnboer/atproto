@@ -13,7 +13,7 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
 void Client::createSession(const QString& user, const QString& pwd,
                            const createSessionSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mSessionCreated = false;
+    mSession = nullptr;
     QJsonObject root;
     root.insert("identifier", user);
     root.insert("password", pwd);
@@ -21,56 +21,84 @@ void Client::createSession(const QString& user, const QString& pwd,
 
     mXrpc->post("com.atproto.server.createSession", json,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            sessionCreated(reply, successCb, errorCb);
+            qDebug() << "Session created:" << reply;
+            try {
+                mSession = std::move(ComATProtoServer::Session::fromJson(reply));
+                if (successCb)
+                    successCb();
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
-        [this, errorCb](const QString& err, const QJsonDocument& reply){
-            requestFailed(err, reply, errorCb);
-        });
-}
-
-void Client::sessionCreated(const QJsonDocument& json, const createSessionSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    qDebug() << "Session created:" << json;
-
-    try {
-        mSession = ComATProtoServer::fromJson(json);
-        mSessionCreated = true;
-        qDebug() << "Handle:" << mSession.mHandle;
-
-        if (successCb)
-            successCb();
-    } catch (InvalidJsonException& e) {
-        qWarning() << e.msg();
-        if (errorCb)
-            errorCb(e.msg());
-    }
+        failure(errorCb));
 }
 
 void Client::getProfile(const QString& user, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}},
         [this, successCb, errorCb](const QJsonDocument& reply){
-            getProfileSuccess(reply, successCb, errorCb);
+            qDebug() << "getProfile:" << reply;
+            try {
+                auto profile = AppBskyActor::ProfileViewDetailed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(profile));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
-        [this, errorCb](const QString& err, const QJsonDocument& reply){
-            requestFailed(err, reply, errorCb);
-        },
-        mSession.mAccessJwt);
+        failure(errorCb),
+        authToken());
 }
 
-void Client::getProfileSuccess(const QJsonDocument& json, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
+void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                   const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "getProfile:" << json;
+    Xrpc::Client::Params params{{"actor", user}};
 
-    try {
-        const AppBskyActor::ProfileViewDetailed profile = AppBskyActor::fromJson(json);
-        if (successCb)
-            successCb(profile);
-    } catch (InvalidJsonException& e) {
-        qWarning() << e.msg();
-        if (errorCb)
-            errorCb(e.msg());
+    if (limit)
+    {
+        if (*limit < 1 || * limit > 100)
+            throw InvalidRequest(QString("Invalid limit value %1").arg(*limit));
+
+        params.append({"limit", QString::number(*limit)});
     }
+
+    if (cursor)
+        params.append({"cursor", *cursor});
+
+    mXrpc->get("app.bsky.feed.getAuthorFeed", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getAuthorFeed:" << reply;
+            try {
+                auto feed = AppBskyFeed::AuthorFeed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+const QString& Client::authToken() const
+{
+    static const QString NO_TOKEN;
+    return mSession ? mSession->mAccessJwt : NO_TOKEN;
+}
+
+Xrpc::Client::ErrorCb Client::failure(const ErrorCb& cb)
+{
+    return [this, cb](const QString& err, const QJsonDocument& reply){
+            requestFailed(err, reply, cb);
+        };
+}
+
+void Client::invalidJsonError(InvalidJsonException& e, const ErrorCb& cb)
+{
+    qWarning() << e.msg();
+    if (cb)
+        cb(e.msg());
 }
 
 void Client::requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb)

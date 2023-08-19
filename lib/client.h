@@ -1,17 +1,34 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "xjson.h"
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
+#include "lexicon/app_bsky_feed.h"
 #include "lexicon/com_atproto_server.h"
+#include <QException>
 
 namespace ATProto {
+
+class InvalidRequest : public QException
+{
+public:
+    explicit InvalidRequest(const QString& msg) : mMsg(msg) {}
+
+    const QString& msg() const { return mMsg; }
+    void raise() const override { throw *this; }
+    InvalidRequest *clone() const override { return new InvalidRequest(*this); }
+
+private:
+    QString mMsg;
+};
 
 class Client
 {
 public:
     using createSessionSuccessCb = std::function<void()>;
-    using getProfileSuccessCb = std::function<void(const AppBskyActor::ProfileViewDetailed&)>;
+    using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr&&)>;
+    using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::AuthorFeed::Ptr&&)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -46,16 +63,19 @@ public:
      * @param errorCb
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
-                       const createSessionSuccessCb& successCb, const ErrorCb& errorCb);
+                       const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
-    void sessionCreated(const QJsonDocument& json, const createSessionSuccessCb& successCb, const ErrorCb& errorCb);
-    void getProfileSuccess(const QJsonDocument& json, const getProfileSuccessCb& successCb, const ErrorCb& errorCb);
+    const QString& authToken() const;
+
+    // Create XRPC error callback from ATProto client callback
+    Xrpc::Client::ErrorCb failure(const ErrorCb& cb);
+
+    void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
 
     std::unique_ptr<Xrpc::Client> mXrpc;
-    bool mSessionCreated = false;
-    ComATProtoServer::Session mSession;
+    ComATProtoServer::Session::Ptr mSession;
 };
 
 }

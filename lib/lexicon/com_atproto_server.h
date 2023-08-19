@@ -12,7 +12,9 @@ struct Session
     QString mHandle;
     QString mDid;
     std::optional<QString> mEmail;
+
+    using Ptr = std::unique_ptr<Session>;
+    static Ptr fromJson(const QJsonDocument& json);
 };
 
-Session fromJson(const QJsonDocument& json);
 }
