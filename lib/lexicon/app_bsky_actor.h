@@ -2,7 +2,6 @@
 // License: GPLv3
 #pragma once
 #include <QJsonDocument>
-#include <QString>
 
 namespace ATProto::AppBskyActor {
 
@@ -10,13 +9,13 @@ struct ProfileViewDetailed
 {
     QString mDid;
     QString mHandle;
-    QString mDisplayName;
-    QString mAvatar;
-    QString mBanner;
-    QString mDescription;
-    int mFollowersCount = 0;
-    int mFollowsCount = 0;
-    int mPostsCount = 0;
+    std::optional<QString> mDisplayName;
+    std::optional<QString> mAvatar;
+    std::optional<QString> mBanner;
+    std::optional<QString> mDescription;
+    std::optional<int> mFollowersCount;
+    std::optional<int> mFollowsCount;
+    std::optional<int> mPostsCount;
 };
 
 ProfileViewDetailed fromJson(const QJsonDocument& json);

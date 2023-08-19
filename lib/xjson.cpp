@@ -21,14 +21,20 @@ int XJsonObject::getRequiredInt(const QString& key) const
     return mObject[key].toInt();
 }
 
-QString XJsonObject::getOptionalString(const QString& key, const QString& dflt) const
+std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
 {
-    return mObject[key].toString(dflt);
+    if (mObject.contains(key))
+        return mObject[key].toString();
+
+    return {};
 }
 
-int XJsonObject::getOptionalInt(const QString& key, int dflt) const
+std::optional<int> XJsonObject::getOptionalInt(const QString& key) const
 {
-    return mObject[key].toInt(dflt);
+    if (mObject.contains(key))
+        return mObject[key].toInt();
+
+    return {};
 }
 
 QUrl XJsonObject::getOptionalUrl(const QString& key) const
