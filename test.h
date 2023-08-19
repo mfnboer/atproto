@@ -25,7 +25,7 @@ public:
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
         mBsky->createSession(user, password,
             [this, user]{ mBsky->getProfile(user,
-                [this](const AppBskyActor::ProfileViewDetailed& profile){ mProfile = profile; emit profileChanged(); },
+                [this](auto&& profile){ mProfile = *profile; emit profileChanged(); },
                 [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
             },
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });

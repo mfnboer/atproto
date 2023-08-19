@@ -5,15 +5,15 @@
 
 namespace ATProto::ComATProtoServer {
 
-Session fromJson(const QJsonDocument& json)
+Session::Ptr Session::fromJson(const QJsonDocument& json)
 {
     XJsonObject root(json.object());
-    Session session;
-    session.mHandle = root.getRequiredString("handle");
-    session.mDid = root.getRequiredString("did");
-    session.mAccessJwt = root.getRequiredString("accessJwt");
-    session.mRefreshJwt = root.getRequiredString("refreshJwt");
-    session.mEmail = root.getOptionalString("email");
+    auto session = std::make_unique<Session>();
+    session->mHandle = root.getRequiredString("handle");
+    session->mDid = root.getRequiredString("did");
+    session->mAccessJwt = root.getRequiredString("accessJwt");
+    session->mRefreshJwt = root.getRequiredString("refreshJwt");
+    session->mEmail = root.getOptionalString("email");
     return session;
 }
 

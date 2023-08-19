@@ -51,9 +51,7 @@ void Client::get(const QString& service, const Params& params,
     Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
 
-    QUrl url = buildUrl(service);
-    url.setQuery(params);
-    QNetworkRequest request(url);
+    QNetworkRequest request(buildUrl(service, params));
 
     if (!accessJwt.isNull())
         setAuthorization(request, accessJwt);
@@ -67,8 +65,9 @@ void Client::get(const QString& service, const Params& params,
             [this, reply, errorCb](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb); });
 }
 
-void Client::removeReply(const QNetworkReply* reply)
+void Client::removeReply(QNetworkReply* reply)
 {
+    mReplies.erase(reply);
     delete reply;
 }
 
@@ -76,6 +75,18 @@ QUrl Client::buildUrl(const QString& service) const
 {
     Q_ASSERT(!service.isEmpty());
     return QUrl(QString("https://") + mHost + "/xrpc/" + service);
+}
+
+QUrl Client::buildUrl(const QString& service, const Params& params) const
+{
+    QUrl url = buildUrl(service);
+    QUrlQuery query;
+
+    for (const auto& kv : params)
+        query.addQueryItem(kv.first, QUrl::toPercentEncoding(kv.second));
+
+    url.setQuery(query);
+    return url;
 }
 
 void Client::setAuthorization(QNetworkRequest& request, const QString& accessJwt) const
@@ -105,7 +116,7 @@ void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, con
     removeReply(reply);
 }
 
-void Client::sslErrors(const QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb)
+void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb)
 {
     // TODO: error handling
     qWarning() << "SSL errors:" << errors;
