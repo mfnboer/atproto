@@ -16,6 +16,7 @@ struct ProfileViewBasic
     // TODO labels
 
     using Ptr = std::unique_ptr<ProfileViewBasic>;
+    static Ptr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.actor.defs#profileViewDetailed

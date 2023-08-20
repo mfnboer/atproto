@@ -19,6 +19,7 @@ struct Post
     QDateTime mCreatedAt;
 
     using Ptr = std::unique_ptr<Post>;
+    static Ptr fromJson(const QJsonObject& json);
 };
 
 }
@@ -26,7 +27,7 @@ struct Post
 // app.bsky.feed.defs#postView
 struct PostView
 {
-    QString mUri;
+    QString mUri; // at-uri
     QString mCid;
     AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
     std::variant<Record::Post::Ptr> mRecord;
@@ -39,6 +40,7 @@ struct PostView
     // TODO labels
 
     using Ptr = std::unique_ptr<PostView>;
+    static Ptr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#feedViewPost
@@ -49,7 +51,7 @@ struct FeedViewPost
     // TODO reason;
 
     using Ptr = std::unique_ptr<FeedViewPost>;
-    static Ptr fromJson(const QJsonObject& json) { return {}; }; // TODO
+    static Ptr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.getAuthorFeed#output
