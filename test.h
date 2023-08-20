@@ -24,9 +24,9 @@ public:
         auto xrpc = std::make_unique<Xrpc::Client>(host);
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
         mBsky->createSession(user, password,
-            [this, user]{ mBsky->getProfile(user,
-                [this](auto&& profile){ mProfile = *profile; emit profileChanged(); },
-                [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
+            [this, user]{
+                getProfile(user);
+                getAuthorFeed(user);
             },
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
     }
@@ -40,6 +40,31 @@ signals:
     void profileChanged();
 
 private:
+    void getProfile(const QString& user)
+    {
+        mBsky->getProfile(user,
+            [this](auto&& profile){
+                mProfile = *profile;
+                emit profileChanged();
+            },
+            [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
+    }
+
+    void getAuthorFeed(const QString& author)
+    {
+        mBsky->getAuthorFeed(author, 10, {},
+            [this](auto&& feed) {
+                for (const auto& post : feed->mFeed)
+                {
+                    const auto& postView = post->mPost;
+                    const auto& record = postView->mRecord;
+                    qDebug() << "Post:" << std::get<AppBskyFeed::Record::Post::Ptr>(record)->mText;
+                }
+            },
+            [](const QString& err){ qDebug() << "getAuthorFeed FAILED:" << err; }
+        );
+    }
+
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed mProfile;
 };

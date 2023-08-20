@@ -1,7 +1,9 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include <QDateTime>
 #include <QException>
+#include <QJsonArray>
 #include <QJsonObject>
 #include <QUrl>
 
@@ -26,8 +28,13 @@ class XJsonObject
 public:
     XJsonObject(QJsonObject&& obj);
 
+    const QJsonObject& getObject() const { return mObject; }
+
     QString getRequiredString(const QString& key) const;
     int getRequiredInt(const QString& key) const;
+    QDateTime getRequiredDateTime(const QString& key) const;
+    QJsonObject getRequiredObject(const QString& key) const;
+    QJsonArray getRequiredArray(const QString& key) const;
     std::optional<QString> getOptionalString(const QString& key) const;
     std::optional<int> getOptionalInt(const QString& key) const;
     QUrl getOptionalUrl(const QString& key) const;

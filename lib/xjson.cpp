@@ -21,6 +21,30 @@ int XJsonObject::getRequiredInt(const QString& key) const
     return mObject[key].toInt();
 }
 
+QDateTime XJsonObject::getRequiredDateTime(const QString& key) const
+{
+    checkField(key, QJsonValue::String);
+    const QString value = mObject[key].toString();
+    const QDateTime dateTime = QDateTime::fromString(value, Qt::ISODateWithMs);
+
+    if (!dateTime.isValid())
+        throw InvalidJsonException(QString("Invalid datetime: %1").arg(value));
+
+    return dateTime;
+}
+
+QJsonObject XJsonObject::getRequiredObject(const QString& key) const
+{
+    checkField(key, QJsonValue::Object);
+    return mObject[key].toObject();
+}
+
+QJsonArray XJsonObject::getRequiredArray(const QString& key) const
+{
+    checkField(key, QJsonValue::Array);
+    return mObject[key].toArray();
+}
+
 std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
 {
     if (mObject.contains(key))
