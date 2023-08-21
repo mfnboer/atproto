@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "app_bsky_actor.h"
+#include "lexicon.h"
 #include <QJsonDocument>
 
 namespace ATProto::AppBskyFeed {
@@ -31,6 +32,7 @@ struct PostView
     QString mCid;
     AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
     std::variant<Record::Post::Ptr> mRecord;
+    RecordType mRecordType;
     // TODO embed
     std::optional<int> mReplyCount;
     std::optional<int> mRepostCount;
