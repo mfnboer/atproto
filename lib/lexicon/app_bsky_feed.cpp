@@ -24,10 +24,11 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     postView->mCid = root.getRequiredString("cid");
     postView->mAuthor = AppBskyActor::ProfileViewBasic::fromJson(json["author"].toObject());
     const XJsonObject record = root.getRequiredObject("record");
-    const QString recordType = record.getRequiredString("$type");
+    const QString type = record.getRequiredString("$type");
+    postView->mRecordType = stringToRecordType(type);
 
-    if (recordType != "app.bsky.feed.post")
-        throw InvalidJsonException(QString("Unsupported record $type: %1").arg(recordType));
+    if (postView->mRecordType != RecordType::APP_BSKY_FEED_POST)
+        throw InvalidJsonException(QString("Unsupported record $type: %1").arg(type));
 
     postView->mRecord = Record::Post::fromJson(record.getObject());
     postView->mReplyCount = root.getOptionalInt("replyCount");

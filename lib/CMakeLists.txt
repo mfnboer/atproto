@@ -13,6 +13,8 @@ qt_add_library(libatproto STATIC
     lexicon/com_atproto_server.cpp
     lexicon/app_bsky_feed.h
     lexicon/app_bsky_feed.cpp
+    lexicon/lexicon.h
+    lexicon/lexicon.cpp
 )
 
 

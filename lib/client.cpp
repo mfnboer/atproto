@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "client.h"
 #include "xjson.h"
+#include "lexicon/lexicon.h"
 
 namespace ATProto
 {
@@ -106,17 +107,12 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     qDebug() << "Request failed:" << err;
     qDebug() << json;
 
-    // HTTP API (XRPC): error responses must contain json body with error and message fields.
     try {
-        XJsonObject xjson(json.object());
-        const QString error = xjson.getRequiredString("error");
-        const QString msg = xjson.getRequiredString("message");
-
+        auto error = ATProtoError::fromJson(json);
         if (errorCb)
-            errorCb(QString("%1 - %2").arg(error, msg));
+            errorCb(QString("%1 - %2").arg(error->mError, error->mMessage));
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
-
         if (errorCb)
             errorCb(err);
     }
