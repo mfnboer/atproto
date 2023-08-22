@@ -31,7 +31,7 @@ struct ProfileViewDetailed
     std::optional<int> mFollowersCount;
     std::optional<int> mFollowsCount;
     std::optional<int> mPostsCount;
-    // TODO indexedAt
+    std::optional<QDateTime> mIndexedAt;
     // TODO viewer
     // TODO labels
 
