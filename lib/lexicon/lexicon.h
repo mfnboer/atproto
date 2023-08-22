@@ -40,8 +40,8 @@ struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
     std::vector<AppBskyRichtext::Facet::Ptr> mFacets;
-    // TODO reply (why do we need this, it is already at the FeedViewPost level)
-    // TODO embed (why do we need this, it is already at the PostView level)
+    // NOT IMPLEMENTED reply (it is detailed at the FeedViewPost level)
+    // NOT IMPLEMENTED embed (it is detailed at the PostView level)
     QDateTime mCreatedAt;
 
     using Ptr = std::unique_ptr<Post>;

@@ -193,6 +193,8 @@ RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
         break;
     }
 
+    ComATProtoLabel::getLabels(viewRecord->mLabels, json);
+
     const auto embeds = xjson.getOptionalArray("embeds");
     if (embeds)
     {

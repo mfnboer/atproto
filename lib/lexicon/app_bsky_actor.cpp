@@ -5,6 +5,15 @@
 
 namespace ATProto::AppBskyActor {
 
+ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
+{
+    auto viewerState = std::make_unique<ViewerState>();
+    XJsonObject xjson(json);
+    viewerState->mMuted = xjson.getOptionalBool("muted", false);
+    viewerState->mBlockedBy = xjson.getOptionalBool("blockedBy", false);
+    return viewerState;
+}
+
 ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
@@ -13,6 +22,12 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");
     profileViewBasic->mAvatar = root.getOptionalString("avatar");
+
+    const auto viewerJson = root.getOptionalObject("viewer");
+    if (viewerJson)
+        profileViewBasic->mViewer = ViewerState::fromJson(*viewerJson);
+
+    ComATProtoLabel::getLabels(profileViewBasic->mLabels, json);
     return profileViewBasic;
 }
 
@@ -27,10 +42,16 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
     profile->mAvatar = root.getOptionalString("avatar");
     profile->mBanner = root.getOptionalString("banner");
     profile->mDescription = root.getOptionalString("description");
-    profile->mFollowersCount = root.getOptionalInt("followersCount");
-    profile->mFollowsCount = root.getOptionalInt("followsCount");
-    profile->mPostsCount = root.getOptionalInt("postsCount");
+    profile->mFollowersCount = root.getOptionalInt("followersCount", 0);
+    profile->mFollowsCount = root.getOptionalInt("followsCount", 0);
+    profile->mPostsCount = root.getOptionalInt("postsCount", 0);
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
+
+    const auto viewerJson = root.getOptionalObject("viewer");
+    if (viewerJson)
+        profile->mViewer = ViewerState::fromJson(*viewerJson);
+
+    ComATProtoLabel::getLabels(profile->mLabels, jsonObj);
     return profile;
 }
 

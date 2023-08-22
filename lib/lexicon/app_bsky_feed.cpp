@@ -51,10 +51,11 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     if (embedJson)
         postView->mEmbed = AppBskyEmbed::Embed::fromJson(*embedJson);
 
-    postView->mReplyCount = xjson.getOptionalInt("replyCount");
-    postView->mRepostCount = xjson.getOptionalInt("repostCount");
-    postView->mLikeCount = xjson.getOptionalInt("likeCount");
+    postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
+    postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);
+    postView->mLikeCount = xjson.getOptionalInt("likeCount", 0);
     postView->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+    ComATProtoLabel::getLabels(postView->mLabels, json);
     return postView;
 }
 

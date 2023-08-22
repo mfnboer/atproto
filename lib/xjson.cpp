@@ -61,6 +61,22 @@ std::optional<int> XJsonObject::getOptionalInt(const QString& key) const
     return {};
 }
 
+int XJsonObject::getOptionalInt(const QString& key, int dflt) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toInt(dflt);
+
+    return dflt;
+}
+
+bool XJsonObject::getOptionalBool(const QString& key, bool dflt) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toBool(dflt);
+
+    return dflt;
+}
+
 std::optional<QDateTime> XJsonObject::getOptionalDateTime(const QString& key) const
 {
     if (mObject.contains(key))
