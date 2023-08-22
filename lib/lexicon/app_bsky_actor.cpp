@@ -7,7 +7,7 @@ namespace ATProto::AppBskyActor {
 
 ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
 {
-    XJsonObject root = QJsonObject(json); // TODO copy
+    XJsonObject root(json);
     auto profileViewBasic = std::make_unique<ProfileViewBasic>();
     profileViewBasic->mDid = root.getRequiredString("did");
     profileViewBasic->mHandle = root.getRequiredString("handle");
@@ -18,7 +18,8 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
 
 ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json)
 {
-    XJsonObject root(json.object());
+    const auto jsonObj = json.object();
+    XJsonObject root(jsonObj);
     auto profile = std::make_unique<ProfileViewDetailed>();
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
@@ -29,6 +30,7 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
     profile->mFollowersCount = root.getOptionalInt("followersCount");
     profile->mFollowsCount = root.getOptionalInt("followsCount");
     profile->mPostsCount = root.getOptionalInt("postsCount");
+    profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
     return profile;
 }
 

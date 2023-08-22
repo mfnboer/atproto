@@ -4,8 +4,8 @@
 
 namespace ATProto {
 
-XJsonObject::XJsonObject(QJsonObject&& obj) :
-    mObject(std::forward<QJsonObject>(obj))
+XJsonObject::XJsonObject(const QJsonObject& obj) :
+    mObject(obj)
 {
 }
 
@@ -61,6 +61,14 @@ std::optional<int> XJsonObject::getOptionalInt(const QString& key) const
     return {};
 }
 
+std::optional<QDateTime> XJsonObject::getOptionalDateTime(const QString& key) const
+{
+    if (mObject.contains(key))
+        return getRequiredDateTime(key);
+
+    return {};
+}
+
 QUrl XJsonObject::getOptionalUrl(const QString& key) const
 {
     const QString value = mObject[key].toString();
@@ -72,13 +80,35 @@ QUrl XJsonObject::getOptionalUrl(const QString& key) const
     return url;
 }
 
+std::optional<QJsonObject> XJsonObject::getOptionalObject(const QString& key) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toObject();
+
+    return {};
+}
+
+std::optional<QJsonArray> XJsonObject::getOptionalArray(const QString& key) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toArray();
+
+    return {};
+}
+
 void XJsonObject::checkField(const QString& key, QJsonValue::Type type) const
 {
     if (!mObject.contains(key))
+    {
+        qWarning() << "Field missing:" << key << mObject;
         throw InvalidJsonException(QString("JSON field missing: %1").arg(key));
+    }
 
     if (mObject.value(key).type() != type)
+    {
+        qWarning() << "Field:" << key << "has wrong type:" << mObject;
         throw InvalidJsonException(QString("JSON field %1 does not have type: %2").arg(key).arg(type));
+    }
 }
 
 }

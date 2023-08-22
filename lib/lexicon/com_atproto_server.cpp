@@ -7,7 +7,8 @@ namespace ATProto::ComATProtoServer {
 
 Session::Ptr Session::fromJson(const QJsonDocument& json)
 {
-    XJsonObject root(json.object());
+    const auto jsonObj = json.object();
+    const XJsonObject root(jsonObj);
     auto session = std::make_unique<Session>();
     session->mHandle = root.getRequiredString("handle");
     session->mDid = root.getRequiredString("did");

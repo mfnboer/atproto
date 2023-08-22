@@ -26,7 +26,7 @@ private:
 class XJsonObject
 {
 public:
-    XJsonObject(QJsonObject&& obj);
+    XJsonObject(const QJsonObject& obj);
 
     const QJsonObject& getObject() const { return mObject; }
 
@@ -37,12 +37,15 @@ public:
     QJsonArray getRequiredArray(const QString& key) const;
     std::optional<QString> getOptionalString(const QString& key) const;
     std::optional<int> getOptionalInt(const QString& key) const;
+    std::optional<QDateTime> getOptionalDateTime(const QString& key) const;
     QUrl getOptionalUrl(const QString& key) const;
+    std::optional<QJsonObject> getOptionalObject(const QString& key) const;
+    std::optional<QJsonArray> getOptionalArray(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
 
-    QJsonObject mObject;
+    const QJsonObject& mObject;
 };
 
 }

@@ -15,6 +15,10 @@ qt_add_library(libatproto STATIC
     lexicon/app_bsky_feed.cpp
     lexicon/lexicon.h
     lexicon/lexicon.cpp
+    lexicon/app_bsky_richtext.h
+    lexicon/app_bsky_richtext.cpp
+    lexicon/app_bsky_embed.h
+    lexicon/app_bsky_embed.cpp
 )
 
 
