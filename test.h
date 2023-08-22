@@ -31,10 +31,10 @@ public:
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
     }
 
-    QString getAvatar() const { return mProfile.mAvatar.value_or(QString()); }
-    QString getBanner() const { return mProfile.mBanner.value_or(QString()); }
-    QString getDisplayName() const { return mProfile.mDisplayName.value_or(QString()); }
-    QString getDescription() const { return mProfile.mDescription.value_or(QString()); }
+    QString getAvatar() const { return mProfile ? mProfile->mAvatar.value_or(QString()) : ""; }
+    QString getBanner() const { return mProfile ? mProfile->mBanner.value_or(QString()) : ""; }
+    QString getDisplayName() const { return mProfile ? mProfile->mDisplayName.value_or(QString()) : ""; }
+    QString getDescription() const { return mProfile ? mProfile->mDescription.value_or(QString()) : ""; }
 
 signals:
     void profileChanged();
@@ -43,8 +43,8 @@ private:
     void getProfile(const QString& user)
     {
         mBsky->getProfile(user,
-            [this](auto&& profile){
-                mProfile = *profile;
+            [this](auto profile){
+                mProfile = std::move(profile);
                 emit profileChanged();
             },
             [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
@@ -53,7 +53,7 @@ private:
     void getAuthorFeed(const QString& author)
     {
         mBsky->getAuthorFeed(author, 50, {},
-            [this](auto&& feed) {
+            [this](auto feed) {
                 for (const AppBskyFeed::FeedViewPost::Ptr& feedEntry : feed->mFeed)
                 {
                     const auto& postView = feedEntry->mPost;
@@ -142,7 +142,7 @@ private:
     }
 
     std::unique_ptr<ATProto::Client> mBsky;
-    AppBskyActor::ProfileViewDetailed mProfile;
+    AppBskyActor::ProfileViewDetailed::Ptr mProfile;
 };
 
 }

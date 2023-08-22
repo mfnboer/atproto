@@ -19,6 +19,8 @@ qt_add_library(libatproto STATIC
     lexicon/app_bsky_richtext.cpp
     lexicon/app_bsky_embed.h
     lexicon/app_bsky_embed.cpp
+    lexicon/com_atproto_label.h
+    lexicon/com_atproto_label.cpp
 )
 
 

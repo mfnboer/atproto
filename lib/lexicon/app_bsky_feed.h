@@ -3,6 +3,7 @@
 #pragma once
 #include "app_bsky_actor.h"
 #include "app_bsky_embed.h"
+#include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
 
@@ -17,12 +18,12 @@ struct PostView
     std::variant<Record::Post::Ptr> mRecord;
     RecordType mRecordType;
     AppBskyEmbed::Embed::Ptr mEmbed; // optional
-    std::optional<int> mReplyCount;
-    std::optional<int> mRepostCount;
-    std::optional<int> mLikeCount;
+    int mReplyCount = 0;
+    int mRepostCount = 0;
+    int mLikeCount = 0;
     QDateTime mIndexedAt;
-    // TODO viewer
-    // TODO labels
+    // NOT IMPLEMENTED viewer
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
     using Ptr = std::unique_ptr<PostView>;
     static Ptr fromJson(const QJsonObject& json);

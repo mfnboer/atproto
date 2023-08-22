@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "app_bsky_actor.h"
+#include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
 
@@ -124,7 +125,7 @@ struct RecordViewRecord
     AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
     std::variant<AppBskyFeed::Record::Post::Ptr> mValue;
     RecordType mValueType;
-    // TODO labels
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     std::vector<Embed::Ptr> mEmbeds;
     QDateTime mIndexedAt;
 
