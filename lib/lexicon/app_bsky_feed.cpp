@@ -98,25 +98,43 @@ FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
     return feedViewPost;
 }
 
+static void getFeed(std::vector<FeedViewPost::Ptr>& feed, const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    const QJsonArray& feedArray = xjson.getRequiredArray("feed");
+    feed.reserve(feedArray.size());
+
+    for (const auto& feedJson : feedArray)
+    {
+        if (!feedJson.isObject())
+        {
+            qWarning() << "Invalid feed:" << json;
+            throw InvalidJsonException("Invalid feed");
+        }
+
+        auto feedViewPost = FeedViewPost::fromJson(feedJson.toObject());
+        feed.push_back(std::move(feedViewPost));
+    }
+}
+
 AuthorFeed::Ptr AuthorFeed::fromJson(const QJsonDocument& json)
 {
     auto authorFeed = std::make_unique<AuthorFeed>();
     const auto jsonObj = json.object();
     XJsonObject xjson(jsonObj);
     authorFeed->mCursor = xjson.getOptionalString("cursor");
-    const QJsonArray& feeds = xjson.getRequiredArray("feed");
-    authorFeed->mFeed.reserve(feeds.size());
-
-    for (const auto& feed : feeds)
-    {
-        if (!feed.isObject())
-            throw InvalidJsonException("Invalid feed");
-
-        auto feedViewPost = FeedViewPost::fromJson(feed.toObject());
-        authorFeed->mFeed.push_back(std::move(feedViewPost));
-    }
-
+    getFeed(authorFeed->mFeed, jsonObj);
     return authorFeed;
+}
+
+Timeline::Ptr Timeline::fromJson(const QJsonDocument& json)
+{
+    auto timeline = std::make_unique<Timeline>();
+    const auto jsonObj = json.object();
+    XJsonObject xjson(jsonObj);
+    timeline->mCursor = xjson.getOptionalString("cursor");
+    getFeed(timeline->mFeed, jsonObj);
+    return timeline;
 }
 
 }

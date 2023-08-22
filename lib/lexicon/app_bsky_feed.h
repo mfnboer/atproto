@@ -70,4 +70,14 @@ struct AuthorFeed
     static Ptr fromJson(const QJsonDocument& json);
 };
 
+// app.bsky.feed.getTimeline#ouput
+struct Timeline
+{
+    std::optional<QString> mCursor;
+    std::vector<FeedViewPost::Ptr> mFeed;
+
+    using Ptr = std::unique_ptr<Timeline>;
+    static Ptr fromJson(const QJsonDocument& json);
+};
+
 }

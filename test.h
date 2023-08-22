@@ -27,6 +27,7 @@ public:
             [this, user]{
                 getProfile(user);
                 getAuthorFeed(user);
+                getTimeline();
             },
             [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
     }
@@ -52,30 +53,50 @@ private:
 
     void getAuthorFeed(const QString& author)
     {
-        mBsky->getAuthorFeed(author, 50, {},
+        mBsky->getAuthorFeed(author, 10, {},
             [this](auto feed) {
-                for (const AppBskyFeed::FeedViewPost::Ptr& feedEntry : feed->mFeed)
-                {
-                    const auto& postView = feedEntry->mPost;
-                    Q_ASSERT(postView->mRecordType == RecordType::APP_BSKY_FEED_POST);
-                    const auto& record = postView->mRecord;
-                    const auto& post = std::get<AppBskyFeed::Record::Post::Ptr>(record);
-                    qDebug() << "Post:" << post->mCreatedAt << post->mText;
-
-                    if (postView->mEmbed)
-                        logEmbed(*postView->mEmbed);
-
-                    if (feedEntry->mReply)
-                    {
-                        qDebug() << "REPLY TO:";
-                        logPostView(*feedEntry->mReply->mParent);
-                        qDebug() << "ROOT:";
-                        logPostView(*feedEntry->mReply->mRoot);
-                    }
-                }
+                qDebug() << "*** AUTHOR FEED ***";
+                logFeed(feed->mFeed);
             },
             [](const QString& err){ qDebug() << "getAuthorFeed FAILED:" << err; }
         );
+    }
+
+    void getTimeline()
+    {
+        mBsky->getTimeline(10, {},
+            [this](auto feed) {
+                qDebug() << "*** TIMELINE ***";
+                logFeed(feed->mFeed);
+            },
+            [](const QString& err){ qDebug() << "getTimeline FAILED:" << err; }
+        );
+    }
+
+    void logFeed(const std::vector<AppBskyFeed::FeedViewPost::Ptr>& feed)
+    {
+        int n = 0;
+        for (const AppBskyFeed::FeedViewPost::Ptr& feedEntry : feed)
+        {
+            ++n;
+            const auto& postView = feedEntry->mPost;
+            Q_ASSERT(postView->mRecordType == RecordType::APP_BSKY_FEED_POST);
+            const auto& record = postView->mRecord;
+            const auto& post = std::get<AppBskyFeed::Record::Post::Ptr>(record);
+            qDebug() << QString("Post %1:").arg(n) << post->mText;
+            qDebug() << "Author:" << postView->mAuthor->mHandle;
+
+            if (postView->mEmbed)
+                logEmbed(*postView->mEmbed);
+
+            if (feedEntry->mReply)
+            {
+                qDebug() << "REPLY TO:";
+                logPostView(*feedEntry->mReply->mParent);
+                qDebug() << "ROOT:";
+                logPostView(*feedEntry->mReply->mRoot);
+            }
+        }
     }
 
     void logEmbed(const AppBskyEmbed::Embed& embed)
