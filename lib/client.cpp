@@ -7,6 +7,24 @@
 namespace ATProto
 {
 
+static void addOptionalIntParam(Xrpc::Client::Params& params, const QString& name, std::optional<int> value, int min, int max)
+{
+    if (value)
+    {
+        if (*value < min || * value > max)
+            throw InvalidRequest(QString("Invalid %1 value %2").arg(name, *value));
+
+        params.append({name, QString::number(*value)});
+    }
+}
+
+static void addOptionalStringParam(Xrpc::Client::Params& params, const QString& name,
+                                   const std::optional<QString>& value)
+{
+    if (value)
+        params.append({name, *value});
+}
+
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
     mXrpc(std::move(xrpc))
 {}
@@ -55,23 +73,36 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
                    const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"actor", user}};
-
-    if (limit)
-    {
-        if (*limit < 1 || * limit > 100)
-            throw InvalidRequest(QString("Invalid limit value %1").arg(*limit));
-
-        params.append({"limit", QString::number(*limit)});
-    }
-
-    if (cursor)
-        params.append({"cursor", *cursor});
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
 
     mXrpc->get("app.bsky.feed.getAuthorFeed", params,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAuthorFeed:" << reply;
             try {
                 auto feed = AppBskyFeed::AuthorFeed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+                 const getTimelineSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getTimeline", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getTimeline:" << reply;
+            try {
+                auto feed = AppBskyFeed::Timeline::fromJson(reply);
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {

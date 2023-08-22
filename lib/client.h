@@ -29,6 +29,7 @@ public:
     using createSessionSuccessCb = std::function<void()>;
     using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::AuthorFeed::Ptr)>;
+    using getTimelineSuccessCb = std::function<void(AppBskyFeed::Timeline::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -64,6 +65,16 @@ public:
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                        const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getTimeline
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+                     const getTimelineSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
