@@ -104,6 +104,8 @@ static void getFeed(std::vector<FeedViewPost::Ptr>& feed, const QJsonObject& jso
     const QJsonArray& feedArray = xjson.getRequiredArray("feed");
     feed.reserve(feedArray.size());
 
+    // TODO: catch exceptions per FeedViewPost and mark those posts invalid instead of
+    // failing the complete feed??
     for (const auto& feedJson : feedArray)
     {
         if (!feedJson.isObject())
