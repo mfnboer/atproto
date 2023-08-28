@@ -63,22 +63,13 @@ struct FeedViewPost
 using PostFeed = std::vector<FeedViewPost::Ptr>;
 
 // app.bsky.feed.getAuthorFeed#output
-struct AuthorFeed
-{
-    std::optional<QString> mCursor;
-    PostFeed mFeed;
-
-    using Ptr = std::unique_ptr<AuthorFeed>;
-    static Ptr fromJson(const QJsonDocument& json);
-};
-
 // app.bsky.feed.getTimeline#ouput
-struct Timeline
+struct OutputFeed
 {
     std::optional<QString> mCursor;
     PostFeed mFeed;
 
-    using Ptr = std::unique_ptr<Timeline>;
+    using Ptr = std::unique_ptr<OutputFeed>;
     static Ptr fromJson(const QJsonDocument& json);
 };
 

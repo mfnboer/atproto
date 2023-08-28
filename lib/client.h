@@ -28,8 +28,8 @@ class Client
 public:
     using createSessionSuccessCb = std::function<void()>;
     using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
-    using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::AuthorFeed::Ptr)>;
-    using getTimelineSuccessCb = std::function<void(AppBskyFeed::Timeline::Ptr)>;
+    using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
