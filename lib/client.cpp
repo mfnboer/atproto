@@ -80,7 +80,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAuthorFeed:" << reply;
             try {
-                auto feed = AppBskyFeed::AuthorFeed::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {
@@ -102,7 +102,7 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getTimeline:" << reply;
             try {
-                auto feed = AppBskyFeed::Timeline::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {

@@ -117,24 +117,14 @@ static void getFeed(std::vector<FeedViewPost::Ptr>& feed, const QJsonObject& jso
     }
 }
 
-AuthorFeed::Ptr AuthorFeed::fromJson(const QJsonDocument& json)
+OutputFeed::Ptr OutputFeed::fromJson(const QJsonDocument& json)
 {
-    auto authorFeed = std::make_unique<AuthorFeed>();
+    auto outputFeed = std::make_unique<OutputFeed>();
     const auto jsonObj = json.object();
     XJsonObject xjson(jsonObj);
-    authorFeed->mCursor = xjson.getOptionalString("cursor");
-    getFeed(authorFeed->mFeed, jsonObj);
-    return authorFeed;
-}
-
-Timeline::Ptr Timeline::fromJson(const QJsonDocument& json)
-{
-    auto timeline = std::make_unique<Timeline>();
-    const auto jsonObj = json.object();
-    XJsonObject xjson(jsonObj);
-    timeline->mCursor = xjson.getOptionalString("cursor");
-    getFeed(timeline->mFeed, jsonObj);
-    return timeline;
+    outputFeed->mCursor = xjson.getOptionalString("cursor");
+    getFeed(outputFeed->mFeed, jsonObj);
+    return outputFeed;
 }
 
 }
