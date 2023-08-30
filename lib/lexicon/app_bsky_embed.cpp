@@ -92,6 +92,8 @@ RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
         view->mRecord = RecordViewBlocked::fromJson(recordJson);
         break;
     default:
+        // TODO:
+        // I have seen this "app.bsky.feed.defs#generatorView" as record type
         qWarning() << "Unsupported record type in app.bsky.embed.record#view:" << type << json;
         break;
     }
