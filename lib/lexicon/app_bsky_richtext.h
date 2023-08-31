@@ -57,4 +57,12 @@ struct Facet
     static Ptr fromJson(const QJsonObject& json);
 };
 
+/**
+ * @brief applyFacets Replace the links in the text by HTML href anchors
+ * @param text
+ * @param facets
+ * @return HTML version of the text with links in it
+ */
+QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Facet::Ptr>& facets);
+
 }
