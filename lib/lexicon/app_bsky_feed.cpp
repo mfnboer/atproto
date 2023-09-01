@@ -7,6 +7,17 @@
 
 namespace ATProto::AppBskyFeed {
 
+PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
+{
+    auto replyRef = std::make_unique<PostReplyRef>();
+    XJsonObject xjson(json);
+    const auto rootJson = xjson.getRequiredObject("root");
+    replyRef->mRoot = ComATProtoRepo::StrongRef::fromJson(rootJson);
+    const auto parentJson = xjson.getRequiredObject("parent");
+    replyRef->mParent = ComATProtoRepo::StrongRef::fromJson(parentJson);
+    return replyRef;
+}
+
 Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
 {
     auto post = std::make_unique<Record::Post>();
@@ -25,6 +36,10 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
             post->mFacets.push_back(std::move(f));
         }
     }
+
+    const auto replyJson = xjson.getOptionalObject("reply");
+    if (replyJson)
+        post->mReply = PostReplyRef::fromJson(*replyJson);
 
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return post;

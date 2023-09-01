@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "app_bsky_richtext.h"
+#include "com_atproto_repo.h"
 #include <QJsonDocument>
 
 namespace ATProto {
@@ -32,6 +33,16 @@ RecordType stringToRecordType(const QString& str);
 
 namespace AppBskyFeed {
 
+// app.bsky.feed.post#replyRef
+struct PostReplyRef
+{
+    ComATProtoRepo::StrongRef::Ptr mRoot; // required
+    ComATProtoRepo::StrongRef::Ptr mParent; // required
+
+    using Ptr = std::unique_ptr<PostReplyRef>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // Record types
 namespace Record {
 
@@ -40,8 +51,10 @@ struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
     std::vector<AppBskyRichtext::Facet::Ptr> mFacets;
-    // NOT IMPLEMENTED reply (it is detailed at the FeedViewPost level)
+    PostReplyRef::Ptr mReply;
     // NOT IMPLEMENTED embed (it is detailed at the PostView level)
+    // NOT IMPLEMENTED self labels
+    // NOT IMPLEMENTED langs
     QDateTime mCreatedAt;
 
     using Ptr = std::unique_ptr<Post>;
