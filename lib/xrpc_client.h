@@ -3,6 +3,7 @@
 #pragma once
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
+#include <QNetworkReply>
 #include <unordered_set>
 
 namespace Xrpc {
@@ -28,6 +29,7 @@ private:
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
     void removeReply(QNetworkReply* reply);
     void replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb);
 
     QNetworkAccessManager mNetwork;

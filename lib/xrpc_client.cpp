@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "xrpc_client.h"
-#include <QNetworkReply>
 #include <QSslSocket>
 #include <QUrlQuery>
 
@@ -61,6 +60,8 @@ void Client::get(const QString& service, const Params& params,
 
     connect(reply, &QNetworkReply::finished, this,
             [this, reply, successCb, errorCb]{ replyFinished(reply, successCb, errorCb); });
+    connect(reply, &QNetworkReply::errorOccurred, this,
+            [this, reply, errorCb](auto errorCode){ networkError(reply, errorCode, errorCb); });
     connect(reply, &QNetworkReply::sslErrors, this,
             [this, reply, errorCb](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb); });
 }
@@ -116,8 +117,18 @@ void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, con
     removeReply(reply);
 }
 
+void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb)
+{
+    Q_ASSERT(reply);
+    const auto errorMsg = reply->errorString();
+    qDebug() << "Network error:" << errorCode << errorMsg;
+    errorCb(errorMsg, {});
+    removeReply(reply);
+}
+
 void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb)
 {
+    Q_ASSERT(reply);
     // TODO: error handling
     qWarning() << "SSL errors:" << errors;
     errorCb("SSL error", {});
