@@ -171,7 +171,7 @@ QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Face
         bytePos = link.mEnd;
     }
 
-    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped());
+    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>"));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
     return result;
