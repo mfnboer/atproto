@@ -32,6 +32,7 @@ struct PostView
 // app.bsky.feed.defs#replyRef
 struct ReplyRef
 {
+    // TODO: notFound, blocked
     PostView::Ptr mRoot; // required
     PostView::Ptr mParent; // required
 
@@ -71,6 +72,66 @@ struct OutputFeed
 
     using Ptr = std::unique_ptr<OutputFeed>;
     static Ptr fromJson(const QJsonDocument& json);
+};
+
+// app.bsky.feed.defs#notFoundPost
+struct NotFoundPost
+{
+    QString mUri; // at-uri
+
+    using Ptr = std::unique_ptr<NotFoundPost>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.defs#blockedAuthor
+struct BlockedAuthor
+{
+    QString mDid;
+    // NOT IMPLEMENTED viewer
+
+    using Ptr = std::unique_ptr<BlockedAuthor>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.defs#blockedPost
+struct BlockedPost
+{
+    QString mUri; // at-uri
+    BlockedAuthor::Ptr mAuthor; // required
+
+    using Ptr = std::unique_ptr<BlockedPost>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct ThreadElement;
+
+// app.bsky.feed.defs#threadViewPost
+struct ThreadViewPost
+{
+    PostView::Ptr mPost; // required
+    std::unique_ptr<ThreadElement> mParent; // optional
+    std::vector<std::unique_ptr<ThreadElement>> mReplies;
+
+    using Ptr = std::unique_ptr<ThreadViewPost>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+enum class ThreadElementType
+{
+    NOT_FOUND_POST,
+    BLOCKED_POST,
+    THREAD_VIEW_POST,
+    UNKNOWN
+};
+ThreadElementType stringToThreadElementType(const QString& str);
+
+struct ThreadElement
+{
+    ThreadElementType mType;
+    std::variant<ThreadViewPost::Ptr, NotFoundPost::Ptr, BlockedPost::Ptr> mPost;
+
+    using Ptr = std::unique_ptr<ThreadElement>;
+    static Ptr fromJson(const QJsonObject& json);
 };
 
 }
