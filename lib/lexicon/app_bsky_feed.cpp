@@ -144,4 +144,104 @@ OutputFeed::Ptr OutputFeed::fromJson(const QJsonDocument& json)
     return outputFeed;
 }
 
+NotFoundPost::Ptr NotFoundPost::fromJson(const QJsonObject& json)
+{
+    auto notFound = std::make_unique<NotFoundPost>();
+    const XJsonObject xjson(json);
+    notFound->mUri = xjson.getRequiredString("uri");
+    return notFound;
+}
+
+BlockedAuthor::Ptr BlockedAuthor::fromJson(const QJsonObject& json)
+{
+    auto blockedAuthor = std::make_unique<BlockedAuthor>();
+    const XJsonObject xjson(json);
+    blockedAuthor->mDid = xjson.getRequiredString("did");
+    return blockedAuthor;
+}
+
+BlockedPost::Ptr BlockedPost::fromJson(const QJsonObject& json)
+{
+    auto blockedPost = std::make_unique<BlockedPost>();
+    const XJsonObject xjson(json);
+    blockedPost->mUri = xjson.getRequiredString("uri");
+    const auto authorJson = xjson.getRequiredObject("author");
+    blockedPost->mAuthor = BlockedAuthor::fromJson(authorJson);
+    return blockedPost;
+}
+
+ThreadViewPost::Ptr ThreadViewPost::fromJson(const QJsonObject& json)
+{
+    auto thread = std::make_unique<ThreadViewPost>();
+    const XJsonObject xjson(json);
+    const auto postJson = xjson.getRequiredObject("post");
+    thread->mPost = PostView::fromJson(postJson);
+    const auto parentJson = xjson.getOptionalObject("parent");
+
+    if (parentJson)
+        thread->mParent = ThreadElement::fromJson(*parentJson);
+
+    const auto repliesJson = xjson.getOptionalArray("replies");
+
+    if (repliesJson)
+    {
+        for (const auto& replyJson : *repliesJson)
+        {
+            if (!replyJson.isObject())
+            {
+                qWarning() << "Invalid feed:" << json;
+                throw InvalidJsonException("threadViewPost element");
+            }
+
+            auto reply = ThreadElement::fromJson(replyJson.toObject());
+
+            if (reply)
+                thread->mReplies.push_back(std::move(reply));
+        }
+    }
+
+    return thread;
+}
+
+ThreadElementType stringToThreadElementType(const QString& str)
+{
+    static const std::unordered_map<QString, ThreadElementType> mapping = {
+        { "app.bsky.feed.defs#threadViewPost", ThreadElementType::THREAD_VIEW_POST },
+        { "app.bsky.feed.defs#notFoundPost", ThreadElementType::NOT_FOUND_POST },
+        { "app.bsky.feed.defs#blockedPost", ThreadElementType::BLOCKED_POST }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    return ThreadElementType::UNKNOWN;
+}
+
+ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
+{
+    auto element = std::make_unique<ThreadElement>();
+    const XJsonObject xjson(json);
+    const auto typeString = xjson.getRequiredString("$type");
+    element->mType = stringToThreadElementType(typeString);
+
+    switch (element->mType)
+    {
+    case ThreadElementType::NOT_FOUND_POST:
+        element->mPost = NotFoundPost::fromJson(json);
+        break;
+    case ThreadElementType::BLOCKED_POST:
+        element->mPost = BlockedPost::fromJson(json);
+        break;
+    case ThreadElementType::THREAD_VIEW_POST:
+        element->mPost = ThreadViewPost::fromJson(json);
+        break;
+    case ThreadElementType::UNKNOWN:
+        qWarning() << "Unsupported thread element type:" << typeString << "json:" << json;
+        break;
+    }
+
+    return element;
+}
+
 }

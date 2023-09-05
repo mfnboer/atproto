@@ -30,6 +30,7 @@ public:
     using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using getPostThreadSuccessCb = std::function<void(AppBskyFeed::ThreadViewPost::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -89,6 +90,17 @@ public:
      */
     void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
                      const getTimelineSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getPostThread
+     * @param uri
+     * @param depth min=0 max=1000 default=6
+     * @param parentHeight min=0 max=1000 default=80
+     * @param successCb
+     * @param errorCb
+     */
+    void getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
+                       const getPostThreadSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
