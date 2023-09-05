@@ -18,4 +18,15 @@ Session::Ptr Session::fromJson(const QJsonDocument& json)
     return session;
 }
 
+GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
+{
+    const auto jsonObj = json.object();
+    const XJsonObject root(jsonObj);
+    auto session = std::make_unique<GetSessionOutput>();
+    session->mHandle = root.getRequiredString("handle");
+    session->mDid = root.getRequiredString("did");
+    session->mEmail = root.getOptionalString("email");
+    return session;
+}
+
 }

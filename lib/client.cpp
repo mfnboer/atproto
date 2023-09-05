@@ -30,7 +30,7 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
 {}
 
 void Client::createSession(const QString& user, const QString& pwd,
-                           const createSessionSuccessCb& successCb, const ErrorCb& errorCb)
+                           const successCb& successCb, const ErrorCb& errorCb)
 {
     mSession = nullptr;
     QJsonObject root;
@@ -50,6 +50,74 @@ void Client::createSession(const QString& user, const QString& pwd,
             }
         },
         failure(errorCb));
+}
+
+void Client::resumeSession(const ComATProtoServer::Session& session,
+                           const successCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("com.atproto.server.getSession", {},
+        [this, session, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Got session:" << reply;
+            try {
+                auto resumed = ComATProtoServer::GetSessionOutput::fromJson(reply);
+                if (resumed->mDid == session.mDid)
+                {
+                    qDebug() << "Session resumed";
+                    mSession = std::make_unique<ComATProtoServer::Session>(session);
+                    mSession->mHandle = resumed->mHandle;
+                    mSession->mEmail = resumed->mEmail;
+
+                    if (successCb)
+                        successCb();
+                }
+                else
+                {
+                    const auto msg = QString("Session did(%1) does not match resumed did(%2)").arg(
+                        session.mDid, resumed->mDid);
+                    qWarning() << msg;
+
+                    if (errorCb)
+                        errorCb(msg);
+                }
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        session.mAccessJwt);
+}
+
+void Client::refreshSession(const ComATProtoServer::Session& session,
+                            const successCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->post("com.atproto.server.rereshSession", {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Refresh session reply:" << reply;
+            try {
+                auto refreshed = ComATProtoServer::Session::fromJson(reply);
+                if (refreshed->mDid == mSession->mDid)
+                {
+                    qDebug() << "Session refreshed";
+                    mSession = std::move(refreshed);
+
+                    if (successCb)
+                        successCb();
+                }
+                else
+                {
+                    const auto msg = QString("Session did(%1) does not match refreshed did(%2)").arg(
+                        mSession->mDid, refreshed->mDid);
+                    qWarning() << msg;
+
+                    if (errorCb)
+                        errorCb(msg);
+                }
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        refreshToken());
 }
 
 void Client::getProfile(const QString& user, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
@@ -117,6 +185,12 @@ const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;
     return mSession ? mSession->mAccessJwt : NO_TOKEN;
+}
+
+const QString& Client::refreshToken() const
+{
+    static const QString NO_TOKEN;
+    return mSession ? mSession->mRefreshJwt : NO_TOKEN;
 }
 
 Xrpc::Client::ErrorCb Client::failure(const ErrorCb& cb)

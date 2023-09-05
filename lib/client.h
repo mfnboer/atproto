@@ -26,13 +26,15 @@ private:
 class Client
 {
 public:
-    using createSessionSuccessCb = std::function<void()>;
+    using successCb = std::function<void()>;
     using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
+
+    const ComATProtoServer::Session* getSession() const { return mSession.get(); }
 
     // com.atproto.server
     /**
@@ -43,7 +45,19 @@ public:
      * @param errorCb
      */
     void createSession(const QString& user, const QString& pwd,
-                       const createSessionSuccessCb& successCb, const ErrorCb& errorCb);
+                       const successCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief resumeSession Resume a previously created session
+     * @param session
+     * @param successCb
+     * @param errorCb
+     */
+    void resumeSession(const ComATProtoServer::Session& session,
+                       const successCb& successCb, const ErrorCb& errorCb);
+
+    void refreshSession(const ComATProtoServer::Session& session,
+                       const successCb& successCb, const ErrorCb& errorCb);
 
     // com.bsky.actor
     /**
@@ -78,6 +92,7 @@ public:
 
 private:
     const QString& authToken() const;
+    const QString& refreshToken() const;
 
     // Create XRPC error callback from ATProto client callback
     Xrpc::Client::ErrorCb failure(const ErrorCb& cb);
