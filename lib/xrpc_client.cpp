@@ -83,10 +83,14 @@ QUrl Client::buildUrl(const QString& service, const Params& params) const
     QUrl url = buildUrl(service);
     QUrlQuery query;
 
-    for (const auto& kv : params)
-        query.addQueryItem(kv.first, QUrl::toPercentEncoding(kv.second));
+    if (!params.isEmpty())
+    {
+        for (const auto& kv : params)
+            query.addQueryItem(kv.first, QUrl::toPercentEncoding(kv.second));
 
-    url.setQuery(query);
+        url.setQuery(query);
+    }
+
     return url;
 }
 
