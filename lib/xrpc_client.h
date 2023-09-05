@@ -18,6 +18,8 @@ public:
     explicit Client(const QString& host);
     ~Client();
 
+    const QString& getHost() const { return mHost; }
+
     void post(const QString& service, const QJsonDocument& json,
               const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
     void get(const QString& service, const Params& params,

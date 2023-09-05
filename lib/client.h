@@ -34,6 +34,7 @@ public:
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
 
+    const QString& getHost() const { return mXrpc->getHost(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
 
     // com.atproto.server
