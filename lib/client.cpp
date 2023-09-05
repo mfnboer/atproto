@@ -90,7 +90,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
 void Client::refreshSession(const ComATProtoServer::Session& session,
                             const successCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->post("com.atproto.server.rereshSession", {},
+    mXrpc->post("com.atproto.server.refreshSession", {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Refresh session reply:" << reply;
             try {
@@ -211,6 +211,14 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
 {
     qDebug() << "Request failed:" << err;
     qDebug() << json;
+
+    if (json.isNull())
+    {
+        if (errorCb)
+            errorCb(err);
+
+        return;
+    }
 
     try {
         auto error = ATProtoError::fromJson(json);
