@@ -4,6 +4,7 @@
 #include "app_bsky_actor.h"
 #include "../xjson.h"
 #include <QJsonArray>
+#include <unordered_map>
 
 namespace ATProto::AppBskyFeed {
 
