@@ -245,4 +245,13 @@ ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
     return element;
 }
 
+PostThread::Ptr PostThread::fromJson(const QJsonObject& json)
+{
+    auto postThread = std::make_unique<PostThread>();
+    const XJsonObject xjson(json);
+    const auto threadJson = xjson.getRequiredObject("thread");
+    postThread->mThread = ThreadElement::fromJson(threadJson);
+    return postThread;
+}
+
 }

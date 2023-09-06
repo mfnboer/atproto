@@ -192,7 +192,7 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPostThread:" << reply;
             try {
-                auto thread = AppBskyFeed::ThreadViewPost::fromJson(reply.object());
+                auto thread = AppBskyFeed::PostThread::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(thread));
             } catch (InvalidJsonException& e) {

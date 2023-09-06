@@ -134,4 +134,13 @@ struct ThreadElement
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.getPostThread/output
+struct PostThread
+{
+    ThreadElement::Ptr mThread; // required
+
+    using Ptr = std::unique_ptr<PostThread>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }
