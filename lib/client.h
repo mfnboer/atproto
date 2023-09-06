@@ -30,7 +30,7 @@ public:
     using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using getPostThreadSuccessCb = std::function<void(AppBskyFeed::ThreadViewPost::Ptr)>;
+    using getPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
