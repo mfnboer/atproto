@@ -40,7 +40,7 @@ void Client::createSession(const QString& user, const QString& pwd,
 
     mXrpc->post("com.atproto.server.createSession", json,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "Session created:" << reply;
+            qInfo() << "Session created:" << reply;
             try {
                 mSession = std::move(ComATProtoServer::Session::fromJson(reply));
                 if (successCb)
@@ -57,12 +57,12 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
 {
     mXrpc->get("com.atproto.server.getSession", {},
         [this, session, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "Got session:" << reply;
+            qInfo() << "Got session:" << reply;
             try {
                 auto resumed = ComATProtoServer::GetSessionOutput::fromJson(reply);
                 if (resumed->mDid == session.mDid)
                 {
-                    qDebug() << "Session resumed";
+                    qInfo() << "Session resumed";
                     mSession = std::make_unique<ComATProtoServer::Session>(session);
                     mSession->mHandle = resumed->mHandle;
                     mSession->mEmail = resumed->mEmail;
@@ -231,8 +231,8 @@ void Client::invalidJsonError(InvalidJsonException& e, const ErrorCb& cb)
 
 void Client::requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb)
 {
-    qDebug() << "Request failed:" << err;
-    qDebug() << json;
+    qInfo() << "Request failed:" << err;
+    qInfo() << json;
 
     if (json.isNull())
     {

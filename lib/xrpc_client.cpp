@@ -125,7 +125,7 @@ void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError erro
 {
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
-    qDebug() << "Network error:" << errorCode << errorMsg;
+    qInfo() << "Network error:" << errorCode << errorMsg;
     errorCb(errorMsg, {});
     removeReply(reply);
 }
