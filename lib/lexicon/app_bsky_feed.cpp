@@ -55,13 +55,13 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     postView->mAuthor = AppBskyActor::ProfileViewBasic::fromJson(json["author"].toObject());
     const auto recordObj = xjson.getRequiredObject("record");
     const XJsonObject record(recordObj);
-    const QString type = record.getRequiredString("$type");
-    postView->mRecordType = stringToRecordType(type);
+    postView->mRawRecordType = record.getRequiredString("$type");
+    postView->mRecordType = stringToRecordType(postView->mRawRecordType);
 
-    if (postView->mRecordType != RecordType::APP_BSKY_FEED_POST)
-        throw InvalidJsonException(QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(type));
-
-    postView->mRecord = Record::Post::fromJson(record.getObject());
+    if (postView->mRecordType == RecordType::APP_BSKY_FEED_POST)
+        postView->mRecord = Record::Post::fromJson(record.getObject());
+    else
+        qWarning() << QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(postView->mRawRecordType);
 
     const auto embedJson = xjson.getOptionalObject("embed");
     if (embedJson)
@@ -145,21 +145,32 @@ FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
 static void getFeed(std::vector<FeedViewPost::Ptr>& feed, const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    const QJsonArray& feedArray = xjson.getRequiredArray("feed");
-    feed.reserve(feedArray.size());
 
-    // TODO: catch exceptions per FeedViewPost and mark those posts invalid instead of
-    // failing the complete feed??
-    for (const auto& feedJson : feedArray)
-    {
-        if (!feedJson.isObject())
+    try {
+        const QJsonArray& feedArray = xjson.getRequiredArray("feed");
+        feed.reserve(feedArray.size());
+
+        for (const auto& feedJson : feedArray)
         {
-            qWarning() << "Invalid feed:" << json;
-            throw InvalidJsonException("Invalid feed");
-        }
+            if (!feedJson.isObject())
+            {
+                qWarning() << "PROTO ERROR invalid feed element: not an object";
+                qInfo() << json;
+                continue;
+            }
 
-        auto feedViewPost = FeedViewPost::fromJson(feedJson.toObject());
-        feed.push_back(std::move(feedViewPost));
+            try {
+                auto feedViewPost = FeedViewPost::fromJson(feedJson.toObject());
+                feed.push_back(std::move(feedViewPost));
+            } catch (InvalidJsonException& e) {
+                qWarning() << "PROTO ERROR invalid feed element:" << e.msg();
+                qInfo() << json;
+                continue;
+            }
+        }
+    } catch (InvalidJsonException& e) {
+        qWarning() << "PROTO ERROR invalid feed:" << e.msg();
+        qInfo() << json;
     }
 }
 
