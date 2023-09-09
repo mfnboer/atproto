@@ -29,12 +29,60 @@ struct PostView
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.defs#notFoundPost
+struct NotFoundPost
+{
+    QString mUri; // at-uri
+
+    using Ptr = std::unique_ptr<NotFoundPost>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.defs#blockedAuthor
+struct BlockedAuthor
+{
+    QString mDid;
+    // NOT IMPLEMENTED viewer
+
+    using Ptr = std::unique_ptr<BlockedAuthor>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.defs#blockedPost
+struct BlockedPost
+{
+    QString mUri; // at-uri
+    BlockedAuthor::Ptr mAuthor; // required
+
+    using Ptr = std::unique_ptr<BlockedPost>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+enum class PostElementType
+{
+    NOT_FOUND_POST,
+    BLOCKED_POST,
+    THREAD_VIEW_POST,
+    POST_VIEW,
+    UNKNOWN
+};
+PostElementType stringToPostElementType(const QString& str);
+
+struct ReplyElement
+{
+    PostElementType mType;
+    QString mUnsupportedType;
+    std::variant<PostView::Ptr, NotFoundPost::Ptr, BlockedPost::Ptr> mPost;
+
+    using Ptr = std::unique_ptr<ReplyElement>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.feed.defs#replyRef
 struct ReplyRef
 {
-    // TODO: notFound, blocked
-    PostView::Ptr mRoot; // required
-    PostView::Ptr mParent; // required
+    ReplyElement::Ptr mRoot; // required
+    ReplyElement::Ptr mParent; // required
 
     using Ptr = std::unique_ptr<ReplyRef>;
     static Ptr fromJson(const QJsonObject& json);
@@ -74,35 +122,6 @@ struct OutputFeed
     static Ptr fromJson(const QJsonDocument& json);
 };
 
-// app.bsky.feed.defs#notFoundPost
-struct NotFoundPost
-{
-    QString mUri; // at-uri
-
-    using Ptr = std::unique_ptr<NotFoundPost>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.feed.defs#blockedAuthor
-struct BlockedAuthor
-{
-    QString mDid;
-    // NOT IMPLEMENTED viewer
-
-    using Ptr = std::unique_ptr<BlockedAuthor>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.feed.defs#blockedPost
-struct BlockedPost
-{
-    QString mUri; // at-uri
-    BlockedAuthor::Ptr mAuthor; // required
-
-    using Ptr = std::unique_ptr<BlockedPost>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
 struct ThreadElement;
 
 // app.bsky.feed.defs#threadViewPost
@@ -116,18 +135,10 @@ struct ThreadViewPost
     static Ptr fromJson(const QJsonObject& json);
 };
 
-enum class ThreadElementType
-{
-    NOT_FOUND_POST,
-    BLOCKED_POST,
-    THREAD_VIEW_POST,
-    UNKNOWN
-};
-ThreadElementType stringToThreadElementType(const QString& str);
-
 struct ThreadElement
 {
-    ThreadElementType mType;
+    PostElementType mType;
+    QString mUnsupportedType;
     std::variant<ThreadViewPost::Ptr, NotFoundPost::Ptr, BlockedPost::Ptr> mPost;
 
     using Ptr = std::unique_ptr<ThreadElement>;

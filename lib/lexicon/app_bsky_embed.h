@@ -77,6 +77,8 @@ struct RecordView
                  RecordViewBlocked::Ptr> mRecord;
     RecordType mRecordType;
 
+    QString mUnsupportedType; // not part of the spec
+
     using Ptr = std::unique_ptr<RecordView>;
     static Ptr fromJson(const QJsonObject& json);
 };
