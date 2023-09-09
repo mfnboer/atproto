@@ -75,14 +75,42 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     return postView;
 }
 
+ReplyElement::Ptr ReplyElement::fromJson(const QJsonObject& json)
+{
+    auto element = std::make_unique<ReplyElement>();
+    const XJsonObject xjson(json);
+    const auto typeString = xjson.getRequiredString("$type");
+    element->mType = stringToPostElementType(typeString);
+
+    switch (element->mType)
+    {
+    case PostElementType::NOT_FOUND_POST:
+        element->mPost = NotFoundPost::fromJson(json);
+        break;
+    case PostElementType::BLOCKED_POST:
+        element->mPost = BlockedPost::fromJson(json);
+        break;
+    case PostElementType::POST_VIEW:
+        element->mPost = PostView::fromJson(json);
+        break;
+    case PostElementType::THREAD_VIEW_POST:
+    case PostElementType::UNKNOWN:
+        qWarning() << "Unsupported thread element type:" << typeString << "json:" << json;
+        element->mUnsupportedType = typeString;
+        break;
+    }
+
+    return element;
+}
+
 ReplyRef::Ptr ReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_unique<ReplyRef>();
     XJsonObject xjson(json);
     const auto rootJson = xjson.getRequiredObject("root");
-    replyRef->mRoot = PostView::fromJson(rootJson);
+    replyRef->mRoot = ReplyElement::fromJson(rootJson);
     const auto parentJson = xjson.getRequiredObject("parent");
-    replyRef->mParent = PostView::fromJson(parentJson);
+    replyRef->mParent = ReplyElement::fromJson(parentJson);
     return replyRef;
 }
 
@@ -204,19 +232,20 @@ ThreadViewPost::Ptr ThreadViewPost::fromJson(const QJsonObject& json)
     return thread;
 }
 
-ThreadElementType stringToThreadElementType(const QString& str)
+PostElementType stringToPostElementType(const QString& str)
 {
-    static const std::unordered_map<QString, ThreadElementType> mapping = {
-        { "app.bsky.feed.defs#threadViewPost", ThreadElementType::THREAD_VIEW_POST },
-        { "app.bsky.feed.defs#notFoundPost", ThreadElementType::NOT_FOUND_POST },
-        { "app.bsky.feed.defs#blockedPost", ThreadElementType::BLOCKED_POST }
+    static const std::unordered_map<QString, PostElementType> mapping = {
+        { "app.bsky.feed.defs#postView", PostElementType::POST_VIEW },
+        { "app.bsky.feed.defs#threadViewPost", PostElementType::THREAD_VIEW_POST },
+        { "app.bsky.feed.defs#notFoundPost", PostElementType::NOT_FOUND_POST },
+        { "app.bsky.feed.defs#blockedPost", PostElementType::BLOCKED_POST }
     };
 
     const auto it = mapping.find(str);
     if (it != mapping.end())
         return it->second;
 
-    return ThreadElementType::UNKNOWN;
+    return PostElementType::UNKNOWN;
 }
 
 ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
@@ -224,21 +253,23 @@ ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
     auto element = std::make_unique<ThreadElement>();
     const XJsonObject xjson(json);
     const auto typeString = xjson.getRequiredString("$type");
-    element->mType = stringToThreadElementType(typeString);
+    element->mType = stringToPostElementType(typeString);
 
     switch (element->mType)
     {
-    case ThreadElementType::NOT_FOUND_POST:
+    case PostElementType::NOT_FOUND_POST:
         element->mPost = NotFoundPost::fromJson(json);
         break;
-    case ThreadElementType::BLOCKED_POST:
+    case PostElementType::BLOCKED_POST:
         element->mPost = BlockedPost::fromJson(json);
         break;
-    case ThreadElementType::THREAD_VIEW_POST:
+    case PostElementType::THREAD_VIEW_POST:
         element->mPost = ThreadViewPost::fromJson(json);
         break;
-    case ThreadElementType::UNKNOWN:
+    case PostElementType::POST_VIEW:
+    case PostElementType::UNKNOWN:
         qWarning() << "Unsupported thread element type:" << typeString << "json:" << json;
+        element->mUnsupportedType = typeString;
         break;
     }
 
