@@ -17,6 +17,7 @@ struct PostView
     AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
     std::variant<Record::Post::Ptr> mRecord;
     RecordType mRecordType;
+    QString mRawRecordType;
     AppBskyEmbed::Embed::Ptr mEmbed; // optional
     int mReplyCount = 0;
     int mRepostCount = 0;
