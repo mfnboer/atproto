@@ -31,6 +31,25 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
     return profileViewBasic;
 }
 
+ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
+{
+    XJsonObject root(json);
+    auto profile = std::make_unique<ProfileView>();
+    profile->mDid = root.getRequiredString("did");
+    profile->mHandle = root.getRequiredString("handle");
+    profile->mDisplayName = root.getOptionalString("displayName");
+    profile->mAvatar = root.getOptionalString("avatar");
+    profile->mDescription = root.getOptionalString("description");
+    profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
+
+    const auto viewerJson = root.getOptionalObject("viewer");
+    if (viewerJson)
+        profile->mViewer = ViewerState::fromJson(*viewerJson);
+
+    ComATProtoLabel::getLabels(profile->mLabels, json);
+    return profile;
+}
+
 ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json)
 {
     const auto jsonObj = json.object();

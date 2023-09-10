@@ -203,6 +203,28 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
         authToken());
 }
 
+void Client::getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                const getFollowsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getFollows", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getFollows:" << reply;
+            try {
+                auto follows = AppBskyGraph::GetFollowsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(follows));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;
