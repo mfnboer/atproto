@@ -32,6 +32,22 @@ struct ProfileViewBasic
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#profileView
+struct ProfileView
+{
+    QString mDid;
+    QString mHandle;
+    std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
+    std::optional<QString> mAvatar; // URL
+    std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
+    std::optional<QDateTime> mIndexedAt;
+    ViewerState::Ptr mViewer; // optional
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+
+    using Ptr = std::unique_ptr<ProfileView>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#profileViewDetailed
 struct ProfileViewDetailed
 {

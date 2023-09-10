@@ -5,6 +5,7 @@
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_feed.h"
+#include "lexicon/app_bsky_graph.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
 
@@ -31,6 +32,7 @@ public:
     using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using getPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
+    using getFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -102,6 +104,19 @@ public:
      */
     void getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
                        const getPostThreadSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.graph
+
+    /**
+     * @brief getFollows
+     * @param actor
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                    const getFollowsSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
