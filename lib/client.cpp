@@ -225,6 +225,32 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
         authToken());
 }
 
+void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
+          const successCb& successCb, const ErrorCb& errorCb)
+{
+    auto postJson = post.toJson();
+    QJsonObject root;
+    root.insert("repo", mSession->mDid);
+    root.insert("collection", postJson["$type"]);
+    root.insert("record", postJson);
+    QJsonDocument json(root);
+
+    qDebug() << "Posting:" << json;
+
+    mXrpc->post("com.atproto.repo.createRecord", json,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Posted:" << reply;
+            try {
+                if (successCb)
+                    successCb();
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;

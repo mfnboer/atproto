@@ -118,6 +118,9 @@ public:
     void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                     const getFollowsSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void post(const ATProto::AppBskyFeed::Record::Post& post,
+              const successCb& successCb, const ErrorCb& errorCb);
+
 private:
     const QString& authToken() const;
     const QString& refreshToken() const;
