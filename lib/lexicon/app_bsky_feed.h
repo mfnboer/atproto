@@ -9,6 +9,16 @@
 
 namespace ATProto::AppBskyFeed {
 
+// app.bsky.feed.defs#viewerState
+struct ViewerState
+{
+    std::optional<QString> mRepost;
+    std::optional<QString> mLike;
+
+    using Ptr = std::unique_ptr<ViewerState>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.feed.defs#postView
 struct PostView
 {
@@ -23,7 +33,7 @@ struct PostView
     int mRepostCount = 0;
     int mLikeCount = 0;
     QDateTime mIndexedAt;
-    // NOT IMPLEMENTED viewer
+    ViewerState::Ptr mViewer;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
     using Ptr = std::unique_ptr<PostView>;
