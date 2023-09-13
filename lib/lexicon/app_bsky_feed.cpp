@@ -28,6 +28,15 @@ PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
     return replyRef;
 }
 
+QJsonObject Record::Post::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.feed.post");
+    json.insert("text", mText);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
 Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
 {
     auto post = std::make_unique<Record::Post>();

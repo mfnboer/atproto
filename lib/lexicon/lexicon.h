@@ -57,6 +57,8 @@ struct Post
     // NOT IMPLEMENTED langs
     QDateTime mCreatedAt;
 
+    QJsonObject toJson() const;
+
     using Ptr = std::unique_ptr<Post>;
     static Ptr fromJson(const QJsonObject& json);
 };
