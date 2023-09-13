@@ -8,6 +8,15 @@
 
 namespace ATProto::AppBskyFeed {
 
+ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
+{
+    auto viewerState = std::make_unique<ViewerState>();
+    XJsonObject xjson(json);
+    viewerState->mRepost = xjson.getOptionalString("repost");
+    viewerState->mLike = xjson.getOptionalString("like");
+    return viewerState;
+}
+
 PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_unique<PostReplyRef>();
@@ -71,6 +80,11 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);
     postView->mLikeCount = xjson.getOptionalInt("likeCount", 0);
     postView->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+
+    const auto viewerJson = xjson.getOptionalObject("viewer");
+    if (viewerJson)
+        postView->mViewer = ViewerState::fromJson(*viewerJson);
+
     ComATProtoLabel::getLabels(postView->mLabels, json);
     return postView;
 }
