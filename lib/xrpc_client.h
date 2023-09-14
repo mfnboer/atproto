@@ -22,6 +22,8 @@ public:
 
     void post(const QString& service, const QJsonDocument& json,
               const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
+    void post(const QString& service, const QByteArray& data, const QString& mimeType,
+              const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt);
     void get(const QString& service, const Params& params,
              const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
 

@@ -34,6 +34,10 @@ QJsonObject Record::Post::toJson() const
     json.insert("$type", "app.bsky.feed.post");
     json.insert("text", mText);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+
+    if (mEmbed)
+        json.insert("embed", mEmbed->toJson());
+
     return json;
 }
 
@@ -60,6 +64,10 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     if (replyJson)
         post->mReply = PostReplyRef::fromJson(*replyJson);
 
+    const auto embedJson = xjson.getOptionalObject("embed");
+    if (embedJson)
+        post->mEmbed = AppBskyEmbed::Embed::fromJson(*embedJson);
+
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return post;
 }
@@ -83,7 +91,7 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
 
     const auto embedJson = xjson.getOptionalObject("embed");
     if (embedJson)
-        postView->mEmbed = AppBskyEmbed::Embed::fromJson(*embedJson);
+        postView->mEmbed = AppBskyEmbed::EmbedView::fromJson(*embedJson);
 
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);

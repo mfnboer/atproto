@@ -16,6 +16,30 @@ ATProtoError::Ptr ATProtoError::fromJson(const QJsonDocument& json)
     return error;
 }
 
+Blob::Ptr Blob::fromJson(const QJsonObject& json)
+{
+    auto blob = std::make_unique<Blob>();
+    const XJsonObject xjson(json);
+    const auto refJson = xjson.getRequiredObject("ref");
+    const XJsonObject xRefJson(refJson);
+    blob->mRefLink = xRefJson.getRequiredString("$link");
+    blob->mMimeType = xjson.getRequiredString("mimeType");
+    blob->mSize = xjson.getRequiredInt("size");
+    return blob;
+}
+
+QJsonObject Blob::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "blob");
+    QJsonObject refJson;
+    refJson.insert("$link", mRefLink);
+    json.insert("ref", refJson);
+    json.insert("mimeType", mMimeType);
+    json.insert("size", mSize);
+    return json;
+}
+
 RecordType stringToRecordType(const QString& str)
 {
     static const std::unordered_map<QString, RecordType> recordMapping = {
