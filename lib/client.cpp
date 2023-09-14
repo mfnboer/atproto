@@ -30,7 +30,7 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
 {}
 
 void Client::createSession(const QString& user, const QString& pwd,
-                           const successCb& successCb, const ErrorCb& errorCb)
+                           const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mSession = nullptr;
     QJsonObject root;
@@ -53,7 +53,7 @@ void Client::createSession(const QString& user, const QString& pwd,
 }
 
 void Client::resumeSession(const ComATProtoServer::Session& session,
-                           const successCb& successCb, const ErrorCb& errorCb)
+                           const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.server.getSession", {},
         [this, session, successCb, errorCb](const QJsonDocument& reply){
@@ -88,7 +88,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
 }
 
 void Client::refreshSession(const ComATProtoServer::Session& session,
-                            const successCb& successCb, const ErrorCb& errorCb)
+                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.server.refreshSession", {},
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -120,7 +120,7 @@ void Client::refreshSession(const ComATProtoServer::Session& session,
         refreshToken());
 }
 
-void Client::getProfile(const QString& user, const getProfileSuccessCb& successCb, const ErrorCb& errorCb)
+void Client::getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}},
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -138,7 +138,7 @@ void Client::getProfile(const QString& user, const getProfileSuccessCb& successC
 }
 
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
-                   const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
+                           const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"actor", user}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
@@ -160,7 +160,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
 }
 
 void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
-                 const getTimelineSuccessCb& successCb, const ErrorCb& errorCb)
+                         const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
@@ -182,7 +182,7 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
 }
 
 void Client::getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
-                   const getPostThreadSuccessCb& successCb, const ErrorCb& errorCb)
+                           const GetPostThreadSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"uri", uri}};
     addOptionalIntParam(params, "depth", depth, 0, 1000);
@@ -204,7 +204,7 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
 }
 
 void Client::getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
-                const getFollowsSuccessCb& successCb, const ErrorCb& errorCb)
+                        const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"actor", actor}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
@@ -225,8 +225,35 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
         authToken());
 }
 
+void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
+                const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Posted:" << reply;
+            try {
+                auto ouput = ComATProtoRepo::UploadBlobOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput->mBlob));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+
+#if 0
+    // Test code
+    auto blobResult = std::make_unique<ATProto::Blob>();
+    blobResult->mRefLink = "TestLink";
+    blobResult->mMimeType = mimeType;
+    blobResult->mSize = blob.size();
+    successCb(std::move(blobResult));
+#endif
+}
+
 void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
-          const successCb& successCb, const ErrorCb& errorCb)
+                  const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     auto postJson = post.toJson();
     QJsonObject root;
@@ -240,12 +267,8 @@ void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
     mXrpc->post("com.atproto.repo.createRecord", json,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Posted:" << reply;
-            try {
-                if (successCb)
-                    successCb();
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb();
         },
         failure(errorCb),
         authToken());

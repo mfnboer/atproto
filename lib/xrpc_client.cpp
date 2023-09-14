@@ -23,6 +23,13 @@ Client::~Client()
 void Client::post(const QString& service, const QJsonDocument& json,
                   const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
+    const QByteArray data(json.toJson(QJsonDocument::Compact));
+    post(service, data, "application/json", successCb, errorCb, accessJwt);
+}
+
+void Client::post(const QString& service, const QByteArray& data, const QString& mimeType,
+          const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+{
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
@@ -32,8 +39,7 @@ void Client::post(const QString& service, const QJsonDocument& json,
     if (!accessJwt.isNull())
         setAuthorization(request, accessJwt);
 
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
-    const QByteArray data(json.toJson(QJsonDocument::Compact));
+    request.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
     QNetworkReply* reply = mNetwork.post(request, data);
     mReplies.insert(reply);
 

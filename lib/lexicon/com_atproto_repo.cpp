@@ -5,6 +5,14 @@
 
 namespace ATProto::ComATProtoRepo {
 
+QJsonObject StrongRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    return json;
+}
+
 StrongRef::Ptr StrongRef::fromJson(const QJsonObject& json)
 {
     auto strongRef = std::make_unique<StrongRef>();
@@ -12,6 +20,15 @@ StrongRef::Ptr StrongRef::fromJson(const QJsonObject& json)
     strongRef->mUri = xjson.getRequiredString("uri");
     strongRef->mCid = xjson.getRequiredString("cid");
     return strongRef;
+}
+
+UploadBlobOutput::Ptr UploadBlobOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<UploadBlobOutput>();
+    XJsonObject xjson(json);
+    const auto blobJson = xjson.getRequiredObject("blob");
+    output->mBlob = Blob::fromJson(blobJson);
+    return output;
 }
 
 }

@@ -27,12 +27,13 @@ private:
 class Client
 {
 public:
-    using successCb = std::function<void()>;
-    using getProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
-    using getAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using getTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using getPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
-    using getFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
+    using SuccessCb = std::function<void()>;
+    using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
+    using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
+    using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
+    using UploadBlobSuccessCb = std::function<void(ATProto::Blob::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -49,7 +50,7 @@ public:
      * @param errorCb
      */
     void createSession(const QString& user, const QString& pwd,
-                       const successCb& successCb, const ErrorCb& errorCb);
+                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief resumeSession Resume a previously created session
@@ -58,10 +59,10 @@ public:
      * @param errorCb
      */
     void resumeSession(const ComATProtoServer::Session& session,
-                       const successCb& successCb, const ErrorCb& errorCb);
+                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void refreshSession(const ComATProtoServer::Session& session,
-                       const successCb& successCb, const ErrorCb& errorCb);
+                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.bsky.actor
     /**
@@ -70,7 +71,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void getProfile(const QString& user, const getProfileSuccessCb& successCb, const ErrorCb& errorCb);
+    void getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
     /**
@@ -82,7 +83,7 @@ public:
      * @param errorCb
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
-                       const getAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
+                       const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTimeline
@@ -92,7 +93,7 @@ public:
      * @param errorCb
      */
     void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
-                     const getTimelineSuccessCb& successCb, const ErrorCb& errorCb);
+                     const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getPostThread
@@ -103,7 +104,7 @@ public:
      * @param errorCb
      */
     void getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
-                       const getPostThreadSuccessCb& successCb, const ErrorCb& errorCb);
+                       const GetPostThreadSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.graph
 
@@ -116,10 +117,13 @@ public:
      * @param errorCb
      */
     void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
-                    const getFollowsSuccessCb& successCb, const ErrorCb& errorCb);
+                    const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void uploadBlob(const QByteArray& blob, const QString& mimeType,
+                    const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb);
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
-              const successCb& successCb, const ErrorCb& errorCb);
+              const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;

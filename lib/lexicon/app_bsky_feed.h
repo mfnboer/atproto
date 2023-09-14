@@ -28,7 +28,7 @@ struct PostView
     std::variant<Record::Post::Ptr> mRecord;
     RecordType mRecordType;
     QString mRawRecordType;
-    AppBskyEmbed::Embed::Ptr mEmbed; // optional
+    AppBskyEmbed::EmbedView::Ptr mEmbed; // optional
     int mReplyCount = 0;
     int mRepostCount = 0;
     int mLikeCount = 0;
