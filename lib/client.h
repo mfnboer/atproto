@@ -125,8 +125,25 @@ public:
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    // Functions for composing a post
     static ATProto::AppBskyFeed::Record::Post::SharedPtr createPost(const QString& text);
     static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
+
+    struct ParsedMatch
+    {
+        enum Type { MENTION, LINK };
+
+        int mStartIndex;
+        int mEndIndex;
+        QString mMatch;
+        Type mType;
+    };
+
+    static std::vector<ParsedMatch> parseMentions(const QString& text);
+    static std::vector<ParsedMatch> parseLinks(const QString& text);
+
+    // If two facets overlap, then the one with the lowest start index is taken
+    static std::vector<ParsedMatch> parseFacets(const QString& text);
 
 private:
     const QString& authToken() const;

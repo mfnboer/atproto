@@ -3,6 +3,7 @@
 #include "client.h"
 #include "xjson.h"
 #include "lexicon/lexicon.h"
+#include <QRegularExpression>
 
 namespace ATProto
 {
@@ -228,6 +229,8 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                 const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    errorCb("TEST");
+    return;
     mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Posted:" << reply;
@@ -255,6 +258,8 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
 void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    errorCb("TEST");
+    return;
     QJsonObject postJson;
 
     try {
@@ -334,6 +339,9 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
 
 ATProto::AppBskyFeed::Record::Post::SharedPtr Client::createPost(const QString& text)
 {
+    parseMentions(text);
+    parseLinks(text);
+
     auto post = std::make_shared<ATProto::AppBskyFeed::Record::Post>();
     post->mText = text;
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
@@ -355,4 +363,91 @@ void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::B
     auto& images = std::get<ATProto::AppBskyEmbed::Images::Ptr>(post.mEmbed->mEmbed);
     images->mImages.push_back(std::move(image));
 }
+
+static std::vector<Client::ParsedMatch> parseMatches(Client::ParsedMatch::Type type, const QString& text, const QRegularExpression& re, int group)
+{
+    std::vector<Client::ParsedMatch> matches;
+
+    // HACK: prefixing a space to match a mention at the start of the text
+    for (const auto& match : re.globalMatch(' ' + text))
+    {
+        Client::ParsedMatch parsedMatch;
+        parsedMatch.mMatch = match.captured(group);
+        parsedMatch.mStartIndex = match.capturedStart(group) - 1; // -1 for the hack
+        parsedMatch.mEndIndex = match.capturedEnd(group) - 1;
+        parsedMatch.mType = type;
+        matches.push_back(parsedMatch);
+    }
+
+    return matches;
+}
+
+std::vector<Client::ParsedMatch> Client::parseMentions(const QString& text)
+{
+    static const QRegularExpression reMention(R"([$|\W](@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
+    const auto mentions = parseMatches(ParsedMatch::MENTION, text, reMention, 1);
+
+    for (const auto& mention : mentions)
+        qDebug() << "Mention:" << mention.mMatch << "start:" << mention.mStartIndex << "end:" << mention.mEndIndex;
+
+    return mentions;
+}
+
+std::vector<Client::ParsedMatch> Client::parseLinks(const QString& text)
+{
+    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
+    auto links = parseMatches(ParsedMatch::LINK, text, reLink, 1);
+
+    // If there is an @-symbol just before what seems to be a link, it is not a link.
+    for (int i = 0; i < links.size();)
+    {
+        const auto& link = links[i];
+        if (link.mStartIndex > 0 && text[link.mStartIndex - 1] == '@')
+        {
+            links.erase(links.begin() + i);
+        }
+        else
+        {
+            qDebug() << "Link:" << link.mMatch << "start:" << link.mStartIndex << "end:" << link.mEndIndex;
+            ++i;
+        }
+    }
+
+    return links;
+}
+
+std::vector<Client::ParsedMatch> Client::parseFacets(const QString& text)
+{
+    const auto mentions = parseMentions(text);
+    const auto links = parseLinks(text);
+    std::vector<Client::ParsedMatch> facets;
+    facets.reserve(mentions.size() + links.size());
+
+    int pos = 0;
+    auto itMention = mentions.begin();
+    auto itLink = links.begin();
+
+    while (itMention != mentions.end() || itLink != links.end())
+    {
+        const ATProto::Client::ParsedMatch* facet;
+        if (itMention == mentions.end())
+            facet = &*itLink++;
+        else if (itLink == links.end())
+            facet = &*itMention++;
+        else if (itMention->mStartIndex < itLink->mStartIndex)
+            facet = &*itMention++;
+        else
+            facet = &*itLink++;
+
+        // This happens if a detected link overlaps with a detected mention.
+        if (facet->mStartIndex < pos)
+            continue;
+
+        facets.push_back(*facet);
+        pos = facet->mEndIndex;
+    }
+
+    return facets;
+}
+
 }
