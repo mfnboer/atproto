@@ -12,6 +12,7 @@ Client::Client(const QString& host) :
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
+    mNetwork.setTransferTimeout(15000);
 }
 
 Client::~Client()

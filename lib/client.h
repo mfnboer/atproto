@@ -125,6 +125,9 @@ public:
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    static ATProto::AppBskyFeed::Record::Post::SharedPtr createPost(const QString& text);
+    static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
+
 private:
     const QString& authToken() const;
     const QString& refreshToken() const;

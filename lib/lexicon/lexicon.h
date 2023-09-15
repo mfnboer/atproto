@@ -1,9 +1,23 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include <QException>
 #include <QJsonDocument>
 
 namespace ATProto {
+
+class InvalidContent : public QException
+{
+public:
+    explicit InvalidContent(const QString& msg) : mMsg(msg) {}
+
+    const QString& msg() const { return mMsg; }
+    void raise() const override { throw *this; }
+    InvalidContent *clone() const override { return new InvalidContent(*this); }
+
+private:
+    QString mMsg;
+};
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.
 struct ATProtoError

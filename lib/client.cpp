@@ -255,7 +255,15 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
 void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    auto postJson = post.toJson();
+    QJsonObject postJson;
+
+    try {
+        postJson = post.toJson();
+    } catch (InvalidContent& e) {
+        if (errorCb)
+            errorCb("Invalid content: " + e.msg());
+    }
+
     QJsonObject root;
     root.insert("repo", mSession->mDid);
     root.insert("collection", postJson["$type"]);
@@ -324,4 +332,27 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     }
 }
 
+ATProto::AppBskyFeed::Record::Post::SharedPtr Client::createPost(const QString& text)
+{
+    auto post = std::make_shared<ATProto::AppBskyFeed::Record::Post>();
+    post->mText = text;
+    post->mCreatedAt = QDateTime::currentDateTimeUtc();
+    return post;
+}
+
+void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob)
+{
+    if (!post.mEmbed)
+    {
+        post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
+        post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::IMAGES;
+        post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::Images>();
+    }
+
+    auto image = std::make_unique<ATProto::AppBskyEmbed::Image>();
+    image->mImage = std::move(blob);
+    image->mAlt = ""; // TODO
+    auto& images = std::get<ATProto::AppBskyEmbed::Images::Ptr>(post.mEmbed->mEmbed);
+    images->mImages.push_back(std::move(image));
+}
 }
