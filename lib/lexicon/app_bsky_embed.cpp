@@ -284,6 +284,7 @@ QJsonObject RecordWithMedia::toJson() const
     case EmbedType::RECORD_WITH_MEDIA:
     case EmbedType::UNKNOWN:
         qWarning() << "Unsupported media type in app.bsky.embed.recordWithMedia:" << mRawMediaType;
+        throw InvalidContent(mRawMediaType);
         break;
     }
 
@@ -352,6 +353,7 @@ QJsonObject Embed::toJson() const
         return std::get<RecordWithMedia::Ptr>(mEmbed)->toJson();
     case EmbedType::UNKNOWN:
         qWarning() << "Unknow embed type:" << mRawType;
+        throw InvalidContent(mRawType);
         break;
     }
 
