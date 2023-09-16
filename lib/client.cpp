@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "client.h"
 #include "xjson.h"
+#include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
 #include <QRegularExpression>
 
@@ -119,6 +120,24 @@ void Client::refreshSession(const ComATProtoServer::Session& session,
         },
         failure(errorCb),
         refreshToken());
+}
+
+void Client::resolveHandle(const QString& handle,
+                   const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("com.atproto.identity.resolveHandle", {{"handle", handle}},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "resolveHandle:" << reply;
+            try {
+                auto output = ComATProtoIdentity::ResolveHandleOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(output->mDid);
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
 }
 
 void Client::getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb)
@@ -258,8 +277,6 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
 void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    errorCb("TEST");
-    return;
     QJsonObject postJson;
 
     try {
@@ -276,6 +293,8 @@ void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
     QJsonDocument json(root);
 
     qDebug() << "Posting:" << json;
+    errorCb("TEST");
+    return;
 
     mXrpc->post("com.atproto.repo.createRecord", json,
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -337,15 +356,103 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     }
 }
 
-ATProto::AppBskyFeed::Record::Post::SharedPtr Client::createPost(const QString& text)
+void Client::createPost(const QString& text, const PostCreatedCb& cb)
 {
-    parseMentions(text);
-    parseLinks(text);
-
+    Q_ASSERT(cb);
     auto post = std::make_shared<ATProto::AppBskyFeed::Record::Post>();
     post->mText = text;
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
-    return post;
+
+    auto facets = parseFacets(text);
+    resolveFacets(post, facets, 0, cb);
+}
+
+void Client::resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+                   std::vector<ParsedMatch> facets, int facetIndex,
+                   const PostCreatedCb& cb)
+{
+    Q_ASSERT(cb);
+    for (int i = facetIndex; i < facets.size(); ++i)
+    {
+        auto& facet = facets[i];
+
+        switch (facet.mType) {
+        case ParsedMatch::Type::LINK:
+            facet.mRef = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
+            break;
+        case ParsedMatch::Type::MENTION:
+            // The @-character is not part of the handle!
+            resolveHandle(facet.mMatch.sliced(1),
+                [this, i, post, facets, facetIndex, cb](const QString& did){
+                    auto newFacets = facets;
+                    newFacets[i].mRef = did;
+                    resolveFacets(post, newFacets, i + 1, cb);
+                },
+                [this, i, post, facets, facetIndex, cb](const QString& error){
+                    qWarning() << "Could not resolve handle:" << facets[i].mMatch;
+                    resolveFacets(post, facets, i + 1, cb);
+                });
+            return;
+        case ParsedMatch::Type::UNKNOWN:
+            Q_ASSERT(false);
+            resolveFacets(post, facets, i + 1, cb);
+            break;
+        }
+    }
+
+    addFacets(post, facets);
+    cb(post);
+}
+
+static int convertIndextoUtf8Index(int index, const QString& str)
+{
+    qDebug() << "UTF-8:" << str.sliced(0, index).toUtf8();
+    return str.sliced(0, index).toUtf8().length();
+}
+
+void Client::addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+               const std::vector<ParsedMatch>& facets)
+{
+    for (const auto& f : facets)
+    {
+        if (f.mRef.isEmpty())
+            continue;
+
+        const int start = convertIndextoUtf8Index(f.mStartIndex, post->mText);
+        const int end = convertIndextoUtf8Index(f.mEndIndex, post->mText);
+
+        auto facet = std::make_unique<AppBskyRichtext::Facet>();
+        facet->mIndex.mByteStart = start;
+        facet->mIndex.mByteEnd = end;
+
+        AppBskyRichtext::Facet::Feature feature;
+        feature.mType = f.mType;
+
+        switch (feature.mType)
+        {
+        case AppBskyRichtext::Facet::Feature::Type::LINK:
+        {
+            auto link = std::make_unique<AppBskyRichtext::FacetLink>();
+            link->mUri = f.mRef;
+            feature.mFeature = std::move(link);
+            break;
+        }
+        case AppBskyRichtext::Facet::Feature::Type::MENTION:
+        {
+            auto mention = std::make_unique<AppBskyRichtext::FacetMention>();
+            mention->mDid = f.mRef;
+            feature.mFeature = std::move(mention);
+            break;
+        }
+        case AppBskyRichtext::Facet::Feature::Type::UNKNOWN:
+            Q_ASSERT(false);
+            qWarning() << "Unknown facet type";
+            continue;
+        }
+
+        facet->mFeatures.push_back(std::move(feature));
+        post->mFacets.push_back(std::move(facet));
+    }
 }
 
 void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob)
@@ -385,7 +492,7 @@ static std::vector<Client::ParsedMatch> parseMatches(Client::ParsedMatch::Type t
 std::vector<Client::ParsedMatch> Client::parseMentions(const QString& text)
 {
     static const QRegularExpression reMention(R"([$|\W](@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
-    const auto mentions = parseMatches(ParsedMatch::MENTION, text, reMention, 1);
+    const auto mentions = parseMatches(ParsedMatch::Type::MENTION, text, reMention, 1);
 
     for (const auto& mention : mentions)
         qDebug() << "Mention:" << mention.mMatch << "start:" << mention.mStartIndex << "end:" << mention.mEndIndex;
@@ -396,7 +503,7 @@ std::vector<Client::ParsedMatch> Client::parseMentions(const QString& text)
 std::vector<Client::ParsedMatch> Client::parseLinks(const QString& text)
 {
     static const QRegularExpression reLink(R"([$|\W]((https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
-    auto links = parseMatches(ParsedMatch::LINK, text, reLink, 1);
+    auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
     // If there is an @-symbol just before what seems to be a link, it is not a link.
     for (int i = 0; i < links.size();)

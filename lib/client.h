@@ -28,6 +28,7 @@ class Client
 {
 public:
     using SuccessCb = std::function<void()>;
+    using ResolveHandleSuccessCb = std::function<void(QString)>;
     using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
@@ -64,7 +65,17 @@ public:
     void refreshSession(const ComATProtoServer::Session& session,
                         const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    // com.bsky.actor
+    // com.atproto.identity
+    /**
+     * @brief resolveHandle Resolve a handle to a DID
+     * @param handle
+     * @param successCb
+     * @param errorCb
+     */
+    void resolveHandle(const QString& handle,
+                       const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.actor
     /**
      * @brief getProfile
      * @param user user handle or did
@@ -126,18 +137,28 @@ public:
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // Functions for composing a post
-    static ATProto::AppBskyFeed::Record::Post::SharedPtr createPost(const QString& text);
-    static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
-
     struct ParsedMatch
     {
-        enum Type { MENTION, LINK };
+        using Type = ATProto::AppBskyRichtext::Facet::Feature::Type;
 
         int mStartIndex;
         int mEndIndex;
         QString mMatch;
         Type mType;
+        QString mRef;
     };
+
+    using PostCreatedCb = std::function<void(ATProto::AppBskyFeed::Record::Post::SharedPtr)>;
+
+    void createPost(const QString& text, const PostCreatedCb& cb);
+
+    void resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+                       std::vector<ParsedMatch> facets, int facetIndex,
+                       const PostCreatedCb& cb);
+    void addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+                   const std::vector<ParsedMatch>& facets);
+
+    static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
 
     static std::vector<ParsedMatch> parseMentions(const QString& text);
     static std::vector<ParsedMatch> parseLinks(const QString& text);

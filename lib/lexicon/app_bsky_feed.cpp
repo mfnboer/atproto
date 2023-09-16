@@ -38,6 +38,14 @@ QJsonObject Record::Post::toJson() const
     if (mEmbed)
         json.insert("embed", mEmbed->toJson());
 
+    QJsonArray jsonArray;
+    for (const auto& facet : mFacets)
+    {
+        QJsonObject facetJson = facet->toJson();
+        jsonArray.append(facetJson);
+    }
+
+    json.insert("facets", jsonArray);
     return json;
 }
 

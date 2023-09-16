@@ -11,6 +11,8 @@ struct FacetByteSlice
     int mByteStart; // 0 or more, inclusive
     int mByteEnd; // 0 or more, exclusive
 
+    QJsonObject toJson() const;
+
     static FacetByteSlice fromJson(const QJsonObject& json);
 };
 
@@ -18,6 +20,8 @@ struct FacetByteSlice
 struct FacetMention
 {
     QString mDid;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<FacetMention>;
     static Ptr fromJson(const QJsonObject& json);
@@ -27,6 +31,8 @@ struct FacetMention
 struct FacetLink
 {
     QString mUri;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<FacetLink>;
     static Ptr fromJson(const QJsonObject& json);
@@ -52,6 +58,8 @@ struct Facet
 
     FacetByteSlice mIndex;
     std::vector<Feature> mFeatures;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<Facet>;
     static Ptr fromJson(const QJsonObject& json);
