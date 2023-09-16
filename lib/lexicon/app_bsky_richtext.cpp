@@ -5,6 +5,14 @@
 
 namespace ATProto::AppBskyRichtext {
 
+QJsonObject FacetByteSlice::toJson() const
+{
+    QJsonObject json;
+    json.insert("byteStart", mByteStart);
+    json.insert("byteEnd", mByteEnd);
+    return json;
+}
+
 FacetByteSlice FacetByteSlice::fromJson(const QJsonObject& json)
 {
     FacetByteSlice byteSlice;
@@ -14,12 +22,26 @@ FacetByteSlice FacetByteSlice::fromJson(const QJsonObject& json)
     return byteSlice;
 }
 
+QJsonObject FacetMention::toJson() const
+{
+    QJsonObject json;
+    json.insert("did", mDid);
+    return json;
+}
+
 FacetMention::Ptr FacetMention::fromJson(const QJsonObject& json)
 {
     auto mention = std::make_unique<FacetMention>();
     const XJsonObject root(json);
     mention->mDid = root.getRequiredString("did");
     return mention;
+}
+
+QJsonObject FacetLink::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    return json;
 }
 
 FacetLink::Ptr FacetLink::fromJson(const QJsonObject& json)
@@ -38,6 +60,39 @@ Facet::Feature::Type Facet::Feature::stringToType(const QString& str)
         return Type::MENTION;
 
     return Type::UNKNOWN;
+}
+
+QJsonObject Facet::toJson() const
+{
+    QJsonObject json;
+    json.insert("index", mIndex.toJson());
+
+    QJsonArray jsonArray;
+    for (const auto& f : mFeatures)
+    {
+        QJsonObject featureJson;
+        switch (f.mType)
+        {
+        case Feature::Type::LINK:
+            featureJson = std::get<FacetLink::Ptr>(f.mFeature)->toJson();
+            featureJson.insert("$type", "app.bsky.richtext.facet#link");
+            break;
+        case Feature::Type::MENTION:
+            featureJson = std::get<FacetMention::Ptr>(f.mFeature)->toJson();
+            featureJson.insert("$type", "app.bsky.richtext.facet#mention");
+            break;
+        case Feature::Type::UNKNOWN:
+            Q_ASSERT(false);
+            qWarning() << "Unkown facet type";
+            continue;
+        }
+
+        jsonArray.append(featureJson);
+    }
+
+    json.insert("features", jsonArray);
+
+    return json;
 }
 
 Facet::Ptr Facet::fromJson(const QJsonObject& json)
@@ -166,12 +221,12 @@ QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Face
         }
 
         const auto before = bytes.sliced(bytePos, start - bytePos);
-        result.append(QString(before).toHtmlEscaped());
+        result.append(QString(before).toHtmlEscaped().replace(' ', "&nbsp;").replace('\n', "<br>"));
         result.append(link.mText);
         bytePos = link.mEnd;
     }
 
-    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>"));
+    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace(' ', "&nbsp;").replace('\n', "<br>"));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
     return result;

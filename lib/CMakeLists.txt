@@ -25,6 +25,8 @@ qt_add_library(libatproto STATIC
     lexicon/com_atproto_repo.cpp
     lexicon/app_bsky_graph.h
     lexicon/app_bsky_graph.cpp
+    lexicon/com_atproto_identity.h
+    lexicon/com_atproto_identity.cpp
 
 )
 

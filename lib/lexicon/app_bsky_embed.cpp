@@ -61,8 +61,8 @@ QJsonObject Images::toJson() const
     QJsonArray jsonArray;
     for (const auto& image : mImages)
     {
-        QJsonObject json = image->toJson();
-        jsonArray.append(json);
+        QJsonObject imgJson = image->toJson();
+        jsonArray.append(imgJson);
     }
 
     json.insert("images", jsonArray);
