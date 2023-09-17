@@ -366,6 +366,41 @@ void Client::createPost(const QString& text, const PostCreatedCb& cb)
     resolveFacets(post, facets, 0, cb);
 }
 
+QString Client::shortenWebLink(const QString& link)
+{
+    static const QRegularExpression httpRE(R"(https?:\/\/(.+)\/(.{0,12})(.*))");
+    static const QRegularExpression httpMainOnlyRE(R"(https?:\/\/(.+))");
+    static const QRegularExpression wwwRE(R"((www\..+)\/(.{0,12})(.*))");
+    static const QRegularExpression wwwMainRE(R"((www\..+))");
+
+    QRegularExpressionMatch match;
+    for (const auto& re : { httpRE, httpMainOnlyRE, wwwRE, wwwMainRE})
+    {
+        match = re.match(link);
+
+        if (match.hasMatch())
+            break;
+    }
+
+    if (!match.hasMatch())
+    {
+        qWarning() << "Cannot shorten link:" << link;
+        return link;
+    }
+
+    const QString& host = match.captured(1);
+    const QString& remaining = match.captured(2);
+    const QString& elide = match.captured(3);
+
+    if (remaining.isEmpty())
+        return host;
+
+    if (elide.size() < 4)
+        return QString("%1/%2%3").arg(host, remaining, elide);
+
+    return QString("%1/%2...").arg(host, remaining);
+}
+
 void Client::resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
                    std::vector<ParsedMatch> facets, int facetIndex,
                    const PostCreatedCb& cb)
@@ -378,6 +413,7 @@ void Client::resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
         switch (facet.mType) {
         case ParsedMatch::Type::LINK:
             facet.mRef = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
+            facet.mMatch = shortenWebLink(facet.mMatch);
             break;
         case ParsedMatch::Type::MENTION:
             // The @-character is not part of the handle!
