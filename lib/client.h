@@ -152,6 +152,8 @@ public:
 
     void createPost(const QString& text, const PostCreatedCb& cb);
 
+    static QString shortenWebLink(const QString& link);
+
     void resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
                        std::vector<ParsedMatch> facets, int facetIndex,
                        const PostCreatedCb& cb);
