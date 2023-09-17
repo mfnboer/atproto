@@ -221,12 +221,12 @@ QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Face
         }
 
         const auto before = bytes.sliced(bytePos, start - bytePos);
-        result.append(QString(before).toHtmlEscaped().replace(' ', "&nbsp;").replace('\n', "<br>"));
+        result.append(QString(before).toHtmlEscaped().replace('\n', "<br>"));
         result.append(link.mText);
         bytePos = link.mEnd;
     }
 
-    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace(' ', "&nbsp;").replace('\n', "<br>"));
+    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>"));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
     return result;
