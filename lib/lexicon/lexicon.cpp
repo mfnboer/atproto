@@ -26,6 +26,7 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
     {
         const XJsonObject xRefJson(*refJson);
         blob->mRefLink = xRefJson.getRequiredString("$link");
+        blob->mSize = xjson.getRequiredInt("size");
     }
     else
     {
@@ -34,7 +35,6 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
     }
 
     blob->mMimeType = xjson.getRequiredString("mimeType");
-    blob->mSize = xjson.getRequiredInt("size");
     return blob;
 }
 
