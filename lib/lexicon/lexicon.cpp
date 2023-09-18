@@ -20,9 +20,19 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
 {
     auto blob = std::make_unique<Blob>();
     const XJsonObject xjson(json);
-    const auto refJson = xjson.getRequiredObject("ref");
-    const XJsonObject xRefJson(refJson);
-    blob->mRefLink = xRefJson.getRequiredString("$link");
+
+    const auto refJson = xjson.getOptionalObject("ref");
+    if (refJson)
+    {
+        const XJsonObject xRefJson(*refJson);
+        blob->mRefLink = xRefJson.getRequiredString("$link");
+    }
+    else
+    {
+        blob->mCid = xjson.getRequiredString("cid");
+        qDebug() << "Deprecated legacy blob cid:" << blob->mCid;
+    }
+
     blob->mMimeType = xjson.getRequiredString("mimeType");
     blob->mSize = xjson.getRequiredInt("size");
     return blob;

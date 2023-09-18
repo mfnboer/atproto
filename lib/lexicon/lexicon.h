@@ -30,9 +30,10 @@ struct ATProtoError
 };
 
 struct Blob {
-    QString mRefLink;
+    QString mRefLink; // may not be present in old-style blobs, instead cid is present
     QString mMimeType;
     int mSize;
+    QString mCid; // deprecated but still in use
 
     QJsonObject toJson() const;
 
