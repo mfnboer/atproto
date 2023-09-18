@@ -506,6 +506,21 @@ void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::B
     images->mImages.push_back(std::move(image));
 }
 
+void Client::addExternalToPost(ATProto::AppBskyFeed::Record::Post& post, const QString& link,
+                       const QString& title, const QString& description, ATProto::Blob::Ptr blob)
+{
+    post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
+    post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::EXTERNAL;
+    post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::External>();
+
+    auto& embed = std::get<ATProto::AppBskyEmbed::External::Ptr>(post.mEmbed->mEmbed);
+    embed->mExternal = std::make_unique<ATProto::AppBskyEmbed::ExternalExternal>();
+    embed->mExternal->mUri = link;
+    embed->mExternal->mTitle = title;
+    embed->mExternal->mDescription = description;
+    embed->mExternal->mThumb = std::move(blob);
+}
+
 static std::vector<Client::ParsedMatch> parseMatches(Client::ParsedMatch::Type type, const QString& text, const QRegularExpression& re, int group)
 {
     std::vector<Client::ParsedMatch> matches;

@@ -161,6 +161,8 @@ public:
                    const std::vector<ParsedMatch>& facets);
 
     static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
+    static void addExternalToPost(ATProto::AppBskyFeed::Record::Post& post, const QString& link,
+                                  const QString& title, const QString& description, ATProto::Blob::Ptr blob = nullptr);
 
     static std::vector<ParsedMatch> parseMentions(const QString& text);
     static std::vector<ParsedMatch> parseLinks(const QString& text);
