@@ -248,7 +248,6 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                 const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
-#if 0
     mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Posted:" << reply;
@@ -262,15 +261,15 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
         },
         failure(errorCb),
         authToken());
-#endif
 
+#if 0
     // Test code
     auto blobResult = std::make_unique<ATProto::Blob>();
     blobResult->mRefLink = "TestLink";
     blobResult->mMimeType = mimeType;
     blobResult->mSize = blob.size();
     successCb(std::move(blobResult));
-
+#endif
 }
 
 void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
@@ -292,8 +291,6 @@ void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
     QJsonDocument json(root);
 
     qDebug() << "Posting:" << json;
-    errorCb("TEST");
-    return;
 
     mXrpc->post("com.atproto.repo.createRecord", json,
         [this, successCb, errorCb](const QJsonDocument& reply){
