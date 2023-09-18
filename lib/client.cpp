@@ -368,9 +368,9 @@ void Client::createPost(const QString& text, const PostCreatedCb& cb)
 
 QString Client::shortenWebLink(const QString& link)
 {
-    static const QRegularExpression httpRE(R"(https?:\/\/(.+)\/(.{0,12})(.*))");
+    static const QRegularExpression httpRE(R"(https?:\/\/([^\/]+)\/(.{0,12})(.*))");
     static const QRegularExpression httpMainOnlyRE(R"(https?:\/\/(.+))");
-    static const QRegularExpression wwwRE(R"((www\..+)\/(.{0,12})(.*))");
+    static const QRegularExpression wwwRE(R"((www\.[^\/]+)\/(.{0,12})(.*))");
     static const QRegularExpression wwwMainRE(R"((www\..+))");
 
     QRegularExpressionMatch match;
@@ -448,13 +448,19 @@ static int convertIndextoUtf8Index(int index, const QString& str)
 void Client::addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
                const std::vector<ParsedMatch>& facets)
 {
+    int pos = 0;
+    QString shortenedText;
+
     for (const auto& f : facets)
     {
         if (f.mRef.isEmpty())
             continue;
 
-        const int start = convertIndextoUtf8Index(f.mStartIndex, post->mText);
-        const int end = convertIndextoUtf8Index(f.mEndIndex, post->mText);
+        shortenedText += post->mText.sliced(pos, f.mStartIndex - pos);
+        const int start = convertIndextoUtf8Index(shortenedText.size(), shortenedText);
+        shortenedText += f.mMatch;
+        const int end = convertIndextoUtf8Index(shortenedText.size(), shortenedText);
+        pos = f.mEndIndex;
 
         auto facet = std::make_unique<AppBskyRichtext::Facet>();
         facet->mIndex.mByteStart = start;
@@ -488,6 +494,11 @@ void Client::addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
         facet->mFeatures.push_back(std::move(feature));
         post->mFacets.push_back(std::move(facet));
     }
+
+    if (pos < post->mText.size())
+        shortenedText += post->mText.sliced(pos);
+
+    post->mText = shortenedText;
 }
 
 void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob)
