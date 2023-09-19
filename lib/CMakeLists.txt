@@ -1,12 +1,14 @@
+set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core)
 
 qt_add_library(libatproto STATIC
     client.h
-    xrpc_client.h
-    xrpc_client.cpp
     client.cpp
+    tlds.h
     xjson.h
     xjson.cpp
+    xrpc_client.h
+    xrpc_client.cpp
     lexicon/app_bsky_actor.h
     lexicon/app_bsky_actor.cpp
     lexicon/com_atproto_server.h
@@ -27,7 +29,7 @@ qt_add_library(libatproto STATIC
     lexicon/app_bsky_graph.cpp
     lexicon/com_atproto_identity.h
     lexicon/com_atproto_identity.cpp
-
+    tlds.cpp
 )
 
 

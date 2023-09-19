@@ -1,10 +1,12 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "client.h"
+#include "tlds.h"
 #include "xjson.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
 #include <QRegularExpression>
+#include <QUrl>
 
 namespace ATProto
 {
@@ -367,8 +369,8 @@ QString Client::shortenWebLink(const QString& link)
 {
     static const QRegularExpression httpRE(R"(https?:\/\/([^\/]+)\/(.{0,12})(.*))");
     static const QRegularExpression httpMainOnlyRE(R"(https?:\/\/(.+))");
-    static const QRegularExpression wwwRE(R"((www\.[^\/]+)\/(.{0,12})(.*))");
-    static const QRegularExpression wwwMainRE(R"((www\..+))");
+    static const QRegularExpression wwwRE(R"(([a-z]+\.[^\/]+)\/(.{0,12})(.*))");
+    static const QRegularExpression wwwMainRE(R"(([a-z]+\..+))");
 
     QRegularExpressionMatch match;
     for (const auto& re : { httpRE, httpMainOnlyRE, wwwRE, wwwMainRE})
@@ -560,15 +562,29 @@ std::vector<Client::ParsedMatch> Client::parseMentions(const QString& text)
 
 std::vector<Client::ParsedMatch> Client::parseLinks(const QString& text)
 {
-    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
+    //static const QRegularExpression reLink(R"([$|\W]((https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
+    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
     auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
-    // If there is an @-symbol just before what seems to be a link, it is not a link.
     for (int i = 0; i < links.size();)
     {
         const auto& link = links[i];
+        const QUrl url(link.mMatch);
+
         if (link.mStartIndex > 0 && text[link.mStartIndex - 1] == '@')
         {
+            // If there is an @-symbol just before what seems to be a link, it is not a link.
+            qDebug() << "Not a link, looks like a mention:" << link.mMatch;
+            links.erase(links.begin() + i);
+        }
+        else if (!url.isValid())
+        {
+            qDebug() << "Invalid URL:" << link.mMatch;
+            links.erase(links.begin() + i);
+        }
+        else if (!link.mMatch.startsWith("http") && !Skywalker::isValidTLD(link.mMatch.section('.', -1)))
+        {
+            qDebug() << "Invalid TLD:" << link.mMatch;
             links.erase(links.begin() + i);
         }
         else
