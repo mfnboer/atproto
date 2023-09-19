@@ -17,6 +17,14 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+QJsonObject  PostReplyRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("root", mRoot->toJson());
+    json.insert("parent", mParent->toJson());
+    return json;
+}
+
 PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_unique<PostReplyRef>();
@@ -34,6 +42,9 @@ QJsonObject Record::Post::toJson() const
     json.insert("$type", "app.bsky.feed.post");
     json.insert("text", mText);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+
+    if (mReply)
+        json.insert("reply", mReply->toJson());
 
     if (mEmbed)
         json.insert("embed", mEmbed->toJson());
