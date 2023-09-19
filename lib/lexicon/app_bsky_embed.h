@@ -248,6 +248,8 @@ struct PostReplyRef
     ComATProtoRepo::StrongRef::Ptr mRoot; // required
     ComATProtoRepo::StrongRef::Ptr mParent; // required
 
+    QJsonObject toJson() const;
+
     using Ptr = std::unique_ptr<PostReplyRef>;
     static Ptr fromJson(const QJsonObject& json);
 };

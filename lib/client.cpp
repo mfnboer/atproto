@@ -354,12 +354,13 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     }
 }
 
-void Client::createPost(const QString& text, const PostCreatedCb& cb)
+void Client::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
     auto post = std::make_shared<ATProto::AppBskyFeed::Record::Post>();
     post->mText = text;
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
+    post->mReply = std::move(replyRef);
 
     auto facets = parseFacets(text);
     resolveFacets(post, facets, 0, cb);
@@ -400,7 +401,7 @@ QString Client::shortenWebLink(const QString& link)
     return QString("%1/%2...").arg(host, remaining);
 }
 
-void Client::resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+void Client::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                    std::vector<ParsedMatch> facets, int facetIndex,
                    const PostCreatedCb& cb)
 {
@@ -444,7 +445,7 @@ static int convertIndextoUtf8Index(int index, const QString& str)
     return str.sliced(0, index).toUtf8().length();
 }
 
-void Client::addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+void Client::addFacets(AppBskyFeed::Record::Post::SharedPtr post,
                const std::vector<ParsedMatch>& facets)
 {
     int pos = 0;
@@ -500,7 +501,7 @@ void Client::addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
     post->mText = shortenedText;
 }
 
-void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob)
+void Client::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
 {
     if (!post.mEmbed)
     {
@@ -516,8 +517,8 @@ void Client::addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::B
     images->mImages.push_back(std::move(image));
 }
 
-void Client::addExternalToPost(ATProto::AppBskyFeed::Record::Post& post, const QString& link,
-                       const QString& title, const QString& description, ATProto::Blob::Ptr blob)
+void Client::addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
+                       const QString& title, const QString& description, Blob::Ptr blob)
 {
     post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
     post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::EXTERNAL;

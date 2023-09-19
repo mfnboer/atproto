@@ -148,21 +148,21 @@ public:
         QString mRef;
     };
 
-    using PostCreatedCb = std::function<void(ATProto::AppBskyFeed::Record::Post::SharedPtr)>;
+    using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
 
-    void createPost(const QString& text, const PostCreatedCb& cb);
+    void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
 
     static QString shortenWebLink(const QString& link);
 
-    void resolveFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+    void resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                        std::vector<ParsedMatch> facets, int facetIndex,
                        const PostCreatedCb& cb);
-    void addFacets(ATProto::AppBskyFeed::Record::Post::SharedPtr post,
+    void addFacets(AppBskyFeed::Record::Post::SharedPtr post,
                    const std::vector<ParsedMatch>& facets);
 
-    static void addImageToPost(ATProto::AppBskyFeed::Record::Post& post, ATProto::Blob::Ptr blob);
-    static void addExternalToPost(ATProto::AppBskyFeed::Record::Post& post, const QString& link,
-                                  const QString& title, const QString& description, ATProto::Blob::Ptr blob = nullptr);
+    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob);
+    static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
+                                  const QString& title, const QString& description, Blob::Ptr blob = nullptr);
 
     static std::vector<ParsedMatch> parseMentions(const QString& text);
     static std::vector<ParsedMatch> parseLinks(const QString& text);
