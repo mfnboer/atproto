@@ -1,11 +1,13 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "client.h"
+#include "at_uri.h"
 #include "tlds.h"
 #include "xjson.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
 #include <QRegularExpression>
+#include <QTimer>
 #include <QUrl>
 
 namespace ATProto
@@ -283,7 +285,7 @@ void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
         postJson = post.toJson();
     } catch (InvalidContent& e) {
         if (errorCb)
-            errorCb("Invalid content: " + e.msg());
+            QTimer::singleShot(0, &mPresence, [errorCb, e]{ errorCb("Invalid content: " + e.msg()); });
     }
 
     QJsonObject root;
@@ -299,6 +301,51 @@ void Client::post(const ATProto::AppBskyFeed::Record::Post& post,
             qDebug() << "Posted:" << reply;
             if (successCb)
                 successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::checkPostExists(const QString& atUri, const QString& cid,
+                             const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto uri = ATUri(atUri);
+    if (!uri.isValid())
+    {
+        if (errorCb)
+            QTimer::singleShot(0, &mPresence, [errorCb, atUri]{ errorCb("Invalid at-uri: " + atUri); });
+
+        return;
+    }
+
+    getRecord(uri.getAuthority(), uri.getCollection(), uri.getRkey(), cid,
+        [successCb](auto) {
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& err) {
+            if (errorCb)
+                errorCb(err);
+        });
+}
+
+void Client::getRecord(const QString& repo, const QString& collection,
+                       const QString& rkey, const std::optional<QString>& cid,
+                       const GetRecordSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"repo", repo}, {"collection", collection}, {"rkey", rkey}};
+    addOptionalStringParam(params, "cid", cid);
+
+    mXrpc->get("com.atproto.repo.getRecord", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() <<"Got record:" << reply;
+            try {
+                auto record = ComATProtoRepo::Record::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(record));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
         failure(errorCb),
         authToken());
@@ -501,30 +548,92 @@ void Client::addFacets(AppBskyFeed::Record::Post::SharedPtr post,
     post->mText = shortenedText;
 }
 
-void Client::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
+void Client::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid)
 {
+
+    auto ref = std::make_unique<ATProto::ComATProtoRepo::StrongRef>();
+    ref->mUri = quoteUri;
+    ref->mCid = quoteCid;
+
+    Q_ASSERT(!post.mEmbed);
+    post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
+    post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::RECORD;
+    post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::Record>();
+
+    auto& record = std::get<ATProto::AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+    record->mRecord = std::move(ref);
+}
+
+void Client::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
+{   
     if (!post.mEmbed)
     {
         post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
         post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::IMAGES;
         post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::Images>();
     }
+    else if (post.mEmbed->mType == ATProto::AppBskyEmbed::EmbedType::RECORD)
+    {
+        auto& record = std::get<ATProto::AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+        auto ref = std::move(record->mRecord);
+        post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA;
+        post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::RecordWithMedia>();
+
+        auto& recordWithMedia = std::get<ATProto::AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
+        recordWithMedia->mRecord = std::make_unique<ATProto::AppBskyEmbed::Record>();
+        recordWithMedia->mRecord->mRecord = std::move(ref);
+        recordWithMedia->mMedia = std::make_unique<ATProto::AppBskyEmbed::Images>();
+    }
 
     auto image = std::make_unique<ATProto::AppBskyEmbed::Image>();
     image->mImage = std::move(blob);
     image->mAlt = ""; // TODO
-    auto& images = std::get<ATProto::AppBskyEmbed::Images::Ptr>(post.mEmbed->mEmbed);
+
+    ATProto::AppBskyEmbed::Images* images = nullptr;
+    if (post.mEmbed->mType == ATProto::AppBskyEmbed::EmbedType::IMAGES)
+    {
+        images = std::get<ATProto::AppBskyEmbed::Images::Ptr>(post.mEmbed->mEmbed).get();
+    }
+    else
+    {
+        Q_ASSERT(post.mEmbed->mType == ATProto::AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA);
+        auto& recordWithMedia = std::get<ATProto::AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
+        images = std::get<ATProto::AppBskyEmbed::Images::Ptr>(recordWithMedia->mMedia).get();
+    }
+
+    Q_ASSERT(images);
     images->mImages.push_back(std::move(image));
 }
 
 void Client::addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                        const QString& title, const QString& description, Blob::Ptr blob)
 {
-    post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
-    post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::EXTERNAL;
-    post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::External>();
+    ATProto::AppBskyEmbed::External* embed = nullptr;
 
-    auto& embed = std::get<ATProto::AppBskyEmbed::External::Ptr>(post.mEmbed->mEmbed);
+    if (!post.mEmbed)
+    {
+        post.mEmbed = std::make_unique<ATProto::AppBskyEmbed::Embed>();
+        post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::EXTERNAL;
+        post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::External>();
+        embed = std::get<ATProto::AppBskyEmbed::External::Ptr>(post.mEmbed->mEmbed).get();
+    }
+    else
+    {
+        Q_ASSERT(post.mEmbed->mType == ATProto::AppBskyEmbed::EmbedType::RECORD);
+        auto& record = std::get<ATProto::AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+        auto ref = std::move(record->mRecord);
+        post.mEmbed->mType = ATProto::AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA;
+        post.mEmbed->mEmbed = std::make_unique<ATProto::AppBskyEmbed::RecordWithMedia>();
+
+        auto& recordWithMedia = std::get<ATProto::AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
+        recordWithMedia->mRecord = std::make_unique<ATProto::AppBskyEmbed::Record>();
+        recordWithMedia->mRecord->mRecord = std::move(ref);
+        recordWithMedia->mMedia = std::make_unique<ATProto::AppBskyEmbed::External>();
+
+        embed = std::get<ATProto::AppBskyEmbed::External::Ptr>(recordWithMedia->mMedia).get();
+    }
+
+    Q_ASSERT(embed);
     embed->mExternal = std::make_unique<ATProto::AppBskyEmbed::ExternalExternal>();
     embed->mExternal->mUri = link;
     embed->mExternal->mTitle = title;

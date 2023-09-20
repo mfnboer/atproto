@@ -133,7 +133,9 @@ void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError erro
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
     qInfo() << "Network error:" << errorCode << errorMsg;
-    errorCb(errorMsg, {});
+    const auto data = reply->readAll();
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+    errorCb(errorMsg, json);
     removeReply(reply);
 }
 
