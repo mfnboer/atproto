@@ -370,8 +370,8 @@ QString Client::shortenWebLink(const QString& link)
 {
     static const QRegularExpression httpRE(R"(https?:\/\/([^\/]+)\/(.{0,12})(.*))");
     static const QRegularExpression httpMainOnlyRE(R"(https?:\/\/(.+))");
-    static const QRegularExpression wwwRE(R"(([a-z]+\.[^\/]+)\/(.{0,12})(.*))");
-    static const QRegularExpression wwwMainRE(R"(([a-z]+\..+))");
+    static const QRegularExpression wwwRE(R"(([a-zA-Z0-9][-a-zA-Z0-9]*\.[^\/]+)\/(.{0,12})(.*))");
+    static const QRegularExpression wwwMainRE(R"(([a-zA-Z0-9][-a-zA-Z0-9]*\..+))");
 
     QRegularExpressionMatch match;
     for (const auto& re : { httpRE, httpMainOnlyRE, wwwRE, wwwMainRE})
@@ -563,8 +563,7 @@ std::vector<Client::ParsedMatch> Client::parseMentions(const QString& text)
 
 std::vector<Client::ParsedMatch> Client::parseLinks(const QString& text)
 {
-    //static const QRegularExpression reLink(R"([$|\W]((https?:\/\/|www\.)[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
-    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
+    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
     auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
     for (int i = 0; i < links.size();)
