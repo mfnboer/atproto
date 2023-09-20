@@ -30,6 +30,8 @@ qt_add_library(libatproto STATIC
     lexicon/com_atproto_identity.h
     lexicon/com_atproto_identity.cpp
     tlds.cpp
+    at_uri.h
+    at_uri.cpp
 )
 
 

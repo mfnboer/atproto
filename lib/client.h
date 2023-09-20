@@ -34,7 +34,8 @@ public:
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
-    using UploadBlobSuccessCb = std::function<void(ATProto::Blob::Ptr)>;
+    using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
+    using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -130,11 +131,21 @@ public:
     void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                     const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb);
 
+    // com.atproto.repo
+
     void uploadBlob(const QByteArray& blob, const QString& mimeType,
                     const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb);
 
+    // createRecord in post collection
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void checkPostExists(const QString& atUri, const QString& cid,
+                         const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getRecord(const QString& repo, const QString& collection,
+                   const QString& rkey, const std::optional<QString>& cid,
+                   const GetRecordSuccessCb& successCb, const ErrorCb& errorCb);
 
     // Functions for composing a post
     struct ParsedMatch
@@ -160,6 +171,7 @@ public:
     void addFacets(AppBskyFeed::Record::Post::SharedPtr post,
                    const std::vector<ParsedMatch>& facets);
 
+    void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
     static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::Ptr blob = nullptr);
@@ -182,6 +194,7 @@ private:
 
     std::unique_ptr<Xrpc::Client> mXrpc;
     ComATProtoServer::Session::Ptr mSession;
+    QObject mPresence;
 };
 
 }
