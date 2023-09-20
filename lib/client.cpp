@@ -582,6 +582,7 @@ void Client::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
         auto& recordWithMedia = std::get<ATProto::AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
         recordWithMedia->mRecord = std::make_unique<ATProto::AppBskyEmbed::Record>();
         recordWithMedia->mRecord->mRecord = std::move(ref);
+        recordWithMedia->mMediaType = ATProto::AppBskyEmbed::EmbedType::IMAGES;
         recordWithMedia->mMedia = std::make_unique<ATProto::AppBskyEmbed::Images>();
     }
 
@@ -628,6 +629,7 @@ void Client::addExternalToPost(AppBskyFeed::Record::Post& post, const QString& l
         auto& recordWithMedia = std::get<ATProto::AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
         recordWithMedia->mRecord = std::make_unique<ATProto::AppBskyEmbed::Record>();
         recordWithMedia->mRecord->mRecord = std::move(ref);
+        recordWithMedia->mMediaType = ATProto::AppBskyEmbed::EmbedType::EXTERNAL;
         recordWithMedia->mMedia = std::make_unique<ATProto::AppBskyEmbed::External>();
 
         embed = std::get<ATProto::AppBskyEmbed::External::Ptr>(recordWithMedia->mMedia).get();
