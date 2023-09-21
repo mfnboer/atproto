@@ -36,6 +36,7 @@ public:
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
+    using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -133,54 +134,39 @@ public:
 
     // com.atproto.repo
 
+    /**
+     * @brief uploadBlob
+     * @param blob encoded image
+     * @param mimeType mime-type of the image
+     * @param successCb
+     * @param errorCb
+     */
     void uploadBlob(const QByteArray& blob, const QString& mimeType,
                     const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb);
 
-    // createRecord in post collection
-    void post(const ATProto::AppBskyFeed::Record::Post& post,
-              const SuccessCb& successCb, const ErrorCb& errorCb);
-
-    void checkPostExists(const QString& atUri, const QString& cid,
-                         const SuccessCb& successCb, const ErrorCb& errorCb);
-
+    /**
+     * @brief getRecord
+     * @param repo
+     * @param collection
+     * @param rkey
+     * @param cid
+     * @param successCb
+     * @param errorCb
+     */
     void getRecord(const QString& repo, const QString& collection,
                    const QString& rkey, const std::optional<QString>& cid,
                    const GetRecordSuccessCb& successCb, const ErrorCb& errorCb);
 
-    // Functions for composing a post
-    struct ParsedMatch
-    {
-        using Type = ATProto::AppBskyRichtext::Facet::Feature::Type;
-
-        int mStartIndex;
-        int mEndIndex;
-        QString mMatch;
-        Type mType;
-        QString mRef;
-    };
-
-    using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
-
-    void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
-
-    static QString shortenWebLink(const QString& link);
-
-    void resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
-                       std::vector<ParsedMatch> facets, int facetIndex,
-                       const PostCreatedCb& cb);
-    void addFacets(AppBskyFeed::Record::Post::SharedPtr post,
-                   const std::vector<ParsedMatch>& facets);
-
-    void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
-    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob);
-    static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
-                                  const QString& title, const QString& description, Blob::Ptr blob = nullptr);
-
-    static std::vector<ParsedMatch> parseMentions(const QString& text);
-    static std::vector<ParsedMatch> parseLinks(const QString& text);
-
-    // If two facets overlap, then the one with the lowest start index is taken
-    static std::vector<ParsedMatch> parseFacets(const QString& text);
+    /**
+     * @brief createRecord
+     * @param repo
+     * @param collection
+     * @param record
+     * @param successCb
+     * @param errorCb
+     */
+    void createRecord(const QString& repo, const QString& collection, const QJsonObject& record,
+                      const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
@@ -194,7 +180,6 @@ private:
 
     std::unique_ptr<Xrpc::Client> mXrpc;
     ComATProtoServer::Session::Ptr mSession;
-    QObject mPresence;
 };
 
 }

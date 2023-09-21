@@ -4,7 +4,7 @@
 #include <set>
 #include <unordered_set>
 
-namespace Skywalker {
+namespace ATProto {
 
 bool isValidTLD(const QString& tld)
 {
