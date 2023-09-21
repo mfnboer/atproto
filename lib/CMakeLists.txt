@@ -32,6 +32,8 @@ qt_add_library(libatproto STATIC
     tlds.cpp
     at_uri.h
     at_uri.cpp
+    post_master.h
+    post_master.cpp
 )
 
 

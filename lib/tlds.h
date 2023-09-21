@@ -3,7 +3,7 @@
 #pragma once
 #include <QString>
 
-namespace Skywalker {
+namespace ATProto {
 
 bool isValidTLD(const QString& tld);
 
