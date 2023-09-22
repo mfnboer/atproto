@@ -168,6 +168,17 @@ public:
     void createRecord(const QString& repo, const QString& collection, const QJsonObject& record,
                       const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief deleteRecord
+     * @param repo
+     * @param collection
+     * @param rkey
+     * @param successCb
+     * @param errorCb
+     */
+    void deleteRecord(const QString& repo, const QString& collection, const QString& rkey,
+                      const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     const QString& authToken() const;
     const QString& refreshToken() const;
