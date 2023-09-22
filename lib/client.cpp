@@ -324,6 +324,28 @@ void Client::createRecord(const QString& repo, const QString& collection, const 
         authToken());
 }
 
+void Client::deleteRecord(const QString& repo, const QString& collection, const QString& rkey,
+                          const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument jsonDoc;
+    QJsonObject json;
+    json.insert("repo", repo);
+    json.insert("collection", collection);
+    json.insert("rkey", rkey);
+    jsonDoc.setObject(json);
+
+    qDebug() << "Delete record:" << jsonDoc;
+
+    mXrpc->post("com.atproto.repo.deleteRecord", jsonDoc,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() <<"Deleted record:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;

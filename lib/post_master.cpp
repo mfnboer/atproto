@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "post_master.h"
-#include "at_uri.h"
 #include "tlds.h"
 #include <QTimer>
 
@@ -10,6 +9,16 @@ namespace ATProto {
 PostMaster::PostMaster(Client& client) :
     mClient(client)
 {
+}
+
+ATUri PostMaster::createAtUri(const QString& uri, const Client::ErrorCb& errorCb) const
+{
+    auto atUri = ATUri(uri);
+
+    if (!atUri.isValid() && errorCb)
+        QTimer::singleShot(0, &mPresence, [errorCb, uri]{ errorCb("Invalid at-uri: " + uri); });
+
+    return atUri;
 }
 
 void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
@@ -39,19 +48,61 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
         });
 }
 
-void PostMaster::checkPostExists(const QString& atUri, const QString& cid,
+void PostMaster::repost(const QString& uri, const QString& cid,
+            const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    const auto atUri = createAtUri(uri, errorCb);
+    if (!atUri.isValid())
+        return;
+
+    QJsonObject repostJson;
+    ComATProtoRepo::StrongRef subject;
+    subject.mUri = uri;
+    subject.mCid = cid;
+    repostJson.insert("subject", subject.toJson());
+    repostJson.insert("createdAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
+
+    qDebug() << "reposting:" << repostJson;
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = "app.bsky.feed.repost";
+
+    mClient.createRecord(repo, collection, repostJson,
+        [this, successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        [this, errorCb](const QString& error) {
+            if (errorCb)
+                errorCb(error);
+        });
+}
+
+void PostMaster::undoRepost(const QString& uri,
+                const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    const auto atUri = createAtUri(uri, errorCb);
+    if (!atUri.isValid())
+        return;
+
+    mClient.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(),
+        [successCb]{
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& err) {
+            if (errorCb)
+                errorCb(err);
+        });
+}
+
+void PostMaster::checkPostExists(const QString& uri, const QString& cid,
                                  const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    const auto uri = ATUri(atUri);
-    if (!uri.isValid())
-    {
-        if (errorCb)
-            QTimer::singleShot(0, &mPresence, [errorCb, atUri]{ errorCb("Invalid at-uri: " + atUri); });
-
+    const auto atUri = createAtUri(uri, errorCb);
+    if (!atUri.isValid())
         return;
-    }
 
-    mClient.getRecord(uri.getAuthority(), uri.getCollection(), uri.getRkey(), cid,
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), cid,
         [successCb](auto) {
             if (successCb)
                 successCb();

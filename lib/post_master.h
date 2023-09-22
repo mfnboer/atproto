@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "at_uri.h"
 #include "client.h"
 
 namespace ATProto {
@@ -28,8 +29,12 @@ public:
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void repost(const QString& uri, const QString& cid,
+                const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void undoRepost(const QString& uri,
+                    const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
-    void checkPostExists(const QString& atUri, const QString& cid,
+    void checkPostExists(const QString& uri, const QString& cid,
                          const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
 
@@ -56,6 +61,8 @@ public:
     static std::vector<ParsedMatch> parseFacets(const QString& text);
 
 private:
+    ATUri createAtUri(const QString& uri, const Client::ErrorCb& errorCb) const;
+
     Client& mClient;
     QObject mPresence;
 };
