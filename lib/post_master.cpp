@@ -49,7 +49,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
 }
 
 void PostMaster::repost(const QString& uri, const QString& cid,
-            const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+            const RepostSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     const auto atUri = createAtUri(uri, errorCb);
     if (!atUri.isValid())
@@ -67,9 +67,9 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     const QString collection = "app.bsky.feed.repost";
 
     mClient.createRecord(repo, collection, repostJson,
-        [this, successCb](auto){
+        [this, successCb](auto strongRef){
             if (successCb)
-                successCb();
+                successCb(strongRef->mUri, strongRef->mCid);
         },
         [this, errorCb](const QString& error) {
             if (errorCb)

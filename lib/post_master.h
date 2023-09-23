@@ -13,6 +13,7 @@ class PostMaster
 {
 public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
+    using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
 
     struct ParsedMatch
     {
@@ -30,7 +31,7 @@ public:
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
-                const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+                const RepostSuccessCb& successCb, const Client::ErrorCb& errorCb);
     void undoRepost(const QString& uri,
                     const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
