@@ -8,17 +8,27 @@ namespace ATProto {
 class ATUri
 {
 public:
+    static ATUri fromHttpsUri(const QString& uri);
+
+    ATUri() = default;
     explicit ATUri(const QString& uri);
 
     const bool isValid() const;
     const QString& getAuthority() const { return mAuthority; }
     const QString& getCollection() const { return mCollection; }
     const QString& getRkey() const { return mRkey; }
+    const bool authorityIsHandle() const { return mAuthorityIsHandle; }
+
+    void setAuthority(const QString& authority) { mAuthority = authority; }
+    void setAuthorityIsHandle(bool isHandle) { mAuthorityIsHandle = isHandle; }
 
 private:
     QString mAuthority;
     QString mCollection;
     QString mRkey;
+
+    // Authority is a handle that must be resolved to a DID
+    bool mAuthorityIsHandle = false;
 };
 
 }

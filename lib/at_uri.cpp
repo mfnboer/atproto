@@ -1,10 +1,29 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "at_uri.h"
+#include <QRegularExpression>
 #include <QStringList>
 #include <QDebug>
 
 namespace ATProto {
+
+ATUri ATUri::fromHttpsUri(const QString& uri)
+{
+    static const QRegularExpression reHttps(R"(^https://bsky.app/profile/([a-zA-Z0-9-\._~]+)/post/([a-zA-Z0-9\.-_~]+)$)");
+
+    auto match = reHttps.match(uri);
+
+    if (!match.hasMatch())
+        return {};
+
+    ATUri atUri;
+    atUri.mAuthority = match.captured(1);
+    atUri.mCollection = "app.bsky.feed.post";
+    atUri.mRkey = match.captured(2);
+    atUri.mAuthorityIsHandle = true;
+
+    return atUri;
+}
 
 ATUri::ATUri(const QString& uri)
 {
