@@ -113,6 +113,50 @@ void PostMaster::checkPostExists(const QString& uri, const QString& cid,
         });
 }
 
+void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
+{
+    auto atUri = ATUri::fromHttpsUri(httpsUri);
+    if (!atUri.isValid())
+        return;
+
+    // TODO: Get profile instead of resolving handle.
+    if (atUri.authorityIsHandle())
+    {
+        mClient.resolveHandle(atUri.getAuthority(),
+            [this, atUri, successCb](const auto& did){
+                ATUri newUri(atUri);
+                newUri.setAuthority(did);
+                newUri.setAuthorityIsHandle(false);
+                continueGetPost(newUri, successCb);
+            },
+            [](const QString& err){
+                qDebug() << err;
+            });
+    }
+    else
+    {
+       continueGetPost(atUri, successCb);
+    }
+}
+
+void PostMaster::continueGetPost(const ATUri& atUri, const PostCb& successCb)
+{
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, successCb](ComATProtoRepo::Record::Ptr record){
+            try {
+                auto post = AppBskyFeed::Record::Post::fromJson(record->mValue);
+
+                if (successCb)
+                    successCb(record->mUri, *record->mCid, std::move(post));
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+            }
+        },
+        [this](const QString& err){
+            qDebug() << err;
+        });
+}
+
 void PostMaster::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
@@ -412,6 +456,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
         }
         else
         {
+
             qDebug() << "Link:" << link.mMatch << "start:" << link.mStartIndex << "end:" << link.mEndIndex;
             ++i;
         }

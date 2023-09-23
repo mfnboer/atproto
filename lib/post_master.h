@@ -14,6 +14,7 @@ class PostMaster
 public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr)>;
 
     struct ParsedMatch
     {
@@ -38,6 +39,8 @@ public:
     void checkPostExists(const QString& uri, const QString& cid,
                          const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
+    void getPost(const QString& httpsUri, const PostCb& successCb);
+    void continueGetPost(const ATUri& atUri, const PostCb& successCb);
 
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
 
