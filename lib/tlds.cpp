@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "tlds.h"
-#include <set>
+#include <QHashFunctions>
 #include <unordered_set>
 
 namespace ATProto {
@@ -10,7 +10,7 @@ bool isValidTLD(const QString& tld)
 {
     // From https://data.iana.org/TLD/tlds-alpha-by-domain.txt
     // Version 2023091800, Last Updated Mon Sep 18 07:07:01 2023 UTC
-    static const std::set<QString> TLDS = {
+    static const std::unordered_set<QString> TLDS = {
         "AAA",
         "AARP",
         "ABB",
