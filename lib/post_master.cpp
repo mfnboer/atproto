@@ -77,9 +77,39 @@ void PostMaster::repost(const QString& uri, const QString& cid,
         });
 }
 
-void PostMaster::undoRepost(const QString& uri,
-                const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+void PostMaster::like(const QString& uri, const QString& cid,
+          const LikeSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
+    const auto atUri = createAtUri(uri, errorCb);
+    if (!atUri.isValid())
+        return;
+
+    QJsonObject likeJson;
+    ComATProtoRepo::StrongRef subject;
+    subject.mUri = uri;
+    subject.mCid = cid;
+    likeJson.insert("subject", subject.toJson());
+    likeJson.insert("createdAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
+
+    qDebug() << "reposting:" << likeJson;
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = "app.bsky.feed.like";
+
+    mClient.createRecord(repo, collection, likeJson,
+        [this, successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [this, errorCb](const QString& error) {
+            if (errorCb)
+                errorCb(error);
+        });
+}
+
+void PostMaster::undo(const QString& uri,
+                      const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    qDebug() << "Undo:" << uri;
     const auto atUri = createAtUri(uri, errorCb);
     if (!atUri.isValid())
         return;
