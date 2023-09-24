@@ -119,35 +119,29 @@ void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
     if (!atUri.isValid())
         return;
 
-    // TODO: Get profile instead of resolving handle.
-    if (atUri.authorityIsHandle())
-    {
-        mClient.resolveHandle(atUri.getAuthority(),
-            [this, atUri, successCb](const auto& did){
-                ATUri newUri(atUri);
-                newUri.setAuthority(did);
-                newUri.setAuthorityIsHandle(false);
-                continueGetPost(newUri, successCb);
-            },
-            [](const QString& err){
-                qDebug() << err;
-            });
-    }
-    else
-    {
-       continueGetPost(atUri, successCb);
-    }
+    mClient.getProfile(atUri.getAuthority(),
+        [this, atUri, successCb](auto profile){
+            ATUri newUri(atUri);
+            newUri.setAuthority(profile->mDid);
+            newUri.setAuthorityIsHandle(false);
+            continueGetPost(newUri, std::move(profile), successCb);
+        },
+        [](const QString& err){
+            qDebug() << err;
+        });
 }
 
-void PostMaster::continueGetPost(const ATUri& atUri, const PostCb& successCb)
+void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb)
 {
+    auto newAuthor = AppBskyActor::ProfileViewDetailed::SharedPtr(author.release());
+
     mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
-        [this, successCb](ComATProtoRepo::Record::Ptr record){
+        [this, successCb, newAuthor](ComATProtoRepo::Record::Ptr record){
             try {
                 auto post = AppBskyFeed::Record::Post::fromJson(record->mValue);
 
                 if (successCb)
-                    successCb(record->mUri, *record->mCid, std::move(post));
+                    successCb(record->mUri, record->mCid.value_or(""), std::move(post), newAuthor);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
             }
