@@ -64,6 +64,7 @@ struct ProfileViewDetailed
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
+    using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     using Ptr = std::unique_ptr<ProfileViewDetailed>;
     static Ptr fromJson(const QJsonDocument& json);
 };
