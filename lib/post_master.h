@@ -7,13 +7,14 @@
 namespace ATProto {
 
 /**
- * @brief Functions to compose and send posts.
+ * @brief Functions to compose, send and like posts.
  */
 class PostMaster
 {
 public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
 
     struct ParsedMatch
@@ -33,8 +34,10 @@ public:
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
                 const RepostSuccessCb& successCb, const Client::ErrorCb& errorCb);
-    void undoRepost(const QString& uri,
-                    const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void like(const QString& uri, const QString& cid,
+              const LikeSuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void undo(const QString& uri,
+              const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
     void checkPostExists(const QString& uri, const QString& cid,
                          const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
