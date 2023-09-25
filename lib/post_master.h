@@ -28,6 +28,9 @@ public:
         QString mRef;
     };
 
+    static QString plainToHtml(const QString& text);
+    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post);
+
     explicit PostMaster(Client& client);
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
