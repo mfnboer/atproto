@@ -71,16 +71,15 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     if (!atUri.isValid())
         return;
 
-    QJsonObject repostJson;
-    ComATProtoRepo::StrongRef subject;
-    subject.mUri = uri;
-    subject.mCid = cid;
-    repostJson.insert("subject", subject.toJson());
-    repostJson.insert("createdAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
+    AppBskyFeed::Repost repost;
+    repost.mSubject = std::make_unique<ComATProtoRepo::StrongRef>();
+    repost.mSubject->mUri = uri;
+    repost.mSubject->mCid = cid;
+    repost.mCreatedAt = QDateTime::currentDateTimeUtc();
 
-    qDebug() << "reposting:" << repostJson;
+    const auto repostJson = repost.toJson();
     const QString& repo = mClient.getSession()->mDid;
-    const QString collection = "app.bsky.feed.repost";
+    const QString collection = repostJson["$type"].toString();
 
     mClient.createRecord(repo, collection, repostJson,
         [this, successCb](auto strongRef){
@@ -100,16 +99,15 @@ void PostMaster::like(const QString& uri, const QString& cid,
     if (!atUri.isValid())
         return;
 
-    QJsonObject likeJson;
-    ComATProtoRepo::StrongRef subject;
-    subject.mUri = uri;
-    subject.mCid = cid;
-    likeJson.insert("subject", subject.toJson());
-    likeJson.insert("createdAt", QDateTime::currentDateTimeUtc().toString(Qt::ISODateWithMs));
+    AppBskyFeed::Like like;
+    like.mSubject = std::make_unique<ComATProtoRepo::StrongRef>();
+    like.mSubject->mUri = uri;
+    like.mSubject->mCid = cid;
+    like.mCreatedAt = QDateTime::currentDateTimeUtc();
 
-    qDebug() << "reposting:" << likeJson;
+    const auto likeJson = like.toJson();
     const QString& repo = mClient.getSession()->mDid;
-    const QString collection = "app.bsky.feed.like";
+    const QString collection = likeJson["$type"].toString();
 
     mClient.createRecord(repo, collection, likeJson,
         [this, successCb](auto strongRef){
@@ -470,7 +468,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseMentions(const QString& te
 
 std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
 {
-    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9@%_\+~#//=])?))");
+    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%._\+~#=]{1,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9()@%_\+~#//=])?))");
     auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
     for (int i = 0; i < links.size();)

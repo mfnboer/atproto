@@ -21,6 +21,12 @@ int XJsonObject::getRequiredInt(const QString& key) const
     return mObject[key].toInt();
 }
 
+bool XJsonObject::getRequiredBool(const QString& key) const
+{
+    checkField(key, QJsonValue::Bool);
+    return mObject[key].toBool();
+}
+
 QDateTime XJsonObject::getRequiredDateTime(const QString& key) const
 {
     checkField(key, QJsonValue::String);

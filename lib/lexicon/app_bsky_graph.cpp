@@ -26,4 +26,21 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
     return follows;
 }
 
+QJsonObject Follow::toJson() const
+{
+    QJsonObject json;
+    json.insert("subject", mSubject);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Follow::Ptr Follow::fromJson(const QJsonObject& json)
+{
+    auto follow = std::make_unique<Follow>();
+    XJsonObject xjson(json);
+    follow->mSubject = xjson.getRequiredString("subject");
+    follow->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return follow;
+}
+
 }
