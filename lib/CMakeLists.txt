@@ -34,6 +34,8 @@ qt_add_library(libatproto STATIC
     at_uri.cpp
     post_master.h
     post_master.cpp
+    lexicon/app_bsky_notification.h
+    lexicon/app_bsky_notification.cpp
 )
 
 

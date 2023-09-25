@@ -17,4 +17,16 @@ struct GetFollowsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.follow
+struct Follow
+{
+    QString mSubject; // did
+    QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Follow>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

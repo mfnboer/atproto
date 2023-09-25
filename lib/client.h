@@ -6,6 +6,7 @@
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
+#include "lexicon/app_bsky_notification.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
 
@@ -33,10 +34,13 @@ public:
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
+    using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
+    using UnreadCountSuccessCb = std::function<void(int)>;
+    using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
@@ -119,6 +123,15 @@ public:
     void getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
                        const GetPostThreadSuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief getPosts
+     * @param uris max 25 at-uri's
+     * @param successCb
+     * @param errorCb
+     */
+    void getPosts(const std::vector<QString>& uris,
+                  const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.graph
 
     /**
@@ -131,6 +144,32 @@ public:
      */
     void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                     const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.notification
+
+    /**
+     * @brief getUnreadCount Get the number of unread notifications since last time.
+     * @param seenAt Last timestamp the notifications were seen
+     * @param successCb
+     * @param errorCb
+     */
+    void getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, const
+                                    UnreadCountSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void updateNotificationSeen(const QDateTime& dateTime,
+                                const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief listNotifications
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param seenAt
+     * @param successCb
+     * @param errorCb
+     */
+    void listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
+                           const std::optional<QDateTime>& seenAt,
+                           const NotificationsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.repo
 

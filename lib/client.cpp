@@ -31,6 +31,14 @@ static void addOptionalStringParam(Xrpc::Client::Params& params, const QString& 
         params.append({name, *value});
 }
 
+static void addOptionalDateTimeParam(Xrpc::Client::Params& params, const QString& name,
+                                 const std::optional<QDateTime>& value)
+{
+    if (value)
+        params.append({name, value->toString(Qt::ISODateWithMs)});
+}
+
+
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
     mXrpc(std::move(xrpc))
 {}
@@ -227,6 +235,33 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
         authToken());
 }
 
+void Client::getPosts(const std::vector<QString>& uris,
+                      const GetPostsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(uris.size() > 0);
+    Q_ASSERT(uris.size() <= 25);
+    Xrpc::Client::Params params;
+
+    for (const auto& uri : uris)
+        params.append({"uris", uri});
+
+    mXrpc->get("app.bsky.feed.getPosts", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getPosts:" << reply;
+            try {
+                AppBskyFeed::PostViewList posts;
+                AppBskyFeed::getPostViewList(posts, reply.object());
+
+                if (successCb)
+                    successCb(std::move(posts));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                         const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -249,8 +284,70 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
         authToken());
 }
 
+void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt,
+                                        const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalDateTimeParam(params, "seenAt", seenAt);
+
+    mXrpc->get("app.bsky.notification.getUnreadCount", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getUnreadCount:" << reply;
+            try {
+                auto unreadCount = XJsonObject(reply.object()).getRequiredInt("count");
+                if (successCb)
+                    successCb(unreadCount);
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::updateNotificationSeen(const QDateTime& dateTime,
+                                    const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument json;
+    QJsonObject paramsJson;
+    paramsJson.insert("seenAt", dateTime.toString(Qt::ISODateWithMs));
+    json.setObject(paramsJson);
+
+    mXrpc->post("app.bsky.notification.updateSeen", json,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Updated notification seen:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
+                       const std::optional<QDateTime>& seenAt,
+                       const NotificationsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+    addOptionalDateTimeParam(params, "seenAt", seenAt);
+
+    mXrpc->get("app.bsky.notification.listNotifications", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            try {
+                auto output = AppBskyNotification::ListNotificationsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
-                const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
+                        const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType,
         [this, successCb, errorCb](const QJsonDocument& reply){

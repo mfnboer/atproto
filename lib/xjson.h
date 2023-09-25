@@ -32,6 +32,7 @@ public:
 
     QString getRequiredString(const QString& key) const;
     int getRequiredInt(const QString& key) const;
+    bool getRequiredBool(const QString& key) const;
     QDateTime getRequiredDateTime(const QString& key) const;
     QJsonObject getRequiredObject(const QString& key) const;
     QJsonArray getRequiredArray(const QString& key) const;

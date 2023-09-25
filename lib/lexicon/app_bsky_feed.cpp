@@ -129,6 +129,27 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     return postView;
 }
 
+void getPostViewList(PostViewList& list, const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+
+    const QJsonArray& listArray = xjson.getRequiredArray("posts");
+    list.reserve(listArray.size());
+
+    for (const auto& postViewJson : listArray)
+    {
+        if (!postViewJson.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid list element: not an object";
+            qInfo() << json;
+            throw InvalidJsonException("PROTO ERROR invalid PostViewList element: not an object");
+        }
+
+        auto postView = PostView::fromJson(postViewJson.toObject());
+        list.push_back(std::move(postView));
+    }
+}
+
 ReplyElement::Ptr ReplyElement::fromJson(const QJsonObject& json)
 {
     auto element = std::make_unique<ReplyElement>();
@@ -196,7 +217,7 @@ FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
     return feedViewPost;
 }
 
-static void getFeed(std::vector<FeedViewPost::Ptr>& feed, const QJsonObject& json)
+static void getFeed(PostFeed& feed, const QJsonObject& json)
 {
     XJsonObject xjson(json);
 
@@ -348,6 +369,44 @@ PostThread::Ptr PostThread::fromJson(const QJsonObject& json)
     const auto threadJson = xjson.getRequiredObject("thread");
     postThread->mThread = ThreadElement::fromJson(threadJson);
     return postThread;
+}
+
+QJsonObject Like::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.feed.like");
+    json.insert("subject", mSubject->toJson());
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Like::Ptr Like::fromJson(const QJsonObject& json)
+{
+    auto like = std::make_unique<Like>();
+    const XJsonObject xjson(json);
+    const auto subjectJson = xjson.getRequiredObject("subject");
+    like->mSubject = ComATProtoRepo::StrongRef::fromJson(subjectJson);
+    like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return like;
+}
+
+QJsonObject Repost::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.feed.repost");
+    json.insert("subject", mSubject->toJson());
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Repost::Ptr Repost::fromJson(const QJsonObject& json)
+{
+    auto repost = std::make_unique<Repost>();
+    const XJsonObject xjson(json);
+    const auto subjectJson = xjson.getRequiredObject("subject");
+    repost->mSubject = ComATProtoRepo::StrongRef::fromJson(subjectJson);
+    repost->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return repost;
 }
 
 }

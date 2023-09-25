@@ -40,6 +40,9 @@ struct PostView
     static Ptr fromJson(const QJsonObject& json);
 };
 
+using PostViewList = std::vector<PostView::Ptr>;
+void getPostViewList(PostViewList& list, const QJsonObject& json);
+
 // app.bsky.feed.defs#notFoundPost
 struct NotFoundPost
 {
@@ -162,6 +165,30 @@ struct PostThread
     ThreadElement::Ptr mThread; // required
 
     using Ptr = std::unique_ptr<PostThread>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.like
+struct Like
+{
+    ComATProtoRepo::StrongRef::Ptr mSubject;
+    QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Like>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.repost
+struct Repost
+{
+    ComATProtoRepo::StrongRef::Ptr mSubject;
+    QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Repost>;
     static Ptr fromJson(const QJsonObject& json);
 };
 
