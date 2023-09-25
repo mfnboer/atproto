@@ -6,6 +6,22 @@
 
 namespace ATProto {
 
+QString PostMaster::plainToHtml(const QString& text)
+{
+    const auto html = text.toHtmlEscaped().replace('\n', "<br>");
+
+    // Preserve white space
+    return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
+}
+
+QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post)
+{
+    if (post.mFacets.empty())
+        return ATProto::PostMaster::plainToHtml(post.mText);
+    else
+        return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets);
+}
+
 PostMaster::PostMaster(Client& client) :
     mClient(client)
 {

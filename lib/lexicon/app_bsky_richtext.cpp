@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "app_bsky_richtext.h"
+#include "../post_master.h"
 #include "../xjson.h"
 
 namespace ATProto::AppBskyRichtext {
@@ -221,12 +222,12 @@ QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Face
         }
 
         const auto before = bytes.sliced(bytePos, start - bytePos);
-        result.append(QString(before).toHtmlEscaped().replace('\n', "<br>"));
+        result.append(QString(before).toHtmlEscaped().replace('\n', "<br>" ));
         result.append(link.mText);
         bytePos = link.mEnd;
     }
 
-    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>"));
+    result.append(PostMaster::plainToHtml(bytes.sliced(bytePos)));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
     return result;
