@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "app_bsky_notification.h"
 #include "../xjson.h"
+#include <unordered_map>
 
 namespace ATProto::AppBskyNotification {
 
