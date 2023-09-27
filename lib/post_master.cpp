@@ -8,7 +8,12 @@ namespace ATProto {
 
 QString PostMaster::plainToHtml(const QString& text)
 {
-    const auto html = text.toHtmlEscaped().replace('\n', "<br>");
+    // Sometime post have an ObjectReplacementCharacter in it. They should not, seems
+    // a bug in the Bluesky app. QML refuses to display such texts, so we replace
+    // them by whitespace.
+    const auto html = text.toHtmlEscaped()
+                          .replace('\n', "<br>")
+                          .replace(QChar::ObjectReplacementCharacter, ' ');
 
     // Preserve white space
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
