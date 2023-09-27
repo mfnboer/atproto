@@ -43,6 +43,8 @@ public:
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
+    static constexpr int MAX_URIS_GET_POSTS = 25;
+
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
 
     const QString& getHost() const { return mXrpc->getHost(); }
