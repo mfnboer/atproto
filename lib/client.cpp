@@ -325,19 +325,26 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 
 void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
                        const std::optional<QDateTime>& seenAt,
-                       const NotificationsSuccessCb& successCb, const ErrorCb& errorCb)
+                       const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
+                       bool updateSeen)
 {
     Xrpc::Client::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalDateTimeParam(params, "seenAt", seenAt);
 
+    const auto now = QDateTime::currentDateTimeUtc();
+
     mXrpc->get("app.bsky.notification.listNotifications", params,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, now, successCb, errorCb, updateSeen](const QJsonDocument& reply){
             try {
                 auto output = AppBskyNotification::ListNotificationsOutput::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(output));
+
+                if (updateSeen)
+                    updateNotificationSeen(now, {}, {});
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
