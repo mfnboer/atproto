@@ -36,6 +36,7 @@ struct PostView
     ViewerState::Ptr mViewer;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
+    using SharedPtr = std::shared_ptr<PostView>;
     using Ptr = std::unique_ptr<PostView>;
     static Ptr fromJson(const QJsonObject& json);
 };
