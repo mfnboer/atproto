@@ -168,10 +168,12 @@ public:
      * @param seenAt
      * @param successCb
      * @param errorCb
+     * @param updateSeen update the seen timestamp to the time of sending this request
      */
     void listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
                            const std::optional<QDateTime>& seenAt,
-                           const NotificationsSuccessCb& successCb, const ErrorCb& errorCb);
+                           const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
+                           bool updateSeen = false);
 
     // com.atproto.repo
 
