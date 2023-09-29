@@ -479,7 +479,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
     for (int i = 0; i < links.size();)
     {
         const auto& link = links[i];
-        const QUrl url(link.mMatch);
+        QUrl url(link.mMatch);
 
         if (link.mStartIndex > 0 && text[link.mStartIndex - 1] == '@')
         {
@@ -492,7 +492,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
             qDebug() << "Invalid URL:" << link.mMatch;
             links.erase(links.begin() + i);
         }
-        else if (!link.mMatch.startsWith("http") && !isValidTLD(link.mMatch.section('.', -1)))
+        else if (!link.mMatch.startsWith("http") && !isValidTLD(link.mMatch.split('/')[0].section('.', -1)))
         {
             qDebug() << "Invalid TLD:" << link.mMatch;
             links.erase(links.begin() + i);
