@@ -11,8 +11,10 @@ struct ViewerState
 {
     bool mMuted = false;
     bool mBlockedBy = false;
-    // NOT IMPLEMENTED following
-    // NOT IMPLEMENTED followedBy
+    std::optional<QString> mBlocking;
+    std::optional<QString> mFollowing;
+    std::optional<QString> mFollowedBy;
+    // NOT IMPLEMENTED: mutedByList
 
     using Ptr = std::unique_ptr<ViewerState>;
     static Ptr fromJson(const QJsonObject& json);
