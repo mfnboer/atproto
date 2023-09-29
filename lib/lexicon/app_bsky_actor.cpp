@@ -11,6 +11,9 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
     viewerState->mBlockedBy = xjson.getOptionalBool("blockedBy", false);
+    viewerState->mBlocking = xjson.getOptionalString("blocking");
+    viewerState->mFollowing = xjson.getOptionalString("following");
+    viewerState->mFollowedBy = xjson.getOptionalString("followedBy");
     return viewerState;
 }
 
