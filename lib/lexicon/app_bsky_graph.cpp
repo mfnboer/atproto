@@ -29,6 +29,7 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
 QJsonObject Follow::toJson() const
 {
     QJsonObject json;
+    json.insert("$type", "app.bsky.graph.follow");
     json.insert("subject", mSubject);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     return json;

@@ -3,7 +3,7 @@
 #include "at_uri.h"
 #include <QRegularExpression>
 #include <QStringList>
-#include <QDebug>
+#include <QTimer>
 
 namespace ATProto {
 
@@ -21,6 +21,16 @@ ATUri ATUri::fromHttpsUri(const QString& uri)
     atUri.mCollection = "app.bsky.feed.post";
     atUri.mRkey = match.captured(2);
     atUri.mAuthorityIsHandle = true;
+
+    return atUri;
+}
+
+ATUri ATUri::createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb)
+{
+    auto atUri = ATUri(uri);
+
+    if (!atUri.isValid() && errorCb)
+        QTimer::singleShot(0, &presence, [errorCb, uri]{ errorCb("Invalid at-uri: " + uri); });
 
     return atUri;
 }

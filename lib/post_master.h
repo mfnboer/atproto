@@ -71,8 +71,6 @@ public:
     static std::vector<ParsedMatch> parseFacets(const QString& text);
 
 private:
-    ATUri createAtUri(const QString& uri, const Client::ErrorCb& errorCb) const;
-
     Client& mClient;
     QObject mPresence;
 };

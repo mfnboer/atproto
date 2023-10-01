@@ -32,16 +32,6 @@ PostMaster::PostMaster(Client& client) :
 {
 }
 
-ATUri PostMaster::createAtUri(const QString& uri, const Client::ErrorCb& errorCb) const
-{
-    auto atUri = ATUri(uri);
-
-    if (!atUri.isValid() && errorCb)
-        QTimer::singleShot(0, &mPresence, [errorCb, uri]{ errorCb("Invalid at-uri: " + uri); });
-
-    return atUri;
-}
-
 void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
                       const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
@@ -72,7 +62,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
 void PostMaster::repost(const QString& uri, const QString& cid,
             const RepostSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    const auto atUri = createAtUri(uri, errorCb);
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
         return;
 
@@ -100,7 +90,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
 void PostMaster::like(const QString& uri, const QString& cid,
           const LikeSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    const auto atUri = createAtUri(uri, errorCb);
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
         return;
 
@@ -129,7 +119,7 @@ void PostMaster::undo(const QString& uri,
                       const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     qDebug() << "Undo:" << uri;
-    const auto atUri = createAtUri(uri, errorCb);
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
         return;
 
@@ -147,7 +137,7 @@ void PostMaster::undo(const QString& uri,
 void PostMaster::checkPostExists(const QString& uri, const QString& cid,
                                  const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    const auto atUri = createAtUri(uri, errorCb);
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
         return;
 
