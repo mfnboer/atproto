@@ -10,7 +10,7 @@ namespace ATProto::AppBskyGraph {
 struct GetFollowsOutput
 {
     AppBskyActor::ProfileView::Ptr mSubject;
-    std::vector<AppBskyActor::ProfileView::Ptr> mFollows;
+    AppBskyActor::ProfileViewList mFollows;
     std::optional<QString> mCursor;
 
     using Ptr = std::unique_ptr<GetFollowsOutput>;

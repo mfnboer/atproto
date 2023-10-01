@@ -46,9 +46,12 @@ struct ProfileView
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
+    using SharedPtr = std::shared_ptr<ProfileView>;
     using Ptr = std::unique_ptr<ProfileView>;
     static Ptr fromJson(const QJsonObject& json);
 };
+
+using ProfileViewList = std::vector<ProfileView::Ptr>;
 
 // app.bsky.actor.defs#profileViewDetailed
 struct ProfileViewDetailed
