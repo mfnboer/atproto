@@ -262,6 +262,50 @@ void Client::getPosts(const std::vector<QString>& uris,
         authToken());
 }
 
+void Client::getLikes(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
+              const GetLikesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"uri", uri}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getLikes", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getLikes:" << reply;
+            try {
+                auto likes = AppBskyFeed::GetLikesOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(likes));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
+                   const GetRepostedBySuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"uri", uri}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getRepostedBy", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getRepostedBy:" << reply;
+            try {
+                auto repostedBy = AppBskyFeed::GetRepostedByOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(repostedBy));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                         const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb)
 {

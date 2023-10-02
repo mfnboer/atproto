@@ -35,6 +35,8 @@ public:
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
+    using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::Ptr)>;
+    using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::Ptr)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
     using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
@@ -134,6 +136,28 @@ public:
      */
     void getPosts(const std::vector<QString>& uris,
                   const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getLikes
+     * @param uri
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getLikes(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
+                  const GetLikesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getRepostedBy
+     * @param uri
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getRepostedBy(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
+                       const GetRepostedBySuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.graph
 

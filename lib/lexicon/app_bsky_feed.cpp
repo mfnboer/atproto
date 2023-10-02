@@ -426,6 +426,7 @@ GetLikesOutput::Ptr GetLikesOutput::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
+    output->mCursor = xjson.getOptionalString("cursor");
 
     const auto likesJson = xjson.getRequiredArray("likes");
 
@@ -450,6 +451,7 @@ GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
+    output->mCursor = xjson.getOptionalString("cursor");
 
     const auto repostedByJson = xjson.getRequiredArray("repostedBy");
 
