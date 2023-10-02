@@ -17,6 +17,16 @@ struct GetFollowsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+struct GetFollowersOutput
+{
+    AppBskyActor::ProfileView::Ptr mSubject;
+    AppBskyActor::ProfileViewList mFollowers;
+    std::optional<QString> mCursor;
+
+    using Ptr = std::unique_ptr<GetFollowersOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.graph.follow
 struct Follow
 {

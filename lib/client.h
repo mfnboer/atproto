@@ -36,6 +36,7 @@ public:
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
+    using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
@@ -146,6 +147,18 @@ public:
      */
     void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                     const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getFollowers
+     * @param actor
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
+
 
     // app.bsky.notification
 
