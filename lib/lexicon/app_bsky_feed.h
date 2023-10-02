@@ -193,4 +193,37 @@ struct Repost
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.getLikes#like
+struct GetLikesLike
+{
+    QDateTime mIndexedAt;
+    QDateTime mCreatedAt;
+    AppBskyActor::ProfileView::Ptr mActor;
+
+    using Ptr = std::unique_ptr<GetLikesLike>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.getLikes/output
+struct GetLikesOutput
+{
+    QString mUri;
+    std::optional<QString> mCid;
+    std::vector<GetLikesLike::Ptr> mLikes;
+
+    using Ptr = std::unique_ptr<GetLikesOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.getRepostedBy/Ouput
+struct GetRepostedByOutput
+{
+    QString mUri;
+    std::optional<QString> mCid;
+    AppBskyActor::ProfileViewList mRepostedBy;
+
+    using Ptr = std::unique_ptr<GetRepostedByOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

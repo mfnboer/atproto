@@ -409,4 +409,63 @@ Repost::Ptr Repost::fromJson(const QJsonObject& json)
     return repost;
 }
 
+GetLikesLike::Ptr GetLikesLike::fromJson(const QJsonObject& json)
+{
+    auto like = std::make_unique<GetLikesLike>();
+    const XJsonObject xjson(json);
+    like->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+    like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    const auto actorJson = xjson.getRequiredObject("actor");
+    like->mActor = AppBskyActor::ProfileView::fromJson(actorJson);
+    return like;
+}
+
+GetLikesOutput::Ptr GetLikesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetLikesOutput>();
+    const XJsonObject xjson(json);
+    output->mUri = xjson.getRequiredString("uri");
+    output->mCid = xjson.getOptionalString("cid");
+
+    const auto likesJson = xjson.getRequiredArray("likes");
+
+    for (const auto& likeJson : likesJson)
+    {
+        if (!likeJson.isObject())
+        {
+            qWarning() << "Invalid like:" << json;
+            throw InvalidJsonException("likes output");
+        }
+
+        auto like = GetLikesLike::fromJson(likeJson.toObject());
+        output->mLikes.push_back(std::move(like));
+    }
+
+    return output;
+}
+
+GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetRepostedByOutput>();
+    const XJsonObject xjson(json);
+    output->mUri = xjson.getRequiredString("uri");
+    output->mCid = xjson.getOptionalString("cid");
+
+    const auto repostedByJson = xjson.getRequiredArray("repostedBy");
+
+    for (const auto& profileJson : repostedByJson)
+    {
+        if (!profileJson.isObject())
+        {
+            qWarning() << "Invalid repostedBy:" << json;
+            throw InvalidJsonException("repostedBy output");
+        }
+
+        auto profile = AppBskyActor::ProfileView::fromJson(profileJson.toObject());
+        output->mRepostedBy.push_back(std::move(profile));
+    }
+
+    return output;
+}
+
 }
