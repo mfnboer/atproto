@@ -210,6 +210,7 @@ struct GetLikesOutput
     QString mUri;
     std::optional<QString> mCid;
     std::vector<GetLikesLike::Ptr> mLikes;
+    std::optional<QString> mCursor;
 
     using Ptr = std::unique_ptr<GetLikesOutput>;
     static Ptr fromJson(const QJsonObject& json);
@@ -221,6 +222,7 @@ struct GetRepostedByOutput
     QString mUri;
     std::optional<QString> mCid;
     AppBskyActor::ProfileViewList mRepostedBy;
+    std::optional<QString> mCursor;
 
     using Ptr = std::unique_ptr<GetRepostedByOutput>;
     static Ptr fromJson(const QJsonObject& json);
