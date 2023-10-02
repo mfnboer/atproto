@@ -26,6 +26,27 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
     return follows;
 }
 
+GetFollowersOutput::Ptr GetFollowersOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto followers = std::make_unique<GetFollowersOutput>();
+    const auto subjectJson = xjson.getRequiredObject("subject");
+    followers->mSubject = AppBskyActor::ProfileView::fromJson(subjectJson);
+    const auto followersJsonArray = xjson.getRequiredArray("followers");
+
+    for (const auto& profileJson : followersJsonArray)
+    {
+        if (!profileJson.isObject())
+            throw InvalidJsonException("Invalid followers profile");
+
+        auto profile = AppBskyActor::ProfileView::fromJson(profileJson.toObject());
+        followers->mFollowers.push_back(std::move(profile));
+    }
+
+    followers->mCursor = xjson.getOptionalString("cursor");
+    return followers;
+}
+
 QJsonObject Follow::toJson() const
 {
     QJsonObject json;
