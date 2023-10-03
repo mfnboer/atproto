@@ -183,6 +183,9 @@ public:
     void getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
+
 
     // app.bsky.notification
 
