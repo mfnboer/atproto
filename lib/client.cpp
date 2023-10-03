@@ -350,6 +350,38 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
         authToken());
 }
 
+void Client::muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("actor", actor);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.muteActor", json,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "muteActor:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("actor", actor);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.unmuteActor", json,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "unmuteActor:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt,
                                         const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb)
 {
