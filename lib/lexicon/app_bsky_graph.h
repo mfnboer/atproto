@@ -39,4 +39,16 @@ struct Follow
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.block
+struct Block
+{
+    QString mSubject; // did
+    QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Block>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

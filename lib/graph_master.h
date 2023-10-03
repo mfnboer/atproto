@@ -17,6 +17,8 @@ public:
 
     void follow(const QString& did,
                 const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void block(const QString& did,
+               const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb);
     void undo(const QString& uri,
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 

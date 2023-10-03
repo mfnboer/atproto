@@ -65,4 +65,22 @@ Follow::Ptr Follow::fromJson(const QJsonObject& json)
     return follow;
 }
 
+QJsonObject Block::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.graph.block");
+    json.insert("subject", mSubject);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Block::Ptr Block::fromJson(const QJsonObject& json)
+{
+    auto block = std::make_unique<Block>();
+    XJsonObject xjson(json);
+    block->mSubject = xjson.getRequiredString("subject");
+    block->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return block;
+}
+
 }

@@ -12,7 +12,7 @@ GraphMaster::GraphMaster(Client & client) :
 }
 
 void GraphMaster::follow(const QString& did,
-            const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb)
+                         const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     AppBskyGraph::Follow follow;
     follow.mSubject = did;
@@ -33,8 +33,30 @@ void GraphMaster::follow(const QString& did,
         });
 }
 
+void GraphMaster::block(const QString& did,
+                        const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    AppBskyGraph::Block block;
+    block.mSubject = did;
+    block.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    const auto blockJson = block.toJson();
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = blockJson["$type"].toString();
+
+    mClient.createRecord(repo, collection, blockJson,
+        [this, successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [this, errorCb](const QString& error) {
+            if (errorCb)
+                errorCb(error);
+        });
+}
+
 void GraphMaster::undo(const QString& uri,
-                      const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                       const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     qDebug() << "Undo:" << uri;
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
