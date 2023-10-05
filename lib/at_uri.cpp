@@ -7,7 +7,7 @@
 
 namespace ATProto {
 
-ATUri ATUri::fromHttpsUri(const QString& uri)
+ATUri ATUri::fromHttpsPostUri(const QString& uri)
 {
     static const QRegularExpression reHttps(R"(^https://bsky.app/profile/([a-zA-Z0-9-\._~]+)/post/([a-zA-Z0-9\.-_~]+)$)");
 

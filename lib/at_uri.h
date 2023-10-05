@@ -9,8 +9,8 @@ class ATUri
 {
 public:
     using ErrorCb = std::function<void(const QString& err)>;
-
-    static ATUri fromHttpsUri(const QString& uri);
+    
+    static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb);
 
     ATUri() = default;
