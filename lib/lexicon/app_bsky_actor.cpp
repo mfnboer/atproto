@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "app_bsky_actor.h"
 #include "../xjson.h"
+#include <unordered_map>
 
 namespace ATProto::AppBskyActor {
 
@@ -75,6 +76,177 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
 
     ComATProtoLabel::getLabels(profile->mLabels, jsonObj);
     return profile;
+}
+
+AdultContentPref::Ptr AdultContentPref::fromJson(const QJsonObject& json)
+{
+    auto adultPref = std::make_unique<AdultContentPref>();
+    XJsonObject xjson(json);
+    adultPref->mEnabled = xjson.getRequiredBool("enabled");
+    return adultPref;
+}
+
+ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString& str)
+{
+    static const std::unordered_map<QString, Visibility> mapping = {
+        { "show", Visibility::SHOW },
+        { "warn", Visibility::WARN },
+        { "hide", Visibility::HIDE }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Unknown content label pref visibility:" << str;
+    return Visibility::UNKNOWN;
+}
+
+ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<ContentLabelPref>();
+    XJsonObject xjson(json);
+    pref->mLabel = xjson.getRequiredString("label");
+    pref->mRawVisibility = xjson.getRequiredString("visibility");
+    pref->mVisibility = stringToVisibility(pref->mRawVisibility);
+    return pref;
+}
+
+SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<SavedFeedsPref>();
+    XJsonObject xjson(json);
+
+    const auto pinnedJsonArray = xjson.getRequiredArray("pinned");
+    for (const auto& pinnedJson : pinnedJsonArray)
+    {
+        if (!pinnedJson.isString())
+        {
+            qWarning() << "Invalid pinned feed" << json;
+            throw InvalidJsonException("Invalid pinned feed");
+        }
+
+        pref->mPinned.push_back(pinnedJson.toString());
+    }
+
+    const auto savedJsonArray = xjson.getRequiredArray("saved");
+    for (const auto& savedJson : savedJsonArray)
+    {
+        if (!savedJson.isString())
+        {
+            qWarning() << "Invalid saved feed" << json;
+            throw InvalidJsonException("Invalid saved feed");
+        }
+
+        pref->mSaved.push_back(savedJson.toString());
+    }
+
+    return pref;
+}
+
+PersonalDetailsPref::Ptr PersonalDetailsPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<PersonalDetailsPref>();
+    XJsonObject xjson(json);
+    pref->mBirthDate = xjson.getOptionalDateTime("birthDate");
+    return pref;
+}
+
+FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<FeedViewPref>();
+    XJsonObject xjson(json);
+    pref->mFeed = xjson.getRequiredString("feed");
+    pref->mHideReplies = xjson.getOptionalBool("hideReplies", false);
+    pref->mHideRepliesByUnfollowed = xjson.getOptionalBool("hideRepliesByUnfollowed", false);
+    pref->mHideRepliesByLikeCount = xjson.getOptionalBool("hideRepliesByLikeCount", false);
+    pref->mHideReposts = xjson.getOptionalBool("hideReposts", false);
+    pref->mHideQuotePosts = xjson.getOptionalBool("hideQuotePosts", false);
+    return pref;
+}
+
+ThreadViewPref::Ptr ThreadViewPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<ThreadViewPref>();
+    XJsonObject xjson(json);
+    pref->mSort = xjson.getOptionalString("sort");
+    pref->mPrioritizeFollowedUsers = xjson.getOptionalBool("prioritizeFollowedUsers", false);
+    return pref;
+}
+
+PreferenceType stringToPreferenceType(const QString& str)
+{
+    static const std::unordered_map<QString, PreferenceType> mapping = {
+        { "app.bsky.actor.defs#adultContentPref", PreferenceType::ADULT_CONTENT },
+        { "app.bsky.actor.defs#contentLabelPref", PreferenceType::CONTENT_LABEL },
+        { "app.bsky.actor.defs#savedFeedsPref", PreferenceType::SAVED_FEEDS },
+        { "app.bsky.actor.defs#personalDetailsPref", PreferenceType::PERSONAL_DETAILS },
+        { "app.bsky.actor.defs#feedViewPref", PreferenceType::FEED_VIEW },
+        { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Unknown preference type:" << str;
+    return PreferenceType::UNKNOWN;
+}
+
+Preference::Ptr Preference::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<Preference>();
+    XJsonObject xjson(json);
+    pref->mRawType = xjson.getRequiredString("$type");
+    pref->mType = stringToPreferenceType(pref->mRawType);
+
+    switch (pref->mType) {
+    case PreferenceType::ADULT_CONTENT:
+        pref->mItem = AdultContentPref::fromJson(json);
+        break;
+    case PreferenceType::CONTENT_LABEL:
+        pref->mItem = ContentLabelPref::fromJson(json);
+        break;
+    case PreferenceType::SAVED_FEEDS:
+        pref->mItem = SavedFeedsPref::fromJson(json);
+        break;
+    case PreferenceType::PERSONAL_DETAILS:
+        pref->mItem = PersonalDetailsPref::fromJson(json);
+        break;
+    case PreferenceType::FEED_VIEW:
+        pref->mItem = FeedViewPref::fromJson(json);
+        break;
+    case PreferenceType::THREAD_VIEW:
+        pref->mItem = ThreadViewPref::fromJson(json);
+        break;
+    case PreferenceType::UNKNOWN:
+        break;
+    }
+
+    return pref;
+}
+
+GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetPreferencesOutput>();
+    XJsonObject xjson(json);
+
+    const auto prefJsonArray = xjson.getRequiredArray("preferences");
+    for (const auto& prefJson : prefJsonArray)
+    {
+        if (!prefJson.isObject())
+        {
+            qWarning() << "Invalid preference" << json;
+            throw InvalidJsonException("Invalid preference");
+        }
+
+        auto pref = Preference::fromJson(prefJson.toObject());
+
+        if (pref->mType != PreferenceType::UNKNOWN)
+            output->mPreferences.push_back(std::move(pref));
+    }
+
+    return output;
 }
 
 }

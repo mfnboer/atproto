@@ -74,4 +74,116 @@ struct ProfileViewDetailed
     static Ptr fromJson(const QJsonDocument& json);
 };
 
+// app.bsky.actor.defs#adultContentPref
+struct AdultContentPref
+{
+    bool mEnabled = false;
+
+    using Ptr = std::unique_ptr<AdultContentPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#contentLabelPref
+struct ContentLabelPref
+{
+    enum class Visibility
+    {
+        SHOW,
+        WARN,
+        HIDE,
+        UNKNOWN
+    };
+    static Visibility stringToVisibility(const QString& str);
+
+    QString mLabel;
+    Visibility mVisibility;
+    QString mRawVisibility;
+
+    using Ptr = std::unique_ptr<ContentLabelPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#savedFeedsPref
+struct SavedFeedsPref
+{
+    std::vector<QString> mPinned;
+    std::vector<QString> mSaved;
+
+    using Ptr = std::unique_ptr<SavedFeedsPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#personalDetailsPref
+struct PersonalDetailsPref
+{
+    std::optional<QDateTime> mBirthDate;
+
+    using Ptr = std::unique_ptr<PersonalDetailsPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#feedViewPref
+struct FeedViewPref
+{
+    QString mFeed;
+    bool mHideReplies = false;
+    bool mHideRepliesByUnfollowed = false;
+    bool mHideRepliesByLikeCount = false;
+    bool mHideReposts = false;
+    bool mHideQuotePosts = false;
+
+    using Ptr = std::unique_ptr<FeedViewPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#threadViewPref
+struct ThreadViewPref
+{
+    std::optional<QString> mSort; // enum not implemented
+    bool mPrioritizeFollowedUsers = false;
+
+    using Ptr = std::unique_ptr<ThreadViewPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+enum class PreferenceType
+{
+    ADULT_CONTENT,
+    CONTENT_LABEL,
+    SAVED_FEEDS,
+    PERSONAL_DETAILS,
+    FEED_VIEW,
+    THREAD_VIEW,
+    UNKNOWN
+};
+PreferenceType stringToPreferenceType(const QString& str);
+
+using PreferenceItem = std::variant<AdultContentPref::Ptr,
+                                    ContentLabelPref::Ptr,
+                                    SavedFeedsPref::Ptr,
+                                    PersonalDetailsPref::Ptr,
+                                    FeedViewPref::Ptr,
+                                    ThreadViewPref::Ptr>;
+
+struct Preference
+{
+    PreferenceItem mItem;
+    PreferenceType mType;
+    QString mRawType;
+
+    using Ptr = std::unique_ptr<Preference>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+using PreferenceList = std::vector<Preference::Ptr>;
+
+// app.bsky.actor.getPreferences#output
+struct GetPreferencesOutput
+{
+    PreferenceList mPreferences;
+
+    using Ptr = std::unique_ptr<GetPreferencesOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }
