@@ -169,6 +169,24 @@ void Client::getProfile(const QString& user, const GetProfileSuccessCb& successC
         authToken());
 }
 
+void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("app.bsky.actor.getPreferences", {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getPreferences:" << reply;
+            try {
+                auto prefs = AppBskyActor::GetPreferencesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(UserPreferences(prefs->mPreferences));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -183,24 +201,6 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
                 auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
                     successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
-        },
-        failure(errorCb),
-        authToken());
-}
-
-void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    mXrpc->get("app.bsky.feed.getPreferences", {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getPreferences:" << reply;
-            try {
-                auto prefs = AppBskyActor::GetPreferencesOutput::fromJson(reply.object());
-
-                if (successCb)
-                    successCb(UserPreferences(prefs->mPreferences));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }

@@ -97,6 +97,8 @@ public:
      */
     void getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.feed
     /**
      * @brief getAuthorFeed
@@ -108,8 +110,6 @@ public:
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
-
-    void getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTimeline
