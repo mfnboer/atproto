@@ -13,6 +13,7 @@ public:
     using FeedViewPref = AppBskyActor::FeedViewPref;
     using ContentLabelPrefs = std::unordered_map<QString, LabelVisibility>;
 
+    UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
 
     std::optional<QDateTime> getBirthDate() const { return mBirthDate; }
@@ -26,7 +27,7 @@ private:
 
     std::optional<QDateTime> mBirthDate;
 
-    bool mAdultContent;
+    bool mAdultContent = false;
     ContentLabelPrefs mContentLabelPrefs;
 
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
