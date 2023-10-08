@@ -52,4 +52,16 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
     }
 }
 
+UserPreferences::LabelVisibility UserPreferences::getLabelVisibility(const QString& label) const
+{
+    auto it = mContentLabelPrefs.find(label);
+    return it != mContentLabelPrefs.end() ? it->second : LabelVisibility::UNKNOWN;
+}
+
+const UserPreferences::FeedViewPref* UserPreferences::getFeedViewPref(const QString& feed) const
+{
+    auto it = mFeedViewPrefs.find(feed);
+    return it != mFeedViewPrefs.end() ? &it->second : nullptr;
+}
+
 }
