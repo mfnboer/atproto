@@ -191,6 +191,24 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
         authToken());
 }
 
+void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("app.bsky.feed.getPreferences", {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getPreferences:" << reply;
+            try {
+                auto prefs = AppBskyActor::GetPreferencesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(UserPreferences(prefs->mPreferences));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
                          const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb)
 {

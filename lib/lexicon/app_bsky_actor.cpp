@@ -158,7 +158,7 @@ FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     pref->mFeed = xjson.getRequiredString("feed");
     pref->mHideReplies = xjson.getOptionalBool("hideReplies", false);
-    pref->mHideRepliesByUnfollowed = xjson.getOptionalBool("hideRepliesByUnfollowed", false);
+    pref->mHideRepliesByUnfollowed = xjson.getOptionalBool("hideRepliesByUnfollowed", true);
     pref->mHideRepliesByLikeCount = xjson.getOptionalBool("hideRepliesByLikeCount", false);
     pref->mHideReposts = xjson.getOptionalBool("hideReposts", false);
     pref->mHideQuotePosts = xjson.getOptionalBool("hideQuotePosts", false);

@@ -38,6 +38,8 @@ qt_add_library(libatproto STATIC
     lexicon/app_bsky_notification.cpp
     graph_master.h
     graph_master.cpp
+    user_preferences.h
+    user_preferences.cpp
 )
 
 
