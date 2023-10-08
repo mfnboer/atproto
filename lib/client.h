@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "user_preferences.h"
 #include "xjson.h"
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
@@ -44,6 +45,7 @@ public:
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
     using UnreadCountSuccessCb = std::function<void(int)>;
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
+    using UserPrefsSuccessCb = std::function<void(UserPreferences)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -106,6 +108,8 @@ public:
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTimeline
