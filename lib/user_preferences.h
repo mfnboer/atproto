@@ -20,7 +20,7 @@ public:
     bool getAdultContent() const { return mAdultContent; }
     const ContentLabelPrefs& getContentLabelPrefs() const { return mContentLabelPrefs; }
     LabelVisibility getLabelVisibility(const QString& label) const;
-    const FeedViewPref* getFeedViewPref(const QString& feed) const;
+    const FeedViewPref& getFeedViewPref(const QString& feed) const;
 
 private:
     void setPrefs(const AppBskyActor::PreferenceList& preferences);
