@@ -90,6 +90,7 @@ ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString&
 {
     static const std::unordered_map<QString, Visibility> mapping = {
         { "show", Visibility::SHOW },
+        { "ignore", Visibility::SHOW }, // not in spec, but I get this from bluesky
         { "warn", Visibility::WARN },
         { "hide", Visibility::HIDE }
     };
