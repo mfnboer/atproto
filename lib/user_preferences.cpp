@@ -58,10 +58,12 @@ UserPreferences::LabelVisibility UserPreferences::getLabelVisibility(const QStri
     return it != mContentLabelPrefs.end() ? it->second : LabelVisibility::UNKNOWN;
 }
 
-const UserPreferences::FeedViewPref* UserPreferences::getFeedViewPref(const QString& feed) const
+const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QString& feed) const
 {
+    static const FeedViewPref DEFAULT_PREF;
+
     auto it = mFeedViewPrefs.find(feed);
-    return it != mFeedViewPrefs.end() ? &it->second : nullptr;
+    return it != mFeedViewPrefs.end() ? it->second : DEFAULT_PREF;
 }
 
 }
