@@ -25,6 +25,8 @@ public:
     void setAuthority(const QString& authority) { mAuthority = authority; }
     void setAuthorityIsHandle(bool isHandle) { mAuthorityIsHandle = isHandle; }
 
+    QString toString() const;
+
 private:
     QString mAuthority;
     QString mCollection;
