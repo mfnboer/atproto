@@ -79,6 +79,8 @@ struct AdultContentPref
 {
     bool mEnabled = false;
 
+    QJsonObject toJson() const;
+
     using Ptr = std::unique_ptr<AdultContentPref>;
     static Ptr fromJson(const QJsonObject& json);
 };
@@ -94,10 +96,13 @@ struct ContentLabelPref
         UNKNOWN
     };
     static Visibility stringToVisibility(const QString& str);
+    static QString visibilityToString(Visibility visibility);
 
     QString mLabel;
     Visibility mVisibility;
     QString mRawVisibility;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<ContentLabelPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -109,6 +114,8 @@ struct SavedFeedsPref
     std::vector<QString> mPinned;
     std::vector<QString> mSaved;
 
+    QJsonObject toJson() const { return {}; } // TODO
+
     using Ptr = std::unique_ptr<SavedFeedsPref>;
     static Ptr fromJson(const QJsonObject& json);
 };
@@ -117,6 +124,8 @@ struct SavedFeedsPref
 struct PersonalDetailsPref
 {
     std::optional<QDateTime> mBirthDate;
+
+    QJsonObject toJson() const { return {}; } // TODO
 
     using Ptr = std::unique_ptr<PersonalDetailsPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -132,6 +141,8 @@ struct FeedViewPref
     bool mHideReposts = false;
     bool mHideQuotePosts = false;
 
+    QJsonObject toJson() const;
+
     using Ptr = std::unique_ptr<FeedViewPref>;
     static Ptr fromJson(const QJsonObject& json);
 };
@@ -141,6 +152,8 @@ struct ThreadViewPref
 {
     std::optional<QString> mSort; // enum not implemented
     bool mPrioritizeFollowedUsers = false;
+
+    QJsonObject toJson() const { return {}; } // TODO
 
     using Ptr = std::unique_ptr<ThreadViewPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -181,6 +194,8 @@ using PreferenceList = std::vector<Preference::Ptr>;
 struct GetPreferencesOutput
 {
     PreferenceList mPreferences;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<GetPreferencesOutput>;
     static Ptr fromJson(const QJsonObject& json);

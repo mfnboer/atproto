@@ -52,6 +52,41 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
     }
 }
 
+AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
+{
+    AppBskyActor::Preference::Ptr pref;
+    AppBskyActor::PreferenceList preferences;
+
+    auto adultContentPref = std::make_unique<AppBskyActor::AdultContentPref>();
+    adultContentPref->mEnabled = mAdultContent;
+    pref = std::make_unique<AppBskyActor::Preference>();
+    pref->mItem = std::move(adultContentPref);
+    pref->mType = AppBskyActor::PreferenceType::ADULT_CONTENT;
+    preferences.push_back(std::move(pref));
+
+    for (const auto& [label, visibility] : mContentLabelPrefs)
+    {
+        auto contentLabelPref = std::make_unique<AppBskyActor::ContentLabelPref>();
+        contentLabelPref->mLabel = label;
+        contentLabelPref->mVisibility = visibility;
+        pref = std::make_unique<AppBskyActor::Preference>();
+        pref->mItem = std::move(contentLabelPref);
+        pref->mType = AppBskyActor::PreferenceType::CONTENT_LABEL;
+        preferences.push_back(std::move(pref));
+    }
+
+    for (const auto& [_, feed] : mFeedViewPrefs)
+    {
+        auto feedViewPref = std::make_unique<AppBskyActor::FeedViewPref>(feed);
+        pref = std::make_unique<AppBskyActor::Preference>();
+        pref->mItem = std::move(feedViewPref);
+        pref->mType = AppBskyActor::PreferenceType::FEED_VIEW;
+        preferences.push_back(std::move(pref));
+    }
+
+    return preferences;
+}
+
 UserPreferences::LabelVisibility UserPreferences::getLabelVisibility(const QString& label) const
 {
     auto it = mContentLabelPrefs.find(label);

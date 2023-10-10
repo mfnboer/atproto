@@ -15,6 +15,7 @@ Session::Ptr Session::fromJson(const QJsonDocument& json)
     session->mAccessJwt = root.getRequiredString("accessJwt");
     session->mRefreshJwt = root.getRequiredString("refreshJwt");
     session->mEmail = root.getOptionalString("email");
+    session->mEmailConfirmed = root.getOptionalBool("emailConfirmed", false);
     return session;
 }
 
@@ -26,6 +27,7 @@ GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
     session->mHandle = root.getRequiredString("handle");
     session->mDid = root.getRequiredString("did");
     session->mEmail = root.getOptionalString("email");
+    session->mEmailConfirmed = root.getOptionalBool("emailConfirmed", false);
     return session;
 }
 

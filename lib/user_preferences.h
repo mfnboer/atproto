@@ -29,6 +29,8 @@ public:
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
     void setFeedViewPred(const FeedViewPref& pref);
 
+    AppBskyActor::PreferenceList toPreferenceList() const;
+
 private:
     void setPrefs(const AppBskyActor::PreferenceList& preferences);
 
