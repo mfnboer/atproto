@@ -58,12 +58,38 @@ UserPreferences::LabelVisibility UserPreferences::getLabelVisibility(const QStri
     return it != mContentLabelPrefs.end() ? it->second : LabelVisibility::UNKNOWN;
 }
 
+void UserPreferences::setLabelVisibility(const QString& label, LabelVisibility visibility)
+{
+    Q_ASSERT(visibility != LabelVisibility::UNKNOWN);
+
+    if (visibility == LabelVisibility::UNKNOWN)
+    {
+        qWarning() << "Unknown visibility:" << label;
+        return;
+    }
+
+    mContentLabelPrefs[label] = visibility;
+}
+
 const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QString& feed) const
 {
-    static const FeedViewPref DEFAULT_PREF;
+    static std::unordered_map<QString, FeedViewPref> DEFAULT_PREF;
 
     auto it = mFeedViewPrefs.find(feed);
-    return it != mFeedViewPrefs.end() ? it->second : DEFAULT_PREF;
+    return it != mFeedViewPrefs.end() ? it->second : DEFAULT_PREF[feed];
+}
+
+void UserPreferences::setFeedViewPred(const FeedViewPref& pref)
+{
+    Q_ASSERT(!pref.mFeed.isEmpty());
+
+    if (pref.mFeed.isEmpty())
+    {
+        qWarning() << "Feed name missing";
+        return;
+    }
+
+    mFeedViewPrefs[pref.mFeed] = pref;
 }
 
 }

@@ -17,10 +17,17 @@ public:
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
 
     std::optional<QDateTime> getBirthDate() const { return mBirthDate; }
+
     bool getAdultContent() const { return mAdultContent; }
+    void setAdultContent(bool enabled) { mAdultContent = enabled; }
+
     const ContentLabelPrefs& getContentLabelPrefs() const { return mContentLabelPrefs; }
+
     LabelVisibility getLabelVisibility(const QString& label) const;
+    void setLabelVisibility(const QString& label, LabelVisibility visibility);
+
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
+    void setFeedViewPred(const FeedViewPref& pref);
 
 private:
     void setPrefs(const AppBskyActor::PreferenceList& preferences);
