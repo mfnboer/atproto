@@ -78,6 +78,14 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
     return profile;
 }
 
+QJsonObject AdultContentPref::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.actor.defs#adultContentPref");
+    json.insert("enabled", mEnabled);
+    return json;
+}
+
 AdultContentPref::Ptr AdultContentPref::fromJson(const QJsonObject& json)
 {
     auto adultPref = std::make_unique<AdultContentPref>();
@@ -101,6 +109,35 @@ ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString&
 
     qWarning() << "Unknown content label pref visibility:" << str;
     return Visibility::UNKNOWN;
+}
+
+QString ContentLabelPref::visibilityToString(Visibility visibility)
+{
+    static const std::unordered_map<Visibility, QString> mapping = {
+        { Visibility::SHOW, "show" },
+        { Visibility::WARN, "warn" },
+        { Visibility::HIDE, "hide" }
+    };
+
+    const auto it = mapping.find(visibility);
+    Q_ASSERT(it != mapping.end());
+
+    if (it == mapping.end())
+    {
+        qWarning() << "Unknown visibility:" << int(visibility);
+        return "hide";
+    }
+
+    return it->second;
+}
+
+QJsonObject ContentLabelPref::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.actor.defs#contentLabelPref");
+    json.insert("label", mLabel);
+    json.insert("visibility", visibilityToString(mVisibility));
+    return json;
 }
 
 ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
@@ -151,6 +188,19 @@ PersonalDetailsPref::Ptr PersonalDetailsPref::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     pref->mBirthDate = xjson.getOptionalDateTime("birthDate");
     return pref;
+}
+
+QJsonObject FeedViewPref::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.actor.defs#feedViewPref");
+    json.insert("feed", mFeed);
+    json.insert("hideReplies", mHideReplies);
+    json.insert("hideRepliesByUnfollowed", mHideRepliesByUnfollowed);
+    json.insert("hideRepliesByLikeCount", mHideRepliesByLikeCount);
+    json.insert("hideReposts", mHideReposts);
+    json.insert("hideQuotePosts", mHideQuotePosts);
+    return json;
 }
 
 FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
@@ -225,6 +275,24 @@ Preference::Ptr Preference::fromJson(const QJsonObject& json)
     }
 
     return pref;
+}
+
+QJsonObject GetPreferencesOutput::toJson() const
+{
+    QJsonArray jsonArray;
+
+    for (const auto& pref : mPreferences)
+    {
+        QJsonObject prefJson;
+        std::visit([&prefJson](auto&& x){ prefJson = x->toJson(); }, pref->mItem);
+
+        if (!prefJson.empty())
+            jsonArray.append(prefJson);
+    }
+
+    QJsonObject json;
+    json.insert("preferences", jsonArray);
+    return json;
 }
 
 GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json)

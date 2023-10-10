@@ -13,6 +13,7 @@ struct Session
     QString mHandle;
     QString mDid;
     std::optional<QString> mEmail;
+    bool mEmailConfirmed = false;
 
     using Ptr = std::unique_ptr<Session>;
     static Ptr fromJson(const QJsonDocument& json);
@@ -24,6 +25,7 @@ struct GetSessionOutput
     QString mHandle;
     QString mDid;
     std::optional<QString> mEmail;
+    bool mEmailConfirmed = false;
 
     using Ptr = std::unique_ptr<GetSessionOutput>;
     static Ptr fromJson(const QJsonDocument& json);

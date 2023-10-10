@@ -112,7 +112,9 @@ void Client::refreshSession(const ComATProtoServer::Session& session,
                 if (refreshed->mDid == mSession->mDid)
                 {
                     qDebug() << "Session refreshed";
-                    mSession = std::move(refreshed);
+                    mSession->mAccessJwt = refreshed->mAccessJwt;
+                    mSession->mRefreshJwt = refreshed->mRefreshJwt;
+                    mSession->mHandle = refreshed->mHandle;
 
                     if (successCb)
                         successCb();

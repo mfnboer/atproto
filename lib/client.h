@@ -98,6 +98,8 @@ public:
     void getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb);
+    void putPreferences(const UserPreferences& userPrefs,
+                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
     /**
