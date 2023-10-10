@@ -113,8 +113,9 @@ struct SavedFeedsPref
 {
     std::vector<QString> mPinned;
     std::vector<QString> mSaved;
+    QJsonObject mJson; // Temporary
 
-    QJsonObject toJson() const { return {}; } // TODO
+    QJsonObject toJson() const { return mJson; }
 
     using Ptr = std::unique_ptr<SavedFeedsPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -124,8 +125,9 @@ struct SavedFeedsPref
 struct PersonalDetailsPref
 {
     std::optional<QDateTime> mBirthDate;
+    QJsonObject mJson; // Temporary
 
-    QJsonObject toJson() const { return {}; } // TODO
+    QJsonObject toJson() const { return mJson; }
 
     using Ptr = std::unique_ptr<PersonalDetailsPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -137,7 +139,7 @@ struct FeedViewPref
     QString mFeed;
     bool mHideReplies = false;
     bool mHideRepliesByUnfollowed = true;
-    bool mHideRepliesByLikeCount = false;
+    int mHideRepliesByLikeCount = 0;
     bool mHideReposts = false;
     bool mHideQuotePosts = false;
 
@@ -152,8 +154,9 @@ struct ThreadViewPref
 {
     std::optional<QString> mSort; // enum not implemented
     bool mPrioritizeFollowedUsers = false;
+    QJsonObject mJson; // Temporary
 
-    QJsonObject toJson() const { return {}; } // TODO
+    QJsonObject toJson() const { return mJson; }
 
     using Ptr = std::unique_ptr<ThreadViewPref>;
     static Ptr fromJson(const QJsonObject& json);

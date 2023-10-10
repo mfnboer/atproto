@@ -31,10 +31,15 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             break;
         }
         case AppBskyActor::PreferenceType::SAVED_FEEDS:
+        {
+            const auto& savedFeed = std::get<AppBskyActor::SavedFeedsPref::Ptr>(pref->mItem);
+            mSavedFeedsPref = *savedFeed;
             break;
+        }
         case AppBskyActor::PreferenceType::PERSONAL_DETAILS:
         {
             const auto& personal = std::get<AppBskyActor::PersonalDetailsPref::Ptr>(pref->mItem);
+            mPersonalDetailsPref = *personal;
             mBirthDate = personal->mBirthDate;
             break;
         }
@@ -45,7 +50,11 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             break;
         }
         case AppBskyActor::PreferenceType::THREAD_VIEW:
+        {
+            const auto& threadView = std::get<AppBskyActor::ThreadViewPref::Ptr>(pref->mItem);
+            mThreadViewPref = *threadView;
             break;
+        }
         case AppBskyActor::PreferenceType::UNKNOWN:
             break;
         }
@@ -75,6 +84,18 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
         preferences.push_back(std::move(pref));
     }
 
+    auto savedFeedsPred = std::make_unique<AppBskyActor::SavedFeedsPref>(mSavedFeedsPref);
+    pref = std::make_unique<AppBskyActor::Preference>();
+    pref->mItem = std::move(savedFeedsPred);
+    pref->mType = AppBskyActor::PreferenceType::SAVED_FEEDS;
+    preferences.push_back(std::move(pref));
+
+    auto personalDetails = std::make_unique<AppBskyActor::PersonalDetailsPref>(mPersonalDetailsPref);
+    pref = std::make_unique<AppBskyActor::Preference>();
+    pref->mItem = std::move(personalDetails);
+    pref->mType = AppBskyActor::PreferenceType::PERSONAL_DETAILS;
+    preferences.push_back(std::move(pref));
+
     for (const auto& [_, feed] : mFeedViewPrefs)
     {
         auto feedViewPref = std::make_unique<AppBskyActor::FeedViewPref>(feed);
@@ -83,6 +104,12 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
         pref->mType = AppBskyActor::PreferenceType::FEED_VIEW;
         preferences.push_back(std::move(pref));
     }
+
+    auto threadView = std::make_unique<AppBskyActor::ThreadViewPref>(mThreadViewPref);
+    pref = std::make_unique<AppBskyActor::Preference>();
+    pref->mItem = std::move(threadView);
+    pref->mType = AppBskyActor::PreferenceType::THREAD_VIEW;
+    preferences.push_back(std::move(pref));
 
     return preferences;
 }
@@ -114,7 +141,7 @@ const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QStr
     return it != mFeedViewPrefs.end() ? it->second : DEFAULT_PREF[feed];
 }
 
-void UserPreferences::setFeedViewPred(const FeedViewPref& pref)
+void UserPreferences::setFeedViewPref(const FeedViewPref& pref)
 {
     Q_ASSERT(!pref.mFeed.isEmpty());
 
