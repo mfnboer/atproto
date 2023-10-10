@@ -179,6 +179,7 @@ SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
         pref->mSaved.push_back(savedJson.toString());
     }
 
+    pref->mJson = json;
     return pref;
 }
 
@@ -187,6 +188,7 @@ PersonalDetailsPref::Ptr PersonalDetailsPref::fromJson(const QJsonObject& json)
     auto pref = std::make_unique<PersonalDetailsPref>();
     XJsonObject xjson(json);
     pref->mBirthDate = xjson.getOptionalDateTime("birthDate");
+    pref->mJson = json;
     return pref;
 }
 
@@ -210,7 +212,7 @@ FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
     pref->mFeed = xjson.getRequiredString("feed");
     pref->mHideReplies = xjson.getOptionalBool("hideReplies", false);
     pref->mHideRepliesByUnfollowed = xjson.getOptionalBool("hideRepliesByUnfollowed", true);
-    pref->mHideRepliesByLikeCount = xjson.getOptionalBool("hideRepliesByLikeCount", false);
+    pref->mHideRepliesByLikeCount = xjson.getOptionalInt("hideRepliesByLikeCount", 0);
     pref->mHideReposts = xjson.getOptionalBool("hideReposts", false);
     pref->mHideQuotePosts = xjson.getOptionalBool("hideQuotePosts", false);
     return pref;
@@ -222,6 +224,7 @@ ThreadViewPref::Ptr ThreadViewPref::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     pref->mSort = xjson.getOptionalString("sort");
     pref->mPrioritizeFollowedUsers = xjson.getOptionalBool("prioritizeFollowedUsers", false);
+    pref->mJson = json;
     return pref;
 }
 

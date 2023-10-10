@@ -189,6 +189,23 @@ void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& 
         authToken());
 }
 
+void Client::putPreferences(const UserPreferences& userPrefs,
+                            const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    AppBskyActor::GetPreferencesOutput prefs;
+    prefs.mPreferences = userPrefs.toPreferenceList();
+    auto json = prefs.toJson();
+
+    mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json),
+        [this, successCb](const QJsonDocument& reply){
+            qDebug() << "putPreferences:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {

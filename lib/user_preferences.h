@@ -27,7 +27,7 @@ public:
     void setLabelVisibility(const QString& label, LabelVisibility visibility);
 
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
-    void setFeedViewPred(const FeedViewPref& pref);
+    void setFeedViewPref(const FeedViewPref& pref);
 
     AppBskyActor::PreferenceList toPreferenceList() const;
 
@@ -39,7 +39,10 @@ private:
     bool mAdultContent = false;
     ContentLabelPrefs mContentLabelPrefs;
 
+    AppBskyActor::SavedFeedsPref mSavedFeedsPref;
+    AppBskyActor::PersonalDetailsPref mPersonalDetailsPref;
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
+    AppBskyActor::ThreadViewPref mThreadViewPref;
 };
 
 }
