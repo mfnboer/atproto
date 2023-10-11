@@ -80,6 +80,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                     mSession = std::make_unique<ComATProtoServer::Session>(session);
                     mSession->mHandle = resumed->mHandle;
                     mSession->mEmail = resumed->mEmail;
+                    mSession->mEmailConfirmed = resumed->mEmailConfirmed;
 
                     if (successCb)
                         successCb();
