@@ -80,7 +80,7 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
 
 QJsonObject AdultContentPref::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", "app.bsky.actor.defs#adultContentPref");
     json.insert("enabled", mEnabled);
     return json;
@@ -91,6 +91,7 @@ AdultContentPref::Ptr AdultContentPref::fromJson(const QJsonObject& json)
     auto adultPref = std::make_unique<AdultContentPref>();
     XJsonObject xjson(json);
     adultPref->mEnabled = xjson.getRequiredBool("enabled");
+    adultPref->mJson = json;
     return adultPref;
 }
 
@@ -133,7 +134,7 @@ QString ContentLabelPref::visibilityToString(Visibility visibility)
 
 QJsonObject ContentLabelPref::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", "app.bsky.actor.defs#contentLabelPref");
     json.insert("label", mLabel);
     json.insert("visibility", visibilityToString(mVisibility));
@@ -147,6 +148,7 @@ ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
     pref->mLabel = xjson.getRequiredString("label");
     pref->mRawVisibility = xjson.getRequiredString("visibility");
     pref->mVisibility = stringToVisibility(pref->mRawVisibility);
+    pref->mJson = json;
     return pref;
 }
 
@@ -194,7 +196,7 @@ PersonalDetailsPref::Ptr PersonalDetailsPref::fromJson(const QJsonObject& json)
 
 QJsonObject FeedViewPref::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", "app.bsky.actor.defs#feedViewPref");
     json.insert("feed", mFeed);
     json.insert("hideReplies", mHideReplies);
@@ -215,6 +217,7 @@ FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
     pref->mHideRepliesByLikeCount = xjson.getOptionalInt("hideRepliesByLikeCount", 0);
     pref->mHideReposts = xjson.getOptionalBool("hideReposts", false);
     pref->mHideQuotePosts = xjson.getOptionalBool("hideQuotePosts", false);
+    pref->mJson = json;
     return pref;
 }
 
@@ -224,6 +227,13 @@ ThreadViewPref::Ptr ThreadViewPref::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     pref->mSort = xjson.getOptionalString("sort");
     pref->mPrioritizeFollowedUsers = xjson.getOptionalBool("prioritizeFollowedUsers", false);
+    pref->mJson = json;
+    return pref;
+}
+
+UnknownPref::Ptr UnknownPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<UnknownPref>();
     pref->mJson = json;
     return pref;
 }
@@ -243,7 +253,7 @@ PreferenceType stringToPreferenceType(const QString& str)
     if (it != mapping.end())
         return it->second;
 
-    qWarning() << "Unknown preference type:" << str;
+    qDebug() << "Unknown preference type:" << str;
     return PreferenceType::UNKNOWN;
 }
 
@@ -274,6 +284,7 @@ Preference::Ptr Preference::fromJson(const QJsonObject& json)
         pref->mItem = ThreadViewPref::fromJson(json);
         break;
     case PreferenceType::UNKNOWN:
+        pref->mItem = UnknownPref::fromJson(json);
         break;
     }
 
@@ -313,9 +324,7 @@ GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json
         }
 
         auto pref = Preference::fromJson(prefJson.toObject());
-
-        if (pref->mType != PreferenceType::UNKNOWN)
-            output->mPreferences.push_back(std::move(pref));
+        output->mPreferences.push_back(std::move(pref));
     }
 
     return output;

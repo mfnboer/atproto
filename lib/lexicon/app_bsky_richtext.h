@@ -5,6 +5,8 @@
 
 namespace ATProto::AppBskyRichtext {
 
+// TODO: tags
+
 // app.bsky.richtext.facet#byteSlice
 struct FacetByteSlice
 {
