@@ -74,10 +74,18 @@ struct ProfileViewDetailed
     static Ptr fromJson(const QJsonDocument& json);
 };
 
+// For the user preferences we store the received json object.
+// When sending preferences we take this object and update the modified parts.
+// This way we can send back any unknown parts (from future proto updates) unchanged.
+// Unfortunately you cannot send partial prefereces. Anything not sent will be
+// erased by Bluesky, i.e. if you do not send the birthdate, then the birthdate will
+// be erased.
+
 // app.bsky.actor.defs#adultContentPref
 struct AdultContentPref
 {
     bool mEnabled = false;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -101,6 +109,7 @@ struct ContentLabelPref
     QString mLabel;
     Visibility mVisibility;
     QString mRawVisibility;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -113,9 +122,9 @@ struct SavedFeedsPref
 {
     std::vector<QString> mPinned;
     std::vector<QString> mSaved;
-    QJsonObject mJson; // Temporary
+    QJsonObject mJson;
 
-    QJsonObject toJson() const { return mJson; }
+    QJsonObject toJson() const { return mJson; } // TODO: encoding
 
     using Ptr = std::unique_ptr<SavedFeedsPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -125,9 +134,9 @@ struct SavedFeedsPref
 struct PersonalDetailsPref
 {
     std::optional<QDateTime> mBirthDate;
-    QJsonObject mJson; // Temporary
+    QJsonObject mJson;
 
-    QJsonObject toJson() const { return mJson; }
+    QJsonObject toJson() const { return mJson; } // TODO: encoding
 
     using Ptr = std::unique_ptr<PersonalDetailsPref>;
     static Ptr fromJson(const QJsonObject& json);
@@ -142,6 +151,7 @@ struct FeedViewPref
     int mHideRepliesByLikeCount = 0;
     bool mHideReposts = false;
     bool mHideQuotePosts = false;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -154,11 +164,23 @@ struct ThreadViewPref
 {
     std::optional<QString> mSort; // enum not implemented
     bool mPrioritizeFollowedUsers = false;
-    QJsonObject mJson; // Temporary
+    QJsonObject mJson;
+
+    QJsonObject toJson() const { return mJson; } // TODO: encoding
+
+    using Ptr = std::unique_ptr<ThreadViewPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// Future preferences will be unknown. We store the json object, such that
+// we can send it back unmodified for preference updates.
+struct UnknownPref
+{
+    QJsonObject mJson;
 
     QJsonObject toJson() const { return mJson; }
 
-    using Ptr = std::unique_ptr<ThreadViewPref>;
+    using Ptr = std::unique_ptr<UnknownPref>;
     static Ptr fromJson(const QJsonObject& json);
 };
 
@@ -179,13 +201,14 @@ using PreferenceItem = std::variant<AdultContentPref::Ptr,
                                     SavedFeedsPref::Ptr,
                                     PersonalDetailsPref::Ptr,
                                     FeedViewPref::Ptr,
-                                    ThreadViewPref::Ptr>;
+                                    ThreadViewPref::Ptr,
+                                    UnknownPref::Ptr>;
 
 struct Preference
 {
     PreferenceItem mItem;
     PreferenceType mType;
-    QString mRawType;
+    QString mRawType;  
 
     using Ptr = std::unique_ptr<Preference>;
     static Ptr fromJson(const QJsonObject& json);

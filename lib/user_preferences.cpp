@@ -56,6 +56,8 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             break;
         }
         case AppBskyActor::PreferenceType::UNKNOWN:
+            const auto& unknowPref = std::get<AppBskyActor::UnknownPref::Ptr>(pref->mItem);
+            mUnknownPrefs.push_back(*unknowPref);
             break;
         }
     }
@@ -110,6 +112,15 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
     pref->mItem = std::move(threadView);
     pref->mType = AppBskyActor::PreferenceType::THREAD_VIEW;
     preferences.push_back(std::move(pref));
+
+    for (const auto& unknown : mUnknownPrefs)
+    {
+        auto unknownPref = std::make_unique<AppBskyActor::UnknownPref>(unknown);
+        pref = std::make_unique<AppBskyActor::Preference>();
+        pref->mItem = std::move(unknownPref);
+        pref->mType = AppBskyActor::PreferenceType::UNKNOWN;
+        preferences.push_back(std::move(pref));
+    }
 
     return preferences;
 }

@@ -43,6 +43,7 @@ private:
     AppBskyActor::PersonalDetailsPref mPersonalDetailsPref;
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
     AppBskyActor::ThreadViewPref mThreadViewPref;
+    std::vector<AppBskyActor::UnknownPref> mUnknownPrefs;
 };
 
 }
