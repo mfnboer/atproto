@@ -319,12 +319,55 @@ GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json
     {
         if (!prefJson.isObject())
         {
-            qWarning() << "Invalid preference" << json;
+            qWarning() << "Invalid preference:" << prefJson << json;
             throw InvalidJsonException("Invalid preference");
         }
 
         auto pref = Preference::fromJson(prefJson.toObject());
         output->mPreferences.push_back(std::move(pref));
+    }
+
+    return output;
+}
+
+SearchActorsOutput::Ptr SearchActorsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<SearchActorsOutput>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+
+    const auto actorJsonArray = xjson.getRequiredArray("actors");
+    for (const auto& actorJson : actorJsonArray)
+    {
+        if (!actorJson.isObject())
+        {
+            qWarning() << "Invalid actor:" << actorJson << json;
+            throw InvalidJsonException("Invalid actor");
+        }
+
+        auto actor = ProfileView::fromJson(actorJson.toObject());
+        output->mActors.push_back(std::move(actor));
+    }
+
+    return output;
+}
+
+SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<SearchActorsTypeaheadOutput>();
+    XJsonObject xjson(json);
+
+    const auto actorJsonArray = xjson.getRequiredArray("actors");
+    for (const auto& actorJson : actorJsonArray)
+    {
+        if (!actorJson.isObject())
+        {
+            qWarning() << "Invalid actor:" << actorJson << json;
+            throw InvalidJsonException("Invalid actor");
+        }
+
+        auto actor = ProfileViewBasic::fromJson(actorJson.toObject());
+        output->mActors.push_back(std::move(actor));
     }
 
     return output;

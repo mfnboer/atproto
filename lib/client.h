@@ -46,6 +46,9 @@ public:
     using UnreadCountSuccessCb = std::function<void(int)>;
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
     using UserPrefsSuccessCb = std::function<void(UserPreferences)>;
+    using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::Ptr)>;
+    using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
+    using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -101,6 +104,27 @@ public:
     void putPreferences(const UserPreferences& userPrefs,
                         const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief searchActors
+     * @param q search query
+     * @param limit min=1 max=100 default=25
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void searchActors(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                      const SearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief searchActorsTypeahead
+     * @param q search query prefix
+     * @param limit min=1 max=100 default=10
+     * @param successCb
+     * @param errorCb
+     */
+    void searchActorsTypeahead(const QString& q, std::optional<int> limit,
+                               const SearchActorsTypeaheadSuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.feed
     /**
      * @brief getAuthorFeed
@@ -142,6 +166,17 @@ public:
      */
     void getPosts(const std::vector<QString>& uris,
                   const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief searchPosts
+     * @param q search query
+     * @param limit min=1 max=100 default=25
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getLikes

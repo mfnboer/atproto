@@ -207,6 +207,49 @@ void Client::putPreferences(const UserPreferences& userPrefs,
         authToken());
 }
 
+void Client::searchActors(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                  const SearchActorsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"q", q}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.actor.searchActors", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "searchActors:" << reply;
+            try {
+                auto ouput = AppBskyActor::SearchActorsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
+                                   const SearchActorsTypeaheadSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"q", q}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+
+    mXrpc->get("app.bsky.actor.searchActorsTypeahead", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "searchActorsTypeahead:" << reply;
+            try {
+                auto ouput = AppBskyActor::SearchActorsTypeaheadOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -292,6 +335,29 @@ void Client::getPosts(const std::vector<QString>& uris,
 
                 if (successCb)
                     successCb(std::move(posts));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                 const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"q", q}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.searchPosts", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "searchPosts:" << reply;
+            try {
+                auto output = AppBskyFeed::SearchPostsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
