@@ -228,4 +228,15 @@ struct GetRepostedByOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.searchPosts#output
+struct SearchPostsOutput
+{
+    std::optional<QString> mCursor;
+    std::optional<int> mHitsTotal;
+    PostViewList mPosts;
+
+    using Ptr = std::unique_ptr<SearchPostsOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

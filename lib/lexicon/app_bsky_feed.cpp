@@ -470,4 +470,14 @@ GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
+SearchPostsOutput::Ptr SearchPostsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<SearchPostsOutput>();
+    const XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
+    getPostViewList(output->mPosts, json);
+    return output;
+}
+
 }
