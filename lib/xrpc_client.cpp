@@ -85,6 +85,8 @@ QUrl Client::buildUrl(const QString& service) const
 
     if (service == "legacy.searchPosts")
         return QUrl(QString("https://search.") + mHost + "/search/posts");
+    if (service == "legacy.searchActors")
+        return QUrl(QString("https://search.") + mHost + "/search/profiles");
 
     return QUrl(QString("https://") + mHost + "/xrpc/" + service);
 }

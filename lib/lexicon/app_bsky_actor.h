@@ -73,8 +73,11 @@ struct ProfileViewDetailed
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     using Ptr = std::unique_ptr<ProfileViewDetailed>;
-    static Ptr fromJson(const QJsonDocument& json);
+    static Ptr fromJson(const QJsonObject& json);
 };
+
+using ProfileViewDetailedList = std::vector<ProfileViewDetailed::Ptr>;
+void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json);
 
 // For the user preferences we store the received json object.
 // When sending preferences we take this object and update the modified parts.
@@ -239,6 +242,14 @@ struct SearchActorsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+struct LegacySearchActorsOutput
+{
+    std::vector<QString> mDids;
+
+    using Ptr = std::unique_ptr<LegacySearchActorsOutput>;
+    static Ptr fromJson(const QJsonArray& jsonArray);
+};
+
 // app.bsky.actor.searchActorsTypeahead#output
 struct SearchActorsTypeaheadOutput
 {
@@ -247,5 +258,7 @@ struct SearchActorsTypeaheadOutput
     using Ptr = std::unique_ptr<SearchActorsTypeaheadOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
+
+
 
 }

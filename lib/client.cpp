@@ -161,9 +161,35 @@ void Client::getProfile(const QString& user, const GetProfileSuccessCb& successC
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getProfile:" << reply;
             try {
-                auto profile = AppBskyActor::ProfileViewDetailed::fromJson(reply);
+                auto profile = AppBskyActor::ProfileViewDetailed::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(profile));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(users.size() > 0);
+    Q_ASSERT(users.size() <= MAX_IDS_GET_PROFILES);
+    Xrpc::Client::Params params;
+
+    for (const auto& user : users)
+        params.append({"actors", user});
+
+    mXrpc->get("app.bsky.actor.getProfiles", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getProfiles:" << reply;
+            try {
+                AppBskyActor::ProfileViewDetailedList profiles;
+                AppBskyActor::getProfileViewDetailedList(profiles, reply.object());
+
+                if (successCb)
+                    successCb(std::move(profiles));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
@@ -227,6 +253,26 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
         },
         failure(errorCb),
         authToken());
+}
+
+void Client::legacySearchActors(const QString& q,
+                        const LegacySearchActorsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"q", q}};
+
+    mXrpc->get("legacy.searchActors", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "legacySearchActors:" << reply;
+            try {
+                auto output = AppBskyActor::LegacySearchActorsOutput::fromJson(reply.array());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb));
 }
 
 void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
@@ -320,7 +366,7 @@ void Client::getPosts(const std::vector<QString>& uris,
                       const GetPostsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(uris.size() > 0);
-    Q_ASSERT(uris.size() <= 25);
+    Q_ASSERT(uris.size() <= MAX_URIS_GET_POSTS);
     Xrpc::Client::Params params;
 
     for (const auto& uri : uris)

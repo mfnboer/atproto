@@ -54,10 +54,9 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     return profile;
 }
 
-ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json)
+ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
 {
-    const auto jsonObj = json.object();
-    XJsonObject root(jsonObj);
+    XJsonObject root(json);
     auto profile = std::make_unique<ProfileViewDetailed>();
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
@@ -74,8 +73,29 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonDocument& json
     if (viewerJson)
         profile->mViewer = ViewerState::fromJson(*viewerJson);
 
-    ComATProtoLabel::getLabels(profile->mLabels, jsonObj);
+    ComATProtoLabel::getLabels(profile->mLabels, json);
     return profile;
+}
+
+void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+
+    const QJsonArray& listArray = xjson.getRequiredArray("profiles");
+    list.reserve(listArray.size());
+
+    for (const auto& profileViewDetailedJson : listArray)
+    {
+        if (!profileViewDetailedJson.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid list element: not an object";
+            qInfo() << json;
+            throw InvalidJsonException("PROTO ERROR invalid ProfileViewDetailedList element: not an object");
+        }
+
+        auto profileViewDetailed = ProfileViewDetailed::fromJson(profileViewDetailedJson.toObject());
+        list.push_back(std::move(profileViewDetailed));
+    }
 }
 
 QJsonObject AdultContentPref::toJson() const
@@ -260,7 +280,7 @@ PreferenceType stringToPreferenceType(const QString& str)
 Preference::Ptr Preference::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<Preference>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
     pref->mRawType = xjson.getRequiredString("$type");
     pref->mType = stringToPreferenceType(pref->mRawType);
 
@@ -312,7 +332,7 @@ QJsonObject GetPreferencesOutput::toJson() const
 GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<GetPreferencesOutput>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
 
     const auto prefJsonArray = xjson.getRequiredArray("preferences");
     for (const auto& prefJson : prefJsonArray)
@@ -333,7 +353,7 @@ GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json
 SearchActorsOutput::Ptr SearchActorsOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<SearchActorsOutput>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
 
     const auto actorJsonArray = xjson.getRequiredArray("actors");
@@ -355,7 +375,7 @@ SearchActorsOutput::Ptr SearchActorsOutput::fromJson(const QJsonObject& json)
 SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<SearchActorsTypeaheadOutput>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
 
     const auto actorJsonArray = xjson.getRequiredArray("actors");
     for (const auto& actorJson : actorJsonArray)
@@ -368,6 +388,28 @@ SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJs
 
         auto actor = ProfileViewBasic::fromJson(actorJson.toObject());
         output->mActors.push_back(std::move(actor));
+    }
+
+    return output;
+}
+
+LegacySearchActorsOutput::Ptr LegacySearchActorsOutput::fromJson(const QJsonArray& jsonArray)
+{
+    auto output = std::make_unique<LegacySearchActorsOutput>();
+    output->mDids.reserve(jsonArray.size());
+
+    for (const auto& profileJsonEntry : jsonArray)
+    {
+        if (!profileJsonEntry.isObject())
+        {
+            qWarning() << "Invalid profile:" << jsonArray << profileJsonEntry;
+            throw InvalidJsonException("LegacySearchActorsOutput");
+        }
+
+        const QJsonObject profileJson = profileJsonEntry.toObject();
+        const XJsonObject xjsonProfile(profileJson);
+        const QString did = xjsonProfile.getRequiredString("did");
+        output->mDids.push_back(did);
     }
 
     return output;
