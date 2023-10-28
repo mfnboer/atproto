@@ -23,6 +23,8 @@ public:
     const bool authorityIsHandle() const { return mAuthorityIsHandle; }
 
     void setAuthority(const QString& authority) { mAuthority = authority; }
+    void setCollection(const QString& collection) { mCollection = collection; }
+    void setRKey(const QString& rKey) { mRkey = rKey; }
     void setAuthorityIsHandle(bool isHandle) { mAuthorityIsHandle = isHandle; }
 
     QString toString() const;
