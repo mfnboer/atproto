@@ -49,6 +49,7 @@ public:
     using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::Ptr)>;
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
+    using LegacySearchPostsSuccessCb = std::function<void(AppBskyFeed::LegacySearchPostsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -105,7 +106,7 @@ public:
                         const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief searchActors
+     * @brief searchActors NOT YET SUPPORTED BY BSKY
      * @param q search query
      * @param limit min=1 max=100 default=25
      * @param cursor
@@ -168,7 +169,7 @@ public:
                   const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief searchPosts
+     * @brief searchPosts NOT YET SUPPORTED BY BSKY
      * @param q search query
      * @param limit min=1 max=100 default=25
      * @param cursor
@@ -177,6 +178,12 @@ public:
      */
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // Temporary legacy search till app.bsky.feed.searchPosts is supported by bsky
+    // https://search.bsky.social/search/posts?q=
+    // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
+    void legacySearchPosts(const QString& q,
+                           const LegacySearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getLikes

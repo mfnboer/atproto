@@ -366,6 +366,26 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
         authToken());
 }
 
+void Client::legacySearchPosts(const QString& q,
+                       const LegacySearchPostsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"q", q}};
+
+    mXrpc->get("legacy.searchPosts", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "legacySearchPosts:" << reply;
+            try {
+                auto output = AppBskyFeed::LegacySearchPostsOutput::fromJson(reply.array());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb));
+}
+
 void Client::getLikes(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
               const GetLikesSuccessCb& successCb, const ErrorCb& errorCb)
 {

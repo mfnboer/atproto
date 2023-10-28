@@ -82,6 +82,10 @@ void Client::removeReply(QNetworkReply* reply)
 QUrl Client::buildUrl(const QString& service) const
 {
     Q_ASSERT(!service.isEmpty());
+
+    if (service == "legacy.searchPosts")
+        return QUrl(QString("https://search.") + mHost + "/search/posts");
+
     return QUrl(QString("https://") + mHost + "/xrpc/" + service);
 }
 

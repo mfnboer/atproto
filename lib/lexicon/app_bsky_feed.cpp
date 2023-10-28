@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "app_bsky_feed.h"
 #include "app_bsky_actor.h"
+#include "../at_uri.h"
 #include "../xjson.h"
 #include <QJsonArray>
 #include <unordered_map>
@@ -477,6 +478,48 @@ SearchPostsOutput::Ptr SearchPostsOutput::fromJson(const QJsonObject& json)
     output->mCursor = xjson.getOptionalString("cursor");
     output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
     getPostViewList(output->mPosts, json);
+    return output;
+}
+
+LegacySearchPostsOutput::Ptr LegacySearchPostsOutput::fromJson(const QJsonArray& jsonArray)
+{
+    static const QRegularExpression RE_TID(R"(^app.bsky.feed.post/([a-zA-Z0-9\.-_~]+)$)");
+
+    auto output = std::make_unique<LegacySearchPostsOutput>();
+    output->mUris.reserve(jsonArray.size());
+
+    for (const auto& postJsonEntry : jsonArray)
+    {
+        if (!postJsonEntry.isObject())
+        {
+            qWarning() << "Invalid post:" << jsonArray << postJsonEntry;
+            throw InvalidJsonException("LegacySearhPostsOutput output");
+        }
+
+        const QJsonObject postJson = postJsonEntry.toObject();
+        const XJsonObject xjsonPost(postJson);
+        const QString tid = xjsonPost.getRequiredString("tid");
+        auto match = RE_TID.match(tid);
+
+        if (!match.hasMatch())
+        {
+            qDebug() << "Unsupported tid:" << tid;
+            continue;
+        }
+
+        const QString rKey = match.captured(1);
+        const auto userJson = xjsonPost.getRequiredObject("user");
+        const XJsonObject xjsonUser(userJson);
+        const QString did = xjsonUser.getRequiredString("did");
+
+        ATUri atUri;
+        atUri.setAuthority(did);
+        atUri.setCollection("app.bsky.feed.post");
+        atUri.setRKey(rKey);
+
+        output->mUris.push_back(atUri.toString());
+    }
+
     return output;
 }
 

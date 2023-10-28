@@ -239,4 +239,15 @@ struct SearchPostsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// Temporary legacy search till app.bsky.feed.searchPosts is supported by bsky
+// https://search.bsky.social/search/posts?q=
+// https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
+struct LegacySearchPostsOutput
+{
+    std::vector<QString> mUris;
+
+    using Ptr = std::unique_ptr<LegacySearchPostsOutput>;
+    static Ptr fromJson(const QJsonArray& jsonArray);
+};
+
 }
