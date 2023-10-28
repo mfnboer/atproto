@@ -32,6 +32,7 @@ public:
     using SuccessCb = std::function<void()>;
     using ResolveHandleSuccessCb = std::function<void(QString)>;
     using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
+    using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailedList)>;
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
@@ -50,9 +51,11 @@ public:
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using LegacySearchPostsSuccessCb = std::function<void(AppBskyFeed::LegacySearchPostsOutput::Ptr)>;
+    using LegacySearchActorsSuccessCb = std::function<void(AppBskyActor::LegacySearchActorsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& err)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
+    static constexpr int MAX_IDS_GET_PROFILES = 25;
 
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
 
@@ -101,6 +104,14 @@ public:
      */
     void getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief getProfiles
+     * @param users list of handles or dids (max 25)
+     * @param successCb
+     * @param errorCb
+     */
+    void getProfiles(const std::vector<QString>& users, const GetProfilesSuccessCb& successCb, const ErrorCb& errorCb);
+
     void getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb);
     void putPreferences(const UserPreferences& userPrefs,
                         const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -115,6 +126,12 @@ public:
      */
     void searchActors(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                       const SearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // Temporary legacy search till app.bsky.feed.searchPosts is supported by bsky
+    // https://search.bsky.social/search/posts?q=
+    // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
+    void legacySearchActors(const QString& q,
+                             const LegacySearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief searchActorsTypeahead

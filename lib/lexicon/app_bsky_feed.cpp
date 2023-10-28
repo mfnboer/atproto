@@ -493,7 +493,7 @@ LegacySearchPostsOutput::Ptr LegacySearchPostsOutput::fromJson(const QJsonArray&
         if (!postJsonEntry.isObject())
         {
             qWarning() << "Invalid post:" << jsonArray << postJsonEntry;
-            throw InvalidJsonException("LegacySearhPostsOutput output");
+            throw InvalidJsonException("LegacySearchPostsOutput");
         }
 
         const QJsonObject postJson = postJsonEntry.toObject();
