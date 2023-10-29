@@ -229,9 +229,10 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                     resolveFacets(post, facets, i + 1, cb);
                 });
             return;
+        case ParsedMatch::Type::PARTIAL_MENTION:
+            break;
         case ParsedMatch::Type::UNKNOWN:
             Q_ASSERT(false);
-            resolveFacets(post, facets, i + 1, cb);
             break;
         }
     }
@@ -321,6 +322,8 @@ void PostMaster::addFacets(AppBskyFeed::Record::Post::SharedPtr post,
             feature.mFeature = std::move(mention);
             break;
         }
+        case AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
+            continue;
         case AppBskyRichtext::Facet::Feature::Type::UNKNOWN:
             Q_ASSERT(false);
             qWarning() << "Unknown facet type";
@@ -450,6 +453,17 @@ static std::vector<PostMaster::ParsedMatch> parseMatches(PostMaster::ParsedMatch
     return matches;
 }
 
+std::vector<PostMaster::ParsedMatch> PostMaster::parsePartialMentions(const QString& text)
+{
+    static const QRegularExpression rePartialMention(R"([$|\W](@[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
+    const auto partialMentions = parseMatches(ParsedMatch::Type::PARTIAL_MENTION, text, rePartialMention, 1);
+
+    for (const auto& partialMention : partialMentions)
+        qDebug() << "Partial mention:" << partialMention.mMatch << "start:" << partialMention.mStartIndex << "end:" << partialMention.mEndIndex;
+
+    return partialMentions;
+}
+
 std::vector<PostMaster::ParsedMatch> PostMaster::parseMentions(const QString& text)
 {
     static const QRegularExpression reMention(R"([$|\W](@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
@@ -498,35 +512,50 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
     return links;
 }
 
+static void addToSortedMatches(std::map<int, PostMaster::ParsedMatch>& sortedMatches,
+                               const std::vector<PostMaster::ParsedMatch>& matches)
+{
+    for (const auto& match : matches)
+    {
+        if (sortedMatches.count(match.mStartIndex))
+        {
+            Q_ASSERT(match.mType == PostMaster::ParsedMatch::Type::MENTION &&
+                     sortedMatches[match.mStartIndex].mType == PostMaster::ParsedMatch::Type::PARTIAL_MENTION);
+            qDebug() << "Two matches with start index:" << match.mStartIndex
+                     << match.mMatch << sortedMatches[match.mStartIndex].mMatch;
+        }
+
+        sortedMatches[match.mStartIndex] = match;
+    }
+}
+
 std::vector<PostMaster::ParsedMatch> PostMaster::parseFacets(const QString& text)
 {
+    const auto partialMentions = parsePartialMentions(text);
     const auto mentions = parseMentions(text);
     const auto links = parseLinks(text);
     std::vector<PostMaster::ParsedMatch> facets;
     facets.reserve(mentions.size() + links.size());
 
+    std::map<int, ParsedMatch> sortedMatches; // sorted on start index
+    addToSortedMatches(sortedMatches, partialMentions);
+    addToSortedMatches(sortedMatches, mentions);
+    addToSortedMatches(sortedMatches, links);
+
     int pos = 0;
-    auto itMention = mentions.begin();
-    auto itLink = links.begin();
 
-    while (itMention != mentions.end() || itLink != links.end())
+    for (const auto& [_, match] : sortedMatches)
     {
-        const PostMaster::ParsedMatch* facet;
-        if (itMention == mentions.end())
-            facet = &*itLink++;
-        else if (itLink == links.end())
-            facet = &*itMention++;
-        else if (itMention->mStartIndex < itLink->mStartIndex)
-            facet = &*itMention++;
-        else
-            facet = &*itLink++;
-
         // This happens if a detected link overlaps with a detected mention.
-        if (facet->mStartIndex < pos)
+        if (match.mStartIndex < pos)
+        {
+            Q_ASSERT(false);
+            qWarning() << "Overlapping facets at index:" << match.mStartIndex << match.mMatch;
             continue;
+        }
 
-        facets.push_back(*facet);
-        pos = facet->mEndIndex;
+        facets.push_back(match);
+        pos = match.mEndIndex;
     }
 
     return facets;

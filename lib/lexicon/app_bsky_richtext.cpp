@@ -82,6 +82,7 @@ QJsonObject Facet::toJson() const
             featureJson = std::get<FacetMention::Ptr>(f.mFeature)->toJson();
             featureJson.insert("$type", "app.bsky.richtext.facet#mention");
             break;
+        case Feature::Type::PARTIAL_MENTION:
         case Feature::Type::UNKNOWN:
             Q_ASSERT(false);
             qWarning() << "Unkown facet type";
@@ -123,6 +124,7 @@ Facet::Ptr Facet::fromJson(const QJsonObject& json)
         case Feature::Type::LINK:
             feature.mFeature = FacetLink::fromJson(featureJson);
             break;
+        case Feature::Type::PARTIAL_MENTION:
         case Feature::Type::UNKNOWN:
             qWarning() << "Unsupported facet feature type:" << type;
             break;
@@ -157,6 +159,8 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
         return QString("<a href=\"%1\">%2</a>").arg(facetLink->mUri, linkText);
         break;
     }
+    case ATProto::AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
+        break;
     case ATProto::AppBskyRichtext::Facet::Feature::Type::UNKNOWN:
         qWarning() << "Uknown facet type:" << int(feature.mType) << "link:" << linkText;
         break;

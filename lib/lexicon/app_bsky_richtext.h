@@ -47,6 +47,7 @@ struct Facet
     {
         enum class Type
         {
+            PARTIAL_MENTION,
             MENTION,
             LINK,
             UNKNOWN
