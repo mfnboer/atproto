@@ -64,6 +64,7 @@ public:
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::Ptr blob = nullptr);
 
+    static std::vector<ParsedMatch> parsePartialMentions(const QString& text);
     static std::vector<ParsedMatch> parseMentions(const QString& text);
     static std::vector<ParsedMatch> parseLinks(const QString& text);
 
