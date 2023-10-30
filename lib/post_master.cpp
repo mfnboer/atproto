@@ -155,6 +155,7 @@ void PostMaster::checkPostExists(const QString& uri, const QString& cid,
 void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
 {
     auto atUri = ATUri::fromHttpsPostUri(httpsUri);
+
     if (!atUri.isValid())
         return;
 
