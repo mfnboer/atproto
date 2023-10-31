@@ -550,7 +550,8 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseFacets(const QString& text
         // This happens if a detected link overlaps with a detected mention.
         if (match.mStartIndex < pos)
         {
-            Q_ASSERT(false);
+            // A partial mention may not be a partial mention but part of a link
+            Q_ASSERT(match.mType == PostMaster::ParsedMatch::Type::PARTIAL_MENTION);
             qWarning() << "Overlapping facets at index:" << match.mStartIndex << match.mMatch;
             continue;
         }
