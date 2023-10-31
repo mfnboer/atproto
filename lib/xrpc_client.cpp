@@ -12,13 +12,13 @@ Client::Client(const QString& host) :
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
+    mNetwork.setAutoDeleteReplies(true);
     mNetwork.setTransferTimeout(15000);
 }
 
 Client::~Client()
 {
-    for (auto* reply : mReplies)
-        delete reply;
+    qDebug() << "Destroy client";
 }
 
 void Client::post(const QString& service, const QJsonDocument& json,
@@ -42,7 +42,6 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
 
     request.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
     QNetworkReply* reply = mNetwork.post(request, data);
-    mReplies.insert(reply);
 
     connect(reply, &QNetworkReply::finished, this,
             [this, reply, successCb, errorCb]{ replyFinished(reply, successCb, errorCb); });
@@ -63,7 +62,6 @@ void Client::get(const QString& service, const Params& params,
         setAuthorization(request, accessJwt);
 
     QNetworkReply* reply = mNetwork.get(request);
-    mReplies.insert(reply);
 
     connect(reply, &QNetworkReply::finished, this,
             [this, reply, successCb, errorCb]{ replyFinished(reply, successCb, errorCb); });
@@ -71,12 +69,6 @@ void Client::get(const QString& service, const Params& params,
             [this, reply, errorCb](auto errorCode){ networkError(reply, errorCode, errorCb); });
     connect(reply, &QNetworkReply::sslErrors, this,
             [this, reply, errorCb](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb); });
-}
-
-void Client::removeReply(QNetworkReply* reply)
-{
-    mReplies.erase(reply);
-    delete reply;
 }
 
 QUrl Client::buildUrl(const QString& service) const
@@ -130,8 +122,6 @@ void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, con
         qDebug() << data;
         errorCb(reply->errorString(), json);
     }
-
-    removeReply(reply);
 }
 
 void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb)
@@ -142,7 +132,6 @@ void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError erro
     const auto data = reply->readAll();
     const QJsonDocument json(QJsonDocument::fromJson(data));
     errorCb(errorMsg, json);
-    removeReply(reply);
 }
 
 void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb)
@@ -151,7 +140,6 @@ void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, con
     // TODO: error handling
     qWarning() << "SSL errors:" << errors;
     errorCb("SSL error", {});
-    removeReply(reply);
 }
 
 }
