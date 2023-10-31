@@ -31,14 +31,12 @@ private:
     QUrl buildUrl(const QString& service) const;
     QUrl buildUrl(const QString& service, const Params& params) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
-    void removeReply(QNetworkReply* reply);
     void replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
     void networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb);
 
     QNetworkAccessManager mNetwork;
     QString mHost;
-    std::unordered_set<QNetworkReply*> mReplies;
 };
 
 }
