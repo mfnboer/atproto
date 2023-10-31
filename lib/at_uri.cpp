@@ -9,18 +9,28 @@ namespace ATProto {
 
 ATUri ATUri::fromHttpsPostUri(const QString& uri)
 {
-    static const QRegularExpression reHttps(R"(^https://bsky.app/profile/([a-zA-Z0-9-\._~]+)/post/([a-zA-Z0-9\.-_~]+)$)");
+    // TODO: refactor regexes to a central place
+    static const QRegularExpression reHandleHttps(R"(^https://bsky.app/profile/([a-zA-Z0-9-\._~]+)/post/([a-zA-Z0-9\.-_~]+)$)");
+    static const QRegularExpression reDidHttps(R"(^https://bsky.app/profile/(did:plc:[a-zA-Z0-9-\.:_]+)/post/([a-zA-Z0-9\.-_~]+)$)");
 
-    auto match = reHttps.match(uri);
+    bool authorityIsHandle = true;
+    auto match = reHandleHttps.match(uri);
 
     if (!match.hasMatch())
-        return {};
+    {
+        match = reDidHttps.match(uri);
+
+        if (!match.hasMatch())
+            return {};
+
+        authorityIsHandle = false;
+    }
 
     ATUri atUri;
     atUri.mAuthority = match.captured(1);
     atUri.mCollection = "app.bsky.feed.post";
     atUri.mRkey = match.captured(2);
-    atUri.mAuthorityIsHandle = true;
+    atUri.mAuthorityIsHandle = authorityIsHandle;
 
     return atUri;
 }
