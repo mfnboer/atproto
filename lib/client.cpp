@@ -53,7 +53,7 @@ void Client::createSession(const QString& user, const QString& pwd,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qInfo() << "Session created:" << reply;
             try {
-                mSession = std::move(ComATProtoServer::Session::fromJson(reply));
+                mSession = ComATProtoServer::Session::fromJson(reply);
                 if (successCb)
                     successCb();
             } catch (InvalidJsonException& e) {
@@ -220,7 +220,7 @@ void Client::putPreferences(const UserPreferences& userPrefs,
     auto json = prefs.toJson();
 
     mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json),
-        [this, successCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "putPreferences:" << reply;
             if (successCb)
                 successCb();
@@ -523,7 +523,7 @@ void Client::muteActor(const QString& actor, const SuccessCb& successCb, const E
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.muteActor", json,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "muteActor:" << reply;
             if (successCb)
                 successCb();
@@ -539,7 +539,7 @@ void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.unmuteActor", json,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "unmuteActor:" << reply;
             if (successCb)
                 successCb();
@@ -578,7 +578,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
     json.setObject(paramsJson);
 
     mXrpc->post("app.bsky.notification.updateSeen", json,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Updated notification seen:" << reply;
             if (successCb)
                 successCb();
@@ -705,7 +705,7 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
     qDebug() << "Delete record:" << jsonDoc;
 
     mXrpc->post("com.atproto.repo.deleteRecord", jsonDoc,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Deleted record:" << reply;
             if (successCb)
                 successCb();
