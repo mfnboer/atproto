@@ -1,12 +1,9 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "client.h"
-#include "at_uri.h"
-#include "tlds.h"
 #include "xjson.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
-#include <QRegularExpression>
 #include <QTimer>
 #include <QUrl>
 

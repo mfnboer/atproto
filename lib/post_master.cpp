@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "post_master.h"
+#include "at_regex.h"
 #include "tlds.h"
 #include <QTimer>
 
@@ -467,7 +468,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parsePartialMentions(const QStr
 
 std::vector<PostMaster::ParsedMatch> PostMaster::parseMentions(const QString& text)
 {
-    static const QRegularExpression reMention(R"([$|\W](@([a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
+    static const QRegularExpression reMention(QString(R"([$|\W](@%1))").arg(ATRegex::HANDLE.pattern()));
     const auto mentions = parseMatches(ParsedMatch::Type::MENTION, text, reMention, 1);
 
     for (const auto& mention : mentions)
