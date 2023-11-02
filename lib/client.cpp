@@ -99,8 +99,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
         session.mAccessJwt);
 }
 
-void Client::refreshSession(const ComATProtoServer::Session& session,
-                            const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.server.refreshSession", {},
         [this, successCb, errorCb](const QJsonDocument& reply){

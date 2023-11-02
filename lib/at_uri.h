@@ -16,11 +16,11 @@ public:
     ATUri() = default;
     explicit ATUri(const QString& uri);
 
-    const bool isValid() const;
+    bool isValid() const;
     const QString& getAuthority() const { return mAuthority; }
     const QString& getCollection() const { return mCollection; }
     const QString& getRkey() const { return mRkey; }
-    const bool authorityIsHandle() const { return mAuthorityIsHandle; }
+    bool authorityIsHandle() const { return mAuthorityIsHandle; }
 
     void setAuthority(const QString& authority) { mAuthority = authority; }
     void setCollection(const QString& collection) { mCollection = collection; }

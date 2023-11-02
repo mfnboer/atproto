@@ -50,11 +50,11 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
     const QString collection = postJson["$type"].toString();
 
     mClient.createRecord(repo, collection, postJson,
-        [this, successCb](auto){
+        [successCb](auto){
             if (successCb)
                 successCb();
         },
-        [this, errorCb](const QString& error) {
+        [errorCb](const QString& error) {
             if (errorCb)
                 errorCb(error);
         });
@@ -78,11 +78,11 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     const QString collection = repostJson["$type"].toString();
 
     mClient.createRecord(repo, collection, repostJson,
-        [this, successCb](auto strongRef){
+        [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [this, errorCb](const QString& error) {
+        [errorCb](const QString& error) {
             if (errorCb)
                 errorCb(error);
         });
@@ -106,11 +106,11 @@ void PostMaster::like(const QString& uri, const QString& cid,
     const QString collection = likeJson["$type"].toString();
 
     mClient.createRecord(repo, collection, likeJson,
-        [this, successCb](auto strongRef){
+        [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [this, errorCb](const QString& error) {
+        [errorCb](const QString& error) {
             if (errorCb)
                 errorCb(error);
         });
@@ -177,7 +177,7 @@ void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDe
     auto newAuthor = AppBskyActor::ProfileViewDetailed::SharedPtr(author.release());
 
     mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
-        [this, successCb, newAuthor](ComATProtoRepo::Record::Ptr record){
+        [successCb, newAuthor](ComATProtoRepo::Record::Ptr record){
             try {
                 auto post = AppBskyFeed::Record::Post::fromJson(record->mValue);
 
@@ -187,7 +187,7 @@ void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDe
                 qWarning() << e.msg();
             }
         },
-        [this](const QString& err){
+        [](const QString& err){
             qDebug() << err;
         });
 }
@@ -209,7 +209,7 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                            const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
-    for (int i = facetIndex; i < facets.size(); ++i)
+    for (int i = facetIndex; i < (int)facets.size(); ++i)
     {
         auto& facet = facets[i];
 
@@ -221,13 +221,13 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
         case ParsedMatch::Type::MENTION:
             // The @-character is not part of the handle!
             mClient.resolveHandle(facet.mMatch.sliced(1),
-                [this, i, post, facets, facetIndex, cb](const QString& did){
+                [this, i, post, facets, cb](const QString& did){
                     auto newFacets = facets;
                     newFacets[i].mRef = did;
                     resolveFacets(post, newFacets, i + 1, cb);
                 },
-                [this, i, post, facets, facetIndex, cb](const QString& error){
-                    qWarning() << "Could not resolve handle:" << facets[i].mMatch;
+                [this, i, post, facets, cb](const QString& error){
+                    qWarning() << "Could not resolve handle:" << error << "match:" << facets[i].mMatch;
                     resolveFacets(post, facets, i + 1, cb);
                 });
             return;
@@ -482,7 +482,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
     static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%._\+~#=]{0,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9()@%_\+~#//=])?))");
     auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
-    for (int i = 0; i < links.size();)
+    for (int i = 0; i < (int)links.size();)
     {
         const auto& link = links[i];
         QUrl url(link.mMatch);
