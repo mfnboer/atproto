@@ -77,7 +77,7 @@ QString ATUri::toString() const
     return QString("at://%1/%2/%3").arg(mAuthority, mCollection, mRkey);
 }
 
-const bool ATUri::isValid() const
+bool ATUri::isValid() const
 {
     return !mAuthority.isEmpty();
 }

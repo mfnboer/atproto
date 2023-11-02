@@ -82,8 +82,7 @@ public:
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    void refreshSession(const ComATProtoServer::Session& session,
-                        const SuccessCb& successCb, const ErrorCb& errorCb);
+    void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**

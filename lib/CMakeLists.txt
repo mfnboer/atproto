@@ -1,6 +1,14 @@
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core)
 
+if(CMAKE_BUILD_TYPE MATCHES Release)
+    add_compile_definitions(QT_NO_DEBUG_OUTPUT)
+endif()
+
+add_compile_options(-Wall -Wextra -Werror)
+#add_compile_options(-fsanitize=address)
+#add_link_options(-fsanitize=address)
+
 qt_add_library(libatproto STATIC
     client.h
     client.cpp
