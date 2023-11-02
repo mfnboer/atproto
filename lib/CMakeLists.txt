@@ -40,6 +40,8 @@ qt_add_library(libatproto STATIC
     graph_master.cpp
     user_preferences.h
     user_preferences.cpp
+    at_regex.h
+    at_regex.cpp
 )
 
 

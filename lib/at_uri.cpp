@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "at_uri.h"
+#include "at_regex.h"
 #include <QRegularExpression>
 #include <QStringList>
 #include <QTimer>
@@ -9,9 +10,15 @@ namespace ATProto {
 
 ATUri ATUri::fromHttpsPostUri(const QString& uri)
 {
-    // TODO: refactor regexes to a central place
-    static const QRegularExpression reHandleHttps(R"(^https://bsky.app/profile/([a-zA-Z0-9-\._~]+)/post/([a-zA-Z0-9\.-_~]+)$)");
-    static const QRegularExpression reDidHttps(R"(^https://bsky.app/profile/(did:plc:[a-zA-Z0-9-\.:_]+)/post/([a-zA-Z0-9\.-_~]+)$)");
+    static const QRegularExpression reHandleHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+            ATRegex::HANDLE.pattern(),
+            ATRegex::RKEY.pattern()));
+
+    static const QRegularExpression reDidHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+            ATRegex::DID.pattern(),
+            ATRegex::RKEY.pattern()));
 
     bool authorityIsHandle = true;
     auto match = reHandleHttps.match(uri);
@@ -27,9 +34,9 @@ ATUri ATUri::fromHttpsPostUri(const QString& uri)
     }
 
     ATUri atUri;
-    atUri.mAuthority = match.captured(1);
+    atUri.mAuthority = match.captured("authority");
     atUri.mCollection = "app.bsky.feed.post";
-    atUri.mRkey = match.captured(2);
+    atUri.mRkey = match.captured("rkey");
     atUri.mAuthorityIsHandle = authorityIsHandle;
 
     return atUri;
