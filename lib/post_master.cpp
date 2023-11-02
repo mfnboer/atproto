@@ -29,6 +29,7 @@ QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Pos
 }
 
 PostMaster::PostMaster(Client& client) :
+    Presence(),
     mClient(client)
 {
 }
@@ -161,7 +162,10 @@ void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
         return;
 
     mClient.getProfile(atUri.getAuthority(),
-        [this, atUri, successCb](auto profile){
+        [this, presence=getPresence(), atUri, successCb](auto profile){
+            if (!presence)
+                return;
+
             ATUri newUri(atUri);
             newUri.setAuthority(profile->mDid);
             newUri.setAuthorityIsHandle(false);
@@ -221,12 +225,18 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
         case ParsedMatch::Type::MENTION:
             // The @-character is not part of the handle!
             mClient.resolveHandle(facet.mMatch.sliced(1),
-                [this, i, post, facets, cb](const QString& did){
+                [this, presence=getPresence(), i, post, facets, cb](const QString& did){
+                    if (!presence)
+                        return;
+
                     auto newFacets = facets;
                     newFacets[i].mRef = did;
                     resolveFacets(post, newFacets, i + 1, cb);
                 },
-                [this, i, post, facets, cb](const QString& error){
+                [this, presence=getPresence(), i, post, facets, cb](const QString& error){
+                    if (!presence)
+                        return;
+
                     qWarning() << "Could not resolve handle:" << error << "match:" << facets[i].mMatch;
                     resolveFacets(post, facets, i + 1, cb);
                 });

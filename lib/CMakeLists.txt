@@ -50,6 +50,7 @@ qt_add_library(libatproto STATIC
     user_preferences.cpp
     at_regex.h
     at_regex.cpp
+    presence.h
 )
 
 

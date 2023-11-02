@@ -3,13 +3,14 @@
 #pragma once
 #include "at_uri.h"
 #include "client.h"
+#include "presence.h"
 
 namespace ATProto {
 
 /**
  * @brief Functions to compose, send and like posts.
  */
-class PostMaster
+class PostMaster : public Presence
 {
 public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;

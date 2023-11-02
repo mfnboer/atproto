@@ -23,11 +23,11 @@ void GraphMaster::follow(const QString& did,
     const QString collection = followJson["$type"].toString();
 
     mClient.createRecord(repo, collection, followJson,
-        [this, successCb](auto strongRef){
+        [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [this, errorCb](const QString& error) {
+        [errorCb](const QString& error) {
             if (errorCb)
                 errorCb(error);
         });
@@ -45,11 +45,11 @@ void GraphMaster::block(const QString& did,
     const QString collection = blockJson["$type"].toString();
 
     mClient.createRecord(repo, collection, blockJson,
-        [this, successCb](auto strongRef){
+        [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [this, errorCb](const QString& error) {
+        [errorCb](const QString& error) {
             if (errorCb)
                 errorCb(error);
         });
