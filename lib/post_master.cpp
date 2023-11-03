@@ -368,7 +368,7 @@ void PostMaster::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& 
     record->mRecord = std::move(ref);
 }
 
-void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
+void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText)
 {
     if (!post.mEmbed)
     {
@@ -392,7 +392,7 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob)
 
     auto image = std::make_unique<AppBskyEmbed::Image>();
     image->mImage = std::move(blob);
-    image->mAlt = ""; // TODO
+    image->mAlt = altText;
 
     AppBskyEmbed::Images* images = nullptr;
     if (post.mEmbed->mType == AppBskyEmbed::EmbedType::IMAGES)
