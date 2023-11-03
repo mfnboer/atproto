@@ -54,6 +54,27 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     return profile;
 }
 
+void getProfileViewList(ProfileViewList& list, const QJsonObject& json, const QString& fieldName)
+{
+    XJsonObject xjson(json);
+
+    const QJsonArray& listArray = xjson.getRequiredArray(fieldName);
+    list.reserve(listArray.size());
+
+    for (const auto& profileViewJson : listArray)
+    {
+        if (!profileViewJson.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid list element: not an object";
+            qInfo() << json;
+            throw InvalidJsonException("PROTO ERROR invalid ProfileViewList element: not an object");
+        }
+
+        auto profileView = ProfileView::fromJson(profileViewJson.toObject());
+        list.push_back(std::move(profileView));
+    }
+}
+
 ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);

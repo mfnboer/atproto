@@ -6,7 +6,7 @@
 
 namespace ATProto::AppBskyGraph {
 
-// app.bsky.graph.getFollow/output
+// app.bsky.graph.getFollows/output
 struct GetFollowsOutput
 {
     AppBskyActor::ProfileView::Ptr mSubject;
@@ -17,6 +17,7 @@ struct GetFollowsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.getFollowers/output
 struct GetFollowersOutput
 {
     AppBskyActor::ProfileView::Ptr mSubject;
@@ -24,6 +25,26 @@ struct GetFollowersOutput
     std::optional<QString> mCursor;
 
     using Ptr = std::unique_ptr<GetFollowersOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.getBlocks/output
+struct GetBlocksOutput
+{
+    AppBskyActor::ProfileViewList mBlocks;
+    std::optional<QString> mCursor;
+
+    using Ptr = std::unique_ptr<GetBlocksOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.getMutes/output
+struct GetMutesOutput
+{
+    AppBskyActor::ProfileViewList mMutes;
+    std::optional<QString> mCursor;
+
+    using Ptr = std::unique_ptr<GetMutesOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
 

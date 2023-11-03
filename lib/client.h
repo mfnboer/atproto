@@ -41,6 +41,8 @@ public:
     using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::Ptr)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
     using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
+    using GetBlocksSuccessCb = std::function<void(AppBskyGraph::GetBlocksOutput::Ptr)>;
+    using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
@@ -246,6 +248,12 @@ public:
      */
     void getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
+                   const GetBlocksSuccessCb& successCb, const ErrorCb& errorCb);
+    void getMutes(std::optional<int> limit, const std::optional<QString>& cursor,
+                  const GetMutesSuccessCb& successCb, const ErrorCb& errorCb);
+
 
     void muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
     void unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
