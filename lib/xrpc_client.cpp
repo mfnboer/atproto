@@ -43,10 +43,16 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
     request.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
     QNetworkReply* reply = mNetwork.post(request, data);
 
+    // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
+    // The latter call is not guaranteed however. We must only call errorCb once!
+    auto errorHandled = std::make_shared<bool>(false);
+
     connect(reply, &QNetworkReply::finished, this,
-            [this, reply, successCb, errorCb]{ replyFinished(reply, successCb, errorCb); });
+            [this, reply, successCb, errorCb, errorHandled]{ replyFinished(reply, successCb, errorCb, errorHandled); });
+    connect(reply, &QNetworkReply::errorOccurred, this,
+            [this, reply, errorCb, errorHandled](auto errorCode){ networkError(reply, errorCode, errorCb, errorHandled); });
     connect(reply, &QNetworkReply::sslErrors, this,
-            [this, reply, errorCb](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb); });
+            [this, reply, errorCb, errorHandled](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb, errorHandled); });
 }
 
 void Client::get(const QString& service, const Params& params,
@@ -63,12 +69,16 @@ void Client::get(const QString& service, const Params& params,
 
     QNetworkReply* reply = mNetwork.get(request);
 
+    // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
+    // The latter call is not guaranteed however. We must only call errorCb once!
+    auto errorHandled = std::make_shared<bool>(false);
+
     connect(reply, &QNetworkReply::finished, this,
-            [this, reply, successCb, errorCb]{ replyFinished(reply, successCb, errorCb); });
+            [this, reply, successCb, errorCb, errorHandled]{ replyFinished(reply, successCb, errorCb, errorHandled); });
     connect(reply, &QNetworkReply::errorOccurred, this,
-            [this, reply, errorCb](auto errorCode){ networkError(reply, errorCode, errorCb); });
+            [this, reply, errorCb, errorHandled](auto errorCode){ networkError(reply, errorCode, errorCb, errorHandled); });
     connect(reply, &QNetworkReply::sslErrors, this,
-            [this, reply, errorCb](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb); });
+            [this, reply, errorCb, errorHandled](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb, errorHandled); });
 }
 
 QUrl Client::buildUrl(const QString& service) const
@@ -105,7 +115,7 @@ void Client::setAuthorization(QNetworkRequest& request, const QString& accessJwt
     request.setRawHeader("Authorization", auth.toUtf8());
 }
 
-void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
     qDebug() << "Reply:" << reply->error();
@@ -116,30 +126,52 @@ void Client::replyFinished(QNetworkReply* reply, const SuccessCb& successCb, con
     {
         successCb(json);
     }
+    else if (!*errorHandled)
+    {
+        qDebug() << data;
+        *errorHandled = true;
+        errorCb(reply->errorString(), json);
+    }
     else
     {
-        const auto data = reply->readAll();
-        qDebug() << data;
-        errorCb(reply->errorString(), json);
+        qDebug() << "Error already handled";
     }
 }
 
-void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb)
+void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
     qInfo() << "Network error:" << errorCode << errorMsg;
     const auto data = reply->readAll();
     const QJsonDocument json(QJsonDocument::fromJson(data));
-    errorCb(errorMsg, json);
+
+    if (!*errorHandled)
+    {
+        *errorHandled = true;
+        errorCb(errorMsg, json);
+    }
+    else
+    {
+        qDebug() << "Error already handled";
+    }
 }
 
-void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb)
+void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
     // TODO: error handling
     qWarning() << "SSL errors:" << errors;
-    errorCb("SSL error", {});
+
+    if (!*errorHandled)
+    {
+        *errorHandled = true;
+        errorCb("SSL error", {});
+    }
+    else
+    {
+        qDebug() << "Error already handled";
+    }
 }
 
 }

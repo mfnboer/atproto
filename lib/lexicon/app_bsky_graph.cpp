@@ -11,17 +11,7 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
     auto follows = std::make_unique<GetFollowsOutput>();
     const auto subjectJson = xjson.getRequiredObject("subject");
     follows->mSubject = AppBskyActor::ProfileView::fromJson(subjectJson);
-    const auto followsJsonArray = xjson.getRequiredArray("follows");
-
-    for (const auto& profileJson : followsJsonArray)
-    {
-        if (!profileJson.isObject())
-            throw InvalidJsonException("Invalid follows profile");
-
-        auto profile = AppBskyActor::ProfileView::fromJson(profileJson.toObject());
-        follows->mFollows.push_back(std::move(profile));
-    }
-
+    AppBskyActor::getProfileViewList(follows->mFollows, json, "follows");
     follows->mCursor = xjson.getOptionalString("cursor");
     return follows;
 }
@@ -32,19 +22,27 @@ GetFollowersOutput::Ptr GetFollowersOutput::fromJson(const QJsonObject& json)
     auto followers = std::make_unique<GetFollowersOutput>();
     const auto subjectJson = xjson.getRequiredObject("subject");
     followers->mSubject = AppBskyActor::ProfileView::fromJson(subjectJson);
-    const auto followersJsonArray = xjson.getRequiredArray("followers");
-
-    for (const auto& profileJson : followersJsonArray)
-    {
-        if (!profileJson.isObject())
-            throw InvalidJsonException("Invalid followers profile");
-
-        auto profile = AppBskyActor::ProfileView::fromJson(profileJson.toObject());
-        followers->mFollowers.push_back(std::move(profile));
-    }
-
+    AppBskyActor::getProfileViewList(followers->mFollowers, json, "followers");
     followers->mCursor = xjson.getOptionalString("cursor");
     return followers;
+}
+
+GetBlocksOutput::Ptr GetBlocksOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto blocks = std::make_unique<GetBlocksOutput>();
+    AppBskyActor::getProfileViewList(blocks->mBlocks, json, "blocks");
+    blocks->mCursor = xjson.getOptionalString("cursor");
+    return blocks;
+}
+
+GetMutesOutput::Ptr GetMutesOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto blocks = std::make_unique<GetMutesOutput>();
+    AppBskyActor::getProfileViewList(blocks->mMutes, json, "mutes");
+    blocks->mCursor = xjson.getOptionalString("cursor");
+    return blocks;
 }
 
 QJsonObject Follow::toJson() const

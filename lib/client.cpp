@@ -516,6 +516,50 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
         authToken());
 }
 
+void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
+                       const GetBlocksSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getBlocks", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getBlocks:" << reply;
+            try {
+                auto blocks = AppBskyGraph::GetBlocksOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(blocks));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetMutesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getMutes", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getBlocks:" << reply;
+            try {
+                auto mutes = AppBskyGraph::GetMutesOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(mutes));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject jsonObj;
@@ -745,7 +789,7 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     qInfo() << "Request failed:" << err;
     qInfo() << json;
 
-    if (json.isNull())
+    if (json.isEmpty())
     {
         if (errorCb)
             errorCb(err);
@@ -756,7 +800,7 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     try {
         auto error = ATProtoError::fromJson(json);
         if (errorCb)
-            errorCb(QString("%1 - %2").arg(error->mError, error->mMessage));
+            errorCb(QString("%1 %2 - %3").arg(err, error->mError, error->mMessage));
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
         if (errorCb)

@@ -31,9 +31,9 @@ private:
     QUrl buildUrl(const QString& service) const;
     QUrl buildUrl(const QString& service, const Params& params) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
-    void replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
-    void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb);
+    void replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
+    void networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
+    void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
 
     QNetworkAccessManager mNetwork;
     QString mHost;

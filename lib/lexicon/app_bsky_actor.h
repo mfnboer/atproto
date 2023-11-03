@@ -54,6 +54,7 @@ struct ProfileView
 };
 
 using ProfileViewList = std::vector<ProfileView::Ptr>;
+void getProfileViewList(ProfileViewList& list, const QJsonObject& json, const QString& fieldName);
 
 // app.bsky.actor.defs#profileViewDetailed
 struct ProfileViewDetailed
