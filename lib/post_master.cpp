@@ -241,6 +241,10 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                     resolveFacets(post, facets, i + 1, cb);
                 });
             return;
+        case ParsedMatch::Type::TAG:
+            // The reference is the text from the hashtag
+            facet.mRef = facet.mMatch.sliced(1);
+            break;
         case ParsedMatch::Type::PARTIAL_MENTION:
             break;
         case ParsedMatch::Type::UNKNOWN:
@@ -332,6 +336,13 @@ void PostMaster::addFacets(AppBskyFeed::Record::Post::SharedPtr post,
             auto mention = std::make_unique<AppBskyRichtext::FacetMention>();
             mention->mDid = f.mRef;
             feature.mFeature = std::move(mention);
+            break;
+        }
+        case AppBskyRichtext::Facet::Feature::Type::TAG:
+        {
+            auto tag = std::make_unique<AppBskyRichtext::FacetTag>();
+            tag->mTag = f.mRef;
+            feature.mFeature = std::move(tag);
             break;
         }
         case AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
@@ -465,6 +476,17 @@ static std::vector<PostMaster::ParsedMatch> parseMatches(PostMaster::ParsedMatch
     return matches;
 }
 
+std::vector<PostMaster::ParsedMatch> PostMaster::parseTags(const QString& text)
+{
+    static const QRegularExpression reTag(R"([$|\W](#\w+))");
+    const auto tags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
+
+    for (const auto& tag : tags)
+        qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+
+    return tags;
+}
+
 std::vector<PostMaster::ParsedMatch> PostMaster::parsePartialMentions(const QString& text)
 {
     static const QRegularExpression rePartialMention(R"([$|\W](@[a-zA-Z0-9]([a-zA-Z0-9-]{0,61}[a-zA-Z0-9])?))");
@@ -543,6 +565,7 @@ static void addToSortedMatches(std::map<int, PostMaster::ParsedMatch>& sortedMat
 
 std::vector<PostMaster::ParsedMatch> PostMaster::parseFacets(const QString& text)
 {
+    const auto tags = parseTags(text);
     const auto partialMentions = parsePartialMentions(text);
     const auto mentions = parseMentions(text);
     const auto links = parseLinks(text);
@@ -550,6 +573,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseFacets(const QString& text
     facets.reserve(mentions.size() + links.size());
 
     std::map<int, ParsedMatch> sortedMatches; // sorted on start index
+    addToSortedMatches(sortedMatches, tags);
     addToSortedMatches(sortedMatches, partialMentions);
     addToSortedMatches(sortedMatches, mentions);
     addToSortedMatches(sortedMatches, links);

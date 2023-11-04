@@ -5,8 +5,6 @@
 
 namespace ATProto::AppBskyRichtext {
 
-// TODO: tags
-
 // app.bsky.richtext.facet#byteSlice
 struct FacetByteSlice
 {
@@ -40,6 +38,17 @@ struct FacetLink
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.richtext.facet#tag
+struct FacetTag
+{
+    QString mTag;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<FacetTag>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.richtext.facet
 struct Facet
 {
@@ -50,12 +59,13 @@ struct Facet
             PARTIAL_MENTION,
             MENTION,
             LINK,
+            TAG,
             UNKNOWN
         };
 
         static Type stringToType(const QString& str);
 
-        std::variant<FacetMention::Ptr, FacetLink::Ptr> mFeature;
+        std::variant<FacetMention::Ptr, FacetLink::Ptr, FacetTag::Ptr> mFeature;
         Type mType;
     };
 
