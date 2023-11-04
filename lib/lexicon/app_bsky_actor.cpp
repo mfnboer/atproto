@@ -55,24 +55,9 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
 }
 
 void getProfileViewList(ProfileViewList& list, const QJsonObject& json, const QString& fieldName)
-{
+{   
     XJsonObject xjson(json);
-
-    const QJsonArray& listArray = xjson.getRequiredArray(fieldName);
-    list.reserve(listArray.size());
-
-    for (const auto& profileViewJson : listArray)
-    {
-        if (!profileViewJson.isObject())
-        {
-            qWarning() << "PROTO ERROR invalid list element: not an object";
-            qInfo() << json;
-            throw InvalidJsonException("PROTO ERROR invalid ProfileViewList element: not an object");
-        }
-
-        auto profileView = ProfileView::fromJson(profileViewJson.toObject());
-        list.push_back(std::move(profileView));
-    }
+    list = xjson.getRequiredVector<ProfileView>(fieldName);
 }
 
 ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
@@ -101,22 +86,7 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
 void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json)
 {
     XJsonObject xjson(json);
-
-    const QJsonArray& listArray = xjson.getRequiredArray("profiles");
-    list.reserve(listArray.size());
-
-    for (const auto& profileViewDetailedJson : listArray)
-    {
-        if (!profileViewDetailedJson.isObject())
-        {
-            qWarning() << "PROTO ERROR invalid list element: not an object";
-            qInfo() << json;
-            throw InvalidJsonException("PROTO ERROR invalid ProfileViewDetailedList element: not an object");
-        }
-
-        auto profileViewDetailed = ProfileViewDetailed::fromJson(profileViewDetailedJson.toObject());
-        list.push_back(std::move(profileViewDetailed));
-    }
+    list = xjson.getRequiredVector<ProfileViewDetailed>("profiles");
 }
 
 QJsonObject AdultContentPref::toJson() const
@@ -197,31 +167,8 @@ SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<SavedFeedsPref>();
     XJsonObject xjson(json);
-
-    const auto pinnedJsonArray = xjson.getRequiredArray("pinned");
-    for (const auto& pinnedJson : pinnedJsonArray)
-    {
-        if (!pinnedJson.isString())
-        {
-            qWarning() << "Invalid pinned feed" << json;
-            throw InvalidJsonException("Invalid pinned feed");
-        }
-
-        pref->mPinned.push_back(pinnedJson.toString());
-    }
-
-    const auto savedJsonArray = xjson.getRequiredArray("saved");
-    for (const auto& savedJson : savedJsonArray)
-    {
-        if (!savedJson.isString())
-        {
-            qWarning() << "Invalid saved feed" << json;
-            throw InvalidJsonException("Invalid saved feed");
-        }
-
-        pref->mSaved.push_back(savedJson.toString());
-    }
-
+    pref->mPinned = xjson.getRequiredStringVector("pinned");
+    pref->mSaved = xjson.getRequiredStringVector("saved");
     pref->mJson = json;
     return pref;
 }
@@ -354,20 +301,7 @@ GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json
 {
     auto output = std::make_unique<GetPreferencesOutput>();
     const XJsonObject xjson(json);
-
-    const auto prefJsonArray = xjson.getRequiredArray("preferences");
-    for (const auto& prefJson : prefJsonArray)
-    {
-        if (!prefJson.isObject())
-        {
-            qWarning() << "Invalid preference:" << prefJson << json;
-            throw InvalidJsonException("Invalid preference");
-        }
-
-        auto pref = Preference::fromJson(prefJson.toObject());
-        output->mPreferences.push_back(std::move(pref));
-    }
-
+    output->mPreferences = xjson.getRequiredVector<Preference>("preferences");
     return output;
 }
 
@@ -376,20 +310,7 @@ SearchActorsOutput::Ptr SearchActorsOutput::fromJson(const QJsonObject& json)
     auto output = std::make_unique<SearchActorsOutput>();
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
-
-    const auto actorJsonArray = xjson.getRequiredArray("actors");
-    for (const auto& actorJson : actorJsonArray)
-    {
-        if (!actorJson.isObject())
-        {
-            qWarning() << "Invalid actor:" << actorJson << json;
-            throw InvalidJsonException("Invalid actor");
-        }
-
-        auto actor = ProfileView::fromJson(actorJson.toObject());
-        output->mActors.push_back(std::move(actor));
-    }
-
+    output->mActors = xjson.getRequiredVector<ProfileView>("actors");
     return output;
 }
 
@@ -397,20 +318,7 @@ SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJs
 {
     auto output = std::make_unique<SearchActorsTypeaheadOutput>();
     const XJsonObject xjson(json);
-
-    const auto actorJsonArray = xjson.getRequiredArray("actors");
-    for (const auto& actorJson : actorJsonArray)
-    {
-        if (!actorJson.isObject())
-        {
-            qWarning() << "Invalid actor:" << actorJson << json;
-            throw InvalidJsonException("Invalid actor");
-        }
-
-        auto actor = ProfileViewBasic::fromJson(actorJson.toObject());
-        output->mActors.push_back(std::move(actor));
-    }
-
+    output->mActors = xjson.getRequiredVector<ProfileViewBasic>("actors");
     return output;
 }
 

@@ -45,10 +45,68 @@ public:
     std::optional<QJsonObject> getOptionalObject(const QString& key) const;
     std::optional<QJsonArray> getOptionalArray(const QString& key) const;
 
+    template<class ElemType>
+    std::vector<typename ElemType::Ptr> getRequiredVector(const QString& key) const;
+
+    template<class ElemType>
+    std::vector<typename ElemType::Ptr> getOptionalVector(const QString& key) const;
+
+    std::vector<QString> getRequiredStringVector(const QString& key) const;
+
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
 
     const QJsonObject& mObject;
 };
+
+template<class ElemType>
+std::vector<typename ElemType::Ptr> XJsonObject::getRequiredVector(const QString& key) const
+{
+    std::vector<typename ElemType::Ptr> result;
+    const auto jsonArray = getRequiredArray(key);
+    result.reserve(jsonArray.size());
+
+    for (const auto& json : jsonArray)
+    {
+        if (!json.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid array element: not an object, key:" << key;
+            qInfo() << json;
+            throw InvalidJsonException("PROTO ERROR invalid element: " + key);
+        }
+
+        typename ElemType::Ptr elem = ElemType::fromJson(json.toObject());
+        result.push_back(std::move(elem));
+    }
+
+    return result;
+}
+
+template<class ElemType>
+std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString& key) const
+{
+    std::vector<typename ElemType::Ptr> result;
+    const auto jsonArray = getOptionalArray(key);
+
+    if (!jsonArray)
+        return result;
+
+    result.reserve(jsonArray->size());
+
+    for (const auto& json : *jsonArray)
+    {
+        if (!json.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid array element: not an object, key:" << key;
+            qInfo() << json;
+            throw InvalidJsonException("PROTO ERROR invalid element: " + key);
+        }
+
+        typename ElemType::Ptr elem = ElemType::fromJson(json.toObject());
+        result.push_back(std::move(elem));
+    }
+
+    return result;
+}
 
 }

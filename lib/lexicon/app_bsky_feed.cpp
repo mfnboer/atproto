@@ -70,19 +70,7 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     auto post = std::make_unique<Record::Post>();
     XJsonObject xjson(json);
     post->mText = xjson.getRequiredString("text");
-
-    const std::optional<QJsonArray> facets = xjson.getOptionalArray("facets");
-    if (facets)
-    {
-        for (const auto& facet : *facets)
-        {
-            if (!facet.isObject())
-                throw InvalidJsonException("Invalid facet");
-
-            auto f = AppBskyRichtext::Facet::fromJson(facet.toObject());
-            post->mFacets.push_back(std::move(f));
-        }
-    }
+    post->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
 
     const auto replyJson = xjson.getOptionalObject("reply");
     if (replyJson)
@@ -133,22 +121,7 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
 void getPostViewList(PostViewList& list, const QJsonObject& json)
 {
     XJsonObject xjson(json);
-
-    const QJsonArray& listArray = xjson.getRequiredArray("posts");
-    list.reserve(listArray.size());
-
-    for (const auto& postViewJson : listArray)
-    {
-        if (!postViewJson.isObject())
-        {
-            qWarning() << "PROTO ERROR invalid list element: not an object";
-            qInfo() << json;
-            throw InvalidJsonException("PROTO ERROR invalid PostViewList element: not an object");
-        }
-
-        auto postView = PostView::fromJson(postViewJson.toObject());
-        list.push_back(std::move(postView));
-    }
+    list = xjson.getRequiredVector<PostView>("posts");
 }
 
 ReplyElement::Ptr ReplyElement::fromJson(const QJsonObject& json)
@@ -297,25 +270,7 @@ ThreadViewPost::Ptr ThreadViewPost::fromJson(const QJsonObject& json)
     if (parentJson)
         thread->mParent = ThreadElement::fromJson(*parentJson);
 
-    const auto repliesJson = xjson.getOptionalArray("replies");
-
-    if (repliesJson)
-    {
-        for (const auto& replyJson : *repliesJson)
-        {
-            if (!replyJson.isObject())
-            {
-                qWarning() << "Invalid feed:" << json;
-                throw InvalidJsonException("threadViewPost element");
-            }
-
-            auto reply = ThreadElement::fromJson(replyJson.toObject());
-
-            if (reply)
-                thread->mReplies.push_back(std::move(reply));
-        }
-    }
-
+    thread->mReplies = xjson.getOptionalVector<ThreadElement>("replies");
     return thread;
 }
 
@@ -428,21 +383,7 @@ GetLikesOutput::Ptr GetLikesOutput::fromJson(const QJsonObject& json)
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
     output->mCursor = xjson.getOptionalString("cursor");
-
-    const auto likesJson = xjson.getRequiredArray("likes");
-
-    for (const auto& likeJson : likesJson)
-    {
-        if (!likeJson.isObject())
-        {
-            qWarning() << "Invalid like:" << json;
-            throw InvalidJsonException("likes output");
-        }
-
-        auto like = GetLikesLike::fromJson(likeJson.toObject());
-        output->mLikes.push_back(std::move(like));
-    }
-
+    output->mLikes = xjson.getRequiredVector<GetLikesLike>("likes");
     return output;
 }
 
@@ -453,21 +394,7 @@ GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
     output->mCursor = xjson.getOptionalString("cursor");
-
-    const auto repostedByJson = xjson.getRequiredArray("repostedBy");
-
-    for (const auto& profileJson : repostedByJson)
-    {
-        if (!profileJson.isObject())
-        {
-            qWarning() << "Invalid repostedBy:" << json;
-            throw InvalidJsonException("repostedBy output");
-        }
-
-        auto profile = AppBskyActor::ProfileView::fromJson(profileJson.toObject());
-        output->mRepostedBy.push_back(std::move(profile));
-    }
-
+    output->mRepostedBy = xjson.getRequiredVector<AppBskyActor::ProfileView>("repostedBy");
     return output;
 }
 

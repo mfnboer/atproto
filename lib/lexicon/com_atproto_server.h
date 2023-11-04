@@ -31,4 +31,29 @@ struct GetSessionOutput
     static Ptr fromJson(const QJsonDocument& json);
 };
 
+// com.atproto.server.defs#inviteCodeUse
+struct InviteCodeUse
+{
+    QString mUsedBy;
+    QDateTime mUsedAt;
+
+    using Ptr = std::unique_ptr<InviteCodeUse>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// com.atproto.server.defs#inviteCode
+struct InviteCode
+{
+    QString mCode;
+    int mAvailable;
+    bool mDisabled;
+    QString mForAccount;
+    QString mCreatedBy;
+    QDateTime mCreatedAt;
+    std::vector<InviteCodeUse::Ptr> mUses;
+
+    using Ptr = std::unique_ptr<InviteCode>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }
