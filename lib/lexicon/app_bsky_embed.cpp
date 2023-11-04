@@ -73,17 +73,7 @@ Images::Ptr Images::fromJson(const QJsonObject& json)
 {
     auto images = std::make_unique<Images>();
     const XJsonObject xjson(json);
-    const auto imagesJsonArray = xjson.getRequiredArray("images");
-
-    for (const auto& imageJson : imagesJsonArray)
-    {
-        if (!imageJson.isObject())
-            throw InvalidJsonException("Invalid images");
-
-        auto image = Image::fromJson(imageJson.toObject());
-        images->mImages.push_back(std::move(image));
-    }
-
+    images->mImages = xjson.getRequiredVector<Image>("images");
     return images;
 }
 
@@ -106,18 +96,7 @@ ImagesView::Ptr ImagesView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_unique<ImagesView>();
     const XJsonObject xjson(json);
-    auto images = xjson.getRequiredArray("images");
-
-    for (const auto& img : images)
-    {
-        if (!img.isObject())
-            throw InvalidJsonException("Invalid viewImage");
-
-        const auto imgJson = img.toObject();
-        auto viewImage = ImagesViewImage::fromJson(imgJson);
-        view->mImages.push_back(std::move(viewImage));
-    }
-
+    view->mImages = xjson.getRequiredVector<ImagesViewImage>("images");
     return view;
 }
 
@@ -473,20 +452,7 @@ RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
     }
 
     ComATProtoLabel::getLabels(viewRecord->mLabels, json);
-
-    const auto embeds = xjson.getOptionalArray("embeds");
-    if (embeds)
-    {
-        for (const auto& embedJson : *embeds)
-        {
-            if (!embedJson.isObject())
-                throw InvalidJsonException("Invalid embed in app.bsky.embed.record#viewRecord");
-
-            auto embed = EmbedView::fromJson(embedJson.toObject());
-            viewRecord->mEmbeds.push_back(std::move(embed));
-        }
-    }
-
+    viewRecord->mEmbeds = xjson.getOptionalVector<EmbedView>("embeds");
     viewRecord->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return viewRecord;
 }

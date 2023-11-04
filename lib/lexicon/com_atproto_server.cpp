@@ -31,4 +31,27 @@ GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
     return session;
 }
 
+InviteCodeUse::Ptr InviteCodeUse::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto inviteCodeUse = std::make_unique<InviteCodeUse>();
+    inviteCodeUse->mUsedBy = xjson.getRequiredString("usedBy");
+    inviteCodeUse->mUsedAt = xjson.getRequiredDateTime("usedAt");
+    return inviteCodeUse;
+}
+
+InviteCode::Ptr InviteCode::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto inviteCode = std::make_unique<InviteCode>();
+    inviteCode->mCode = xjson.getRequiredString("code");
+    inviteCode->mAvailable = xjson.getRequiredInt("available");
+    inviteCode->mDisabled = xjson.getRequiredBool("disabled");
+    inviteCode->mForAccount = xjson.getRequiredString("forAccount");
+    inviteCode->mCreatedBy = xjson.getRequiredString("createdBy");
+    inviteCode->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    inviteCode->mUses = xjson.getRequiredVector<InviteCodeUse>("uses");
+    return inviteCode;
+}
+
 }

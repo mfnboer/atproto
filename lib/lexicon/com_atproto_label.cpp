@@ -20,22 +20,8 @@ Label::Ptr Label::fromJson(const QJsonObject& json)
 
 void getLabels(std::vector<Label::Ptr>& labels, const QJsonObject& json)
 {
-    XJsonObject root(json);
-    const auto labelsArray = root.getOptionalArray("labels");
-    if (labelsArray)
-    {
-        for (const auto& labelJson : *labelsArray)
-        {
-            if (!labelJson.isObject())
-            {
-                qWarning() << "Invalid label:" << json;
-                throw InvalidJsonException("Invalid label");
-            }
-
-            auto label = Label::fromJson(labelJson.toObject());
-            labels.push_back(std::move(label));
-        }
-    }
+    XJsonObject xjson(json);
+    labels = xjson.getOptionalVector<Label>("labels");
 }
 
 

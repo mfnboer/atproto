@@ -137,7 +137,6 @@ Facet::Ptr Facet::fromJson(const QJsonObject& json)
         const QString type = featureRoot.getRequiredString("$type");
         feature.mType = Facet::Feature::stringToType(type);
 
-
         switch (feature.mType)
         {
         case Feature::Type::MENTION:

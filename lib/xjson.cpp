@@ -51,6 +51,26 @@ QJsonArray XJsonObject::getRequiredArray(const QString& key) const
     return mObject[key].toArray();
 }
 
+std::vector<QString> XJsonObject::getRequiredStringVector(const QString& key) const
+{
+    std::vector<QString> result;
+    const auto jsonArray = getRequiredArray(key);
+    result.reserve(jsonArray.size());
+
+    for (const auto& strJson : jsonArray)
+    {
+        if (!strJson.isString())
+        {
+            qWarning() << "Invalid string vector:" << key << "in json:" << mObject;
+            throw InvalidJsonException("Invalid string vector: " + key);
+        }
+
+        result.push_back(strJson.toString());
+    }
+
+    return result;
+}
+
 std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
 {
     if (mObject.contains(key))
