@@ -54,4 +54,12 @@ InviteCode::Ptr InviteCode::fromJson(const QJsonObject& json)
     return inviteCode;
 }
 
+GetAccountInviteCodesOutput::Ptr GetAccountInviteCodesOutput::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto output = std::make_unique<GetAccountInviteCodesOutput>();
+    output->mCodes = xjson.getRequiredVector<InviteCode>("codes");
+    return output;
+}
+
 }

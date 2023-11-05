@@ -56,4 +56,13 @@ struct InviteCode
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// com.atproto.server.getAccountInviteCodes#ouput
+struct GetAccountInviteCodesOutput
+{
+    std::vector<InviteCode::Ptr> mCodes;
+
+    using Ptr = std::unique_ptr<GetAccountInviteCodesOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

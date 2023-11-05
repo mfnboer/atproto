@@ -43,6 +43,7 @@ public:
     using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
     using GetBlocksSuccessCb = std::function<void(AppBskyGraph::GetBlocksOutput::Ptr)>;
     using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::Ptr)>;
+    using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
@@ -85,6 +86,8 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**
