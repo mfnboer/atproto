@@ -133,6 +133,24 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
         refreshToken());
 }
 
+void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("com.atproto.server.getAccountInviteCodes", {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getAccountInviteCodes reply:" << reply;
+            try {
+                auto output = ComATProtoServer::GetAccountInviteCodesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::resolveHandle(const QString& handle,
                    const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
 {
