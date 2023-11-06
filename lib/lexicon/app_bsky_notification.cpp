@@ -55,6 +55,7 @@ Notification::Ptr Notification::fromJson(const QJsonObject& json)
         case NotificationReason::QUOTE:
             notification->mRecord = AppBskyFeed::Record::Post::fromJson(recordJson);
             break;
+        case NotificationReason::INVITE_CODE_USED:
         case NotificationReason::UNKNOWN:
             qWarning() << "Unknow notification reason:" << notification->mRawReason;
             break;
