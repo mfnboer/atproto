@@ -17,6 +17,7 @@ enum class NotificationReason
     MENTION,
     REPLY,
     QUOTE,
+    INVITE_CODE_USED, // For local use (not in ATProto)
     UNKNOWN
 };
 
