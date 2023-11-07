@@ -167,20 +167,22 @@ struct HyperLink
     QString mText;
 };
 
-static QString createHtmlLink(const QString& linkText, const Facet::Feature& feature)
+static QString createHtmlLink(const QString& linkText, const Facet::Feature& feature, const QString& linkColor)
 {
+    const QString linkStyle = linkColor.isEmpty() ? "" : QString(" style=\"color: %1;\"").arg(linkColor);
+
     switch (feature.mType)
     {
     case ATProto::AppBskyRichtext::Facet::Feature::Type::MENTION:
     {
         const auto& facetMention = std::get<ATProto::AppBskyRichtext::FacetMention::Ptr>(feature.mFeature);
-        return QString("<a href=\"%1\">%2</a>").arg(facetMention->mDid, linkText);
+        return QString("<a href=\"%1\"%3>%2</a>").arg(facetMention->mDid, linkText, linkStyle);
         break;
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::LINK:
     {
         const auto& facetLink = std::get<ATProto::AppBskyRichtext::FacetLink::Ptr>(feature.mFeature);
-        return QString("<a href=\"%1\">%2</a>").arg(facetLink->mUri, linkText);
+        return QString("<a href=\"%1\"%3>%2</a>").arg(facetLink->mUri, linkText, linkStyle);
         break;
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::TAG:
@@ -200,7 +202,8 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     return {};
 }
 
-static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes, const std::vector<AppBskyRichtext::Facet::Ptr>& facets)
+static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
+        const std::vector<AppBskyRichtext::Facet::Ptr>& facets, const QString& linkColor)
 {
     std::map<int, HyperLink> startLinkMap;
 
@@ -229,7 +232,7 @@ static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes, const
 
         const auto linkText = QString(bytes.sliced(link.mStart, sliceSize));
         const auto& feature = facet->mFeatures.front();
-        link.mText = createHtmlLink(linkText, feature);
+        link.mText = createHtmlLink(linkText, feature, linkColor);
 
         if (!link.mText.isEmpty())
             startLinkMap[link.mStart] = link;
@@ -238,10 +241,11 @@ static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes, const
     return startLinkMap;
 }
 
-QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Facet::Ptr>& facets)
+QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Facet::Ptr>& facets,
+                    const QString& linkColor)
 {
     const auto& bytes = text.toUtf8();
-    const auto startLinkMap = buildStartLinkMap(bytes, facets);
+    const auto startLinkMap = buildStartLinkMap(bytes, facets, linkColor);
 
     QString result;
     int bytePos = 0;
