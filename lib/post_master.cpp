@@ -20,12 +20,12 @@ QString PostMaster::plainToHtml(const QString& text)
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
 }
 
-QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post)
+QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor)
 {
     if (post.mFacets.empty())
         return ATProto::PostMaster::plainToHtml(post.mText);
     else
-        return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets);
+        return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets, linkColor);
 }
 
 PostMaster::PostMaster(Client& client) :
