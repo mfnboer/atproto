@@ -160,13 +160,17 @@ void Client::networkError(QNetworkReply* reply, QNetworkReply::NetworkError erro
 void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
-    // TODO: error handling
     qWarning() << "SSL errors:" << errors;
 
     if (!*errorHandled)
     {
         *errorHandled = true;
-        errorCb("SSL error", {});
+        QString msg = "SSL error";
+
+        if (!errors.empty())
+            msg.append(": ").append(errors.front().errorString());
+
+        errorCb(msg, {});
     }
     else
     {
