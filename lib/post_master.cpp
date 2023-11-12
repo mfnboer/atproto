@@ -511,7 +511,7 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseMentions(const QString& te
 
 std::vector<PostMaster::ParsedMatch> PostMaster::parseLinks(const QString& text)
 {
-    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%._\+~#=]{0,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.~#?&//=]*[-a-zA-Z0-9()@%_\+~#//=])?))");
+    static const QRegularExpression reLink(R"([$|\W]((https?:\/\/)?[a-zA-Z0-9][-a-zA-Z0-9@:%.,_\+~#=]{0,256}\.[a-zA-Z0-9()]{1,6}\b([-a-zA-Z0-9()@:%_\+.,~#?&//=]*[-a-zA-Z0-9()@%_\+~#//=])?))");
     auto links = parseMatches(ParsedMatch::Type::LINK, text, reLink, 1);
 
     for (int i = 0; i < (int)links.size();)
