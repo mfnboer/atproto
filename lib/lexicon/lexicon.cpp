@@ -67,4 +67,33 @@ RecordType stringToRecordType(const QString& str)
     return RecordType::UNKNOWN;
 };
 
+DidDocument::Ptr DidDocument::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto didDoc = std::make_unique<DidDocument>();
+    const auto services = xjson.getOptionalArray("service");
+
+    if (services)
+    {
+        for (const auto serviceRef : *services)
+        {
+            if (!serviceRef.isObject())
+                continue;
+
+            const auto serviceJson = serviceRef.toObject();
+            const XJsonObject serviceXJson(serviceJson);
+            const QString id = serviceXJson.getOptionalString("id", "");
+            const QString type = serviceXJson.getOptionalString("type", "");
+
+            if (type == "AtprotoPersonalDataServer" && id == "#atproto_pds") {
+                didDoc->mATProtoPDS = serviceXJson.getOptionalString("serviceEndpoint");
+                break;
+            }
+        }
+    }
+
+    didDoc->mJson = json;
+    return didDoc;
+}
+
 }

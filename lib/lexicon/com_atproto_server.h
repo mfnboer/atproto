@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "lexicon.h"
 #include <QJsonDocument>
 
 namespace ATProto::ComATProtoServer {
@@ -14,6 +15,9 @@ struct Session
     QString mDid;
     std::optional<QString> mEmail;
     bool mEmailConfirmed = false;
+    DidDocument::SharedPtr mDidDoc; // optional
+
+    std::optional<QString> getPDS() const;
 
     using Ptr = std::unique_ptr<Session>;
     static Ptr fromJson(const QJsonDocument& json);
@@ -26,6 +30,7 @@ struct GetSessionOutput
     QString mDid;
     std::optional<QString> mEmail;
     bool mEmailConfirmed = false;
+    DidDocument::SharedPtr mDidDoc; // optional
 
     using Ptr = std::unique_ptr<GetSessionOutput>;
     static Ptr fromJson(const QJsonDocument& json);

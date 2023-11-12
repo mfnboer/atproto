@@ -7,7 +7,8 @@
 namespace Xrpc {
 
 Client::Client(const QString& host) :
-    mHost(host)
+    mHost(host),
+    mPDS("https://" + host)
 {
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
@@ -19,6 +20,26 @@ Client::Client(const QString& host) :
 Client::~Client()
 {
     qDebug() << "Destroy client";
+}
+
+void Client::setPDS(const QString& pds)
+{
+    if (pds.startsWith("http"))
+        mPDS = pds;
+    else
+        mPDS = "https://" + pds;
+
+    qDebug() << "PDS:" << mPDS;
+}
+
+void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session)
+{
+    const auto pds = session.getPDS();
+
+    if (pds)
+        setPDS(*pds);
+    else
+        setPDS("https://" + mHost);
 }
 
 void Client::post(const QString& service, const QJsonDocument& json,
@@ -90,7 +111,7 @@ QUrl Client::buildUrl(const QString& service) const
     if (service == "legacy.searchActors")
         return QUrl(QString("https://search.") + mHost + "/search/profiles");
 
-    return QUrl(QString("https://") + mHost + "/xrpc/" + service);
+    return QUrl(mPDS + "/xrpc/" + service);
 }
 
 QUrl Client::buildUrl(const QString& service, const Params& params) const

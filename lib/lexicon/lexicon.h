@@ -3,6 +3,7 @@
 #pragma once
 #include <QException>
 #include <QJsonDocument>
+#include <QJsonObject>
 
 namespace ATProto {
 
@@ -53,5 +54,15 @@ enum class RecordType
 };
 
 RecordType stringToRecordType(const QString& str);
+
+struct DidDocument {
+    QString mId;
+    std::optional<QString> mATProtoPDS;
+    QJsonObject mJson;
+
+    using Ptr = std::unique_ptr<DidDocument>;
+    using SharedPtr = std::shared_ptr<DidDocument>;
+    static Ptr fromJson(const QJsonObject& json);
+};
 
 }
