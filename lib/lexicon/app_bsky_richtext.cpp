@@ -266,10 +266,10 @@ QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Face
         bytePos = link.mEnd;
     }
 
-    result.append(PostMaster::plainToHtml(bytes.sliced(bytePos)));
+    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>" ));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
-    return result;
+    return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(result);
 }
 
 }
