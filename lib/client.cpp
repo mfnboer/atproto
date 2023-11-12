@@ -54,6 +54,8 @@ void Client::createSession(const QString& user, const QString& pwd,
             qInfo() << "Session created:" << reply;
             try {
                 mSession = ComATProtoServer::Session::fromJson(reply);
+                mXrpc->setPDSFromSession(*mSession);
+
                 if (successCb)
                     successCb();
             } catch (InvalidJsonException& e) {
@@ -78,6 +80,8 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                     mSession->mHandle = resumed->mHandle;
                     mSession->mEmail = resumed->mEmail;
                     mSession->mEmailConfirmed = resumed->mEmailConfirmed;
+                    mSession->mDidDoc = resumed->mDidDoc;
+                    mXrpc->setPDSFromSession(*mSession);
 
                     if (successCb)
                         successCb();
@@ -112,6 +116,8 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
                     mSession->mAccessJwt = refreshed->mAccessJwt;
                     mSession->mRefreshJwt = refreshed->mRefreshJwt;
                     mSession->mHandle = refreshed->mHandle;
+                    mSession->mDidDoc = refreshed->mDidDoc;
+                    mXrpc->setPDSFromSession(*mSession);
 
                     if (successCb)
                         successCb();

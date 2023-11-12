@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "lexicon/com_atproto_server.h"
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
@@ -19,6 +20,8 @@ public:
     ~Client();
 
     const QString& getHost() const { return mHost; }
+    void setPDS(const QString& pds);
+    void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
 
     void post(const QString& service, const QJsonDocument& json,
               const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
@@ -36,7 +39,8 @@ private:
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
 
     QNetworkAccessManager mNetwork;
-    QString mHost;
+    QString mHost; // first point of contact, e.g. bsky.social
+    QString mPDS;
 };
 
 }

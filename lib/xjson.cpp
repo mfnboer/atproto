@@ -79,6 +79,14 @@ std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
     return {};
 }
 
+QString XJsonObject::getOptionalString(const QString& key, const QString& dflt) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toString(dflt);
+
+    return dflt;
+}
+
 std::optional<int> XJsonObject::getOptionalInt(const QString& key) const
 {
     if (mObject.contains(key))

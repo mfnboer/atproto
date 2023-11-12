@@ -8,26 +8,47 @@ namespace ATProto::ComATProtoServer {
 Session::Ptr Session::fromJson(const QJsonDocument& json)
 {
     const auto jsonObj = json.object();
-    const XJsonObject root(jsonObj);
+    const XJsonObject xjson(jsonObj);
     auto session = std::make_unique<Session>();
-    session->mHandle = root.getRequiredString("handle");
-    session->mDid = root.getRequiredString("did");
-    session->mAccessJwt = root.getRequiredString("accessJwt");
-    session->mRefreshJwt = root.getRequiredString("refreshJwt");
-    session->mEmail = root.getOptionalString("email");
-    session->mEmailConfirmed = root.getOptionalBool("emailConfirmed", false);
+    session->mHandle = xjson.getRequiredString("handle");
+    session->mDid = xjson.getRequiredString("did");
+    session->mAccessJwt = xjson.getRequiredString("accessJwt");
+    session->mRefreshJwt = xjson.getRequiredString("refreshJwt");
+    session->mEmail = xjson.getOptionalString("email");
+    session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
+    auto didDocJson = xjson.getOptionalObject("didDoc");
+
+    if (didDocJson)
+    {
+        auto didDoc = DidDocument::fromJson(*didDocJson);
+        session->mDidDoc = DidDocument::SharedPtr(didDoc.release());
+    }
+
     return session;
+}
+
+std::optional<QString> Session::getPDS() const
+{
+    return mDidDoc ? mDidDoc->mATProtoPDS : std::nullopt;
 }
 
 GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
 {
     const auto jsonObj = json.object();
-    const XJsonObject root(jsonObj);
+    const XJsonObject xjson(jsonObj);
     auto session = std::make_unique<GetSessionOutput>();
-    session->mHandle = root.getRequiredString("handle");
-    session->mDid = root.getRequiredString("did");
-    session->mEmail = root.getOptionalString("email");
-    session->mEmailConfirmed = root.getOptionalBool("emailConfirmed", false);
+    session->mHandle = xjson.getRequiredString("handle");
+    session->mDid = xjson.getRequiredString("did");
+    session->mEmail = xjson.getOptionalString("email");
+    session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
+    auto didDocJson = xjson.getOptionalObject("didDoc");
+
+    if (didDocJson)
+    {
+        auto didDoc = DidDocument::fromJson(*didDocJson);
+        session->mDidDoc = DidDocument::SharedPtr(didDoc.release());
+    }
+
     return session;
 }
 
