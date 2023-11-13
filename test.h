@@ -92,18 +92,18 @@ private:
             if (feedEntry->mReply)
             {
                 qDebug() << "REPLY TO:";
-                logPostView(*feedEntry->mReply->mParent);
+                logPostView(*std::get<AppBskyFeed::PostView::Ptr>(feedEntry->mReply->mParent->mPost));
                 qDebug() << "ROOT:";
-                logPostView(*feedEntry->mReply->mRoot);
+                logPostView(*std::get<AppBskyFeed::PostView::Ptr>(feedEntry->mReply->mRoot->mPost));
             }
         }
     }
 
-    void logEmbed(const AppBskyEmbed::Embed& embed)
+    void logEmbed(const AppBskyEmbed::EmbedView& embed)
     {
         switch (embed.mType)
         {
-        case AppBskyEmbed::EmbedType::IMAGES_VIEW:
+        case AppBskyEmbed::EmbedViewType::IMAGES_VIEW:
         {
             const auto& view = std::get<AppBskyEmbed::ImagesView::Ptr>(embed.mEmbed);
             for (const auto& image : view->mImages)
@@ -113,13 +113,13 @@ private:
             }
             break;
         }
-        case AppBskyEmbed::EmbedType::EXTERNAL_VIEW:
+        case AppBskyEmbed::EmbedViewType::EXTERNAL_VIEW:
         {
             const auto& view = std::get<AppBskyEmbed::ExternalView::Ptr>(embed.mEmbed);
             qDebug() << "External:" << view->mExternal->mTitle;
             break;
         }
-        case AppBskyEmbed::EmbedType::RECORD_VIEW:
+        case AppBskyEmbed::EmbedViewType::RECORD_VIEW:
         {
             const auto& view = std::get<AppBskyEmbed::RecordView::Ptr>(embed.mEmbed);
             switch (view->mRecordType)
