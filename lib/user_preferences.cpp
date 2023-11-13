@@ -149,7 +149,13 @@ const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QStr
     static std::unordered_map<QString, FeedViewPref> DEFAULT_PREF;
 
     auto it = mFeedViewPrefs.find(feed);
-    return it != mFeedViewPrefs.end() ? it->second : DEFAULT_PREF[feed];
+
+    if (it != mFeedViewPrefs.end())
+        return it->second;
+
+    auto& feedViewPref = DEFAULT_PREF[feed];
+    feedViewPref.mFeed = feed;
+    return feedViewPref;
 }
 
 void UserPreferences::setFeedViewPref(const FeedViewPref& pref)
