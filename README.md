@@ -4,4 +4,4 @@
 Used by [Skywalker](https://github.com/mfnboer/skywalker), an alternative client for
 the Bluesky social media network.
 
-[Release note](./docs/RELNOTES.txt)
+[Release notes](./docs/RELNOTES.txt)
