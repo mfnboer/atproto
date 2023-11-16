@@ -31,12 +31,26 @@ public:
              const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
 
 private:
+    struct Request
+    {
+        bool mIsPost = false;
+        QNetworkRequest mXrpcRequest;
+        QByteArray mData;
+        int mResendCount = 0;
+    };
+
     QUrl buildUrl(const QString& service) const;
     QUrl buildUrl(const QString& service, const Params& params) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
-    void replyFinished(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
-    void networkError(QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
+    void replyFinished(const Request& request, QNetworkReply* reply,
+                       const SuccessCb& successCb, const ErrorCb& errorCb,
+                       std::shared_ptr<bool> errorHandled);
+    void networkError(const Request& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
+                      const SuccessCb& successCb, const ErrorCb& errorCb,
+                      std::shared_ptr<bool> errorHandled);
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
+    void sendRequest(const Request& request, const SuccessCb& successCb, const ErrorCb& errorCb);
+    bool resendRequest(Request request, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     QNetworkAccessManager mNetwork;
     QString mHost; // first point of contact, e.g. bsky.social
