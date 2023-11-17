@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.16)
 
-project(appatproto VERSION 0.1 LANGUAGES CXX)
+project(appatproto VERSION 0.1.1 LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 20)
@@ -25,7 +25,7 @@ qt_add_executable(appatproto
 
 qt_add_qml_module(appatproto
     URI atproto
-    VERSION 1.0
+    VERSION ${PROJECT_VERSION}
     QML_FILES Main.qml
     SOURCES test.h
     SOURCES test.cpp
