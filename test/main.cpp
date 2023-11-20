@@ -12,8 +12,8 @@ int main(int argc, char *argv[])
         status |= QTest::qExec(obj, argc, argv);
     };
 
-    runTest(new TestAtUri);
-    runTest(new TestPostMaster);
+    runTest(std::make_unique<TestAtUri>().get());
+    runTest(std::make_unique<TestPostMaster>().get());
 
     return status;
 }
