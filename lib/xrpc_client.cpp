@@ -139,7 +139,7 @@ void Client::replyFinished(const Request& request, QNetworkReply* reply,
     {
         *errorHandled = true;
 
-        if (errorCode == QNetworkReply::ContentReSendError)
+        if (mustResend(errorCode))
         {
             if (resendRequest(request, successCb, errorCb))
                 return;
@@ -167,7 +167,7 @@ void Client::networkError(const Request& request, QNetworkReply* reply, QNetwork
     {
         *errorHandled = true;
 
-        if (errorCode == QNetworkReply::ContentReSendError)
+        if (mustResend(errorCode))
         {
             if (resendRequest(request, successCb, errorCb))
                 return;
@@ -235,6 +235,20 @@ bool Client::resendRequest(Request request, const SuccessCb& successCb, const Er
     qDebug() << "Resend:" << request.mXrpcRequest.url() << "count:" << request.mResendCount;
     sendRequest(request, successCb, errorCb);
     return true;
+}
+
+bool Client::mustResend(QNetworkReply::NetworkError error) const
+{
+    switch (error)
+    {
+    case QNetworkReply::ContentReSendError:
+    case QNetworkReply::RemoteHostClosedError:
+        return true;
+    default:
+        break;
+    }
+
+    return false;
 }
 
 }

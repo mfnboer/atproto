@@ -51,6 +51,7 @@ private:
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
     void sendRequest(const Request& request, const SuccessCb& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const SuccessCb& successCb, const ErrorCb& errorCb);
+    bool mustResend(QNetworkReply::NetworkError error) const;
 
     QNetworkAccessManager mNetwork;
     QString mHost; // first point of contact, e.g. bsky.social
