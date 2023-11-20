@@ -1,5 +1,5 @@
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core)
+find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core Network)
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
     add_compile_definitions(QT_NO_DEBUG_OUTPUT)
@@ -62,6 +62,7 @@ target_link_libraries(libatproto PRIVATE
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Core
+    Qt6::Network
 )
 
 target_include_directories(libatproto INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})
