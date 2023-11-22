@@ -157,3 +157,5 @@ private slots:
         QCOMPARE(matches[2].mEndIndex, 45);
     }
 };
+
+QTEST_MAIN(TestPostMaster)

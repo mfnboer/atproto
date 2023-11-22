@@ -11,15 +11,22 @@ set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 find_package(Qt6 REQUIRED COMPONENTS Test Network)
 
-qt_add_executable(test_atproto
-    main.cpp
-    test_at_uri.h
-    test_post_master.h
-)
+add_compile_options(-Wall -Wextra -Werror)
 
-target_link_libraries(test_atproto
+if (NOT ANDROID)
+    add_compile_options(-fsanitize=address)
+    add_compile_options(-fno-omit-frame-pointer)
+    add_link_options(-fsanitize=address)
+endif()
+
+qt_add_executable(test_at_uri test_at_uri.h)
+qt_add_executable(test_post_master test_post_master.h)
+
+set(LINK_LIBS
     PRIVATE libatproto
     PRIVATE Qt6::Test
     PRIVATE Qt6::Network
 )
 
+target_link_libraries(test_at_uri ${LINK_LIBS})
+target_link_libraries(test_post_master ${LINK_LIBS})
