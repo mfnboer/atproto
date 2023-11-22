@@ -11,6 +11,9 @@ if (NOT ANDROID)
     add_compile_options(-fsanitize=address)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fsanitize=address)
+
+    add_compile_options(-fprofile-arcs -ftest-coverage)
+    add_link_options(-fprofile-arcs -ftest-coverage)
 endif()
 
 qt_add_library(libatproto STATIC
@@ -57,12 +60,16 @@ qt_add_library(libatproto STATIC
     presence.h
 )
 
+if (NOT ANDROID)
+    set(COVERAGE_LIB -lgcov)
+endif()
 
 target_link_libraries(libatproto PRIVATE
     Qt6::Quick
     Qt6::QuickControls2
     Qt6::Core
     Qt6::Network
+    ${COVERAGE_LIB}
 )
 
 target_include_directories(libatproto INTERFACE ${CMAKE_CURRENT_SOURCE_DIR})

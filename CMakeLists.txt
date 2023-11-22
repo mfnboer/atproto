@@ -18,7 +18,10 @@ find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core)
 qt_standard_project_setup()
 
 add_subdirectory(lib)
-add_subdirectory(test)
+
+if (NOT ANDROID)
+    add_subdirectory(test)
+endif()
 
 qt_add_executable(appatproto
     main.cpp
