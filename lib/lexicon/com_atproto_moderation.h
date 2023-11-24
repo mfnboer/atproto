@@ -16,6 +16,7 @@ enum class ReasonType
 };
 
 QString reasonTypeToString(ReasonType reason);
-QString reasonToDescription(ReasonType reason);
+QString reasonTypeToDescription(ReasonType reason);
+QString reasonTypeToTitle(ReasonType reason);
 
 }
