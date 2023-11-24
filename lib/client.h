@@ -8,6 +8,7 @@
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_notification.h"
+#include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
 
@@ -336,6 +337,13 @@ public:
      */
     void deleteRecord(const QString& repo, const QString& collection, const QString& rkey,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    // com.atproto.moderation
+
+    void reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
+                      const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void reportPost(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
+                    const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
