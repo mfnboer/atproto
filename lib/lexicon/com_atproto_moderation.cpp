@@ -27,6 +27,28 @@ QString reasonTypeToString(ReasonType reason)
     return "UNKNOWN";
 }
 
+QString reasonTypeToTitle(ReasonType reason)
+{
+    switch (reason)
+    {
+    case ReasonType::SPAM:
+        return "Spam";
+    case ReasonType::VIOLATION:
+        return "Violation";
+    case ReasonType::MISLEADING:
+        return "Misleading";
+    case ReasonType::SEXUAL:
+        return "Sexual";
+    case ReasonType::RUDE:
+        return "Rude";
+    case ReasonType::OTHER:
+        return "Other";
+    }
+
+    Q_ASSERT(false);
+    return "UNKNOWN";
+}
+
 QString reasonTypeToDescription(ReasonType reason)
 {
     switch (reason)
