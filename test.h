@@ -29,7 +29,7 @@ public:
                 getAuthorFeed(user);
                 getTimeline();
             },
-            [](const QString& err){ qDebug() << "LOGIN FAILED:" << err; });
+            [](const QString& err, const QString& msg){ qDebug() << "LOGIN FAILED:" << err << msg; });
     }
 
     QString getAvatar() const { return mProfile ? mProfile->mAvatar.value_or(QString()) : ""; }
@@ -48,7 +48,7 @@ private:
                 mProfile = std::move(profile);
                 emit profileChanged();
             },
-            [](const QString& err){ qDebug() << "getProfile FAILED:" << err; });
+            [](const QString& err, const QString& msg){ qDebug() << "getProfile FAILED:" << err << msg; });
     }
 
     void getAuthorFeed(const QString& author)
@@ -58,7 +58,7 @@ private:
                 qDebug() << "*** AUTHOR FEED ***";
                 logFeed(feed->mFeed);
             },
-            [](const QString& err){ qDebug() << "getAuthorFeed FAILED:" << err; }
+            [](const QString& err, const QString& msg){ qDebug() << "getAuthorFeed FAILED:" << err << msg; }
         );
     }
 
@@ -69,7 +69,7 @@ private:
                 qDebug() << "*** TIMELINE ***";
                 logFeed(feed->mFeed);
             },
-            [](const QString& err){ qDebug() << "getTimeline FAILED:" << err; }
+            [](const QString& err, const QString& msg){ qDebug() << "getTimeline FAILED:" << err << msg; }
         );
     }
 
