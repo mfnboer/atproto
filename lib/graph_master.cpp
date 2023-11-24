@@ -27,9 +27,9 @@ void GraphMaster::follow(const QString& did,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error) {
+        [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
-                errorCb(error);
+                errorCb(error, msg);
         });
 }
 
@@ -49,9 +49,9 @@ void GraphMaster::block(const QString& did,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error) {
+        [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
-                errorCb(error);
+                errorCb(error, msg);
         });
 }
 
@@ -68,9 +68,9 @@ void GraphMaster::undo(const QString& uri,
             if (successCb)
                 successCb();
         },
-        [errorCb](const QString& err) {
+        [errorCb](const QString& err, const QString& msg) {
             if (errorCb)
-                errorCb(err);
+                errorCb(err, msg);
         });
 }
 
