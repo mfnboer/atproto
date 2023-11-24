@@ -58,6 +58,8 @@ qt_add_library(libatproto STATIC
     at_regex.h
     at_regex.cpp
     presence.h
+    lexicon/com_atproto_moderation.h
+    lexicon/com_atproto_moderation.cpp
 )
 
 if (NOT ANDROID)
