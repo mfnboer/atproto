@@ -43,7 +43,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
         postJson = post.toJson();
     } catch (InvalidContent& e) {
         if (errorCb)
-            QTimer::singleShot(0, &mPresence, [errorCb, e]{ errorCb("Invalid content: " + e.msg()); });
+            QTimer::singleShot(0, &mPresence, [errorCb, e]{ errorCb("InvalidContent", "Invalid content: " + e.msg()); });
     }
 
     qDebug() << "Posting:" << postJson;
@@ -55,9 +55,9 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
             if (successCb)
                 successCb();
         },
-        [errorCb](const QString& error) {
+        [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
-                errorCb(error);
+                errorCb(error, msg);
         });
 }
 
@@ -83,9 +83,9 @@ void PostMaster::repost(const QString& uri, const QString& cid,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error) {
+        [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
-                errorCb(error);
+                errorCb(error, msg);
         });
 }
 
@@ -111,9 +111,9 @@ void PostMaster::like(const QString& uri, const QString& cid,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error) {
+        [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
-                errorCb(error);
+                errorCb(error, msg);
         });
 }
 
@@ -130,9 +130,9 @@ void PostMaster::undo(const QString& uri,
             if (successCb)
                 successCb();
         },
-        [errorCb](const QString& err) {
+        [errorCb](const QString& err, const QString& msg) {
             if (errorCb)
-                errorCb(err);
+                errorCb(err, msg);
         });
 }
 
@@ -148,9 +148,9 @@ void PostMaster::checkPostExists(const QString& uri, const QString& cid,
             if (successCb)
                 successCb();
         },
-        [errorCb](const QString& err) {
+        [errorCb](const QString& err, const QString& msg) {
             if (errorCb)
-                errorCb(err);
+                errorCb(err, msg);
         });
 }
 
@@ -171,8 +171,8 @@ void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
             newUri.setAuthorityIsHandle(false);
             continueGetPost(newUri, std::move(profile), successCb);
         },
-        [](const QString& err){
-            qDebug() << err;
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
         });
 }
 
@@ -191,8 +191,8 @@ void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDe
                 qWarning() << e.msg();
             }
         },
-        [](const QString& err){
-            qDebug() << err;
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
         });
 }
 
@@ -233,11 +233,11 @@ void PostMaster::resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
                     newFacets[i].mRef = did;
                     resolveFacets(post, newFacets, i + 1, cb);
                 },
-                [this, presence=getPresence(), i, post, facets, cb](const QString& error){
+                [this, presence=getPresence(), i, post, facets, cb](const QString& error, const QString& msg){
                     if (!presence)
                         return;
 
-                    qWarning() << "Could not resolve handle:" << error << "match:" << facets[i].mMatch;
+                    qWarning() << "Could not resolve handle:" << error << " - " << msg << "match:" << facets[i].mMatch;
                     resolveFacets(post, facets, i + 1, cb);
                 });
             return;

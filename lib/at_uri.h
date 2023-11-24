@@ -9,7 +9,7 @@ namespace ATProto {
 class ATUri
 {
 public:
-    using ErrorCb = std::function<void(const QString& err)>;
+    using ErrorCb = std::function<void(const QString& error, const QString& msg)>;
     
     static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb);

@@ -10,6 +10,9 @@
 namespace ATProto
 {
 
+constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
+constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
+
 static void addOptionalIntParam(Xrpc::Client::Params& params, const QString& name, std::optional<int> value, int min, int max)
 {
     if (value)
@@ -93,7 +96,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                     qWarning() << msg;
 
                     if (errorCb)
-                        errorCb(msg);
+                        errorCb(ERROR_INVALID_SESSION, msg);
                 }
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
@@ -129,7 +132,7 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
                     qWarning() << msg;
 
                     if (errorCb)
-                        errorCb(msg);
+                        errorCb(ERROR_INVALID_SESSION, msg);
                 }
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
@@ -703,7 +706,7 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
         authToken());
 
 #if 0
-    // Test code
+    // Test code TODO REMOVE
     auto blobResult = std::make_unique<ATProto::Blob>();
     blobResult->mRefLink = "TestLink";
     blobResult->mMimeType = mimeType;
@@ -805,7 +808,7 @@ void Client::invalidJsonError(InvalidJsonException& e, const ErrorCb& cb)
 {
     qWarning() << e.msg();
     if (cb)
-        cb(e.msg());
+        cb(ERROR_INVALID_JSON, e.msg());
 }
 
 void Client::requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb)
@@ -816,7 +819,7 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     if (json.isEmpty())
     {
         if (errorCb)
-            errorCb(err);
+            errorCb(ERROR_INVALID_JSON, err);
 
         return;
     }
@@ -824,11 +827,11 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     try {
         auto error = ATProtoError::fromJson(json);
         if (errorCb)
-            errorCb(QString("%1 %2 - %3").arg(err, error->mError, error->mMessage));
+            errorCb(error->mError, error->mMessage);
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
         if (errorCb)
-            errorCb(err);
+            errorCb(ERROR_INVALID_JSON, err);
     }
 }
 

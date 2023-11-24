@@ -47,7 +47,7 @@ ATUri ATUri::createAtUri(const QString& uri, const QObject& presence, const Erro
     auto atUri = ATUri(uri);
 
     if (!atUri.isValid() && errorCb)
-        QTimer::singleShot(0, &presence, [errorCb, uri]{ errorCb("Invalid at-uri: " + uri); });
+        QTimer::singleShot(0, &presence, [errorCb, uri]{ errorCb("InvalidUri", "Invalid at-uri: " + uri); });
 
     return atUri;
 }

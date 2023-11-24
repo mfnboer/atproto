@@ -8,6 +8,8 @@ namespace Xrpc {
 
 constexpr int MAX_RESEND = 4;
 
+QNetworkAccessManager Client::sNetwork;
+
 Client::Client(const QString& host) :
     mHost(host),
     mPDS("https://" + host)
@@ -15,8 +17,8 @@ Client::Client(const QString& host) :
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
-    mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(15000);
+    sNetwork.setAutoDeleteReplies(true);
+    sNetwork.setTransferTimeout(15000);
 }
 
 Client::~Client()
@@ -160,6 +162,14 @@ void Client::networkError(const Request& request, QNetworkReply* reply, QNetwork
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
     qInfo() << "Network error:" << errorCode << errorMsg;
+
+    if (errorCode == QNetworkReply::OperationCanceledError)
+    {
+        reply->disconnect();
+        errorCb(errorMsg, {});
+        return;
+    }
+
     const auto data = reply->readAll();
     const QJsonDocument json(QJsonDocument::fromJson(data));
 
@@ -207,9 +217,9 @@ void Client::sendRequest(const Request& request, const SuccessCb& successCb, con
     QNetworkReply* reply;
 
     if (request.mIsPost)
-        reply = mNetwork.post(request.mXrpcRequest, request.mData);
+        reply = sNetwork.post(request.mXrpcRequest, request.mData);
     else
-        reply = mNetwork.get(request.mXrpcRequest);
+        reply = sNetwork.get(request.mXrpcRequest);
 
     // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
     // The latter call is not guaranteed however. We must only call errorCb once!

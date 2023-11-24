@@ -55,7 +55,7 @@ public:
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using LegacySearchPostsSuccessCb = std::function<void(AppBskyFeed::LegacySearchPostsOutput::Ptr)>;
     using LegacySearchActorsSuccessCb = std::function<void(AppBskyActor::LegacySearchActorsOutput::Ptr)>;
-    using ErrorCb = std::function<void(const QString& err)>;
+    using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
