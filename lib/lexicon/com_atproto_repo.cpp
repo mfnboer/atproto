@@ -8,6 +8,7 @@ namespace ATProto::ComATProtoRepo {
 QJsonObject StrongRef::toJson() const
 {
     QJsonObject json;
+    json.insert("$type", "com.atproto.repo.strongRef");
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     return json;
