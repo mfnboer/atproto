@@ -785,6 +785,64 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
         authToken());
 }
 
+void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
+                          const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
+
+    if (!reason.isEmpty())
+        json.insert("reason", reason);
+
+    QJsonObject jsonRepoRef;
+    jsonRepoRef.insert("$type", "com.atproto.admin.defs#repoRef");
+    jsonRepoRef.insert("did", did);
+    json.insert("subject", jsonRepoRef);
+
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(json);
+
+    qDebug() << "Report author:" << jsonDoc;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc,
+        [successCb, errorCb](const QJsonDocument& reply){
+            qDebug() <<"Reported author:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::reportPost(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
+                        const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
+
+    if (!reason.isEmpty())
+        json.insert("reason", reason);
+
+    ComATProtoRepo::StrongRef ref;
+    ref.mUri = uri;
+    ref.mCid = cid;
+    json.insert("subject", ref.toJson());
+
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(json);
+
+    qDebug() << "Report post:" << jsonDoc;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc,
+        [successCb, errorCb](const QJsonDocument& reply){
+            qDebug() <<"Reported post:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;
