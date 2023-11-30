@@ -598,4 +598,23 @@ std::vector<PostMaster::ParsedMatch> PostMaster::parseFacets(const QString& text
     return facets;
 }
 
+std::vector<QString> PostMaster::getFacetTags(AppBskyFeed::Record::Post& post)
+{
+    std::vector<QString> tags;
+
+    for (const auto& facet : post.mFacets)
+    {
+        for (const auto& feature : facet->mFeatures)
+        {
+            if (feature.mType == ATProto::AppBskyRichtext::Facet::Feature::Type::TAG)
+            {
+                const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::Ptr>(feature.mFeature);
+                tags.push_back(facetTag->mTag);
+            }
+        }
+    }
+
+    return tags;
+}
+
 }
