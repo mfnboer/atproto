@@ -73,6 +73,8 @@ public:
     // If two facets overlap, then the one with the lowest start index is taken
     static std::vector<ParsedMatch> parseFacets(const QString& text);
 
+    static std::vector<QString> getFacetTags(AppBskyFeed::Record::Post& post);
+
 private:
     Client& mClient;
     QObject mPresence;
