@@ -291,6 +291,19 @@ public:
                            const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                            bool updateSeen = false);
 
+    /**
+     * @brief registerPushNotifications
+     * @param serviceDid
+     * @param token Firebase messaging token
+     * @param platform ios, android or web
+     * @param appid
+     * @param successCb
+     * @param errorCb
+     */
+    void registerPushNotifications(const QString& serviceDid, const QString& token,
+                                   const QString& platform, const QString& appId,
+                                   const SuccessCb& successCb, const ErrorCb& errorCb);
+
     // com.atproto.repo
 
     /**

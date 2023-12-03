@@ -688,6 +688,30 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
         authToken());
 }
 
+void Client::registerPushNotifications(const QString& serviceDid, const QString& token,
+                               const QString& platform, const QString& appId,
+                               const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument json;
+    QJsonObject paramsJson;
+    paramsJson.insert("serviceDid", serviceDid);
+    paramsJson.insert("token", token);
+    paramsJson.insert("platform", platform);
+    paramsJson.insert("appId", appId);
+    json.setObject(paramsJson);
+
+    qDebug() << json;
+
+    mXrpc->post("app.bsky.notification.registerPush", json,
+        [successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "registerPush succeeded:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                         const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
