@@ -1,6 +1,7 @@
-next
-====
+0.2
+===
 * Reporting requests
+* registerPush request
 * Improved error handling
 
 0.1.1
