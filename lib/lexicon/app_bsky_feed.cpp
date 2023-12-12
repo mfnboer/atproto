@@ -15,6 +15,7 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     viewerState->mRepost = xjson.getOptionalString("repost");
     viewerState->mLike = xjson.getOptionalString("like");
+    viewerState->mReplyDisabled = xjson.getOptionalBool("replyDisabled", false);
     return viewerState;
 }
 
