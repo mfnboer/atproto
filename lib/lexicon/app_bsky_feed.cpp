@@ -19,6 +19,14 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+QJsonObject ThreadgateListRule::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.feed.threadgate#listRule");
+    json.insert("list", mList);
+    return json;
+}
+
 ThreadgateListRule::Ptr ThreadgateListRule::fromJson(const QJsonObject& json)
 {
     auto rule = std::make_unique<ThreadgateListRule>();
@@ -27,12 +35,42 @@ ThreadgateListRule::Ptr ThreadgateListRule::fromJson(const QJsonObject& json)
     return rule;
 }
 
+QJsonObject Threadgate::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "app.bsky.feed.threadgate");
+    json.insert("post", mPost);
+
+    QJsonArray allowArray;
+
+    if (mAllowMention)
+    {
+        QJsonObject rule;
+        rule.insert("$type", "app.bsky.feed.threadgate#mentionRule");
+        allowArray.append(rule);
+    }
+
+    if (mAllowFollowing)
+    {
+        QJsonObject rule;
+        rule.insert("$type", "app.bsky.feed.threadgate#followingRule");
+        allowArray.append(rule);
+    }
+
+    for (const auto& listRule : mAllowList)
+        allowArray.append(listRule->toJson());
+
+    json.insert("allow", allowArray);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
 Threadgate::Ptr Threadgate::fromJson(const QJsonObject& json)
 {
     auto threadgate = std::make_unique<Threadgate>();
     XJsonObject xjson(json);
     threadgate->mPost = xjson.getRequiredString("post");
-    auto allowArray = xjson.getOptionalArray("allow");
+    const auto allowArray = xjson.getOptionalArray("allow");
 
     if (allowArray)
     {
@@ -95,7 +133,7 @@ ThreadgateView::Ptr ThreadgateView::fromJson(const QJsonObject& json)
     return threadgateView;
 }
 
-QJsonObject  PostReplyRef::toJson() const
+QJsonObject PostReplyRef::toJson() const
 {
     QJsonObject json;
     json.insert("root", mRoot->toJson());
