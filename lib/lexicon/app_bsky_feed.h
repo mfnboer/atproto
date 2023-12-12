@@ -20,6 +20,42 @@ struct ViewerState
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.threadgate#listRule
+struct ThreadgateListRule
+{
+    QString mList; // at-uri
+
+    using Ptr = std::unique_ptr<ThreadgateListRule>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.threadgate
+struct Threadgate
+{
+    QString mPost; // at-uri
+    bool mAllowMention = false;
+    bool mAllowFollowing = false;
+    std::vector<ThreadgateListRule::Ptr> mAllowList;
+    QDateTime mCreatedAt;
+
+    using Ptr = std::unique_ptr<Threadgate>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.defs#threadgateView
+struct ThreadgateView
+{
+    // NOTE: It seems odd that all fields are optional.
+    std::optional<QString> mUri;
+    std::optional<QString> mCid;
+    Threadgate::Ptr mRecord; // Can be nullptr when other record types are added
+    QString mRawRecordType;
+    // TODO: lists
+
+    using Ptr = std::unique_ptr<ThreadgateView>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.feed.defs#postView
 struct PostView
 {
@@ -36,6 +72,7 @@ struct PostView
     QDateTime mIndexedAt;
     ViewerState::Ptr mViewer;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    ThreadgateView::Ptr mThreadgate; // optional
 
     using SharedPtr = std::shared_ptr<PostView>;
     using Ptr = std::unique_ptr<PostView>;

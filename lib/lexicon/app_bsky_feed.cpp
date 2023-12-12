@@ -19,6 +19,82 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+ThreadgateListRule::Ptr ThreadgateListRule::fromJson(const QJsonObject& json)
+{
+    auto rule = std::make_unique<ThreadgateListRule>();
+    XJsonObject xjson(json);
+    rule->mList = xjson.getRequiredString("list");
+    return rule;
+}
+
+Threadgate::Ptr Threadgate::fromJson(const QJsonObject& json)
+{
+    auto threadgate = std::make_unique<Threadgate>();
+    XJsonObject xjson(json);
+    threadgate->mPost = xjson.getRequiredString("post");
+    auto allowArray = xjson.getOptionalArray("allow");
+
+    if (allowArray)
+    {
+        for (const auto& allowElem : *allowArray)
+        {
+            if (!allowElem.isObject())
+            {
+                qWarning() << "PROTO ERROR invalid threadgate allow element: not an object";
+                qInfo() << json;
+                throw InvalidJsonException("PROTO ERROR invalid threadgate element: allow");
+            }
+
+            auto allowJson = allowElem.toObject();
+            XJsonObject allowXJson(allowJson);
+            QString type = allowXJson.getRequiredString("$type");
+
+            if (type == "app.bsky.feed.threadgate#mentionRule")
+            {
+                threadgate->mAllowMention = true;
+            }
+            else if (type == "app.bsky.feed.threadgate#followingRule")
+            {
+                threadgate->mAllowFollowing = true;
+            }
+            else if (type == "app.bsky.feed.threadgate#listRule")
+            {
+                auto listRule = ThreadgateListRule::fromJson(allowJson);
+                threadgate->mAllowList.push_back(std::move(listRule));
+            }
+            else
+            {
+                qWarning() << "Unknown threadgate rule type:" << type;
+            }
+        }
+    }
+
+    threadgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return threadgate;
+}
+
+ThreadgateView::Ptr ThreadgateView::fromJson(const QJsonObject& json)
+{
+    auto threadgateView = std::make_unique<ThreadgateView>();
+    XJsonObject xjson(json);
+    threadgateView->mUri = xjson.getOptionalString("uri");
+    threadgateView->mCid = xjson.getOptionalString("cid");
+    auto recordJson = xjson.getOptionalObject("record");
+
+    if (recordJson)
+    {
+        XJsonObject recordXJson(*recordJson);
+        threadgateView->mRawRecordType = recordXJson.getRequiredString("$type");
+
+        if (threadgateView->mRawRecordType == "app.bsky.feed.threadgate")
+            threadgateView->mRecord = Threadgate::fromJson(*recordJson);
+        else
+            qWarning() << "Unknow threadgate view record type:" << threadgateView->mRawRecordType;
+    }
+
+    return threadgateView;
+}
+
 QJsonObject  PostReplyRef::toJson() const
 {
     QJsonObject json;
@@ -116,6 +192,11 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
         postView->mViewer = ViewerState::fromJson(*viewerJson);
 
     ComATProtoLabel::getLabels(postView->mLabels, json);
+
+    const auto threadgateJson = xjson.getOptionalObject("threadgate");
+    if (threadgateJson)
+        postView->mThreadgate = ThreadgateView::fromJson(*threadgateJson);
+
     return postView;
 }
 
