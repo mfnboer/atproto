@@ -22,7 +22,7 @@ void GraphMaster::follow(const QString& did,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = followJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, followJson,
+    mClient.createRecord(repo, collection, {}, followJson,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -44,7 +44,7 @@ void GraphMaster::block(const QString& did,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = blockJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, blockJson,
+    mClient.createRecord(repo, collection, {}, blockJson,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

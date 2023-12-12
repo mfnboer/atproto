@@ -35,7 +35,7 @@ PostMaster::PostMaster(Client& client) :
 }
 
 void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
-                      const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                      const PostSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     QJsonObject postJson;
 
@@ -50,7 +50,36 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = postJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, postJson,
+    mClient.createRecord(repo, collection, {}, postJson,
+        [successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollowing,
+                   const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
+    if (!atUri.isValid())
+        return;
+
+    ATProto::AppBskyFeed::Threadgate threadgate;
+    threadgate.mPost = uri;
+    threadgate.mAllowMention = allowMention;
+    threadgate.mAllowFollowing = allowFollowing;
+    threadgate.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    QJsonObject threadgateJson = threadgate.toJson();
+    qDebug() << "Add threadgate:" << threadgateJson;
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = threadgateJson["$type"].toString();
+
+    mClient.createRecord(repo, collection, atUri.getRkey(), threadgateJson,
         [successCb](auto){
             if (successCb)
                 successCb();
@@ -78,7 +107,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = repostJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, repostJson,
+    mClient.createRecord(repo, collection, {}, repostJson,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -106,7 +135,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = likeJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, likeJson,
+    mClient.createRecord(repo, collection, {}, likeJson,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

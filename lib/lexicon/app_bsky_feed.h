@@ -25,6 +25,8 @@ struct ThreadgateListRule
 {
     QString mList; // at-uri
 
+    QJsonObject toJson() const;
+
     using Ptr = std::unique_ptr<ThreadgateListRule>;
     static Ptr fromJson(const QJsonObject& json);
 };
@@ -37,6 +39,8 @@ struct Threadgate
     bool mAllowFollowing = false;
     std::vector<ThreadgateListRule::Ptr> mAllowList;
     QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<Threadgate>;
     static Ptr fromJson(const QJsonObject& json);

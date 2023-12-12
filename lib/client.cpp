@@ -761,13 +761,17 @@ void Client::getRecord(const QString& repo, const QString& collection,
         authToken());
 }
 
-void Client::createRecord(const QString& repo, const QString& collection, const QJsonObject& record,
+void Client::createRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
                   const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject root;
     root.insert("repo", repo);
     root.insert("collection", collection);
     root.insert("record", record);
+
+    if (!rkey.isEmpty())
+        root.insert("rkey", rkey);
+
     QJsonDocument json(root);
 
     qDebug() << "Create record:" << json;
