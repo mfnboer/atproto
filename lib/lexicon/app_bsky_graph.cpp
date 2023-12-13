@@ -9,8 +9,7 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto follows = std::make_unique<GetFollowsOutput>();
-    const auto subjectJson = xjson.getRequiredObject("subject");
-    follows->mSubject = AppBskyActor::ProfileView::fromJson(subjectJson);
+    follows->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
     AppBskyActor::getProfileViewList(follows->mFollows, json, "follows");
     follows->mCursor = xjson.getOptionalString("cursor");
     return follows;
@@ -20,8 +19,7 @@ GetFollowersOutput::Ptr GetFollowersOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto followers = std::make_unique<GetFollowersOutput>();
-    const auto subjectJson = xjson.getRequiredObject("subject");
-    followers->mSubject = AppBskyActor::ProfileView::fromJson(subjectJson);
+    followers->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
     AppBskyActor::getProfileViewList(followers->mFollowers, json, "followers");
     followers->mCursor = xjson.getOptionalString("cursor");
     return followers;
@@ -79,6 +77,29 @@ Block::Ptr Block::fromJson(const QJsonObject& json)
     block->mSubject = xjson.getRequiredString("subject");
     block->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return block;
+}
+
+ListViewerState::Ptr ListViewerState::fromJson(const QJsonObject& json)
+{
+    auto viewerState = std::make_unique<ListViewerState>();
+    XJsonObject xjson(json);
+    viewerState->mMuted = xjson.getOptionalBool("muted", false);
+    viewerState->mBlocked = xjson.getOptionalString("blocked");
+    return viewerState;
+}
+
+ListViewBasic::Ptr ListViewBasic::fromJson(const QJsonObject& json)
+{
+    auto listView = std::make_unique<ListViewBasic>();
+    XJsonObject xjson(json);
+    listView->mUri = xjson.getRequiredString("uri");
+    listView->mCid = xjson.getRequiredString("cid");
+    listView->mName = xjson.getRequiredString("name");
+    listView->mPurpose = xjson.getRequiredString("purpose");
+    listView->mAvatar = xjson.getOptionalString("avatar");
+    listView->mViewer = xjson.getOptionalObject<ListViewerState>("viewer");
+    listView->mIndexedAt = xjson.getOptionalDateTime("indexedAt");
+    return listView;
 }
 
 }

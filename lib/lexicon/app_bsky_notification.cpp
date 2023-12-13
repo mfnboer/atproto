@@ -30,12 +30,11 @@ Notification::Ptr Notification::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     notification->mUri = xjson.getRequiredString("uri");
     notification->mCid = xjson.getRequiredString("cid");
-    auto authorJson = xjson.getRequiredObject("author");
-    notification->mAuthor = AppBskyActor::ProfileView::fromJson(authorJson);
+    notification->mAuthor = xjson.getRequiredObject<AppBskyActor::ProfileView>("author");
     notification->mRawReason = xjson.getRequiredString("reason");
     notification->mReason = stringToNotificationReason(notification->mRawReason);
     notification->mReasonSubject = xjson.getOptionalString("reasonSubject");
-    auto recordJson = xjson.getRequiredObject("record");
+    auto recordJson = xjson.getRequiredJsonObject("record");
     notification->mRawRecordType = XJsonObject(recordJson).getOptionalString("$type").value_or("TypeMissing");
 
     try {

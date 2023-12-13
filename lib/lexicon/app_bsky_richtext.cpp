@@ -123,7 +123,7 @@ Facet::Ptr Facet::fromJson(const QJsonObject& json)
 {
     auto facet = std::make_unique<Facet>();
     const XJsonObject root(json);
-    facet->mIndex = FacetByteSlice::fromJson(root.getRequiredObject("index"));
+    facet->mIndex = FacetByteSlice::fromJson(root.getRequiredJsonObject("index"));
     const auto features = root.getRequiredArray("features");
 
     for (const auto& f: features)

@@ -39,7 +39,7 @@ QDateTime XJsonObject::getRequiredDateTime(const QString& key) const
     return dateTime;
 }
 
-QJsonObject XJsonObject::getRequiredObject(const QString& key) const
+QJsonObject XJsonObject::getRequiredJsonObject(const QString& key) const
 {
     checkField(key, QJsonValue::Object);
     return mObject[key].toObject();
@@ -130,7 +130,7 @@ QUrl XJsonObject::getOptionalUrl(const QString& key) const
     return url;
 }
 
-std::optional<QJsonObject> XJsonObject::getOptionalObject(const QString& key) const
+std::optional<QJsonObject> XJsonObject::getOptionalJsonObject(const QString& key) const
 {
     if (mObject.contains(key))
         return mObject[key].toObject();

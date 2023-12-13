@@ -117,7 +117,7 @@ ThreadgateView::Ptr ThreadgateView::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     threadgateView->mUri = xjson.getOptionalString("uri");
     threadgateView->mCid = xjson.getOptionalString("cid");
-    auto recordJson = xjson.getOptionalObject("record");
+    auto recordJson = xjson.getOptionalJsonObject("record");
 
     if (recordJson)
     {
@@ -130,6 +130,7 @@ ThreadgateView::Ptr ThreadgateView::fromJson(const QJsonObject& json)
             qWarning() << "Unknow threadgate view record type:" << threadgateView->mRawRecordType;
     }
 
+    threadgateView->mLists = xjson.getOptionalVector<AppBskyGraph::ListViewBasic>("lists");
     return threadgateView;
 }
 
@@ -145,10 +146,8 @@ PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_unique<PostReplyRef>();
     XJsonObject xjson(json);
-    const auto rootJson = xjson.getRequiredObject("root");
-    replyRef->mRoot = ComATProtoRepo::StrongRef::fromJson(rootJson);
-    const auto parentJson = xjson.getRequiredObject("parent");
-    replyRef->mParent = ComATProtoRepo::StrongRef::fromJson(parentJson);
+    replyRef->mRoot = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("root");
+    replyRef->mParent = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("parent");
     return replyRef;
 }
 
@@ -186,15 +185,8 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     post->mText = xjson.getRequiredString("text");
     post->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-
-    const auto replyJson = xjson.getOptionalObject("reply");
-    if (replyJson)
-        post->mReply = PostReplyRef::fromJson(*replyJson);
-
-    const auto embedJson = xjson.getOptionalObject("embed");
-    if (embedJson)
-        post->mEmbed = AppBskyEmbed::Embed::fromJson(*embedJson);
-
+    post->mReply = xjson.getOptionalObject<PostReplyRef>("reply");
+    post->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Embed>("embed");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return post;
 }
@@ -206,7 +198,7 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
     postView->mUri = xjson.getRequiredString("uri");
     postView->mCid = xjson.getRequiredString("cid");
     postView->mAuthor = AppBskyActor::ProfileViewBasic::fromJson(json["author"].toObject());
-    const auto recordObj = xjson.getRequiredObject("record");
+    const auto recordObj = xjson.getRequiredJsonObject("record");
     const XJsonObject record(recordObj);
     postView->mRawRecordType = record.getRequiredString("$type");
     postView->mRecordType = stringToRecordType(postView->mRawRecordType);
@@ -215,26 +207,15 @@ PostView::Ptr PostView::fromJson(const QJsonObject& json)
         postView->mRecord = Record::Post::fromJson(record.getObject());
     else
         qWarning() << QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(postView->mRawRecordType);
-
-    const auto embedJson = xjson.getOptionalObject("embed");
-    if (embedJson)
-        postView->mEmbed = AppBskyEmbed::EmbedView::fromJson(*embedJson);
-
+    
+    postView->mEmbed = xjson.getOptionalObject<AppBskyEmbed::EmbedView>("embed");
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);
     postView->mLikeCount = xjson.getOptionalInt("likeCount", 0);
     postView->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
-
-    const auto viewerJson = xjson.getOptionalObject("viewer");
-    if (viewerJson)
-        postView->mViewer = ViewerState::fromJson(*viewerJson);
-
+    postView->mViewer = xjson.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(postView->mLabels, json);
-
-    const auto threadgateJson = xjson.getOptionalObject("threadgate");
-    if (threadgateJson)
-        postView->mThreadgate = ThreadgateView::fromJson(*threadgateJson);
-
+    postView->mThreadgate = xjson.getOptionalObject<ThreadgateView>("threadgate");
     return postView;
 }
 
@@ -276,10 +257,8 @@ ReplyRef::Ptr ReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_unique<ReplyRef>();
     XJsonObject xjson(json);
-    const auto rootJson = xjson.getRequiredObject("root");
-    replyRef->mRoot = ReplyElement::fromJson(rootJson);
-    const auto parentJson = xjson.getRequiredObject("parent");
-    replyRef->mParent = ReplyElement::fromJson(parentJson);
+    replyRef->mRoot = xjson.getRequiredObject<ReplyElement>("root");
+    replyRef->mParent = xjson.getRequiredObject<ReplyElement>("parent");
     return replyRef;
 }
 
@@ -287,8 +266,7 @@ ReasonRepost::Ptr ReasonRepost::fromJson(const QJsonObject& json)
 {
     auto reason = std::make_unique<ReasonRepost>();
     XJsonObject xjson(json);
-    const auto byJson = xjson.getRequiredObject("by");
-    reason->mBy = AppBskyActor::ProfileViewBasic::fromJson(byJson);
+    reason->mBy = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("by");
     reason->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return reason;
 }
@@ -297,17 +275,9 @@ FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
 {
     auto feedViewPost = std::make_unique<FeedViewPost>();
     XJsonObject xjson(json);
-    const auto postJson = xjson.getRequiredObject("post");
-    feedViewPost->mPost = PostView::fromJson(postJson);
-
-    const auto replyJson = xjson.getOptionalObject("reply");
-    if (replyJson)
-        feedViewPost->mReply = ReplyRef::fromJson(*replyJson);
-
-    const auto reasonJson = xjson.getOptionalObject("reason");
-    if (reasonJson)
-        feedViewPost->mReason = ReasonRepost::fromJson(*reasonJson);
-
+    feedViewPost->mPost = xjson.getRequiredObject<PostView>("post");
+    feedViewPost->mReply = xjson.getOptionalObject<ReplyRef>("reply");
+    feedViewPost->mReason = xjson.getOptionalObject<ReasonRepost>("reason");
     return feedViewPost;
 }
 
@@ -374,8 +344,7 @@ BlockedPost::Ptr BlockedPost::fromJson(const QJsonObject& json)
     auto blockedPost = std::make_unique<BlockedPost>();
     const XJsonObject xjson(json);
     blockedPost->mUri = xjson.getRequiredString("uri");
-    const auto authorJson = xjson.getRequiredObject("author");
-    blockedPost->mAuthor = BlockedAuthor::fromJson(authorJson);
+    blockedPost->mAuthor = xjson.getRequiredObject<BlockedAuthor>("author");
     return blockedPost;
 }
 
@@ -383,13 +352,8 @@ ThreadViewPost::Ptr ThreadViewPost::fromJson(const QJsonObject& json)
 {
     auto thread = std::make_unique<ThreadViewPost>();
     const XJsonObject xjson(json);
-    const auto postJson = xjson.getRequiredObject("post");
-    thread->mPost = PostView::fromJson(postJson);
-    const auto parentJson = xjson.getOptionalObject("parent");
-
-    if (parentJson)
-        thread->mParent = ThreadElement::fromJson(*parentJson);
-
+    thread->mPost = xjson.getRequiredObject<PostView>("post");
+    thread->mParent = xjson.getOptionalObject<ThreadElement>("parent");
     thread->mReplies = xjson.getOptionalVector<ThreadElement>("replies");
     return thread;
 }
@@ -442,8 +406,7 @@ PostThread::Ptr PostThread::fromJson(const QJsonObject& json)
 {
     auto postThread = std::make_unique<PostThread>();
     const XJsonObject xjson(json);
-    const auto threadJson = xjson.getRequiredObject("thread");
-    postThread->mThread = ThreadElement::fromJson(threadJson);
+    postThread->mThread = xjson.getRequiredObject<ThreadElement>("thread");
     return postThread;
 }
 
@@ -460,8 +423,7 @@ Like::Ptr Like::fromJson(const QJsonObject& json)
 {
     auto like = std::make_unique<Like>();
     const XJsonObject xjson(json);
-    const auto subjectJson = xjson.getRequiredObject("subject");
-    like->mSubject = ComATProtoRepo::StrongRef::fromJson(subjectJson);
+    like->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return like;
 }
@@ -479,8 +441,7 @@ Repost::Ptr Repost::fromJson(const QJsonObject& json)
 {
     auto repost = std::make_unique<Repost>();
     const XJsonObject xjson(json);
-    const auto subjectJson = xjson.getRequiredObject("subject");
-    repost->mSubject = ComATProtoRepo::StrongRef::fromJson(subjectJson);
+    repost->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     repost->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return repost;
 }
@@ -491,8 +452,7 @@ GetLikesLike::Ptr GetLikesLike::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     like->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
-    const auto actorJson = xjson.getRequiredObject("actor");
-    like->mActor = AppBskyActor::ProfileView::fromJson(actorJson);
+    like->mActor = xjson.getRequiredObject<AppBskyActor::ProfileView>("actor");
     return like;
 }
 
@@ -555,7 +515,7 @@ LegacySearchPostsOutput::Ptr LegacySearchPostsOutput::fromJson(const QJsonArray&
         }
 
         const QString rKey = match.captured(1);
-        const auto userJson = xjsonPost.getRequiredObject("user");
+        const auto userJson = xjsonPost.getRequiredJsonObject("user");
         const XJsonObject xjsonUser(userJson);
         const QString did = xjsonUser.getRequiredString("did");
 

@@ -26,8 +26,8 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");
     profileViewBasic->mAvatar = root.getOptionalString("avatar");
-
-    const auto viewerJson = root.getOptionalObject("viewer");
+    
+    const auto viewerJson = root.getOptionalJsonObject("viewer");
     if (viewerJson)
         profileViewBasic->mViewer = ViewerState::fromJson(*viewerJson);
 
@@ -45,8 +45,8 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     profile->mAvatar = root.getOptionalString("avatar");
     profile->mDescription = root.getOptionalString("description");
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
-
-    const auto viewerJson = root.getOptionalObject("viewer");
+    
+    const auto viewerJson = root.getOptionalJsonObject("viewer");
     if (viewerJson)
         profile->mViewer = ViewerState::fromJson(*viewerJson);
 
@@ -74,8 +74,8 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
     profile->mFollowsCount = root.getOptionalInt("followsCount", 0);
     profile->mPostsCount = root.getOptionalInt("postsCount", 0);
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
-
-    const auto viewerJson = root.getOptionalObject("viewer");
+    
+    const auto viewerJson = root.getOptionalJsonObject("viewer");
     if (viewerJson)
         profile->mViewer = ViewerState::fromJson(*viewerJson);
 

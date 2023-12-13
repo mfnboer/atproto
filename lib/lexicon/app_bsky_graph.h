@@ -72,4 +72,31 @@ struct Block
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.defs#listViewerState
+struct ListViewerState
+{
+    bool mMuted = false;
+    std::optional<QString> mBlocked; // at-uri
+
+    using Ptr = std::unique_ptr<ListViewerState>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.defs#listViewBasic
+struct ListViewBasic
+{
+    QString mUri;
+    QString mCid;
+    QString mName;
+    QString mPurpose;
+    std::optional<QString> mAvatar;
+    ListViewerState::Ptr mViewer; // optional
+    std::optional<QDateTime> mIndexedAt;
+
+    using Ptr = std::unique_ptr<ListViewBasic>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+using ListViewBasicList = std::vector<ListViewBasic::Ptr>;
+
 }

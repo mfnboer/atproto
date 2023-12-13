@@ -728,15 +728,6 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
         },
         failure(errorCb),
         authToken());
-
-#if 0
-    // Test code TODO REMOVE
-    auto blobResult = std::make_unique<ATProto::Blob>();
-    blobResult->mRefLink = "TestLink";
-    blobResult->mMimeType = mimeType;
-    blobResult->mSize = blob.size();
-    successCb(std::move(blobResult));
-#endif
 }
 
 void Client::getRecord(const QString& repo, const QString& collection,

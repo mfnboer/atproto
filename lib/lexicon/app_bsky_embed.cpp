@@ -42,14 +42,9 @@ Image::Ptr Image::fromJson(const QJsonObject& json)
 {
     auto image = std::make_unique<Image>();
     const XJsonObject xjson(json);
-    const auto blobJson = xjson.getRequiredObject("image");
-    image->mImage = Blob::fromJson(blobJson);
+    image->mImage = xjson.getRequiredObject<Blob>("image");
     image->mAlt = xjson.getRequiredString("alt");
-    const auto aspectRatioJson = xjson.getOptionalObject("aspectRatio");
-
-    if (aspectRatioJson)
-        image->mAspectRatio = AspectRatio::fromJson(*aspectRatioJson);
-
+    image->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
     return image;
 }
 
@@ -84,11 +79,7 @@ ImagesViewImage::Ptr ImagesViewImage::fromJson(const QJsonObject& json)
     viewImage->mThumb = xjson.getRequiredString("thumb");
     viewImage->mFullSize = xjson.getRequiredString("fullsize");
     viewImage->mAlt = xjson.getRequiredString("alt");
-    const auto aspectRatioJson = xjson.getOptionalObject("aspectRatio");
-
-    if (aspectRatioJson)
-        viewImage->mAspectRatio = AspectRatio::fromJson(*aspectRatioJson);
-
+    viewImage->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
     return viewImage;
 }
 
@@ -120,11 +111,7 @@ ExternalExternal::Ptr ExternalExternal::fromJson(const QJsonObject& json)
     external->mUri = xjson.getRequiredString("uri");
     external->mTitle = xjson.getRequiredString("title");
     external->mDescription = xjson.getRequiredString("description");
-    const auto blobJson = xjson.getOptionalObject("thumb");
-
-    if (blobJson)
-        external->mThumb = Blob::fromJson(*blobJson);
-
+    external->mThumb = xjson.getOptionalObject<Blob>("thumb");
     return external;
 }
 
@@ -140,8 +127,7 @@ External::Ptr External::fromJson(const QJsonObject& json)
 {
     auto external = std::make_unique<External>();
     const XJsonObject xjson(json);
-    const auto externalJson = xjson.getRequiredObject("external");
-    external->mExternal = ExternalExternal::fromJson(externalJson);
+    external->mExternal = xjson.getRequiredObject<ExternalExternal>("external");
     return external;
 }
 
@@ -160,8 +146,7 @@ ExternalView::Ptr ExternalView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_unique<ExternalView>();
     XJsonObject xjson(json);
-    const auto externalJson = xjson.getRequiredObject("external");
-    view->mExternal = ExternalViewExternal::fromJson(externalJson);
+    view->mExternal = xjson.getRequiredObject<ExternalViewExternal>("external");
     return view;
 }
 
@@ -177,8 +162,7 @@ Record::Ptr Record::fromJson(const QJsonObject& json)
 {
     auto record = std::make_unique<Record>();
     XJsonObject xjson(json);
-    const auto refJson = xjson.getRequiredObject("record");
-    record->mRecord = ComATProtoRepo::StrongRef::fromJson(refJson);
+    record->mRecord = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("record");
     return record;
 }
 
@@ -202,7 +186,7 @@ RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_unique<RecordView>();
     const XJsonObject xjson(json);
-    const auto recordJson = xjson.getRequiredObject("record");
+    const auto recordJson = xjson.getRequiredJsonObject("record");
     const XJsonObject recordXJson(recordJson);
     const QString type = recordXJson.getRequiredString("$type");
     view->mRecordType = stringToRecordType(type);
@@ -274,9 +258,8 @@ RecordWithMedia::Ptr RecordWithMedia::fromJson(const QJsonObject& json)
 {
     auto recordMedia = std::make_unique<RecordWithMedia>();
     const XJsonObject xjson(json);
-    const auto recordJson = xjson.getRequiredObject("record");
-    recordMedia->mRecord = Record::fromJson(recordJson);
-    const auto mediaJson = xjson.getRequiredObject("media");
+    recordMedia->mRecord = xjson.getRequiredObject<Record>("record");
+    const auto mediaJson = xjson.getRequiredJsonObject("media");
     const XJsonObject mediaXJson(mediaJson);
     recordMedia->mRawMediaType = mediaXJson.getRequiredString("$type");
     recordMedia->mMediaType = stringToEmbedType(recordMedia->mRawMediaType);
@@ -372,9 +355,8 @@ RecordWithMediaView::Ptr RecordWithMediaView::fromJson(const QJsonObject& json)
 {
     auto recordMediaView = std::make_unique<RecordWithMediaView>();
     const XJsonObject xjson(json);
-    const auto recordJson = xjson.getRequiredObject("record");
-    recordMediaView->mRecord = RecordView::fromJson(recordJson);
-    const auto mediaJson = xjson.getRequiredObject("media");
+    recordMediaView->mRecord = xjson.getRequiredObject<RecordView>("record");
+    const auto mediaJson = xjson.getRequiredJsonObject("media");
     const XJsonObject mediaXJson(mediaJson);
     recordMediaView->mRawMediaType = mediaXJson.getRequiredString("$type");
     recordMediaView->mMediaType = stringToEmbedViewType(recordMediaView->mRawMediaType);
@@ -433,9 +415,8 @@ RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     viewRecord->mUri = xjson.getRequiredString("uri");
     viewRecord->mCid = xjson.getRequiredString("cid");
-    const auto authorJson = xjson.getRequiredObject("author");
-    viewRecord->mAuthor = AppBskyActor::ProfileViewBasic::fromJson(authorJson);
-    const auto valueJson = xjson.getRequiredObject("value");
+    viewRecord->mAuthor = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("author");
+    const auto valueJson = xjson.getRequiredJsonObject("value");
     const XJsonObject valueXJson(valueJson);
     viewRecord->mRawValueType = valueXJson.getRequiredString("$type");
     viewRecord->mValueType = stringToRecordType(viewRecord->mRawValueType);
