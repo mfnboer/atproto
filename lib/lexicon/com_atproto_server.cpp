@@ -16,7 +16,7 @@ Session::Ptr Session::fromJson(const QJsonDocument& json)
     session->mRefreshJwt = xjson.getRequiredString("refreshJwt");
     session->mEmail = xjson.getOptionalString("email");
     session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
-    auto didDocJson = xjson.getOptionalObject("didDoc");
+    auto didDocJson = xjson.getOptionalJsonObject("didDoc");
 
     if (didDocJson)
     {
@@ -41,7 +41,7 @@ GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
     session->mDid = xjson.getRequiredString("did");
     session->mEmail = xjson.getOptionalString("email");
     session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
-    auto didDocJson = xjson.getOptionalObject("didDoc");
+    auto didDocJson = xjson.getOptionalJsonObject("didDoc");
 
     if (didDocJson)
     {

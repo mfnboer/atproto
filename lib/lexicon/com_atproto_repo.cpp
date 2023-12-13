@@ -27,8 +27,7 @@ UploadBlobOutput::Ptr UploadBlobOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<UploadBlobOutput>();
     XJsonObject xjson(json);
-    const auto blobJson = xjson.getRequiredObject("blob");
-    output->mBlob = Blob::fromJson(blobJson);
+    output->mBlob = xjson.getRequiredObject<Blob>("blob");
     return output;
 }
 
@@ -38,7 +37,7 @@ Record::Ptr Record::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     record->mUri = xjson.getRequiredString("uri");
     record->mCid = xjson.getOptionalString("cid");
-    record->mValue = xjson.getRequiredObject("value");
+    record->mValue = xjson.getRequiredJsonObject("value");
     return record;
 }
 

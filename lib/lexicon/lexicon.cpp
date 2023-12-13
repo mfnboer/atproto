@@ -20,8 +20,8 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
 {
     auto blob = std::make_unique<Blob>();
     const XJsonObject xjson(json);
-
-    const auto refJson = xjson.getOptionalObject("ref");
+    
+    const auto refJson = xjson.getOptionalJsonObject("ref");
     if (refJson)
     {
         const XJsonObject xRefJson(*refJson);

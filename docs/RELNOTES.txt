@@ -1,3 +1,7 @@
+next
+====
+* Threadgate
+
 0.2
 ===
 * Reporting requests

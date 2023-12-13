@@ -3,6 +3,7 @@
 #pragma once
 #include "app_bsky_actor.h"
 #include "app_bsky_embed.h"
+#include "app_bsky_graph.h"
 #include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
@@ -52,9 +53,9 @@ struct ThreadgateView
     // NOTE: It seems odd that all fields are optional.
     std::optional<QString> mUri;
     std::optional<QString> mCid;
-    Threadgate::Ptr mRecord; // Can be nullptr when other record types are added
+    Threadgate::Ptr mRecord; // Can be nullptr when other record types get spec'd
     QString mRawRecordType;
-    // TODO: lists
+    AppBskyGraph::ListViewBasicList mLists;
 
     using Ptr = std::unique_ptr<ThreadgateView>;
     static Ptr fromJson(const QJsonObject& json);
