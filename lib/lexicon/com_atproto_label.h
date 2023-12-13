@@ -21,4 +21,30 @@ struct Label
 
 void getLabels(std::vector<Label::Ptr>& labels, const QJsonObject& json);
 
+// com.atproto.label.defs#selfLabel
+struct SelfLabel
+{
+    QString mVal; // maxLength: 128
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<SelfLabel>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+using SelfLabelList = std::vector<SelfLabel::Ptr>;
+
+// com.atproto.label.defs#selfLabels
+struct SelfLabels
+{
+    SelfLabelList mValues; // max 10
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<SelfLabels>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

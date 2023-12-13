@@ -26,6 +26,15 @@ private:
 class XJsonObject
 {
 public:
+    template<class Type>
+    static QJsonArray toJsonArray(const std::vector<typename Type::Ptr>& list);
+
+    template<class Type>
+    static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value);
+
+    template<class Type>
+    static void insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::Ptr& value);
+
     XJsonObject(const QJsonObject& obj);
 
     const QJsonObject& getObject() const { return mObject; }
@@ -65,6 +74,35 @@ private:
 
     const QJsonObject& mObject;
 };
+
+template<class Type>
+QJsonArray XJsonObject::toJsonArray(const std::vector<typename Type::Ptr>& list)
+{
+    QJsonArray jsonArray;
+
+    for (const auto& elem : list)
+        jsonArray.append(elem->toJson());
+
+    return jsonArray;
+}
+
+template<class Type>
+void XJsonObject::insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value)
+{
+    if (value)
+        json.insert(key, *value);
+    else
+        json.remove(key);
+}
+
+template<class Type>
+void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::Ptr& value)
+{
+    if (value)
+        json.insert(key, value->toJson());
+    else
+        json.remove(key);
+}
 
 template<class ObjType>
 typename ObjType::Ptr XJsonObject::getRequiredObject(const QString& key) const

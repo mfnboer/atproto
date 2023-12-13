@@ -60,6 +60,8 @@ qt_add_library(libatproto STATIC
     presence.h
     lexicon/com_atproto_moderation.h
     lexicon/com_atproto_moderation.cpp
+    profile_master.h
+    profile_master.cpp
 )
 
 if (NOT ANDROID)

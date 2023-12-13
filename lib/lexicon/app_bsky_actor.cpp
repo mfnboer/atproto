@@ -89,6 +89,30 @@ void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject
     list = xjson.getRequiredVector<ProfileViewDetailed>("profiles");
 }
 
+QJsonObject Profile::toJson() const
+{
+    QJsonObject json(mJson);
+    XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
+    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    return json;
+}
+
+Profile::Ptr Profile::fromJson(const QJsonObject& json)
+{
+    auto profile = std::make_unique<Profile>();
+    XJsonObject xjson(json);
+    profile->mJson = json;
+    profile->mDisplayName = xjson.getOptionalString("displayName");
+    profile->mDescription = xjson.getOptionalString("description");
+    profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
+    profile->mBanner = xjson.getOptionalObject<Blob>("banner");
+    profile->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    return profile;
+}
+
 QJsonObject AdultContentPref::toJson() const
 {
     QJsonObject json(mJson);

@@ -1,6 +1,8 @@
 next
 ====
 * Threadgate
+* putRecord
+* add/remove labels from a profile
 
 0.2
 ===

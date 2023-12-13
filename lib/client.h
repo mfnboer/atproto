@@ -48,6 +48,7 @@ public:
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
+    using PutRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
     using UnreadCountSuccessCb = std::function<void(int)>;
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
     using UserPrefsSuccessCb = std::function<void(UserPreferences)>;
@@ -340,6 +341,18 @@ public:
      */
     void createRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
                       const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief putRecord create or update a record
+     * @param repo
+     * @param collection
+     * @param rkey
+     * @param record
+     * @param successCb
+     * @param errorCb
+     */
+    void putRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
+                   const PutRecordSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief deleteRecord

@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "com_atproto_label.h"
+#include "lexicon.h"
 #include <QJsonDocument>
 
 namespace ATProto::AppBskyActor {
@@ -79,6 +80,22 @@ struct ProfileViewDetailed
 
 using ProfileViewDetailedList = std::vector<ProfileViewDetailed::Ptr>;
 void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json);
+
+// app.bsky.actor.profile
+struct Profile
+{
+    std::optional<QString> mDisplayName;
+    std::optional<QString> mDescription;
+    Blob::Ptr mAvatar; // optional
+    Blob::Ptr mBanner; // optional
+    ComATProtoLabel::SelfLabels::Ptr mLabels; // optional
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Profile>;
+    static Ptr fromJson(const QJsonObject& json);
+};
 
 // For the user preferences we store the received json object.
 // When sending preferences we take this object and update the modified parts.
