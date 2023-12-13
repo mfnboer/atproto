@@ -771,9 +771,37 @@ void Client::createRecord(const QString& repo, const QString& collection, const 
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Created record:" << reply;
             try {
-                auto record = ComATProtoRepo::StrongRef::fromJson(reply.object());
+                auto recordRef = ComATProtoRepo::StrongRef::fromJson(reply.object());
                 if (successCb)
-                    successCb(std::move(record));
+                    successCb(std::move(recordRef));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::putRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
+                          const PutRecordSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject root;
+    root.insert("repo", repo);
+    root.insert("collection", collection);
+    root.insert("record", record);
+    root.insert("rkey", rkey);
+
+    QJsonDocument json(root);
+
+    qDebug() << "Put record:" << json;
+
+    mXrpc->post("com.atproto.repo.putRecord", json,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Put record ok:" << reply;
+            try {
+                auto recordRef = ComATProtoRepo::StrongRef::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(recordRef));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
