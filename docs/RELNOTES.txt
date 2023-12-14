@@ -1,5 +1,5 @@
-next
-====
+0.3
+===
 * Threadgate
 * putRecord
 * add/remove labels from a profile
