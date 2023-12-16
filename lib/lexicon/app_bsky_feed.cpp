@@ -530,4 +530,30 @@ LegacySearchPostsOutput::Ptr LegacySearchPostsOutput::fromJson(const QJsonArray&
     return output;
 }
 
+GeneratorViewerState::Ptr GeneratorViewerState::fromJson(const QJsonObject& json)
+{
+    auto viewerState = std::make_unique<GeneratorViewerState>();
+    const XJsonObject xjson(json);
+    viewerState->mLike = xjson.getOptionalString("like");
+    return viewerState;
+}
+
+GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_unique<GeneratorView>();
+    const XJsonObject xjson(json);
+    view->mUri = xjson.getRequiredString("uri");
+    view->mCid = xjson.getRequiredString("cid");
+    view->mDid = xjson.getRequiredString("did");
+    view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileView>("creator");
+    view->mDisplayName = xjson.getRequiredString("displayName");
+    view->mDescription = xjson.getOptionalString("description");
+    view->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
+    view->mAvatar = xjson.getOptionalString("avatar");
+    view->mLikeCount = xjson.getOptionalInt("likeCount", 0);
+    view->mViewer = xjson.getOptionalObject<GeneratorViewerState>("viewer");
+    view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+    return view;
+}
+
 }

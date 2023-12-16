@@ -77,6 +77,7 @@ struct Facet
     using Ptr = std::unique_ptr<Facet>;
     static Ptr fromJson(const QJsonObject& json);
 };
+using FacetList = std::vector<Facet::Ptr>;
 
 /**
  * @brief applyFacets Replace the links in the text by HTML href anchors
@@ -85,7 +86,6 @@ struct Facet
  * @param linkColor If provided a style element to set the color will be added to the href anchor
  * @return HTML version of the text with links in it
  */
-QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Facet::Ptr>& facets,
-                    const QString& linkColor = "");
+QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor = "");
 
 }

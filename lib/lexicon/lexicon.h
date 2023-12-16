@@ -35,6 +35,7 @@ struct Blob {
     QString mMimeType;
     int mSize;
     QString mCid; // deprecated but still in use
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 

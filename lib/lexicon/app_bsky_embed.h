@@ -261,7 +261,7 @@ namespace Record {
 struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
-    std::vector<AppBskyRichtext::Facet::Ptr> mFacets;
+    AppBskyRichtext::FacetList mFacets;
     PostReplyRef::Ptr mReply;
     ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional
     // NOT IMPLEMENTED self labels

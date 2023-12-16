@@ -203,7 +203,7 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
 }
 
 static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
-        const std::vector<AppBskyRichtext::Facet::Ptr>& facets, const QString& linkColor)
+        const AppBskyRichtext::FacetList& facets, const QString& linkColor)
 {
     std::map<int, HyperLink> startLinkMap;
 
@@ -241,8 +241,7 @@ static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
     return startLinkMap;
 }
 
-QString applyFacets(const QString& text, const std::vector<AppBskyRichtext::Facet::Ptr>& facets,
-                    const QString& linkColor)
+QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor)
 {
     const auto& bytes = text.toUtf8();
     const auto startLinkMap = buildStartLinkMap(bytes, facets, linkColor);
