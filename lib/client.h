@@ -8,6 +8,7 @@
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_notification.h"
+#include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
@@ -57,6 +58,7 @@ public:
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using LegacySearchPostsSuccessCb = std::function<void(AppBskyFeed::LegacySearchPostsOutput::Ptr)>;
     using LegacySearchActorsSuccessCb = std::function<void(AppBskyActor::LegacySearchActorsOutput::Ptr)>;
+    using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -371,6 +373,20 @@ public:
                       const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
     void reportPost(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
                     const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.unspecced
+
+    /**
+     * @brief getPopularFeedGenerators
+     * @param query
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getPopularFeedGenerators(const std::optional<QString>& q, std::optional<int> limit,
+                                  const std::optional<QString>& cursor,
+                                  const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;

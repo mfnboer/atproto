@@ -890,6 +890,31 @@ void Client::reportPost(const QString& uri, const QString& cid, ComATProtoModera
         authToken());
 }
 
+void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::optional<int> limit,
+                              const std::optional<QString>& cursor,
+                              const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalStringParam(params, "q", q);
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getPopularFeedGenerators:" << reply;
+            try {
+                auto output = AppBskyUnspecced::GetPopularFeedGeneratorsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;

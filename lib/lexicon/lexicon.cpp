@@ -20,6 +20,7 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
 {
     auto blob = std::make_unique<Blob>();
     const XJsonObject xjson(json);
+    blob->mJson = json;
     
     const auto refJson = xjson.getOptionalJsonObject("ref");
     if (refJson)
@@ -40,7 +41,7 @@ Blob::Ptr Blob::fromJson(const QJsonObject& json)
 
 QJsonObject Blob::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", "blob");
     QJsonObject refJson;
     refJson.insert("$link", mRefLink);
