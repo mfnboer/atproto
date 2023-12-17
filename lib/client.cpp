@@ -895,7 +895,7 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
                               const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params;
-    addOptionalStringParam(params, "q", q);
+    addOptionalStringParam(params, "query", q);
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
