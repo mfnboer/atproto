@@ -37,6 +37,7 @@ public:
     using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailedList)>;
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
     using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::Ptr)>;
@@ -172,6 +173,17 @@ public:
      */
     void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
                      const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getFeed
+     * @param feed feed at-uri
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
+                 const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getPostThread

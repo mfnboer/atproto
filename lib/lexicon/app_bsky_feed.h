@@ -171,6 +171,7 @@ using PostFeed = std::vector<FeedViewPost::Ptr>;
 
 // app.bsky.feed.getAuthorFeed#output
 // app.bsky.feed.getTimeline#ouput
+// app.bsky.feed.getFeed#ouput
 struct OutputFeed
 {
     std::optional<QString> mCursor;
