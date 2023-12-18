@@ -363,6 +363,28 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
         authToken());
 }
 
+void Client::getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const GetFeedSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"feed", feed}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getFeed", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getFeed:" << reply;
+            try {
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
                            const GetPostThreadSuccessCb& successCb, const ErrorCb& errorCb)
 {
