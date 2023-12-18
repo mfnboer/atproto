@@ -26,6 +26,8 @@ private:
 class XJsonObject
 {
 public:
+    static QJsonArray toJsonArray(const std::vector<QString>& list);
+
     template<class Type>
     static QJsonArray toJsonArray(const std::vector<typename Type::Ptr>& list);
 

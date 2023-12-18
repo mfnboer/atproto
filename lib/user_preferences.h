@@ -12,6 +12,7 @@ public:
     using LabelVisibility = AppBskyActor::ContentLabelPref::Visibility;
     using FeedViewPref = AppBskyActor::FeedViewPref;
     using ContentLabelPrefs = std::unordered_map<QString, LabelVisibility>;
+    using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
 
     UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
@@ -28,6 +29,9 @@ public:
 
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
     void setFeedViewPref(const FeedViewPref& pref);
+
+    const SavedFeedsPref& getSavedFeedsPref() const { return mSavedFeedsPref; }
+    void setSavedFeedsPref(const SavedFeedsPref& pref) { mSavedFeedsPref = pref; }
 
     AppBskyActor::PreferenceList toPreferenceList() const;
 

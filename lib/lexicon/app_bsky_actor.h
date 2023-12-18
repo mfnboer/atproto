@@ -147,7 +147,7 @@ struct SavedFeedsPref
     std::vector<QString> mSaved;
     QJsonObject mJson;
 
-    QJsonObject toJson() const { return mJson; } // TODO: encoding
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<SavedFeedsPref>;
     static Ptr fromJson(const QJsonObject& json);
