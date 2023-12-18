@@ -556,4 +556,12 @@ GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
     return view;
 }
 
+GetFeedGeneratorsOutput::Ptr GetFeedGeneratorsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetFeedGeneratorsOutput>();
+    const XJsonObject xjson(json);
+    output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
+    return output;
+}
+
 }

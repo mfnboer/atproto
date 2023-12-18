@@ -38,6 +38,7 @@ public:
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
     using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::Ptr)>;
@@ -184,6 +185,15 @@ public:
      */
     void getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
                  const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getFeedGenerators
+     * @param feeds list of feed at-uri's
+     * @param successCb
+     * @param errorCb
+     */
+    void getFeedGenerators(const std::vector<QString>& feeds,
+                           const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getPostThread

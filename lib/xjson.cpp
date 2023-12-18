@@ -4,6 +4,16 @@
 
 namespace ATProto {
 
+QJsonArray XJsonObject::toJsonArray(const std::vector<QString>& list)
+{
+    QJsonArray jsonArray;
+
+    for (const auto& s : list)
+        jsonArray.append(s);
+
+    return jsonArray;
+}
+
 XJsonObject::XJsonObject(const QJsonObject& obj) :
     mObject(obj)
 {

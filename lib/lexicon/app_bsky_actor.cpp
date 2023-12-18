@@ -187,6 +187,15 @@ ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
+QJsonObject SavedFeedsPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", "app.bsky.actor.defs#savedFeedsPref");
+    json.insert("pinned", XJsonObject::toJsonArray(mPinned));
+    json.insert("saved", XJsonObject::toJsonArray(mSaved));
+    return json;
+}
+
 SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<SavedFeedsPref>();

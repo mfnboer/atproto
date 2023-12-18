@@ -322,4 +322,12 @@ struct GeneratorView {
 };
 using GeneratorViewList = std::vector<GeneratorView::Ptr>;
 
+struct GetFeedGeneratorsOutput
+{
+    GeneratorViewList mFeeds;
+
+    using Ptr = std::unique_ptr<GetFeedGeneratorsOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }
