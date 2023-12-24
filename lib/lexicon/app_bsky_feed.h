@@ -317,6 +317,7 @@ struct GeneratorView {
     GeneratorViewerState::Ptr mViewer; // optional
     QDateTime mIndexedAt;
 
+    using SharedPtr = std::shared_ptr<GeneratorView>;
     using Ptr = std::unique_ptr<GeneratorView>;
     static Ptr fromJson(const QJsonObject& json);
 };
