@@ -170,7 +170,7 @@ struct FeedViewPref
 {
     QString mFeed;
     bool mHideReplies = false;
-    bool mHideRepliesByUnfollowed = true;
+    bool mHideRepliesByUnfollowed = false;
     int mHideRepliesByLikeCount = 0;
     bool mHideReposts = false;
     bool mHideQuotePosts = false;
