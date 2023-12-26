@@ -31,7 +31,8 @@ public:
     };
 
     static QString plainToHtml(const QString& text);
-    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor = "");
+    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
+    static QString linkiFy(const QString& text, const QString& colorName);
 
     explicit PostMaster(Client& client);
 
