@@ -28,6 +28,33 @@ QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Pos
         return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets, linkColor);
 }
 
+QString PostMaster::linkiFy(const QString& text, const QString& colorName)
+{
+    const auto facets = parseFacets(text);
+    QString linkified = "<span style=\"white-space: pre-wrap\">";
+
+    int pos = 0;
+
+    for (const auto& facet : facets)
+    {
+        if (facet.mType == ParsedMatch::Type::MENTION ||
+            facet.mType == ParsedMatch::Type::LINK)
+        {
+            const auto before = text.sliced(pos, facet.mStartIndex - pos);
+            linkified.append(before.toHtmlEscaped());
+            const QString ref = facet.mType == PostMaster::ParsedMatch::Type::MENTION || facet.mMatch.startsWith("http") ?
+                                    facet.mMatch : "https://" + facet.mMatch;
+            QString link = QString("<a href=\"%1\" style=\"color: %3;\">%2</a>").arg(ref, facet.mMatch, colorName);
+            linkified.append(link);
+            pos = facet.mEndIndex;
+        }
+    }
+
+    linkified.append(text.sliced(pos).toHtmlEscaped());
+    linkified.append("</span>");
+    return linkified;
+}
+
 PostMaster::PostMaster(Client& client) :
     Presence(),
     mClient(client)
