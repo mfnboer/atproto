@@ -28,6 +28,18 @@ QString PostMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Pos
         return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets, linkColor);
 }
 
+QString PostMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor)
+{
+    if (!feed.mDescription)
+        return {};
+
+    if (feed.mDescriptionFacets.empty())
+        return ATProto::PostMaster::linkiFy(*feed.mDescription, linkColor);
+
+    return ATProto::AppBskyRichtext::applyFacets(*feed.mDescription, feed.mDescriptionFacets,
+                                                 linkColor);
+}
+
 QString PostMaster::linkiFy(const QString& text, const QString& colorName)
 {
     const auto facets = parseFacets(text);

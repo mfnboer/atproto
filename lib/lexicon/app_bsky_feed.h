@@ -294,35 +294,6 @@ struct LegacySearchPostsOutput
     static Ptr fromJson(const QJsonArray& jsonArray);
 };
 
-// app.bsky.feed.defs#generatorViewerState
-struct GeneratorViewerState
-{
-    std::optional<QString> mLike; // at-uri
-
-    using Ptr = std::unique_ptr<GeneratorViewerState>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.feed.defs#generatorView
-struct GeneratorView {
-    QString mUri;
-    QString mCid;
-    QString mDid;
-    AppBskyActor::ProfileView::Ptr mCreator; // required
-    QString mDisplayName;
-    std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
-    AppBskyRichtext::FacetList mDescriptionFacets;
-    std::optional<QString> mAvatar;
-    int mLikeCount = 0;
-    GeneratorViewerState::Ptr mViewer; // optional
-    QDateTime mIndexedAt;
-
-    using SharedPtr = std::shared_ptr<GeneratorView>;
-    using Ptr = std::unique_ptr<GeneratorView>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-using GeneratorViewList = std::vector<GeneratorView::Ptr>;
-
 struct GetFeedGeneratorOutput
 {
     GeneratorView::Ptr mView; // required

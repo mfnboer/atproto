@@ -202,9 +202,11 @@ RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
     case RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED:
         view->mRecord = RecordViewBlocked::fromJson(recordJson);
         break;
+    case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
+        view->mRecord = AppBskyFeed::GeneratorView::fromJson(recordJson);
+        break;
     default:
-        // TODO: custom feeds
-        // I have seen this "app.bsky.feed.defs#generatorView" as record type
+        // TODO: lists app.bsky.graph.defs#listView
         qWarning() << "Unsupported record type in app.bsky.embed.record#view:" << type << json;
         view->mUnsupportedType = type;
         break;
@@ -425,6 +427,9 @@ RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
     {
     case RecordType::APP_BSKY_FEED_POST:
         viewRecord->mValue = AppBskyFeed::Record::Post::fromJson(valueJson);
+        break;
+    case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
+        viewRecord->mValue = AppBskyFeed::GeneratorView::fromJson(valueJson);
         break;
     default:
         qWarning() << "Unsupported value type in app.bsky.embed.record#viewRecord:"
