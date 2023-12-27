@@ -385,6 +385,27 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
         authToken());
 }
 
+void Client::getFeedGenerator(const QString& feed,
+                      const GetFeedGeneratorSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get feed generator:" << feed;
+    Xrpc::Client::Params params{{ "feed", feed }};
+
+    mXrpc->get("app.bsky.feed.getFeedGenerator", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getFeedGenerator:" << reply;
+            try {
+                auto feed = AppBskyFeed::GetFeedGeneratorOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getFeedGenerators(const std::vector<QString>& feeds,
                        const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -910,7 +931,7 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
         authToken());
 }
 
-void Client::reportPost(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
+void Client::reportPostOrFeed(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
                         const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
@@ -927,11 +948,11 @@ void Client::reportPost(const QString& uri, const QString& cid, ComATProtoModera
     QJsonDocument jsonDoc;
     jsonDoc.setObject(json);
 
-    qDebug() << "Report post:" << jsonDoc;
+    qDebug() << "Report post or feed:" << jsonDoc;
 
     mXrpc->post("com.atproto.moderation.createReport", jsonDoc,
         [successCb, errorCb](const QJsonDocument& reply){
-            qDebug() <<"Reported post:" << reply;
+            qDebug() <<"Reported post or feed:" << reply;
             if (successCb)
                 successCb();
         },
