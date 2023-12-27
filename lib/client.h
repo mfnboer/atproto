@@ -38,6 +38,7 @@ public:
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetFeedGeneratorSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorOutput::Ptr)>;
     using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
@@ -185,6 +186,15 @@ public:
      */
     void getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
                  const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getFeedGenerator
+     * @param feed feed at-uri
+     * @param successCb
+     * @param errorCb
+     */
+    void getFeedGenerator(const QString& feed,
+                          const GetFeedGeneratorSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getFeedGenerators
@@ -391,9 +401,27 @@ public:
 
     // com.atproto.moderation
 
+    /**
+     * @brief reportAuthor
+     * @param did
+     * @param reasonType
+     * @param reason
+     * @param successCb
+     * @param errorCb
+     */
     void reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
                       const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void reportPost(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
+
+    /**
+     * @brief reportPostOrFeed
+     * @param uri post or feed at-uri
+     * @param cid
+     * @param reasonType
+     * @param reason
+     * @param successCb
+     * @param errorCb
+     */
+    void reportPostOrFeed(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
                     const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.unspecced

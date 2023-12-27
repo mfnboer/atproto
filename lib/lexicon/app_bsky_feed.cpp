@@ -556,6 +556,16 @@ GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
     return view;
 }
 
+GetFeedGeneratorOutput::Ptr GetFeedGeneratorOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetFeedGeneratorOutput>();
+    const XJsonObject xjson(json);
+    output->mView = xjson.getRequiredObject<GeneratorView>("view");
+    output->mIsOnline = xjson.getRequiredBool("isOnline");
+    output->mIsValid = xjson.getRequiredBool("isValid");
+    return output;
+}
+
 GetFeedGeneratorsOutput::Ptr GetFeedGeneratorsOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<GetFeedGeneratorsOutput>();

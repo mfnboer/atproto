@@ -323,6 +323,16 @@ struct GeneratorView {
 };
 using GeneratorViewList = std::vector<GeneratorView::Ptr>;
 
+struct GetFeedGeneratorOutput
+{
+    GeneratorView::Ptr mView; // required
+    bool mIsOnline;
+    bool mIsValid;
+
+    using Ptr = std::unique_ptr<GetFeedGeneratorOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 struct GetFeedGeneratorsOutput
 {
     GeneratorViewList mFeeds;
