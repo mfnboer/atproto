@@ -204,7 +204,7 @@ void PostMaster::undo(const QString& uri,
         });
 }
 
-void PostMaster::checkPostExists(const QString& uri, const QString& cid,
+void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
                                  const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
@@ -255,6 +255,44 @@ void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDe
 
                 if (successCb)
                     successCb(record->mUri, record->mCid.value_or(""), std::move(post), newAuthor);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+            }
+        },
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+        });
+}
+
+void PostMaster::getFeed(const QString& httpsUri, const FeedCb& successCb)
+{
+    auto atUri = ATUri::fromHttpsFeedUri(httpsUri);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getProfile(atUri.getAuthority(),
+        [this, presence=getPresence(), atUri, successCb](auto profile){
+            if (!presence)
+                return;
+
+            ATUri newUri(atUri);
+            newUri.setAuthority(profile->mDid);
+            newUri.setAuthorityIsHandle(false);
+            continueGetFeed(newUri, successCb);
+        },
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+        });
+}
+
+void PostMaster::continueGetFeed(const ATUri& atUri, const FeedCb& successCb)
+{
+    mClient.getFeedGenerator(atUri.toString(),
+        [successCb](auto output){
+            try {
+                if (successCb)
+                    successCb(std::move(output->mView));
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
             }
