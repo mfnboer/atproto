@@ -18,6 +18,7 @@ public:
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
+    using FeedCb = std::function<void(AppBskyFeed::GeneratorView::Ptr)>;
 
     struct ParsedMatch
     {
@@ -48,11 +49,14 @@ public:
     void undo(const QString& uri,
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
-    void checkPostExists(const QString& uri, const QString& cid,
+    // A record can be a post record or a generator record
+    void checkRecordExists(const QString& uri, const QString& cid,
                          const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
     void getPost(const QString& httpsUri, const PostCb& successCb);
     void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb);
+    void getFeed(const QString& httpsUri, const FeedCb& successCb);
+    void continueGetFeed(const ATUri& atUri, const FeedCb& successCb);
 
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
 

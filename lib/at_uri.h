@@ -12,6 +12,7 @@ public:
     using ErrorCb = std::function<void(const QString& error, const QString& msg)>;
     
     static ATUri fromHttpsPostUri(const QString& uri);
+    static ATUri fromHttpsFeedUri(const QString& uri);
     static ATUri createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb);
 
     ATUri() = default;
