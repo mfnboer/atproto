@@ -11,18 +11,23 @@ namespace ATProto {
 class GraphMaster
 {
 public:
-    using FollowSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
 
     explicit GraphMaster(Client& client);
 
     void follow(const QString& did,
-                const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb);
+                const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb);
     void block(const QString& did,
-               const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb);
+               const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb);
+    void listBlock(const QString& listUri,
+                   const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb);
     void undo(const QString& uri,
               const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
 
 private:
+    template<class RecordType>
+    void createRecord(const QString& subject, const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb);
+
     Client& mClient;
     QObject mPresence;
 };

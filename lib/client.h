@@ -48,6 +48,8 @@ public:
     using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
     using GetBlocksSuccessCb = std::function<void(AppBskyGraph::GetBlocksOutput::Ptr)>;
     using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::Ptr)>;
+    using GetListSuccessCb = std::function<void(AppBskyGraph::GetListOutput::Ptr)>;
+    using GetListsSuccessCb = std::function<void(AppBskyGraph::GetListsOutput::Ptr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
@@ -268,7 +270,7 @@ public:
 
     /**
      * @brief getFollows
-     * @param actor
+     * @param actor handle or did
      * @param limit min=1 default=50 max=100
      * @param cursor
      * @param successCb
@@ -279,7 +281,7 @@ public:
 
     /**
      * @brief getFollowers
-     * @param actor
+     * @param actor handle or did
      * @param limit min=1 default=50 max=100
      * @param cursor
      * @param successCb
@@ -293,10 +295,46 @@ public:
     void getMutes(std::optional<int> limit, const std::optional<QString>& cursor,
                   const GetMutesSuccessCb& successCb, const ErrorCb& errorCb);
 
-
     void muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
     void unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief getList
+     * @param listUri at-uri of list
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getList(const QString& listUri, std::optional<int> limit, const std::optional<QString>& cursor,
+                 const GetListSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getLists Get a list of lists that belong to an actor.
+     * @param actor handle or did
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getLists(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                 const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void unmuteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+
+    /**
+     * @brief getListBlocks Get lists that the actor is blocking.
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getListBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
+                       const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+    void getListMutes(std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.notification
 
