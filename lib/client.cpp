@@ -644,7 +644,7 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
 
     mXrpc->get("app.bsky.graph.getMutes", params,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getBlocks:" << reply;
+            qDebug() << "getMutes:" << reply;
             try {
                 auto mutes = AppBskyGraph::GetMutesOutput::fromJson(reply.object());
                 if (successCb)
@@ -682,6 +682,126 @@ void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const
     mXrpc->post("app.bsky.graph.unmuteActor", json,
         [successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "unmuteActor:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getList(const QString& listUri, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const GetListSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"list", listUri}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getList", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getList:" << reply;
+            try {
+                auto output = AppBskyGraph::GetListOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getLists(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetListsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getLists", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getLists:" << reply;
+            try {
+                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getListBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
+                           const GetListsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getListBlocks", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getListBlocks:" << reply;
+            try {
+                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getListMutes(std::optional<int> limit, const std::optional<QString>& cursor,
+                          const GetListsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getListMutes", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getListMutes:" << reply;
+            try {
+                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("list", listUri);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.muteActorList", json,
+        [successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "muteActorList:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("list", listUri);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.muteActorList", json,
+        [successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "unmuteActorList:" << reply;
             if (successCb)
                 successCb();
         },

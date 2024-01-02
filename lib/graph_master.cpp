@@ -12,47 +12,21 @@ GraphMaster::GraphMaster(Client & client) :
 }
 
 void GraphMaster::follow(const QString& did,
-                         const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb)
+                         const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    AppBskyGraph::Follow follow;
-    follow.mSubject = did;
-    follow.mCreatedAt = QDateTime::currentDateTimeUtc();
-
-    const auto followJson = follow.toJson();
-    const QString& repo = mClient.getSession()->mDid;
-    const QString collection = followJson["$type"].toString();
-
-    mClient.createRecord(repo, collection, {}, followJson,
-        [successCb](auto strongRef){
-            if (successCb)
-                successCb(strongRef->mUri, strongRef->mCid);
-        },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+    createRecord<AppBskyGraph::Follow>(did, successCb, errorCb);
 }
 
 void GraphMaster::block(const QString& did,
-                        const FollowSuccessCb& successCb, const Client::ErrorCb& errorCb)
+                        const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb)
 {
-    AppBskyGraph::Block block;
-    block.mSubject = did;
-    block.mCreatedAt = QDateTime::currentDateTimeUtc();
+    createRecord<AppBskyGraph::Block>(did, successCb, errorCb);
+}
 
-    const auto blockJson = block.toJson();
-    const QString& repo = mClient.getSession()->mDid;
-    const QString collection = blockJson["$type"].toString();
-
-    mClient.createRecord(repo, collection, {}, blockJson,
-        [successCb](auto strongRef){
-            if (successCb)
-                successCb(strongRef->mUri, strongRef->mCid);
-        },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+void GraphMaster::listBlock(const QString& listUri,
+                            const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    createRecord<AppBskyGraph::ListBlock>(listUri, successCb, errorCb);
 }
 
 void GraphMaster::undo(const QString& uri,
@@ -71,6 +45,28 @@ void GraphMaster::undo(const QString& uri,
         [errorCb](const QString& err, const QString& msg) {
             if (errorCb)
                 errorCb(err, msg);
+        });
+}
+
+template<class RecordType>
+void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& successCb, const Client::ErrorCb& errorCb)
+{
+    RecordType record;
+    record.mSubject = subject;
+    record.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    const auto recordJson = record.toJson();
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = recordJson["$type"].toString();
+
+    mClient.createRecord(repo, collection, {}, recordJson,
+        [successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
         });
 }
 
