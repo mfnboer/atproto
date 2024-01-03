@@ -64,6 +64,8 @@ qt_add_library(libatproto STATIC
     profile_master.cpp
     lexicon/app_bsky_unspecced.h
     lexicon/app_bsky_unspecced.cpp
+    rich_text_master.h
+    rich_text_master.cpp
 )
 
 if (NOT ANDROID)

@@ -4,6 +4,7 @@
 #include "at_uri.h"
 #include "client.h"
 #include "presence.h"
+#include "rich_text_master.h"
 
 namespace ATProto {
 
@@ -19,39 +20,24 @@ public:
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
     using FeedCb = std::function<void(AppBskyFeed::GeneratorView::Ptr)>;
-
-    struct ParsedMatch
-    {
-        using Type = ATProto::AppBskyRichtext::Facet::Feature::Type;
-
-        int mStartIndex;
-        int mEndIndex;
-        QString mMatch;
-        Type mType;
-        QString mRef;
-    };
-
-    static QString plainToHtml(const QString& text);
-    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
-    static QString getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor);
-    static QString linkiFy(const QString& text, const QString& colorName);
+    using ErrorCb = Client::ErrorCb;
 
     explicit PostMaster(Client& client);
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
-              const PostSuccessCb& successCb, const Client::ErrorCb& errorCb);
+              const PostSuccessCb& successCb, const ErrorCb& errorCb);
     void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing,
-                       const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+                       const Client::SuccessCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
-                const RepostSuccessCb& successCb, const Client::ErrorCb& errorCb);
+                const RepostSuccessCb& successCb, const ErrorCb& errorCb);
     void like(const QString& uri, const QString& cid,
-              const LikeSuccessCb& successCb, const Client::ErrorCb& errorCb);
+              const LikeSuccessCb& successCb, const ErrorCb& errorCb);
     void undo(const QString& uri,
-              const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+              const Client::SuccessCb& successCb, const ErrorCb& errorCb);
 
     // A record can be a post record or a generator record
     void checkRecordExists(const QString& uri, const QString& cid,
-                         const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb);
+                         const Client::SuccessCb& successCb, const ErrorCb& errorCb);
 
     void getPost(const QString& httpsUri, const PostCb& successCb);
     void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb);
@@ -59,33 +45,14 @@ public:
     void continueGetFeed(const ATUri& atUri, const FeedCb& successCb);
 
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
-
-    void resolveFacets(AppBskyFeed::Record::Post::SharedPtr post,
-                       std::vector<ParsedMatch> facets, int facetIndex,
-                       const PostCreatedCb& cb);
-    void addFacets(AppBskyFeed::Record::Post::SharedPtr post,
-                   const std::vector<ParsedMatch>& facets);
-
     void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
-
-    static QString shortenWebLink(const QString& link);
-
     static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::Ptr blob = nullptr);
 
-    static std::vector<ParsedMatch> parsePartialMentions(const QString& text);
-    static std::vector<ParsedMatch> parseMentions(const QString& text);
-    static std::vector<ParsedMatch> parseLinks(const QString& text);
-    static std::vector<ParsedMatch> parseTags(const QString& text);
-
-    // If two facets overlap, then the one with the lowest start index is taken
-    static std::vector<ParsedMatch> parseFacets(const QString& text);
-
-    static std::vector<QString> getFacetTags(AppBskyFeed::Record::Post& post);
-
 private:
     Client& mClient;
+    RichTextMaster mRichTextMaster;
     QObject mPresence;
 };
 
