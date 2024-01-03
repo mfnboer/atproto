@@ -163,6 +163,7 @@ struct List
 
     QJsonObject toJson() const;
 
+    using SharedPtr = std::shared_ptr<List>;
     using Ptr = std::unique_ptr<List>;
     static Ptr fromJson(const QJsonObject& json);
 };
