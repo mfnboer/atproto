@@ -39,6 +39,18 @@ QString RichTextMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::
                                                  linkColor);
 }
 
+QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph::ListView& list, const QString& linkColor)
+{
+    if (!list.mDescription)
+        return {};
+
+    if (list.mDescriptionFacets.empty())
+        return linkiFy(*list.mDescription, linkColor);
+
+    return ATProto::AppBskyRichtext::applyFacets(*list.mDescription, list.mDescriptionFacets,
+                                                 linkColor);
+}
+
 QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
 {
     const auto facets = RichTextMaster::parseFacets(text);
