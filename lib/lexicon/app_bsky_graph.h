@@ -108,6 +108,7 @@ struct ListViewBasic
     ListViewerState::Ptr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 
+    using SharedPtr = std::shared_ptr<ListViewBasic>;
     using Ptr = std::unique_ptr<ListViewBasic>;
     static Ptr fromJson(const QJsonObject& json);
 };
