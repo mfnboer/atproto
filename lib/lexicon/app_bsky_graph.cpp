@@ -167,12 +167,13 @@ QJsonObject List::toJson() const
     json.insert("$type", "app.bsky.graph.list");
 
     if (mPurpose != ListPurpose::UNKNOWN)
-        json.insert("pupose", ListPurposeToString(mPurpose));
+        json.insert("purpose", ListPurposeToString(mPurpose));
     else
         json.insert("purpose", mRawPurpose);
 
     json.insert("name", mName);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    json.insert("descriptionFacets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mDescriptionFacets));
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));

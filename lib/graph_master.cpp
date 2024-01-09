@@ -66,8 +66,12 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
             if (!presence)
                 return;
 
-            list->mDescription = richText;
-            list->mDescriptionFacets = std::move(resolvedFacets);
+            if (!richText.isEmpty())
+            {
+                list->mDescription = richText;
+                list->mDescriptionFacets = std::move(resolvedFacets);
+            }
+
             createList(*list, successCb, errorCb);
         });
 }
