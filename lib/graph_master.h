@@ -27,21 +27,28 @@ public:
     void listBlock(const QString& listUri,
                    const RecordSuccessCb& successCb, const ErrorCb& errorCb);
     void undo(const QString& uri,
-              const Client::SuccessCb& successCb, const ErrorCb& errorCb);
+              const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void createList(AppBskyGraph::ListPurpose purpose, const QString& name,
                     const QString& description, Blob::Ptr avatar,
                     const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
-    void updateList(const AppBskyGraph::List& list, const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void updateList(const QString& listUri, const QString& name,
+                    const QString& description, Blob::Ptr avatar, bool updateAvatar,
+                    const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     void createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void updateList(const AppBskyGraph::List& list, const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     template<class RecordType>
     void createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb);
 
     Client& mClient;
     RichTextMaster mRichTextMaster;
+    std::unordered_map<QString, Blob::Ptr> mRKeyBlobMap;
+    std::unordered_map<QString, AppBskyGraph::List::Ptr> mRKeyListMap;
     QObject mPresence;
 };
 

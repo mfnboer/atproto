@@ -94,6 +94,96 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const CreateListSuc
         });
 }
 
+void GraphMaster::updateList(const QString& listUri, const QString& name,
+                             const QString& description, Blob::Ptr avatar, bool updateAvatar,
+                const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const ATUri atUri(listUri);
+
+    if (!atUri.isValid())
+    {
+        qWarning() << "Invalid URI:" << listUri;
+
+        if (errorCb)
+            errorCb("InvalidURI", QString("Invalid URI: ") + listUri);
+
+        return;
+    }
+
+    if (updateAvatar)
+        mRKeyBlobMap[atUri.getRkey()] = std::move(avatar);
+
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, presence=getPresence(), atUri, name, description, updateAvatar, successCb, errorCb](ComATProtoRepo::Record::Ptr record){
+            if (!presence)
+                return;
+
+            try {
+                auto list = AppBskyGraph::List::fromJson(record->mValue);
+                list->mName = name;
+
+                if (updateAvatar)
+                {
+                    list->mAvatar = std::move(mRKeyBlobMap[atUri.getRkey()]);
+                    mRKeyBlobMap.erase(atUri.getRkey());
+                }
+
+                if (list->mDescription.value_or("") != description)
+                    updateList(std::move(list), atUri.getRkey(), description, successCb, errorCb);
+                else
+                    updateList(*list, atUri.getRkey(), successCb, errorCb);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+                mRKeyBlobMap.erase(atUri.getRkey());
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    auto facets = RichTextMaster::parseFacets(description);
+    mRKeyListMap[rkey] = std::move(list);
+
+    mRichTextMaster.resolveFacets(description, facets, 0,
+        [this, presence=getPresence(), rkey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+            if (!presence)
+                return;
+
+            auto l = std::move(mRKeyListMap[rkey]);
+            mRKeyListMap.erase(rkey);
+
+            Q_ASSERT(l);
+            if (!l) {
+                qWarning() << "List not stored:" << rkey;
+
+                if (errorCb)
+                    errorCb("InternalError", "Internal error: list not stored");
+
+                return;
+            }
+
+            if (!richText.isEmpty())
+            {
+                l->mDescription = richText;
+                l->mDescriptionFacets = std::move(resolvedFacets);
+            }
+            else
+            {
+                l->mDescription.reset();
+                l->mDescriptionFacets.clear();
+            }
+
+            updateList(*l, rkey, successCb, errorCb);
+        });
+}
+
 void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto listJson = list.toJson();
