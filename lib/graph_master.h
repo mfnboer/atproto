@@ -16,6 +16,7 @@ public:
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using CreateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -39,7 +40,7 @@ public:
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     void addUserToList(const QString& listUri, const QString& did,
-                       const SuccessCb& successCb, const ErrorCb& errorCb);
+                       const AddListUserSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     void createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);

@@ -197,7 +197,7 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
 }
 
 void GraphMaster::addUserToList(const QString& listUri, const QString& did,
-                                const SuccessCb& successCb, const ErrorCb& errorCb)
+                                const AddListUserSuccessCb& successCb, const ErrorCb& errorCb)
 {
     AppBskyGraph::ListItem record;
     record.mSubject = did;
@@ -209,9 +209,9 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
     const QString collection = recordJson["$type"].toString();
 
     mClient.createRecord(repo, collection, {}, recordJson,
-        [successCb](auto){
+        [successCb](auto strongRef){
             if (successCb)
-                successCb();
+                successCb(strongRef->mUri, strongRef->mCid);
         },
         [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
