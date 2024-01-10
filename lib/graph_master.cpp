@@ -196,6 +196,29 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
         });
 }
 
+void GraphMaster::addUserToList(const QString& listUri, const QString& did,
+                                const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    AppBskyGraph::ListItem record;
+    record.mSubject = did;
+    record.mList = listUri;
+    record.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    const auto recordJson = record.toJson();
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = recordJson["$type"].toString();
+
+    mClient.createRecord(repo, collection, {}, recordJson,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
 template<class RecordType>
 void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb)
 {

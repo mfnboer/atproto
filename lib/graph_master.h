@@ -38,6 +38,9 @@ public:
                     const QString& description, Blob::Ptr avatar, bool updateAvatar,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void addUserToList(const QString& listUri, const QString& did,
+                       const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     void createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description,
