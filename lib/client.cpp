@@ -385,6 +385,28 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
         authToken());
 }
 
+void Client::getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+                         const GetFeedSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"list", list}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getListFeed", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getListFeed:" << reply;
+            try {
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getFeedGenerator(const QString& feed,
                       const GetFeedGeneratorSuccessCb& successCb, const ErrorCb& errorCb)
 {
