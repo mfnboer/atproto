@@ -96,19 +96,11 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const CreateListSuc
 
 void GraphMaster::updateList(const QString& listUri, const QString& name,
                              const QString& description, Blob::Ptr avatar, bool updateAvatar,
-                const SuccessCb& successCb, const ErrorCb& errorCb)
+                             const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    const ATUri atUri(listUri);
-
+    const auto atUri = ATUri::createAtUri(listUri, mPresence, errorCb);
     if (!atUri.isValid())
-    {
-        qWarning() << "Invalid URI:" << listUri;
-
-        if (errorCb)
-            errorCb("InvalidURI", QString("Invalid URI: ") + listUri);
-
         return;
-    }
 
     if (updateAvatar)
         mRKeyBlobMap[atUri.getRkey()] = std::move(avatar);
@@ -146,7 +138,8 @@ void GraphMaster::updateList(const QString& listUri, const QString& name,
         });
 }
 
-void GraphMaster::updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description, const SuccessCb& successCb, const ErrorCb& errorCb)
+void GraphMaster::updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description,
+                             const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     auto facets = RichTextMaster::parseFacets(description);
     mRKeyListMap[rkey] = std::move(list);
@@ -184,7 +177,8 @@ void GraphMaster::updateList(AppBskyGraph::List::Ptr list, const QString& rkey, 
         });
 }
 
-void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb)
+void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey,
+                             const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto listJson = list.toJson();
     qDebug() << "Update list:" << listJson;
@@ -192,9 +186,9 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
     const QString collection = listJson["$type"].toString();
 
     mClient.putRecord(repo, collection, rkey, listJson,
-        [successCb](auto){
+        [successCb](auto strongRef){
             if (successCb)
-                successCb();
+                successCb(strongRef->mUri, strongRef->mCid);
         },
         [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
