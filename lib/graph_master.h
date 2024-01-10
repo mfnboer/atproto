@@ -15,6 +15,7 @@ class GraphMaster : public Presence
 public:
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using CreateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -35,12 +36,14 @@ public:
 
     void updateList(const QString& listUri, const QString& name,
                     const QString& description, Blob::Ptr avatar, bool updateAvatar,
-                    const SuccessCb& successCb, const ErrorCb& errorCb);
+                    const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     void createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
-    void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void updateList(const AppBskyGraph::List& list, const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description,
+                    const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateList(const AppBskyGraph::List& list, const QString& rkey,
+                    const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     template<class RecordType>
     void createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb);
