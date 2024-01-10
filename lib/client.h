@@ -190,6 +190,17 @@ public:
                  const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief getListFeed
+     * @param list list at-uri
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief getFeedGenerator
      * @param feed feed at-uri
      * @param successCb
