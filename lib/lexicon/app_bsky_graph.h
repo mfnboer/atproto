@@ -182,7 +182,7 @@ struct ListBlock
     static Ptr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.graph.listItem
+// app.bsky.graph.listitem
 struct ListItem
 {
     QString mSubject; // did
