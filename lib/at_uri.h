@@ -10,6 +10,9 @@ class ATUri
 {
 public:
     using ErrorCb = std::function<void(const QString& error, const QString& msg)>;
+
+    static constexpr char const* COLLECTION_FEED_GENERATOR = "app.bsky.feed.generator";
+    static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
     
     static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri fromHttpsFeedUri(const QString& uri);
