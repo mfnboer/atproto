@@ -199,7 +199,7 @@ List::Ptr List::fromJson(const QJsonObject& json)
 QJsonObject ListBlock::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.graph.listBlock");
+    json.insert("$type", "app.bsky.graph.listblock");
     json.insert("subject", mSubject);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     return json;
