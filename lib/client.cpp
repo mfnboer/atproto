@@ -821,7 +821,7 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
     jsonObj.insert("list", listUri);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.muteActorList", json,
+    mXrpc->post("app.bsky.graph.unmuteActorList", json,
         [successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "unmuteActorList:" << reply;
             if (successCb)
