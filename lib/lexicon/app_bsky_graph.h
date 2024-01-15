@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "app_bsky_actor.h"
+#include "app_bsky_graph_include.h"
 #include "app_bsky_richtext.h"
 #include "com_atproto_label.h"
 #include <QJsonDocument>
@@ -76,42 +77,8 @@ struct Block
     static Ptr fromJson(const QJsonObject& json);
 };
 
-enum class ListPurpose
-{
-    MOD_LIST,
-    CURATE_LIST,
-    UNKNOWN
-};
-
 ListPurpose stringToListPurpose(const QString& str);
 QString ListPurposeToString(ListPurpose purpose);
-
-// app.bsky.graph.defs#listViewerState
-struct ListViewerState
-{
-    bool mMuted = false;
-    std::optional<QString> mBlocked; // at-uri
-
-    using Ptr = std::unique_ptr<ListViewerState>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.graph.defs#listViewBasic
-struct ListViewBasic
-{
-    QString mUri;
-    QString mCid;
-    QString mName;
-    ListPurpose mPurpose;
-    QString mRawPurpose;
-    std::optional<QString> mAvatar;
-    ListViewerState::Ptr mViewer; // optional
-    std::optional<QDateTime> mIndexedAt;
-
-    using SharedPtr = std::shared_ptr<ListViewBasic>;
-    using Ptr = std::unique_ptr<ListViewBasic>;
-    static Ptr fromJson(const QJsonObject& json);
-};
 
 using ListViewBasicList = std::vector<ListViewBasic::Ptr>;
 

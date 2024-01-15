@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "app_bsky_graph_include.h"
 #include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
@@ -15,7 +16,8 @@ struct ViewerState
     std::optional<QString> mBlocking;
     std::optional<QString> mFollowing;
     std::optional<QString> mFollowedBy;
-    // NOT IMPLEMENTED: mutedByList
+    std::unique_ptr<AppBskyGraph::ListViewBasic> mMutedByList;
+    std::unique_ptr<AppBskyGraph::ListViewBasic> mBlockingByList;
 
     using Ptr = std::unique_ptr<ViewerState>;
     static Ptr fromJson(const QJsonObject& json);
