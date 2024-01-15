@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "app_bsky_actor.h"
+#include "app_bsky_graph.h"
 #include "../xjson.h"
 #include <unordered_map>
 
@@ -15,6 +16,8 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mBlocking = xjson.getOptionalString("blocking");
     viewerState->mFollowing = xjson.getOptionalString("following");
     viewerState->mFollowedBy = xjson.getOptionalString("followedBy");
+    viewerState->mMutedByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("mutedByList");
+    viewerState->mBlockingByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("blockingByList");
     return viewerState;
 }
 
