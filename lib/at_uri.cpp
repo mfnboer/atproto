@@ -8,18 +8,9 @@
 
 namespace ATProto {
 
-ATUri ATUri::fromHttpsPostUri(const QString& uri)
+static ATUri fromHttpsUri(const QString& uri, const QRegularExpression& reHandleHttps,
+                          const QRegularExpression& reDidHttps, char const* collection)
 {
-    static const QRegularExpression reHandleHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
-            ATRegex::HANDLE.pattern(),
-            ATRegex::RKEY.pattern()));
-
-    static const QRegularExpression reDidHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
-            ATRegex::DID.pattern(),
-            ATRegex::RKEY.pattern()));
-
     bool authorityIsHandle = true;
     auto match = reHandleHttps.match(uri);
 
@@ -34,12 +25,27 @@ ATUri ATUri::fromHttpsPostUri(const QString& uri)
     }
 
     ATUri atUri;
-    atUri.mAuthority = match.captured("authority");
-    atUri.mCollection = "app.bsky.feed.post";
-    atUri.mRkey = match.captured("rkey");
-    atUri.mAuthorityIsHandle = authorityIsHandle;
+    atUri.setAuthority(match.captured("authority"));
+    atUri.setCollection(collection);
+    atUri.setRKey(match.captured("rkey"));
+    atUri.setAuthorityIsHandle(authorityIsHandle);
 
     return atUri;
+}
+
+ATUri ATUri::fromHttpsPostUri(const QString& uri)
+{
+    static const QRegularExpression reHandleHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+            ATRegex::HANDLE.pattern(),
+            ATRegex::RKEY.pattern()));
+
+    static const QRegularExpression reDidHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+            ATRegex::DID.pattern(),
+            ATRegex::RKEY.pattern()));
+
+    return fromHttpsUri(uri, reHandleHttps, reDidHttps, COLLECTION_FEED_POST);
 }
 
 ATUri ATUri::fromHttpsFeedUri(const QString& uri)
@@ -54,26 +60,22 @@ ATUri ATUri::fromHttpsFeedUri(const QString& uri)
             ATRegex::DID.pattern(),
             ATRegex::RKEY.pattern()));
 
-    bool authorityIsHandle = true;
-    auto match = reHandleHttps.match(uri);
+    return fromHttpsUri(uri, reHandleHttps, reDidHttps, COLLECTION_FEED_GENERATOR);
+}
 
-    if (!match.hasMatch())
-    {
-        match = reDidHttps.match(uri);
+ATUri ATUri::fromHttpsListUri(const QString& uri)
+{
+    static const QRegularExpression reHandleHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/lists/(?<rkey>%2)$)").arg(
+            ATRegex::HANDLE.pattern(),
+            ATRegex::RKEY.pattern()));
 
-        if (!match.hasMatch())
-            return {};
+    static const QRegularExpression reDidHttps(
+        QString(R"(^https://bsky.app/profile/(?<authority>%1)/lists/(?<rkey>%2)$)").arg(
+            ATRegex::DID.pattern(),
+            ATRegex::RKEY.pattern()));
 
-        authorityIsHandle = false;
-    }
-
-    ATUri atUri;
-    atUri.mAuthority = match.captured("authority");
-    atUri.mCollection = "app.bsky.feed.generator";
-    atUri.mRkey = match.captured("rkey");
-    atUri.mAuthorityIsHandle = authorityIsHandle;
-
-    return atUri;
+    return fromHttpsUri(uri, reHandleHttps, reDidHttps, COLLECTION_GRAPH_LIST);
 }
 
 ATUri ATUri::createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb)

@@ -205,8 +205,10 @@ RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
     case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
         view->mRecord = AppBskyFeed::GeneratorView::fromJson(recordJson);
         break;
+    case ATProto::RecordType::APP_BSKY_GRAPH_LIST_VIEW:
+        view->mRecord = AppBskyGraph::ListView::fromJson(recordJson);
+        break;
     default:
-        // TODO: lists app.bsky.graph.defs#listView
         qWarning() << "Unsupported record type in app.bsky.embed.record#view:" << type << json;
         view->mUnsupportedType = type;
         break;
@@ -430,6 +432,9 @@ RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
         break;
     case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
         viewRecord->mValue = AppBskyFeed::GeneratorView::fromJson(valueJson);
+        break;
+    case ATProto::RecordType::APP_BSKY_GRAPH_LIST_VIEW:
+        viewRecord->mValue = AppBskyGraph::ListView::fromJson(valueJson);
         break;
     default:
         qWarning() << "Unsupported value type in app.bsky.embed.record#viewRecord:"

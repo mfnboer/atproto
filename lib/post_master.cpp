@@ -243,6 +243,44 @@ void PostMaster::continueGetFeed(const ATUri& atUri, const FeedCb& successCb)
         });
 }
 
+void PostMaster::getList(const QString& httpsUri, const ListCb& successCb)
+{
+    auto atUri = ATUri::fromHttpsListUri(httpsUri);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getProfile(atUri.getAuthority(),
+        [this, presence=getPresence(), atUri, successCb](auto profile){
+            if (!presence)
+                return;
+
+            ATUri newUri(atUri);
+            newUri.setAuthority(profile->mDid);
+            newUri.setAuthorityIsHandle(false);
+            continueGetList(newUri, successCb);
+        },
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+        });
+}
+
+void PostMaster::continueGetList(const ATUri& atUri, const ListCb& successCb)
+{
+    mClient.getList(atUri.toString(), 1, {},
+        [successCb](auto output){
+            try {
+                if (successCb)
+                    successCb(std::move(output->mList));
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+            }
+        },
+        [](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+        });
+}
+
 void PostMaster::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
