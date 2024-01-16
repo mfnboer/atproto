@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "app_bsky_actor.h"
+#include "app_bsky_graph.h"
 #include "app_bsky_richtext.h"
 #include "com_atproto_label.h"
 #include "com_atproto_repo.h"
@@ -183,7 +184,8 @@ struct RecordView
     std::variant<std::unique_ptr<RecordViewRecord>,
                  RecordViewNotFound::Ptr,
                  RecordViewBlocked::Ptr,
-                 AppBskyFeed::GeneratorView::Ptr> mRecord;
+                 AppBskyFeed::GeneratorView::Ptr,
+                 AppBskyGraph::ListView::Ptr> mRecord;
     RecordType mRecordType;
 
     QString mUnsupportedType; // not part of the spec
@@ -319,7 +321,9 @@ struct RecordViewRecord
     QString mUri;
     QString mCid;
     AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
-    std::variant<AppBskyFeed::Record::Post::Ptr, AppBskyFeed::GeneratorView::Ptr> mValue;
+    std::variant<AppBskyFeed::Record::Post::Ptr,
+                 AppBskyFeed::GeneratorView::Ptr,
+                 AppBskyGraph::ListView::Ptr> mValue;
     RecordType mValueType;
     QString mRawValueType;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;

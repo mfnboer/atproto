@@ -51,6 +51,7 @@ enum class RecordType
 
     APP_BSKY_FEED_POST,
     APP_BSKY_FEED_GENERATOR_VIEW,
+    APP_BSKY_GRAPH_LIST_VIEW,
 
     UNKNOWN
 };

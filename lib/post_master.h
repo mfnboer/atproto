@@ -20,6 +20,7 @@ public:
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
     using FeedCb = std::function<void(AppBskyFeed::GeneratorView::Ptr)>;
+    using ListCb = std::function<void(AppBskyGraph::ListView::Ptr)>;
     using ErrorCb = Client::ErrorCb;
 
     explicit PostMaster(Client& client);
@@ -43,6 +44,8 @@ public:
     void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb);
     void getFeed(const QString& httpsUri, const FeedCb& successCb);
     void continueGetFeed(const ATUri& atUri, const FeedCb& successCb);
+    void getList(const QString& httpsUri, const ListCb& successCb);
+    void continueGetList(const ATUri& atUri, const ListCb& successCb);
 
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
     void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
