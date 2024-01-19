@@ -130,7 +130,7 @@ public:
                         const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief searchActors NOT YET SUPPORTED BY BSKY
+     * @brief searchActors
      * @param q search query
      * @param limit min=1 max=100 default=25
      * @param cursor
@@ -140,7 +140,7 @@ public:
     void searchActors(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                       const SearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
 
-    // Temporary legacy search till app.bsky.feed.searchPosts is supported by bsky
+    // TODO: remove legacy search
     // https://search.bsky.social/search/posts?q=
     // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
     void legacySearchActors(const QString& q,
@@ -239,7 +239,7 @@ public:
                   const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief searchPosts NOT YET SUPPORTED BY BSKY
+     * @brief searchPosts
      * @param q search query
      * @param limit min=1 max=100 default=25
      * @param cursor
@@ -249,7 +249,7 @@ public:
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
-    // Temporary legacy search till app.bsky.feed.searchPosts is supported by bsky
+    // TODO: remove legacy search
     // https://search.bsky.social/search/posts?q=
     // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
     void legacySearchPosts(const QString& q,
