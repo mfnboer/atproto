@@ -312,4 +312,13 @@ struct GetFeedGeneratorsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+struct GetActorFeedsOutput
+{
+    GeneratorViewList mFeeds;
+    std::optional<QString> mCursor;
+
+    using Ptr = std::unique_ptr<GetActorFeedsOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

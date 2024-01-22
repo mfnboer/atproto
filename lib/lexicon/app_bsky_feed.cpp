@@ -574,4 +574,13 @@ GetFeedGeneratorsOutput::Ptr GetFeedGeneratorsOutput::fromJson(const QJsonObject
     return output;
 }
 
+GetActorFeedsOutput::Ptr GetActorFeedsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetActorFeedsOutput>();
+    const XJsonObject xjson(json);
+    output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
+    output->mCursor = xjson.getOptionalString("cursor");
+    return output;
+}
+
 }

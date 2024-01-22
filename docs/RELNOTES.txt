@@ -1,6 +1,7 @@
 next
 ====
 * Get actor likes
+* Get actor feeds
 
 0.5
 ===

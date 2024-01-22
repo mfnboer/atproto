@@ -41,6 +41,7 @@ public:
     using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetFeedGeneratorSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorOutput::Ptr)>;
     using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::Ptr)>;
+    using GetActorFeedsSuccessCb = std::function<void(AppBskyFeed::GetActorFeedsOutput::Ptr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
     using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::Ptr)>;
@@ -229,6 +230,17 @@ public:
      */
     void getFeedGenerators(const std::vector<QString>& feeds,
                            const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getActorFeeds Get a list of feeds created by the actor.
+     * @param user user handle or did
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getActorFeeds(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                       const GetActorFeedsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getPostThread
