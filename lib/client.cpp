@@ -477,6 +477,28 @@ void Client::getFeedGenerators(const std::vector<QString>& feeds,
         authToken());
 }
 
+void Client::getActorFeeds(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                           const GetActorFeedsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", user}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getActorFeeds", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getActorFeeds:" << reply;
+            try {
+                auto output = AppBskyFeed::GetActorFeedsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getPostThread(const QString& uri, std::optional<int> depth, std::optional<int> parentHeight,
                            const GetPostThreadSuccessCb& successCb, const ErrorCb& errorCb)
 {
