@@ -341,6 +341,28 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
         authToken());
 }
 
+void Client::getActorLikes(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                           const GetActorLikesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", user}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.feed.getActorLikes", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getActorLikes:" << reply;
+            try {
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                if (successCb)
+                    successCb(std::move(feed));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
                          const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb)
 {

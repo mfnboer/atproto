@@ -36,6 +36,7 @@ public:
     using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
     using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailedList)>;
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
+    using GetActorLikesSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
     using GetFeedGeneratorSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorOutput::Ptr)>;
@@ -167,6 +168,17 @@ public:
      */
     void getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getActorLikes Get a list of posts liked by an actor.
+     * @param user user handle or did
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getActorLikes(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                       const GetActorLikesSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTimeline
