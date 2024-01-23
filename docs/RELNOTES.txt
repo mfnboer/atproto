@@ -1,5 +1,5 @@
-next
-====
+0.6
+===
 * Get actor likes
 * Get actor feeds
 
