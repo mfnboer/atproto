@@ -1,11 +1,11 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "profile_master.h"
+#include "at_uri.h"
 
 namespace ATProto {
 
 namespace {
-constexpr char const* PROFILE_COLLECTION = "app.bsky.actor.profile";
 constexpr char const* PROFILE_KEY = "self";
 constexpr char const* LOGGED_OUT_VISIBILITY_LABEL = "!no-unauthenticated";
 }
@@ -29,10 +29,10 @@ ProfileMaster::ProfileMaster(Client& client) :
 {
 }
 
-void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const Client::ErrorCb& errorCb)
+void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get profile:" << did;
-    mClient.getRecord(did, PROFILE_COLLECTION, PROFILE_KEY, {},
+    mClient.getRecord(did, ATUri::PROFILE_COLLECTION, PROFILE_KEY, {},
         [successCb, errorCb](ComATProtoRepo::Record::Ptr record) {
             qDebug() << "Got profile:" << record->mValue;
 
@@ -57,12 +57,51 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 }
 
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
-                   const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.putRecord(did, PROFILE_COLLECTION, PROFILE_KEY, profile.toJson(),
+    mClient.putRecord(did, ATUri::PROFILE_COLLECTION, PROFILE_KEY, profile.toJson(),
         [successCb](auto){
             if (successCb)
                 successCb();
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
+                                  Blob::Ptr avatar, bool updateAvatar, Blob::Ptr banner, bool updateBanner,
+                                  const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (updateAvatar)
+        mDidAvatarBlobMap[did] = std::move(avatar);
+
+    if (updateBanner)
+        mDidBannerBlobMap[did] = std::move(banner);
+
+    getProfile(did,
+        [this, presence=getPresence(), did, name, description, updateAvatar, updateBanner, successCb, errorCb](auto&& profile)
+        {
+            if (!presence)
+                return;
+
+            profile->mDisplayName = name;
+            profile->mDescription = description;
+
+            if (updateAvatar)
+            {
+                profile->mAvatar = std::move(mDidAvatarBlobMap[did]);
+                mDidAvatarBlobMap.erase(did);
+            }
+
+            if (updateBanner)
+            {
+                profile->mBanner = std::move(mDidBannerBlobMap[did]);
+                mDidBannerBlobMap.erase(did);
+            }
+
+            updateProfile(did, *profile, successCb, errorCb);
         },
         [errorCb](const QString& error, const QString& msg) {
             if (errorCb)
@@ -92,7 +131,7 @@ bool ProfileMaster::addLabel(AppBskyActor::Profile& profile, const QString& labe
 }
 
 void ProfileMaster::addSelfLabel(const QString& did, const QString& label,
-                  const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                  const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Add self label:" << label << "did:" << did;
     getProfile(did,
@@ -137,7 +176,7 @@ bool ProfileMaster::removeLabel(AppBskyActor::Profile& profile, const QString& l
 }
 
 void ProfileMaster::removeSelfLabel(const QString& did, const QString& label,
-                     const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                     const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Remove self label:" << label << "did:" << did;
     getProfile(did,
@@ -163,7 +202,7 @@ void ProfileMaster::removeSelfLabel(const QString& did, const QString& label,
 }
 
 void ProfileMaster::setLoggedOutVisibility(const QString& did, bool enable,
-                            const Client::SuccessCb& successCb, const Client::ErrorCb& errorCb)
+                                           const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     if (enable)
         removeSelfLabel(did, LOGGED_OUT_VISIBILITY_LABEL, successCb, errorCb);
