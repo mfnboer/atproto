@@ -108,6 +108,13 @@ ATUri::ATUri(const QString& uri)
     mRkey = uriParts[3];
 }
 
+ATUri::ATUri(const QString& authority, const QString& collection, const QString& rKey) :
+    mAuthority(authority),
+    mCollection(collection),
+    mRkey(rKey)
+{
+}
+
 QString ATUri::toString() const
 {
     return QString("at://%1/%2/%3").arg(mAuthority, mCollection, mRkey);

@@ -519,11 +519,7 @@ LegacySearchPostsOutput::Ptr LegacySearchPostsOutput::fromJson(const QJsonArray&
         const XJsonObject xjsonUser(userJson);
         const QString did = xjsonUser.getRequiredString("did");
 
-        ATUri atUri;
-        atUri.setAuthority(did);
-        atUri.setCollection("app.bsky.feed.post");
-        atUri.setRKey(rKey);
-
+        ATUri atUri(did, "app.bsky.feed.post", rKey);
         output->mUris.push_back(atUri.toString());
     }
 

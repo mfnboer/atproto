@@ -14,7 +14,7 @@ public:
     static constexpr char const* COLLECTION_FEED_GENERATOR = "app.bsky.feed.generator";
     static constexpr char const* COLLECTION_FEED_POST = "app.bsky.feed.post";
     static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
-    static constexpr char const* PROFILE_COLLECTION = "app.bsky.actor.profile";
+    static constexpr char const* COLLECTION_ACTOR_PROFILE = "app.bsky.actor.profile";
     
     static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri fromHttpsFeedUri(const QString& uri);
@@ -23,6 +23,7 @@ public:
 
     ATUri() = default;
     explicit ATUri(const QString& uri);
+    ATUri(const QString& authority, const QString& collection, const QString& rKey);
 
     bool isValid() const;
     const QString& getAuthority() const { return mAuthority; }

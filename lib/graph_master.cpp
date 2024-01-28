@@ -51,7 +51,7 @@ void GraphMaster::undo(const QString& uri,
 }
 
 void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& name,
-                const QString& description, Blob::Ptr avatar,
+                const QString& description, Blob::Ptr avatar, const QString& rKey,
                 const CreateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     auto list = std::make_shared<AppBskyGraph::List>();
@@ -62,7 +62,7 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
     auto facets = RichTextMaster::parseFacets(description);
 
     mRichTextMaster.resolveFacets(description, facets, 0,
-        [this, presence=getPresence(), list, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+        [this, presence=getPresence(), list, rKey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
             if (!presence)
                 return;
 
@@ -72,18 +72,18 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
                 list->mDescriptionFacets = std::move(resolvedFacets);
             }
 
-            createList(*list, successCb, errorCb);
+            createList(*list, rKey, successCb, errorCb);
         });
 }
 
-void GraphMaster::createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb)
+void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto listJson = list.toJson();
     qDebug() << "Create list:" << listJson;
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = listJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, listJson,
+    mClient.createRecord(repo, collection, rKey, listJson,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

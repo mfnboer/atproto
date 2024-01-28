@@ -32,7 +32,7 @@ public:
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void createList(AppBskyGraph::ListPurpose purpose, const QString& name,
-                    const QString& description, Blob::Ptr avatar,
+                    const QString& description, Blob::Ptr avatar, const QString& rKey,
                     const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     void updateList(const QString& listUri, const QString& name,
@@ -43,7 +43,7 @@ public:
                        const AddListUserSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
-    void createList(const AppBskyGraph::List& list, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
