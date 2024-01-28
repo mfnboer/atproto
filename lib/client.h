@@ -71,6 +71,8 @@ public:
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
 
+    static bool isListNotFoundError(const QString& error, const QString& msg);
+
     explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
 
     const QString& getHost() const { return mXrpc->getHost(); }

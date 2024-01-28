@@ -32,7 +32,7 @@ ProfileMaster::ProfileMaster(Client& client) :
 void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get profile:" << did;
-    mClient.getRecord(did, ATUri::PROFILE_COLLECTION, PROFILE_KEY, {},
+    mClient.getRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {},
         [successCb, errorCb](ComATProtoRepo::Record::Ptr record) {
             qDebug() << "Got profile:" << record->mValue;
 
@@ -59,7 +59,7 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.putRecord(did, ATUri::PROFILE_COLLECTION, PROFILE_KEY, profile.toJson(),
+    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile.toJson(),
         [successCb](auto){
             if (successCb)
                 successCb();
