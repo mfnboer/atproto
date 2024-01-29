@@ -1,3 +1,8 @@
+0.7
+===
+* Functions for profile editing
+* Create list with fixed rkey
+
 0.6
 ===
 * Get actor likes
