@@ -260,12 +260,12 @@ QString applyFacets(const QString& text, const FacetList& facets, const QString&
         }
 
         const auto before = bytes.sliced(bytePos, start - bytePos);
-        result.append(QString(before).toHtmlEscaped().replace('\n', "<br>" ));
+        result.append(RichTextMaster::toCleanedHtml(QString(before)));
         result.append(link.mText);
         bytePos = link.mEnd;
     }
 
-    result.append(QString(bytes.sliced(bytePos)).toHtmlEscaped().replace('\n', "<br>" ));
+    result.append(RichTextMaster::toCleanedHtml(QString(bytes.sliced(bytePos))));
     qDebug() << "Orig:   " << text;
     qDebug() << "Faceted:" << result;
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(result);

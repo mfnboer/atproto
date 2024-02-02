@@ -6,14 +6,25 @@
 
 namespace ATProto {
 
-QString RichTextMaster::plainToHtml(const QString& text)
+QString RichTextMaster::toCleanedHtml(const QString& text)
 {
-    // Sometime post have an ObjectReplacementCharacter in it. They should not, seems
+    // Force Combining Enclosing Keycap character to be rendered by the emoji font.
+    static const QRegularExpression enclosingKeyCapRE("(.\uFE0F\u20E3)");
+
+    // Sometimes posts have an ObjectReplacementCharacter in it. They should not, seems
     // a bug in the Bluesky app. QML refuses to display such texts, so we replace
     // them by whitespace.
     const auto html = text.toHtmlEscaped()
                           .replace('\n', "<br>")
-                          .replace(QChar::ObjectReplacementCharacter, ' ');
+                          .replace(QChar::ObjectReplacementCharacter, ' ')
+                          .replace(enclosingKeyCapRE, "<span style=\"font-family:'Noto Color Emoji'\">\\1</span>");
+
+    return html;
+}
+
+QString RichTextMaster::plainToHtml(const QString& text)
+{
+    const QString html = toCleanedHtml(text);
 
     // Preserve white space
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
@@ -64,7 +75,7 @@ QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
             facet.mType == ParsedMatch::Type::LINK)
         {
             const auto before = text.sliced(pos, facet.mStartIndex - pos);
-            linkified.append(before.toHtmlEscaped());
+            linkified.append(toCleanedHtml(before));
             const QString ref = facet.mType == ParsedMatch::Type::MENTION || facet.mMatch.startsWith("http") ?
                                     facet.mMatch : "https://" + facet.mMatch;
             QString link = QString("<a href=\"%1\" style=\"color: %3;\">%2</a>").arg(ref, facet.mMatch, colorName);
@@ -73,7 +84,7 @@ QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
         }
     }
 
-    linkified.append(text.sliced(pos).toHtmlEscaped());
+    linkified.append(toCleanedHtml(text.sliced(pos)));
     linkified.append("</span>");
     return linkified;
 }

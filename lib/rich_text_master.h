@@ -22,6 +22,7 @@ public:
         QString mRef;
     };
 
+    static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
     static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
     static QString getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor);
