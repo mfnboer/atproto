@@ -6,18 +6,24 @@
 
 namespace ATProto {
 
-QString RichTextMaster::toCleanedHtml(const QString& text)
-{
-    // Force Combining Enclosing Keycap character to be rendered by the emoji font.
-    static const QRegularExpression enclosingKeyCapRE("(.\uFE0F\u20E3)");
+std::vector<RichTextMaster::HtmlCleanupReplacement> RichTextMaster::sHtmlCleanupReplacements;
 
+void RichTextMaster::addHtmlClenupReplacement(const QRegularExpression& from, const QString& to)
+{
+    sHtmlCleanupReplacements.push_back(HtmlCleanupReplacement{from, to});
+}
+
+QString RichTextMaster::toCleanedHtml(const QString& text)
+{   
     // Sometimes posts have an ObjectReplacementCharacter in it. They should not, seems
     // a bug in the Bluesky app. QML refuses to display such texts, so we replace
     // them by whitespace.
-    const auto html = text.toHtmlEscaped()
-                          .replace('\n', "<br>")
-                          .replace(QChar::ObjectReplacementCharacter, ' ')
-                          .replace(enclosingKeyCapRE, "<span style=\"font-family:'Noto Color Emoji'\">\\1</span>");
+    auto html = text.toHtmlEscaped()
+                    .replace('\n', "<br>")
+                    .replace(QChar::ObjectReplacementCharacter, ' ');
+
+    for (const auto& replacement : sHtmlCleanupReplacements)
+        html = html.replace(replacement.mFrom, replacement.mTo);
 
     return html;
 }
