@@ -22,6 +22,13 @@ public:
         QString mRef;
     };
 
+    struct HtmlCleanupReplacement
+    {
+        QRegularExpression mFrom;
+        QString mTo;
+    };
+
+    static void addHtmlClenupReplacement(const QRegularExpression& from, const QString& to);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
     static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
@@ -50,6 +57,8 @@ public:
 
 private:
     Client& mClient;
+
+    static std::vector<HtmlCleanupReplacement> sHtmlCleanupReplacements;
 };
 
 }
