@@ -1,3 +1,7 @@
+next
+====
+* Thread gate list rules
+
 0.8
 ===
 * Improve plain to html conversion.

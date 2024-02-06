@@ -27,7 +27,7 @@ public:
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const PostSuccessCb& successCb, const ErrorCb& errorCb);
-    void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing,
+    void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
                        const Client::SuccessCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
                 const RepostSuccessCb& successCb, const ErrorCb& errorCb);

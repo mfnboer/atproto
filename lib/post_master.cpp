@@ -41,18 +41,25 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
         });
 }
 
-void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollowing,
+void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
                    const Client::SuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
         return;
 
-    ATProto::AppBskyFeed::Threadgate threadgate;
+    AppBskyFeed::Threadgate threadgate;
     threadgate.mPost = uri;
     threadgate.mAllowMention = allowMention;
     threadgate.mAllowFollowing = allowFollowing;
     threadgate.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    for (const auto& listUri : allowLists)
+    {
+        auto listRule = std::make_unique<AppBskyFeed::ThreadgateListRule>();
+        listRule->mList = listUri;
+        threadgate.mAllowList.push_back(std::move(listRule));
+    }
 
     QJsonObject threadgateJson = threadgate.toJson();
     qDebug() << "Add threadgate:" << threadgateJson;
