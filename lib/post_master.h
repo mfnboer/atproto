@@ -49,6 +49,7 @@ public:
 
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
     void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
+    static void addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringList& labels);
     static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::Ptr blob = nullptr);

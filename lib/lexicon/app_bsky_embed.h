@@ -300,7 +300,7 @@ struct Post
     AppBskyRichtext::FacetList mFacets;
     PostReplyRef::Ptr mReply;
     ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional
-    // NOT IMPLEMENTED self labels
+    ComATProtoLabel::SelfLabels::Ptr mLabels; // optional
     // NOT IMPLEMENTED langs
     QDateTime mCreatedAt;
 

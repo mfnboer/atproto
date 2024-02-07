@@ -156,26 +156,11 @@ QJsonObject Record::Post::toJson() const
     QJsonObject json;
     json.insert("$type", "app.bsky.feed.post");
     json.insert("text", mText);
+    json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
+    XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);
+    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Embed>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
-
-    if (mReply)
-        json.insert("reply", mReply->toJson());
-
-    if (mEmbed)
-        json.insert("embed", mEmbed->toJson());
-
-    if (!mFacets.empty())
-    {
-        QJsonArray jsonArray;
-        for (const auto& facet : mFacets)
-        {
-            QJsonObject facetJson = facet->toJson();
-            jsonArray.append(facetJson);
-        }
-
-        json.insert("facets", jsonArray);
-    }
-
     return json;
 }
 
@@ -187,6 +172,7 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     post->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     post->mReply = xjson.getOptionalObject<PostReplyRef>("reply");
     post->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Embed>("embed");
+    post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return post;
 }

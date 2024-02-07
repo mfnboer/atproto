@@ -320,6 +320,22 @@ void PostMaster::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& 
     record->mRecord = std::move(ref);
 }
 
+void PostMaster::addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringList& labels)
+{
+    if (labels.isEmpty())
+        return;
+
+    if (!post.mLabels)
+        post.mLabels = std::make_unique<ComATProtoLabel::SelfLabels>();
+
+    for (const auto& label : labels)
+    {
+        auto l = std::make_unique<ComATProtoLabel::SelfLabel>();
+        l->mVal = label;
+        post.mLabels->mValues.push_back(std::move(l));
+    }
+}
+
 void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText)
 {
     if (!post.mEmbed)
