@@ -1,6 +1,7 @@
 next
 ====
 * Thread gate list rules
+* Labels on post
 
 0.8
 ===
