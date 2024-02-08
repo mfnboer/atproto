@@ -1,5 +1,5 @@
-next
-====
+0.9
+===
 * Thread gate list rules
 * Labels on post
 
