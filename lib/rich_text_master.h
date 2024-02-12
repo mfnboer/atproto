@@ -10,6 +10,7 @@ class RichTextMaster : public Presence
 {
 public:
     using FacetsResolvedCb = std::function<void(const QString& text, AppBskyRichtext::FacetList facets)>;
+    using HtmlCleanupFun = std::function<QString(const QString&)>;
 
     struct ParsedMatch
     {
@@ -29,6 +30,7 @@ public:
     };
 
     static void addHtmlClenupReplacement(const QRegularExpression& from, const QString& to);
+    static void setHtmlCleanup(const HtmlCleanupFun& cleanup);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
     static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
@@ -59,6 +61,7 @@ private:
     Client& mClient;
 
     static std::vector<HtmlCleanupReplacement> sHtmlCleanupReplacements;
+    static HtmlCleanupFun sHtmlCleanup;
 };
 
 }
