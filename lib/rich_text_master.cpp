@@ -6,13 +6,7 @@
 
 namespace ATProto {
 
-std::vector<RichTextMaster::HtmlCleanupReplacement> RichTextMaster::sHtmlCleanupReplacements;
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
-
-void RichTextMaster::addHtmlClenupReplacement(const QRegularExpression& from, const QString& to)
-{
-    sHtmlCleanupReplacements.push_back(HtmlCleanupReplacement{from, to});
-}
 
 void RichTextMaster::setHtmlCleanup(const HtmlCleanupFun& cleanup)
 {
@@ -27,9 +21,6 @@ QString RichTextMaster::toCleanedHtml(const QString& text)
     auto html = text.toHtmlEscaped()
                     .replace('\n', "<br>")
                     .replace(QChar::ObjectReplacementCharacter, ' ');
-
-    for (const auto& replacement : sHtmlCleanupReplacements)
-        html = html.replace(replacement.mFrom, replacement.mTo);
 
     if (sHtmlCleanup)
         html = sHtmlCleanup(html);

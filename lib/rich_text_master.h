@@ -23,13 +23,6 @@ public:
         QString mRef;
     };
 
-    struct HtmlCleanupReplacement
-    {
-        QRegularExpression mFrom;
-        QString mTo;
-    };
-
-    static void addHtmlClenupReplacement(const QRegularExpression& from, const QString& to);
     static void setHtmlCleanup(const HtmlCleanupFun& cleanup);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
@@ -60,7 +53,6 @@ public:
 private:
     Client& mClient;
 
-    static std::vector<HtmlCleanupReplacement> sHtmlCleanupReplacements;
     static HtmlCleanupFun sHtmlCleanup;
 };
 
