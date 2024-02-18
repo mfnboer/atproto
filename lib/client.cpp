@@ -283,26 +283,6 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
         authToken());
 }
 
-void Client::legacySearchActors(const QString& q,
-                        const LegacySearchActorsSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    Xrpc::Client::Params params{{"q", q}};
-
-    mXrpc->get("legacy.searchActors", params,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "legacySearchActors:" << reply;
-            try {
-                auto output = AppBskyActor::LegacySearchActorsOutput::fromJson(reply.array());
-
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
-        },
-        failure(errorCb));
-}
-
 void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
                                    const SearchActorsTypeaheadSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -574,26 +554,6 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
         },
         failure(errorCb),
         authToken());
-}
-
-void Client::legacySearchPosts(const QString& q,
-                       const LegacySearchPostsSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    Xrpc::Client::Params params{{"q", q}};
-
-    mXrpc->get("legacy.searchPosts", params,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "legacySearchPosts:" << reply;
-            try {
-                auto output = AppBskyFeed::LegacySearchPostsOutput::fromJson(reply.array());
-
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
-        },
-        failure(errorCb));
 }
 
 void Client::getLikes(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,

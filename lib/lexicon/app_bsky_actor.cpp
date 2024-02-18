@@ -358,26 +358,4 @@ SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJs
     return output;
 }
 
-LegacySearchActorsOutput::Ptr LegacySearchActorsOutput::fromJson(const QJsonArray& jsonArray)
-{
-    auto output = std::make_unique<LegacySearchActorsOutput>();
-    output->mDids.reserve(jsonArray.size());
-
-    for (const auto& profileJsonEntry : jsonArray)
-    {
-        if (!profileJsonEntry.isObject())
-        {
-            qWarning() << "Invalid profile:" << jsonArray << profileJsonEntry;
-            throw InvalidJsonException("LegacySearchActorsOutput");
-        }
-
-        const QJsonObject profileJson = profileJsonEntry.toObject();
-        const XJsonObject xjsonProfile(profileJson);
-        const QString did = xjsonProfile.getRequiredString("did");
-        output->mDids.push_back(did);
-    }
-
-    return output;
-}
-
 }

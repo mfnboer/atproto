@@ -92,12 +92,6 @@ void Client::get(const QString& service, const Params& params,
 QUrl Client::buildUrl(const QString& service) const
 {
     Q_ASSERT(!service.isEmpty());
-
-    if (service == "legacy.searchPosts")
-        return QUrl(QString("https://search.") + mHost + "/search/posts");
-    if (service == "legacy.searchActors")
-        return QUrl(QString("https://search.") + mHost + "/search/profiles");
-
     return QUrl(mPDS + "/xrpc/" + service);
 }
 

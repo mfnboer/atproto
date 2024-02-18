@@ -262,14 +262,6 @@ struct SearchActorsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
-struct LegacySearchActorsOutput
-{
-    std::vector<QString> mDids;
-
-    using Ptr = std::unique_ptr<LegacySearchActorsOutput>;
-    static Ptr fromJson(const QJsonArray& jsonArray);
-};
-
 // app.bsky.actor.searchActorsTypeahead#output
 struct SearchActorsTypeaheadOutput
 {

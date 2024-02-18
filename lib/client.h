@@ -63,8 +63,6 @@ public:
     using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::Ptr)>;
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
-    using LegacySearchPostsSuccessCb = std::function<void(AppBskyFeed::LegacySearchPostsOutput::Ptr)>;
-    using LegacySearchActorsSuccessCb = std::function<void(AppBskyActor::LegacySearchActorsOutput::Ptr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
@@ -143,12 +141,6 @@ public:
      */
     void searchActors(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                       const SearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
-
-    // TODO: remove legacy search
-    // https://search.bsky.social/search/posts?q=
-    // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
-    void legacySearchActors(const QString& q,
-                             const LegacySearchActorsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief searchActorsTypeahead
@@ -274,12 +266,6 @@ public:
      */
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
-
-    // TODO: remove legacy search
-    // https://search.bsky.social/search/posts?q=
-    // https://github.com/bluesky-social/social-app/blob/7ebf1ed3710081f27f90eaae125c7315798d56e5/src/lib/api/search.ts#L41
-    void legacySearchPosts(const QString& q,
-                           const LegacySearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getLikes
