@@ -1,6 +1,7 @@
 next
 ====
 * User provided HTML cleanup function.
+* Remove legacy search code
 
 0.9
 ===
