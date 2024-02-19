@@ -288,6 +288,34 @@ void PostMaster::continueGetList(const ATUri& atUri, const ListCb& successCb)
         });
 }
 
+AppBskyFeed::PostReplyRef::Ptr PostMaster::createReplyRef(const QString& replyToUri, const QString& replyToCid,
+                                              const QString& replyRootUri, const QString& replyRootCid)
+{
+    if (replyToUri.isEmpty() || replyToCid.isEmpty())
+        return nullptr;
+
+    auto replyRef = std::make_unique<ATProto::AppBskyFeed::PostReplyRef>();
+
+    replyRef->mParent = std::make_unique<ATProto::ComATProtoRepo::StrongRef>();
+    replyRef->mParent->mUri = replyToUri;
+    replyRef->mParent->mCid = replyToCid;
+
+    replyRef->mRoot = std::make_unique<ATProto::ComATProtoRepo::StrongRef>();
+    replyRef->mRoot->mUri = replyRootUri.isEmpty() ? replyToUri : replyRootUri;
+    replyRef->mRoot->mCid = replyRootCid.isEmpty() ? replyToCid : replyRootCid;
+
+    return replyRef;
+}
+
+AppBskyFeed::Record::Post::Ptr PostMaster::createPostWithoutFacets(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef)
+{
+    auto post = std::make_unique<AppBskyFeed::Record::Post>();
+    post->mText = text;
+    post->mCreatedAt = QDateTime::currentDateTimeUtc();
+    post->mReply = std::move(replyRef);
+    return post;
+}
+
 void PostMaster::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
@@ -306,7 +334,6 @@ void PostMaster::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr 
 
 void PostMaster::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid)
 {
-
     auto ref = std::make_unique<ComATProtoRepo::StrongRef>();
     ref->mUri = quoteUri;
     ref->mCid = quoteCid;

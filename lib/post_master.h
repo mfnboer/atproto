@@ -47,8 +47,13 @@ public:
     void getList(const QString& httpsUri, const ListCb& successCb);
     void continueGetList(const ATUri& atUri, const ListCb& successCb);
 
+    static AppBskyFeed::PostReplyRef::Ptr createReplyRef(
+            const QString& replyToUri, const QString& replyToCid,
+            const QString& replyRootUri, const QString& replyRootCid);
+    static AppBskyFeed::Record::Post::Ptr createPostWithoutFacets(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef);
+
     void createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
-    void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
+    static void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
     static void addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringList& labels);
     static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
