@@ -1,3 +1,7 @@
+next
+====
+* More PostMaster functions
+
 1.0
 ===
 * User provided HTML cleanup function.
