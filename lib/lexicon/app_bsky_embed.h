@@ -300,7 +300,7 @@ struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::FacetList mFacets;
-    PostReplyRef::Ptr mReply;
+    PostReplyRef::Ptr mReply; // optional
     ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional
     ComATProtoLabel::SelfLabels::Ptr mLabels; // optional
     // NOT IMPLEMENTED langs
