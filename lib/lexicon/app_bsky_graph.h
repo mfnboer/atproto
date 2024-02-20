@@ -78,7 +78,7 @@ struct Block
 };
 
 ListPurpose stringToListPurpose(const QString& str);
-QString ListPurposeToString(ListPurpose purpose);
+QString listPurposeToString(ListPurpose purpose);
 
 using ListViewBasicList = std::vector<ListViewBasic::Ptr>;
 
@@ -96,6 +96,8 @@ struct ListView
     std::optional<QString> mAvatar;
     ListViewerState::Ptr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
+
+    QJsonObject toJson() const; // partial serialization
 
     using SharedPtr = std::shared_ptr<ListView>;
     using Ptr = std::unique_ptr<ListView>;

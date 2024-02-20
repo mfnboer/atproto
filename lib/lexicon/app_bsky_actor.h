@@ -33,6 +33,8 @@ struct ProfileViewBasic
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
+    QJsonObject toJson() const; // partial serialization
+
     using Ptr = std::unique_ptr<ProfileViewBasic>;
     static Ptr fromJson(const QJsonObject& json);
 };
@@ -50,6 +52,8 @@ struct ProfileView
     std::optional<QDateTime> mIndexedAt;
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+
+    QJsonObject toJson() const; // partial serialization
 
     using SharedPtr = std::shared_ptr<ProfileView>;
     using Ptr = std::unique_ptr<ProfileView>;

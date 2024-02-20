@@ -96,7 +96,7 @@ ListPurpose stringToListPurpose(const QString& str)
     return ListPurpose::UNKNOWN;
 }
 
-QString ListPurposeToString(ListPurpose purpose)
+QString listPurposeToString(ListPurpose purpose)
 {
     static const std::unordered_map<ListPurpose, QString> mapping = {
         { ListPurpose::MOD_LIST, "app.bsky.graph.defs#modlist" },
@@ -134,6 +134,19 @@ ListViewBasic::Ptr ListViewBasic::fromJson(const QJsonObject& json)
     return listView;
 }
 
+QJsonObject ListView::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("creator", mCreator->toJson());
+    json.insert("name", mName);
+    json.insert("purpose", listPurposeToString(mPurpose));
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    return json;
+}
+
 ListView::Ptr ListView::fromJson(const QJsonObject& json)
 {
     auto listView = std::make_unique<ListView>();
@@ -167,7 +180,7 @@ QJsonObject List::toJson() const
     json.insert("$type", "app.bsky.graph.list");
 
     if (mPurpose != ListPurpose::UNKNOWN)
-        json.insert("purpose", ListPurposeToString(mPurpose));
+        json.insert("purpose", listPurposeToString(mPurpose));
     else
         json.insert("purpose", mRawPurpose);
 

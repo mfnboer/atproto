@@ -482,6 +482,20 @@ GeneratorViewerState::Ptr GeneratorViewerState::fromJson(const QJsonObject& json
     return viewerState;
 }
 
+QJsonObject GeneratorView::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("did", mDid);
+    json.insert("creator", mCreator->toJson());
+    json.insert("displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
 GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_unique<GeneratorView>();

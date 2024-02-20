@@ -21,6 +21,16 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+QJsonObject ProfileViewBasic::toJson() const
+{
+    QJsonObject json;
+    json.insert("did", mDid);
+    json.insert("handle", mHandle);
+    XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    return json;
+}
+
 ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
@@ -36,6 +46,17 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
 
     ComATProtoLabel::getLabels(profileViewBasic->mLabels, json);
     return profileViewBasic;
+}
+
+QJsonObject ProfileView::toJson() const
+{
+    QJsonObject json;
+    json.insert("did", mDid);
+    json.insert("handle", mHandle);
+    XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    return json;
 }
 
 ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)

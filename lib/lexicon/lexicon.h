@@ -57,6 +57,7 @@ enum class RecordType
 };
 
 RecordType stringToRecordType(const QString& str);
+QString recordTypeToString(RecordType recordType);
 
 struct DidDocument {
     QString mId;
