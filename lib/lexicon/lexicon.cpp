@@ -70,6 +70,24 @@ RecordType stringToRecordType(const QString& str)
     return RecordType::UNKNOWN;
 };
 
+QString recordTypeToString(RecordType recordType)
+{
+    static const std::unordered_map<RecordType, QString> mapping = {
+        { RecordType::APP_BSKY_FEED_POST, "app.bsky.feed.post" },
+        { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, "app.bsky.feed.defs#generatorView" },
+        { RecordType::APP_BSKY_GRAPH_LIST_VIEW, "app.bsky.graph.defs#listView" },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, "app.bsky.embed.record#viewBlocked" },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND, "app.bsky.embed.record#viewNotFound" },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD, "app.bsky.embed.record#viewRecord" },
+    };
+
+    const auto it = mapping.find(recordType);
+    if (it != mapping.end())
+        return it->second;
+
+    return {};
+}
+
 DidDocument::Ptr DidDocument::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);
