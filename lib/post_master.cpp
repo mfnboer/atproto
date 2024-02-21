@@ -48,20 +48,8 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     if (!atUri.isValid())
         return;
 
-    AppBskyFeed::Threadgate threadgate;
-    threadgate.mPost = uri;
-    threadgate.mAllowMention = allowMention;
-    threadgate.mAllowFollowing = allowFollowing;
-    threadgate.mCreatedAt = QDateTime::currentDateTimeUtc();
-
-    for (const auto& listUri : allowLists)
-    {
-        auto listRule = std::make_unique<AppBskyFeed::ThreadgateListRule>();
-        listRule->mList = listUri;
-        threadgate.mAllowList.push_back(std::move(listRule));
-    }
-
-    QJsonObject threadgateJson = threadgate.toJson();
+    auto threadgate = createThreadgate(uri, allowMention, allowFollowing, allowLists);
+    QJsonObject threadgateJson = threadgate->toJson();
     qDebug() << "Add threadgate:" << threadgateJson;
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = threadgateJson["$type"].toString();
@@ -75,6 +63,25 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
             if (errorCb)
                 errorCb(error, msg);
         });
+}
+
+AppBskyFeed::Threadgate::Ptr PostMaster::createThreadgate(const QString& uri, bool allowMention,
+        bool allowFollowing, const QStringList& allowLists)
+{
+    auto threadgate = std::make_unique<AppBskyFeed::Threadgate>();
+    threadgate->mPost = uri;
+    threadgate->mAllowMention = allowMention;
+    threadgate->mAllowFollowing = allowFollowing;
+    threadgate->mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    for (const auto& listUri : allowLists)
+    {
+        auto listRule = std::make_unique<AppBskyFeed::ThreadgateListRule>();
+        listRule->mList = listUri;
+        threadgate->mAllowList.push_back(std::move(listRule));
+    }
+
+    return threadgate;
 }
 
 void PostMaster::repost(const QString& uri, const QString& cid,

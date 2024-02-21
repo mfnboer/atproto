@@ -19,7 +19,8 @@ struct Label
     static Ptr fromJson(const QJsonObject& json);
 };
 
-void getLabels(std::vector<Label::Ptr>& labels, const QJsonObject& json);
+using LabelList = std::vector<Label::Ptr>;
+void getLabels(LabelList& labels, const QJsonObject& json);
 
 // com.atproto.label.defs#selfLabel
 struct SelfLabel
