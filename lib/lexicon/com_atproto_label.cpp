@@ -18,7 +18,7 @@ Label::Ptr Label::fromJson(const QJsonObject& json)
     return label;
 }
 
-void getLabels(std::vector<Label::Ptr>& labels, const QJsonObject& json)
+void getLabels(LabelList& labels, const QJsonObject& json)
 {
     XJsonObject xjson(json);
     labels = xjson.getOptionalVector<Label>("labels");

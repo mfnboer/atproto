@@ -47,6 +47,9 @@ public:
     void getList(const QString& httpsUri, const ListCb& successCb);
     void continueGetList(const ATUri& atUri, const ListCb& successCb);
 
+    static AppBskyFeed::Threadgate::Ptr createThreadgate(const QString& uri, bool allowMention,
+            bool allowFollowing, const QStringList& allowLists);
+
     static AppBskyFeed::PostReplyRef::Ptr createReplyRef(
             const QString& replyToUri, const QString& replyToCid,
             const QString& replyRootUri, const QString& replyRootCid);
