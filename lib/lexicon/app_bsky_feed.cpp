@@ -485,7 +485,7 @@ GeneratorViewerState::Ptr GeneratorViewerState::fromJson(const QJsonObject& json
 QJsonObject GeneratorView::toJson() const
 {
     QJsonObject json;
-    json.insert("$ytpe", "app.bsky.feed.defs#generatorView");
+    json.insert("$type", "app.bsky.feed.defs#generatorView");
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     json.insert("did", mDid);

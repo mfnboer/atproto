@@ -37,6 +37,7 @@ public:
     void setAuthorityIsHandle(bool isHandle) { mAuthorityIsHandle = isHandle; }
 
     QString toString() const;
+    QString toHttpsUri() const;
 
 private:
     QString mAuthority;

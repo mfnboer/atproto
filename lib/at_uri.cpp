@@ -120,6 +120,21 @@ QString ATUri::toString() const
     return QString("at://%1/%2/%3").arg(mAuthority, mCollection, mRkey);
 }
 
+QString ATUri::toHttpsUri() const
+{
+    if (mCollection == COLLECTION_FEED_POST)
+        return QString("https://bsky.app/profile/%1/post/%2").arg(mAuthority, mRkey);
+    if (mCollection == COLLECTION_FEED_GENERATOR)
+        return QString("https://bsky.app/profile/%1/feed/%2").arg(mAuthority, mRkey);
+    if (mCollection == COLLECTION_GRAPH_LIST)
+        return QString("https://bsky.app/profile/%1/lists/%2").arg(mAuthority, mRkey);
+    if (mCollection == COLLECTION_ACTOR_PROFILE)
+        return QString("https://bsky.app/profile/%1").arg(mAuthority);
+
+    qWarning() << "Unknown collection:" << mCollection;
+    return {};
+}
+
 bool ATUri::isValid() const
 {
     return !mAuthority.isEmpty();
