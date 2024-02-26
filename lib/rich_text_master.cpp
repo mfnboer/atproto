@@ -382,9 +382,13 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseFacets(const QStri
         // This happens if a detected link overlaps with a detected mention.
         if (match.mStartIndex < pos)
         {
-            // A partial mention may not be a partial mention but part of a link
-            Q_ASSERT(match.mType == RichTextMaster::ParsedMatch::Type::PARTIAL_MENTION);
             qWarning() << "Overlapping facets at index:" << match.mStartIndex << match.mMatch;
+
+            // A partial mention may not be a partial mention but part of a link
+            // A tag may not be a tag but part of a link
+            Q_ASSERT(match.mType == RichTextMaster::ParsedMatch::Type::PARTIAL_MENTION ||
+                     match.mType == RichTextMaster::ParsedMatch::Type::TAG);
+
             continue;
         }
 
