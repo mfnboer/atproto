@@ -963,8 +963,7 @@ void Client::getBlob(const QString& did, const QString& cid,
             if (successCb)
                 successCb(bytes, contentType);
         },
-        failure(errorCb),
-        authToken());
+        failure(errorCb));
 }
 
 void Client::getRecord(const QString& repo, const QString& collection,

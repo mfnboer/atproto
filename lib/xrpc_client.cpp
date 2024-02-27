@@ -8,7 +8,7 @@ namespace Xrpc {
 
 constexpr int MAX_RESEND = 4;
 
-QNetworkAccessManager Client::sNetwork;
+//QNetworkAccessManager Client::sNetwork;
 
 Client::Client(const QString& host) :
     mHost(host),
@@ -249,7 +249,7 @@ void Client::sendRequest(const Request& request, const Callback& successCb, cons
     connect(reply, &QNetworkReply::finished, this,
             [this, request, reply, successCb, errorCb, errorHandled]{ replyFinished(request, reply, successCb, errorCb, errorHandled); });
     connect(reply, &QNetworkReply::errorOccurred, this,
-            [this, request, reply, successCb, errorCb, errorHandled](auto errorCode){ networkError(request, reply, errorCode, successCb, errorCb, errorHandled); });
+            [this, request, reply, successCb, errorCb, errorHandled](auto errorCode){ this->networkError(request, reply, errorCode, successCb, errorCb, errorHandled); });
     connect(reply, &QNetworkReply::sslErrors, this,
             [this, reply, errorCb, errorHandled](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb, errorHandled); });
 }
