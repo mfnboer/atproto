@@ -19,7 +19,7 @@ struct StrongRef
     static Ptr fromJson(const QJsonObject& json);
 };
 
-// com.atproto.repo.uploadBlob/output
+// com.atproto.repo.uploadBlob#output
 struct UploadBlobOutput
 {
     Blob::Ptr mBlob;
@@ -28,7 +28,7 @@ struct UploadBlobOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
-// com.atproto.repo.getRecord/output
+// com.atproto.repo.getRecord#output
 struct Record
 {
     QString mUri;
@@ -36,6 +36,18 @@ struct Record
     QJsonObject mValue;
 
     using Ptr = std::unique_ptr<Record>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+using RecordList = std::vector<Record::Ptr>;
+
+// com.atproto.repo.listRecords#output
+struct ListRecordsOutput
+{
+    std::optional<QString> mCursor;
+    RecordList mRecords;
+
+    using Ptr = std::unique_ptr<ListRecordsOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
 

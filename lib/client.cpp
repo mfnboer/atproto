@@ -695,7 +695,7 @@ void Client::muteActor(const QString& actor, const SuccessCb& successCb, const E
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.muteActor", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "muteActor:" << reply;
             if (successCb)
                 successCb();
@@ -711,7 +711,7 @@ void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.unmuteActor", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "unmuteActor:" << reply;
             if (successCb)
                 successCb();
@@ -815,7 +815,7 @@ void Client::muteActorList(const QString& listUri, const SuccessCb& successCb, c
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.muteActorList", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "muteActorList:" << reply;
             if (successCb)
                 successCb();
@@ -831,7 +831,7 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
     QJsonDocument json(jsonObj);
 
     mXrpc->post("app.bsky.graph.unmuteActorList", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "unmuteActorList:" << reply;
             if (successCb)
                 successCb();
@@ -870,7 +870,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
     json.setObject(paramsJson);
 
     mXrpc->post("app.bsky.notification.updateSeen", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "Updated notification seen:" << reply;
             if (successCb)
                 successCb();
@@ -924,7 +924,7 @@ void Client::registerPushNotifications(const QString& serviceDid, const QString&
     qDebug() << json;
 
     mXrpc->post("app.bsky.notification.registerPush", json,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() << "registerPush succeeded:" << reply;
             if (successCb)
                 successCb();
@@ -946,6 +946,22 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getBlob(const QString& did, const QString& cid,
+                     const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"did", did}, {"cid", cid}};
+
+    mXrpc->get("com.atproto.sync.getBlob", params,
+        [successCb](const QByteArray& bytes, const QString& contentType){
+            qDebug() <<"Got blob:" << bytes.size() << "bytes" << "content:" << contentType;
+
+            if (successCb)
+                successCb(bytes, contentType);
         },
         failure(errorCb),
         authToken());
@@ -973,13 +989,38 @@ void Client::getRecord(const QString& repo, const QString& collection,
         authToken());
 }
 
-void Client::createRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
-                  const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb)
+void Client::listRecords(const QString& repo, const QString& collection,
+                         std::optional<int> limit, const std::optional<QString>& cursor,
+                         const ListRecordsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"repo", repo}, {"collection", collection}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("com.atproto.repo.listRecords", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() <<"Got records:" << reply;
+            try {
+                auto record = ComATProtoRepo::ListRecordsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(record));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::createRecord(const QString& repo, const QString& collection, const QString& rkey,
+                          const QJsonObject& record, bool validate,
+                          const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject root;
     root.insert("repo", repo);
     root.insert("collection", collection);
     root.insert("record", record);
+    root.insert("validate", validate);
 
     if (!rkey.isEmpty())
         root.insert("rkey", rkey);
@@ -1003,14 +1044,16 @@ void Client::createRecord(const QString& repo, const QString& collection, const 
         authToken());
 }
 
-void Client::putRecord(const QString& repo, const QString& collection, const QString& rkey, const QJsonObject& record,
-                          const PutRecordSuccessCb& successCb, const ErrorCb& errorCb)
+void Client::putRecord(const QString& repo, const QString& collection, const QString& rkey,
+                       const QJsonObject& record, bool validate,
+                       const PutRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject root;
     root.insert("repo", repo);
     root.insert("collection", collection);
     root.insert("record", record);
     root.insert("rkey", rkey);
+    root.insert("validate", validate);
 
     QJsonDocument json(root);
 
@@ -1044,7 +1087,7 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
     qDebug() << "Delete record:" << jsonDoc;
 
     mXrpc->post("com.atproto.repo.deleteRecord", jsonDoc,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() <<"Deleted record:" << reply;
             if (successCb)
                 successCb();
@@ -1073,7 +1116,7 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
     qDebug() << "Report author:" << jsonDoc;
 
     mXrpc->post("com.atproto.moderation.createReport", jsonDoc,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() <<"Reported author:" << reply;
             if (successCb)
                 successCb();
@@ -1102,7 +1145,7 @@ void Client::reportPostOrFeed(const QString& uri, const QString& cid, ComATProto
     qDebug() << "Report post or feed:" << jsonDoc;
 
     mXrpc->post("com.atproto.moderation.createReport", jsonDoc,
-        [successCb, errorCb](const QJsonDocument& reply){
+        [successCb](const QJsonDocument& reply){
             qDebug() <<"Reported post or feed:" << reply;
             if (successCb)
                 successCb();

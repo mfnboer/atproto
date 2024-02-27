@@ -2,7 +2,6 @@
 // License: GPLv3
 #include "app_bsky_feed.h"
 #include "app_bsky_actor.h"
-#include "../at_uri.h"
 #include "../xjson.h"
 #include <QJsonArray>
 #include <unordered_map>

@@ -30,7 +30,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = postJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, postJson,
+    mClient.createRecord(repo, collection, {}, postJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -54,7 +54,7 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = threadgateJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, atUri.getRkey(), threadgateJson,
+    mClient.createRecord(repo, collection, atUri.getRkey(), threadgateJson, true,
         [successCb](auto){
             if (successCb)
                 successCb();
@@ -101,7 +101,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = repostJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, repostJson,
+    mClient.createRecord(repo, collection, {}, repostJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -129,7 +129,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = likeJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, likeJson,
+    mClient.createRecord(repo, collection, {}, likeJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

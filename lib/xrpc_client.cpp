@@ -47,14 +47,14 @@ void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session
 }
 
 void Client::post(const QString& service, const QJsonDocument& json,
-                  const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+                  const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
     post(service, data, "application/json", successCb, errorCb, accessJwt);
 }
 
 void Client::post(const QString& service, const QByteArray& data, const QString& mimeType,
-          const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+                  const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(successCb);
@@ -73,7 +73,20 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
 }
 
 void Client::get(const QString& service, const Params& params,
-                 const SuccessCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+                 const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+{
+    getImpl(service, params, successCb, errorCb, accessJwt);
+}
+
+void Client::get(const QString& service, const Params& params,
+                 const SuccessBytesCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+{
+    getImpl(service, params, successCb, errorCb, accessJwt);
+}
+
+template<typename Callback>
+void Client::getImpl(const QString& service, const Params& params,
+                     const Callback& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(successCb);
@@ -117,19 +130,31 @@ void Client::setAuthorization(QNetworkRequest& request, const QString& accessJwt
     request.setRawHeader("Authorization", auth.toUtf8());
 }
 
+static void invokeCallback(const Client::SuccessBytesCb& successCb, const QByteArray& data, const QString& contentType)
+{
+    successCb(data, contentType);
+}
+
+static void invokeCallback(const Client::SuccessJsonCb& successCb, const QByteArray& data, const QString&)
+{
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+    successCb(json);
+}
+
+template<typename Callback>
 void Client::replyFinished(const Request& request, QNetworkReply* reply,
-                           const SuccessCb& successCb, const ErrorCb& errorCb,
+                           const Callback& successCb, const ErrorCb& errorCb,
                            std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
-    qDebug() << "Reply:" << reply->error();
-    const auto data = reply->readAll();
-    const QJsonDocument json(QJsonDocument::fromJson(data));
     const auto errorCode = reply->error();
+    const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString().trimmed();
+    qDebug() << "Reply:" << errorCode << "content:" << contentType;
+    const auto data = reply->readAll();
 
     if (errorCode == QNetworkReply::NoError)
     {
-        successCb(json);
+        invokeCallback(successCb, data, contentType);
     }
     else if (!*errorHandled)
     {
@@ -141,7 +166,7 @@ void Client::replyFinished(const Request& request, QNetworkReply* reply,
                 return;
         }
 
-        qDebug() << data;
+        const QJsonDocument json(QJsonDocument::fromJson(data));
         errorCb(reply->errorString(), json);
     }
     else
@@ -150,8 +175,9 @@ void Client::replyFinished(const Request& request, QNetworkReply* reply,
     }
 }
 
+template<typename Callback>
 void Client::networkError(const Request& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
-                          const SuccessCb& successCb, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
+                          const Callback& successCb, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
 {
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
@@ -206,7 +232,8 @@ void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, con
     }
 }
 
-void Client::sendRequest(const Request& request, const SuccessCb& successCb, const ErrorCb& errorCb)
+template<typename Callback>
+void Client::sendRequest(const Request& request, const Callback& successCb, const ErrorCb& errorCb)
 {
     QNetworkReply* reply;
 
@@ -227,7 +254,8 @@ void Client::sendRequest(const Request& request, const SuccessCb& successCb, con
             [this, reply, errorCb, errorHandled](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb, errorHandled); });
 }
 
-bool Client::resendRequest(Request request, const SuccessCb& successCb, const ErrorCb& errorCb)
+template<typename Callback>
+bool Client::resendRequest(Request request, const Callback& successCb, const ErrorCb& errorCb)
 {
     if (request.mResendCount >= MAX_RESEND)
     {
