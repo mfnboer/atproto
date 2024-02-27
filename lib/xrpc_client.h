@@ -72,10 +72,11 @@ private:
     QString mHost; // first point of contact, e.g. bsky.social
     QString mPDS;
 
-    // Making this static as on Android it sometimes causes a crash when you detroy
+    // TODO: can we make it non-static?
+    // Making this static as on Android it sometimes causes a crash when you destroy
     // this object. It looks like Android still wants to send a signal to it after
     // a network failure. Not sure: the logs do not give enough info on that.
-    static QNetworkAccessManager sNetwork;
+    QNetworkAccessManager sNetwork;
 };
 
 }
