@@ -266,8 +266,6 @@ QString applyFacets(const QString& text, const FacetList& facets, const QString&
     }
 
     result.append(RichTextMaster::toCleanedHtml(QString(bytes.sliced(bytePos))));
-    qDebug() << "Orig:   " << text;
-    qDebug() << "Faceted:" << result;
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(result);
 }
 

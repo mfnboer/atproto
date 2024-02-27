@@ -1,5 +1,7 @@
 next
 ====
+* com.atproto.sync.getBlob
+* com.atproto.repo.listRecords
 * More PostMaster functions
 
 1.0

@@ -83,7 +83,7 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = listJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, rKey, listJson,
+    mClient.createRecord(repo, collection, rKey, listJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -185,7 +185,7 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = listJson["$type"].toString();
 
-    mClient.putRecord(repo, collection, rkey, listJson,
+    mClient.putRecord(repo, collection, rkey, listJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -208,7 +208,7 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = recordJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, recordJson,
+    mClient.createRecord(repo, collection, {}, recordJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -230,7 +230,7 @@ void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& su
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = recordJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, recordJson,
+    mClient.createRecord(repo, collection, {}, recordJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

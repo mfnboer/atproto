@@ -17,7 +17,7 @@ QJsonObject StrongRef::toJson() const
 StrongRef::Ptr StrongRef::fromJson(const QJsonObject& json)
 {
     auto strongRef = std::make_unique<StrongRef>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
     strongRef->mUri = xjson.getRequiredString("uri");
     strongRef->mCid = xjson.getRequiredString("cid");
     return strongRef;
@@ -26,7 +26,7 @@ StrongRef::Ptr StrongRef::fromJson(const QJsonObject& json)
 UploadBlobOutput::Ptr UploadBlobOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_unique<UploadBlobOutput>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
     output->mBlob = xjson.getRequiredObject<Blob>("blob");
     return output;
 }
@@ -34,11 +34,20 @@ UploadBlobOutput::Ptr UploadBlobOutput::fromJson(const QJsonObject& json)
 Record::Ptr Record::fromJson(const QJsonObject& json)
 {
     auto record = std::make_unique<Record>();
-    XJsonObject xjson(json);
+    const XJsonObject xjson(json);
     record->mUri = xjson.getRequiredString("uri");
     record->mCid = xjson.getOptionalString("cid");
     record->mValue = xjson.getRequiredJsonObject("value");
     return record;
+}
+
+ListRecordsOutput::Ptr ListRecordsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<ListRecordsOutput>();
+    const XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mRecords = xjson.getRequiredVector<Record>("records");
+    return output;
 }
 
 }

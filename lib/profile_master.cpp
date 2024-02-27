@@ -59,7 +59,7 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile.toJson(),
+    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile.toJson(), true,
         [successCb](auto){
             if (successCb)
                 successCb();
