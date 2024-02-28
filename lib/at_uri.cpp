@@ -106,6 +106,7 @@ ATUri::ATUri(const QString& uri)
     mAuthority = uriParts[1];
     mCollection = uriParts[2];
     mRkey = uriParts[3];
+    mAuthorityIsHandle = !mAuthority.startsWith("did:");
 }
 
 ATUri::ATUri(const QString& authority, const QString& collection, const QString& rKey) :
