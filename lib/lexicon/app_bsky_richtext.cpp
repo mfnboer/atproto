@@ -189,6 +189,7 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     {
         // Not yet supported by bsky
         const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::Ptr>(feature.mFeature);
+        return QString("<a href=\"#%1\"%3>%2</a>").arg(facetTag->mTag, linkText, linkStyle);
         qDebug() << "Facet tag:" << facetTag->mTag;
         break;
     }
