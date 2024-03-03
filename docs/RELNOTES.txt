@@ -1,5 +1,5 @@
-next
-====
+1.2
+===
 * Allow non-punctuation chars in a hashtag
 
 1.1
