@@ -275,7 +275,7 @@ static std::vector<RichTextMaster::ParsedMatch> parseMatches(RichTextMaster::Par
 
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString& text)
 {
-    static const QRegularExpression reTag(R"([$|\W](#\w+))");
+    static const QRegularExpression reTag(R"([$|\W](#[^[:punct:][:space:]]+))");
     const auto tags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
 
     for (const auto& tag : tags)
