@@ -84,7 +84,7 @@ QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
             linkified.append(toCleanedHtml(before));
             const QString ref = facet.mType == ParsedMatch::Type::MENTION || facet.mMatch.startsWith("http") ?
                                     facet.mMatch : "https://" + facet.mMatch;
-            QString link = QString("<a href=\"%1\" style=\"color: %3;\">%2</a>").arg(ref, facet.mMatch, colorName);
+            QString link = QString("<a href=\"%1\" style=\"color: %3; text-decoration: none\">%2</a>").arg(ref, facet.mMatch, colorName);
             linkified.append(link);
             pos = facet.mEndIndex;
         }

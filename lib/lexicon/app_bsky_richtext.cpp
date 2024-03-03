@@ -169,7 +169,7 @@ struct HyperLink
 
 static QString createHtmlLink(const QString& linkText, const Facet::Feature& feature, const QString& linkColor)
 {
-    const QString linkStyle = linkColor.isEmpty() ? "" : QString(" style=\"color: %1;\"").arg(linkColor);
+    const QString linkStyle = linkColor.isEmpty() ? "" : QString(" style=\"color: %1; text-decoration: none\"").arg(linkColor);
 
     switch (feature.mType)
     {
