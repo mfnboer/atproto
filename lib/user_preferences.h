@@ -13,6 +13,7 @@ public:
     using FeedViewPref = AppBskyActor::FeedViewPref;
     using ContentLabelPrefs = std::unordered_map<QString, LabelVisibility>;
     using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
+    using MutedWordsPref = AppBskyActor::MutedWordsPref;
 
     UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
@@ -33,6 +34,9 @@ public:
     const SavedFeedsPref& getSavedFeedsPref() const { return mSavedFeedsPref; }
     void setSavedFeedsPref(const SavedFeedsPref& pref) { mSavedFeedsPref = pref; }
 
+    const MutedWordsPref& getMutedWordsPref() const { return mMutedWordsPref; }
+    MutedWordsPref& getMutedWordsPref() { return mMutedWordsPref; }
+
     AppBskyActor::PreferenceList toPreferenceList() const;
 
 private:
@@ -47,6 +51,7 @@ private:
     AppBskyActor::PersonalDetailsPref mPersonalDetailsPref;
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
     AppBskyActor::ThreadViewPref mThreadViewPref;
+    AppBskyActor::MutedWordsPref mMutedWordsPref;
     std::vector<AppBskyActor::UnknownPref> mUnknownPrefs;
 };
 

@@ -201,6 +201,48 @@ struct ThreadViewPref
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#mutedWordTarget
+enum class MutedWordTarget
+{
+    CONTENT,
+    TAG,
+    UNKNOWN
+};
+MutedWordTarget stringToMutedWordTarget(const QString& str);
+QString mutedWordTargetToString(MutedWordTarget target);
+
+// app.bsky.actor.defs#mutedWord
+struct MutedWord
+{
+    struct Target
+    {
+        MutedWordTarget mTarget;
+        QString mRawTarget;
+    };
+
+    QString mValue;
+    std::vector<Target> mTargets;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<MutedWord>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#mutedWordsPref
+struct MutedWordsPref
+{
+    // No unique ptrs as preferences will be copied in UserPreferences()
+    std::vector<MutedWord> mItems;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<MutedWordsPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // Future preferences will be unknown. We store the json object, such that
 // we can send it back unmodified for preference updates.
 struct UnknownPref
@@ -221,6 +263,7 @@ enum class PreferenceType
     PERSONAL_DETAILS,
     FEED_VIEW,
     THREAD_VIEW,
+    MUTED_WORDS,
     UNKNOWN
 };
 PreferenceType stringToPreferenceType(const QString& str);
@@ -231,6 +274,7 @@ using PreferenceItem = std::variant<AdultContentPref::Ptr,
                                     PersonalDetailsPref::Ptr,
                                     FeedViewPref::Ptr,
                                     ThreadViewPref::Ptr,
+                                    MutedWordsPref::Ptr,
                                     UnknownPref::Ptr>;
 
 struct Preference

@@ -55,6 +55,12 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             mThreadViewPref = *threadView;
             break;
         }
+        case AppBskyActor::PreferenceType::MUTED_WORDS:
+        {
+            const auto& mutedWords = std::get<AppBskyActor::MutedWordsPref::Ptr>(pref->mItem);
+            mMutedWordsPref = *mutedWords;
+            break;
+        }
         case AppBskyActor::PreferenceType::UNKNOWN:
             const auto& unknowPref = std::get<AppBskyActor::UnknownPref::Ptr>(pref->mItem);
             mUnknownPrefs.push_back(*unknowPref);
@@ -111,6 +117,12 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
     pref = std::make_unique<AppBskyActor::Preference>();
     pref->mItem = std::move(threadView);
     pref->mType = AppBskyActor::PreferenceType::THREAD_VIEW;
+    preferences.push_back(std::move(pref));
+
+    auto mutedWords = std::make_unique<AppBskyActor::MutedWordsPref>(mMutedWordsPref);
+    pref = std::make_unique<AppBskyActor::Preference>();
+    pref->mItem = std::move(mutedWords);
+    pref->mType = AppBskyActor::PreferenceType::MUTED_WORDS;
     preferences.push_back(std::move(pref));
 
     for (const auto& unknown : mUnknownPrefs)
