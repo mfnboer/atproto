@@ -276,6 +276,98 @@ ThreadViewPref::Ptr ThreadViewPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
+MutedWordTarget stringToMutedWordTarget(const QString& str)
+{
+    static const std::unordered_map<QString, MutedWordTarget> mapping = {
+        { "content", MutedWordTarget::CONTENT },
+        { "tag", MutedWordTarget::TAG }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown muted word target:" << str;
+    return MutedWordTarget::UNKNOWN;
+}
+
+QString mutedWordTargetToString(MutedWordTarget target)
+{
+    static const std::unordered_map<MutedWordTarget, QString> mapping = {
+        { MutedWordTarget::CONTENT, "content" },
+        { MutedWordTarget::TAG, "tag" }
+    };
+
+    const auto it = mapping.find(target);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown muted word target:" << (int)target;
+    return {};
+}
+
+QJsonObject MutedWord::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("value", mValue);
+    std::vector<QString> targets;
+
+    for (const auto& target : mTargets)
+    {
+        const auto tgtString = mutedWordTargetToString(target.mTarget);
+        targets.push_back(!tgtString.isEmpty() ? tgtString : target.mRawTarget);
+    }
+
+    json.insert("targets", XJsonObject::toJsonArray(targets));
+    return json;
+}
+
+MutedWord::Ptr MutedWord::fromJson(const QJsonObject& json)
+{
+    auto mutedWord = std::make_unique<MutedWord>();
+    const XJsonObject xjson(json);
+    mutedWord->mValue = xjson.getRequiredString("value");
+    const auto targets = xjson.getRequiredStringVector("targets");
+
+    for (const auto& targetString : targets)
+    {
+        Target target;
+        target.mTarget = stringToMutedWordTarget(targetString);
+        target.mRawTarget = targetString;
+        mutedWord->mTargets.push_back(target);
+    }
+
+    mutedWord->mJson = json;
+    return mutedWord;
+}
+
+QJsonObject MutedWordsPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", "app.bsky.actor.defs#mutedWordsPref");
+    QJsonArray jsonArray;
+
+    for (const auto& item : mItems)
+        jsonArray.push_back(item.toJson());
+
+    json.insert("items", jsonArray);
+    return json;
+}
+
+MutedWordsPref::Ptr MutedWordsPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<MutedWordsPref>();
+    const XJsonObject xjson(json);
+    auto items = xjson.getRequiredVector<MutedWord>("items");
+    pref->mItems.reserve(items.size());
+
+    for (auto& item : items)
+        pref->mItems.push_back(std::move(*item));
+
+    pref->mJson = json;
+    return pref;
+}
+
 UnknownPref::Ptr UnknownPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<UnknownPref>();
@@ -291,7 +383,8 @@ PreferenceType stringToPreferenceType(const QString& str)
         { "app.bsky.actor.defs#savedFeedsPref", PreferenceType::SAVED_FEEDS },
         { "app.bsky.actor.defs#personalDetailsPref", PreferenceType::PERSONAL_DETAILS },
         { "app.bsky.actor.defs#feedViewPref", PreferenceType::FEED_VIEW },
-        { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW }
+        { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW },
+        { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS }
     };
 
     const auto it = mapping.find(str);
@@ -327,6 +420,9 @@ Preference::Ptr Preference::fromJson(const QJsonObject& json)
         break;
     case PreferenceType::THREAD_VIEW:
         pref->mItem = ThreadViewPref::fromJson(json);
+        break;
+    case PreferenceType::MUTED_WORDS:
+        pref->mItem = MutedWordsPref::fromJson(json);
         break;
     case PreferenceType::UNKNOWN:
         pref->mItem = UnknownPref::fromJson(json);

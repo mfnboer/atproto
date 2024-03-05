@@ -1,3 +1,7 @@
+next
+====
+* Muted words preferences
+
 1.2
 ===
 * Allow non-punctuation chars in a hashtag
