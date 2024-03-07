@@ -6,6 +6,8 @@
 
 namespace ATProto {
 
+static constexpr char const* RE_HASHTAG = R"(#[^[:punct:][:space:]]+)";
+
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
 
 void RichTextMaster::setHtmlCleanup(const HtmlCleanupFun& cleanup)
@@ -275,13 +277,30 @@ static std::vector<RichTextMaster::ParsedMatch> parseMatches(RichTextMaster::Par
 
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString& text)
 {
-    static const QRegularExpression reTag(R"([$|\W](#[^[:punct:][:space:]]+))");
-    const auto tags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
+    static const QRegularExpression reTag(QString(R"([$|\W](%1))").arg(RE_HASHTAG));
+    const auto potentialTags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
+    std::vector<RichTextMaster::ParsedMatch> tags;
+    tags.reserve(potentialTags.size());
 
-    for (const auto& tag : tags)
-        qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+    for (const auto& tag : potentialTags)
+    {
+        // Exclude keycap emoji #️⃣: U+23 U+FE0F U+20E3
+        if (!tag.mMatch.startsWith("#\uFE0F"))
+        {
+            qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+            tags.push_back(tag);
+        }
+    }
 
     return tags;
+}
+
+bool RichTextMaster::isHashtag(const QString& text)
+{
+    static const QRegularExpression reTag(QString("^%1$").arg(RE_HASHTAG));
+
+    // Exclude keycap emoji #️⃣: U+23 U+FE0F U+20E3
+    return text.startsWith('#') && !text.startsWith("#\uFE0F") && reTag.match(text).hasMatch();
 }
 
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parsePartialMentions(const QString& text)
