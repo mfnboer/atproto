@@ -1087,7 +1087,38 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
 
     mXrpc->post("com.atproto.repo.deleteRecord", jsonDoc,
         [successCb](const QJsonDocument& reply){
-            qDebug() <<"Deleted record:" << reply;
+            qDebug() << "Deleted record:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes, bool validate,
+                         const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("repo", repo);
+    json.insert("validate", validate);
+    QJsonArray writesArray;
+
+    for (const auto& write : writes)
+    {
+        QJsonObject writeJson;
+        std::visit([&writeJson](auto&& x){ writeJson = x->toJson(); }, write);
+        writesArray.push_back(writeJson);
+    }
+
+    json.insert("writes", writesArray);
+
+    QJsonDocument jsonDoc;
+    jsonDoc.setObject(json);
+    qDebug() << "Apply writes:" << jsonDoc;
+
+    mXrpc->post("com.atproto.repo.applyWrites", jsonDoc,
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Apply writes:" << reply;
             if (successCb)
                 successCb();
         },

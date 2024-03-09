@@ -1,5 +1,6 @@
 next
 ====
+* com.atproto.repo.applyWrites
 * #️⃣ is not the start of a hashtag
 
 1.3
