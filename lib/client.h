@@ -10,6 +10,7 @@
 #include "lexicon/app_bsky_notification.h"
 #include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/com_atproto_moderation.h"
+#include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
 
@@ -478,6 +479,17 @@ public:
      */
     void deleteRecord(const QString& repo, const QString& collection, const QString& rkey,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief applyWrites
+     * @param repo
+     * @param writes
+     * @param validate
+     * @param successCb
+     * @param errorCb
+     */
+    void applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes, bool validate,
+                     const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.sync
 

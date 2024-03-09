@@ -50,4 +50,33 @@ ListRecordsOutput::Ptr ListRecordsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
+QJsonObject ApplyWritesCreate::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "com.atproto.repo.applyWrites#create");
+    json.insert("collection", mCollection);
+    XJsonObject::insertOptionalJsonValue(json, "rkey", mRKey);
+    json.insert("value", mValue);
+    return json;
+}
+
+QJsonObject ApplyWritesUpdate::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "com.atproto.repo.applyWrites#update");
+    json.insert("collection", mCollection);
+    json.insert("rkey", mRKey);
+    json.insert("value", mValue);
+    return json;
+}
+
+QJsonObject ApplyWritesDelete::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", "com.atproto.repo.applyWrites#delete");
+    json.insert("collection", mCollection);
+    json.insert("rkey", mRKey);
+    return json;
+}
+
 }
