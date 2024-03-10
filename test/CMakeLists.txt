@@ -19,8 +19,10 @@ if (NOT ANDROID)
     add_link_options(-fsanitize=address)
 endif()
 
-qt_add_executable(test_at_uri test_at_uri.h)
-qt_add_executable(test_post_master test_post_master.h)
+qt_add_executable(test_atproto
+    test_at_uri.h
+    test_rich_text_master.h
+    main.cpp)
 
 set(LINK_LIBS
     PRIVATE libatproto
@@ -28,5 +30,4 @@ set(LINK_LIBS
     PRIVATE Qt6::Network
 )
 
-target_link_libraries(test_at_uri ${LINK_LIBS})
-target_link_libraries(test_post_master ${LINK_LIBS})
+target_link_libraries(test_atproto ${LINK_LIBS})
