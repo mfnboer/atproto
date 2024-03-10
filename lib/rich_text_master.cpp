@@ -278,6 +278,8 @@ static std::vector<RichTextMaster::ParsedMatch> parseMatches(RichTextMaster::Par
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString& text)
 {
     static const QRegularExpression reTag(QString(R"([$|\W](%1))").arg(RE_HASHTAG));
+    static const QRegularExpression reNumberTag("^#[0-9]+$");
+
     const auto potentialTags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
     std::vector<RichTextMaster::ParsedMatch> tags;
     tags.reserve(potentialTags.size());
@@ -285,11 +287,14 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString
     for (const auto& tag : potentialTags)
     {
         // Exclude keycap emoji #️⃣: U+23 U+FE0F U+20E3
-        if (!tag.mMatch.startsWith("#\uFE0F"))
-        {
-            qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
-            tags.push_back(tag);
-        }
+        if (tag.mMatch.startsWith("#\uFE0F"))
+            continue;
+
+        if (reNumberTag.match(tag.mMatch).hasMatch())
+            continue;
+
+        qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+        tags.push_back(tag);
     }
 
     return tags;
@@ -298,9 +303,13 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString
 bool RichTextMaster::isHashtag(const QString& text)
 {
     static const QRegularExpression reTag(QString("^%1$").arg(RE_HASHTAG));
+    static const QRegularExpression reNumberTag("^#[0-9]+$");
 
-    // Exclude keycap emoji #️⃣: U+23 U+FE0F U+20E3
-    return text.startsWith('#') && !text.startsWith("#\uFE0F") && reTag.match(text).hasMatch();
+    // Exclude keycap emoji #️⃣: U+23 U+FE0F U+20E3 and number tags
+    return text.startsWith('#') &&
+           !text.startsWith("#\uFE0F") &&
+           !reNumberTag.match(text).hasMatch() &&
+           reTag.match(text).hasMatch();
 }
 
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parsePartialMentions(const QString& text)
