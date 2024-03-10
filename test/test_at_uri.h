@@ -46,5 +46,3 @@ private slots:
         QCOMPARE(atUri.getRkey(), "rkey");
     }
 };
-
-QTEST_MAIN(TestAtUri)
