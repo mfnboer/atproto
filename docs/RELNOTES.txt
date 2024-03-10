@@ -1,5 +1,5 @@
-next
-====
+1.4
+===
 * com.atproto.repo.applyWrites
 * hashtag must have non-digit character
 * #️⃣ is not the start of a hashtag
