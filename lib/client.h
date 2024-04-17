@@ -67,6 +67,7 @@ public:
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
+    using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -154,6 +155,16 @@ public:
      */
     void searchActorsTypeahead(const QString& q, std::optional<int> limit,
                                const SearchActorsTypeaheadSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getSuggestions
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
+                        const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
     /**

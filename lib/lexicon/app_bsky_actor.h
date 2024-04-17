@@ -61,7 +61,6 @@ struct ProfileView
 };
 
 using ProfileViewList = std::vector<ProfileView::Ptr>;
-void getProfileViewList(ProfileViewList& list, const QJsonObject& json, const QString& fieldName);
 
 // app.bsky.actor.defs#profileViewDetailed
 struct ProfileViewDetailed
@@ -319,6 +318,14 @@ struct SearchActorsTypeaheadOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.getSuggestion#output
+struct GetSuggestionsOutput
+{
+    std::optional<QString> mCursor;
+    ProfileViewList mActors;
 
+    using Ptr = std::unique_ptr<GetSuggestionsOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
 
 }

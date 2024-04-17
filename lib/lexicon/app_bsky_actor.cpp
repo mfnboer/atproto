@@ -78,12 +78,6 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     return profile;
 }
 
-void getProfileViewList(ProfileViewList& list, const QJsonObject& json, const QString& fieldName)
-{   
-    XJsonObject xjson(json);
-    list = xjson.getRequiredVector<ProfileView>(fieldName);
-}
-
 ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
@@ -472,6 +466,15 @@ SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJs
     auto output = std::make_unique<SearchActorsTypeaheadOutput>();
     const XJsonObject xjson(json);
     output->mActors = xjson.getRequiredVector<ProfileViewBasic>("actors");
+    return output;
+}
+
+GetSuggestionsOutput::Ptr GetSuggestionsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetSuggestionsOutput>();
+    const XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mActors = xjson.getRequiredVector<ProfileView>("actors");
     return output;
 }
 
