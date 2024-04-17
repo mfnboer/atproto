@@ -11,7 +11,7 @@ GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto follows = std::make_unique<GetFollowsOutput>();
     follows->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
-    AppBskyActor::getProfileViewList(follows->mFollows, json, "follows");
+    follows->mFollows = xjson.getRequiredVector<AppBskyActor::ProfileView>("follows");
     follows->mCursor = xjson.getOptionalString("cursor");
     return follows;
 }
@@ -21,7 +21,7 @@ GetFollowersOutput::Ptr GetFollowersOutput::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto followers = std::make_unique<GetFollowersOutput>();
     followers->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
-    AppBskyActor::getProfileViewList(followers->mFollowers, json, "followers");
+    followers->mFollowers = xjson.getRequiredVector<AppBskyActor::ProfileView>("followers");
     followers->mCursor = xjson.getOptionalString("cursor");
     return followers;
 }
@@ -30,7 +30,7 @@ GetBlocksOutput::Ptr GetBlocksOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto blocks = std::make_unique<GetBlocksOutput>();
-    AppBskyActor::getProfileViewList(blocks->mBlocks, json, "blocks");
+    blocks->mBlocks = xjson.getRequiredVector<AppBskyActor::ProfileView>("blocks");
     blocks->mCursor = xjson.getOptionalString("cursor");
     return blocks;
 }
@@ -39,7 +39,7 @@ GetMutesOutput::Ptr GetMutesOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto blocks = std::make_unique<GetMutesOutput>();
-    AppBskyActor::getProfileViewList(blocks->mMutes, json, "mutes");
+    blocks->mMutes = xjson.getRequiredVector<AppBskyActor::ProfileView>("mutes");
     blocks->mCursor = xjson.getOptionalString("cursor");
     return blocks;
 }

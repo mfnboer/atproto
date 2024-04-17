@@ -1,3 +1,7 @@
+next
+====
+* app.bsky.actor.getSuggestions
+
 1.4
 ===
 * com.atproto.repo.applyWrites

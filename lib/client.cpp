@@ -304,6 +304,28 @@ void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
         authToken());
 }
 
+void Client::getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
+                            const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.actor.getSuggestions", params,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getSuggestions:" << reply;
+            try {
+                auto ouput = AppBskyActor::GetSuggestionsOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
