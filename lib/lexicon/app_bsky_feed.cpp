@@ -159,6 +159,10 @@ QJsonObject Record::Post::toJson() const
     XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);
     XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Embed>(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+
+    if (!mLanguages.empty())
+        json.insert("langs", XJsonObject::toJsonArray(mLanguages));
+
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     return json;
 }
@@ -172,6 +176,7 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     post->mReply = xjson.getOptionalObject<PostReplyRef>("reply");
     post->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Embed>("embed");
     post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return post;
 }

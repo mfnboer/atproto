@@ -1,3 +1,7 @@
+next
+====
+* Support post.langs field
+
 1.5
 ===
 * app.bsky.actor.getSuggestions

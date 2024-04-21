@@ -314,20 +314,29 @@ AppBskyFeed::PostReplyRef::Ptr PostMaster::createReplyRef(const QString& replyTo
     return replyRef;
 }
 
-AppBskyFeed::Record::Post::Ptr PostMaster::createPostWithoutFacets(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef)
+AppBskyFeed::Record::Post::Ptr PostMaster::createPostWithoutFacets(
+    const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef)
 {
     auto post = std::make_unique<AppBskyFeed::Record::Post>();
-    post->mText = text;
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
+    post->mText = text;
+
+    if (!language.isEmpty())
+        post->mLanguages.push_back(language);
+
     post->mReply = std::move(replyRef);
     return post;
 }
 
-void PostMaster::createPost(const QString& text, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
+void PostMaster::createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
     auto post = std::make_shared<AppBskyFeed::Record::Post>();
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    if (!language.isEmpty())
+        post->mLanguages.push_back(language);
+
     post->mReply = std::move(replyRef);
     auto facets = RichTextMaster::parseFacets(text);
 

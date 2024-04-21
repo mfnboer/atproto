@@ -303,7 +303,7 @@ struct Post
     PostReplyRef::Ptr mReply; // optional
     ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional
     ComATProtoLabel::SelfLabels::Ptr mLabels; // optional
-    // NOT IMPLEMENTED langs
+    std::vector<QString> mLanguages;
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
