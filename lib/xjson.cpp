@@ -81,6 +81,14 @@ std::vector<QString> XJsonObject::getRequiredStringVector(const QString& key) co
     return result;
 }
 
+std::vector<QString> XJsonObject::getOptionalStringVector(const QString& key) const
+{
+    if (!mObject.contains(key))
+        return {};
+
+    return getRequiredStringVector(key);
+}
+
 std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
 {
     if (mObject.contains(key))

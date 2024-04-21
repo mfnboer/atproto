@@ -70,6 +70,7 @@ public:
     std::vector<typename ElemType::Ptr> getOptionalVector(const QString& key) const;
 
     std::vector<QString> getRequiredStringVector(const QString& key) const;
+    std::vector<QString> getOptionalStringVector(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
