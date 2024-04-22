@@ -27,9 +27,9 @@ public:
               const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
     void post(const QString& service, const QByteArray& data, const QString& mimeType,
               const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt);
-    void get(const QString& service, const Params& params,
+    void get(const QString& service, const Params& params, const Params& rawHeaders,
              const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
-    void get(const QString& service, const Params& params,
+    void get(const QString& service, const Params& params, const Params& rawHeaders,
              const SuccessBytesCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
 
 private:
@@ -44,9 +44,10 @@ private:
     QUrl buildUrl(const QString& service) const;
     QUrl buildUrl(const QString& service, const Params& params) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
+    void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
     template<typename Callback>
-    void getImpl(const QString& service, const Params& params,
+    void getImpl(const QString& service, const Params& params, const Params& rawHeaders,
                  const Callback& successCb, const ErrorCb& errorCb, const QString& accessJwt);
 
     template<typename Callback>

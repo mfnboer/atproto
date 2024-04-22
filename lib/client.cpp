@@ -76,7 +76,7 @@ void Client::createSession(const QString& user, const QString& pwd,
 void Client::resumeSession(const ComATProtoServer::Session& session,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("com.atproto.server.getSession", {},
+    mXrpc->get("com.atproto.server.getSession", {}, {},
         [this, session, successCb, errorCb](const QJsonDocument& reply){
             qInfo() << "Got session:" << reply;
             try {
@@ -149,7 +149,7 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 
 void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("com.atproto.server.getAccountInviteCodes", {},
+    mXrpc->get("com.atproto.server.getAccountInviteCodes", {}, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAccountInviteCodes reply:" << reply;
             try {
@@ -168,7 +168,7 @@ void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& success
 void Client::resolveHandle(const QString& handle,
                    const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("com.atproto.identity.resolveHandle", {{"handle", handle}},
+    mXrpc->get("com.atproto.identity.resolveHandle", {{"handle", handle}}, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "resolveHandle:" << reply;
             try {
@@ -185,7 +185,7 @@ void Client::resolveHandle(const QString& handle,
 
 void Client::getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}},
+    mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}}, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getProfile:" << reply;
             try {
@@ -209,7 +209,7 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
     for (const auto& user : users)
         params.append({"actors", user});
 
-    mXrpc->get("app.bsky.actor.getProfiles", params,
+    mXrpc->get("app.bsky.actor.getProfiles", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getProfiles:" << reply;
             try {
@@ -228,7 +228,7 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
 
 void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.actor.getPreferences", {},
+    mXrpc->get("app.bsky.actor.getPreferences", {}, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPreferences:" << reply;
             try {
@@ -268,7 +268,7 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.actor.searchActors", params,
+    mXrpc->get("app.bsky.actor.searchActors", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "searchActors:" << reply;
             try {
@@ -289,7 +289,7 @@ void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
     Xrpc::Client::Params params{{"q", q}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
 
-    mXrpc->get("app.bsky.actor.searchActorsTypeahead", params,
+    mXrpc->get("app.bsky.actor.searchActorsTypeahead", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "searchActorsTypeahead:" << reply;
             try {
@@ -305,13 +305,19 @@ void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
 }
 
 void Client::getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
+                            const QStringList& acceptLanguages,
                             const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.actor.getSuggestions", params,
+    Xrpc::Client::Params httpHeaders;
+
+    if (!acceptLanguages.empty())
+        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+
+    mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getSuggestions:" << reply;
             try {
@@ -333,7 +339,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getAuthorFeed", params,
+    mXrpc->get("app.bsky.feed.getAuthorFeed", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAuthorFeed:" << reply;
             try {
@@ -355,7 +361,7 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getActorLikes", params,
+    mXrpc->get("app.bsky.feed.getActorLikes", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getActorLikes:" << reply;
             try {
@@ -377,7 +383,7 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getTimeline", params,
+    mXrpc->get("app.bsky.feed.getTimeline", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getTimeline:" << reply;
             try {
@@ -393,13 +399,19 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
 }
 
 void Client::getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const QStringList& acceptLanguages,
                      const GetFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"feed", feed}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getFeed", params,
+    Xrpc::Client::Params httpHeaders;
+
+    if (!acceptLanguages.empty())
+        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+
+    mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFeed:" << reply;
             try {
@@ -415,13 +427,19 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
 }
 
 void Client::getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+                         const QStringList& acceptLanguages,
                          const GetFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"list", list}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getListFeed", params,
+    Xrpc::Client::Params httpHeaders;
+
+    if (!acceptLanguages.empty())
+        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+
+    mXrpc->get("app.bsky.feed.getListFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListFeed:" << reply;
             try {
@@ -442,7 +460,7 @@ void Client::getFeedGenerator(const QString& feed,
     qDebug() << "Get feed generator:" << feed;
     Xrpc::Client::Params params{{ "feed", feed }};
 
-    mXrpc->get("app.bsky.feed.getFeedGenerator", params,
+    mXrpc->get("app.bsky.feed.getFeedGenerator", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFeedGenerator:" << reply;
             try {
@@ -469,7 +487,7 @@ void Client::getFeedGenerators(const std::vector<QString>& feeds,
         params.append({"feeds", f});
     }
 
-    mXrpc->get("app.bsky.feed.getFeedGenerators", params,
+    mXrpc->get("app.bsky.feed.getFeedGenerators", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFeedGenerators:" << reply;
             try {
@@ -491,7 +509,7 @@ void Client::getActorFeeds(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getActorFeeds", params,
+    mXrpc->get("app.bsky.feed.getActorFeeds", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getActorFeeds:" << reply;
             try {
@@ -513,7 +531,7 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
     addOptionalIntParam(params, "depth", depth, 0, 1000);
     addOptionalIntParam(params, "parentHeight", parentHeight, 0, 1000);
 
-    mXrpc->get("app.bsky.feed.getPostThread", params,
+    mXrpc->get("app.bsky.feed.getPostThread", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPostThread:" << reply;
             try {
@@ -538,7 +556,7 @@ void Client::getPosts(const std::vector<QString>& uris,
     for (const auto& uri : uris)
         params.append({"uris", uri});
 
-    mXrpc->get("app.bsky.feed.getPosts", params,
+    mXrpc->get("app.bsky.feed.getPosts", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPosts:" << reply;
             try {
@@ -562,7 +580,7 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.searchPosts", params,
+    mXrpc->get("app.bsky.feed.searchPosts", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "searchPosts:" << reply;
             try {
@@ -585,7 +603,7 @@ void Client::getLikes(const QString& uri, std::optional<int> limit, const std::o
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getLikes", params,
+    mXrpc->get("app.bsky.feed.getLikes", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getLikes:" << reply;
             try {
@@ -607,7 +625,7 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getRepostedBy", params,
+    mXrpc->get("app.bsky.feed.getRepostedBy", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getRepostedBy:" << reply;
             try {
@@ -629,7 +647,7 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getFollows", params,
+    mXrpc->get("app.bsky.graph.getFollows", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFollows:" << reply;
             try {
@@ -651,7 +669,7 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getFollowers", params,
+    mXrpc->get("app.bsky.graph.getFollowers", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFollowers:" << reply;
             try {
@@ -673,7 +691,7 @@ void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& c
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getBlocks", params,
+    mXrpc->get("app.bsky.graph.getBlocks", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getBlocks:" << reply;
             try {
@@ -695,7 +713,7 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getMutes", params,
+    mXrpc->get("app.bsky.graph.getMutes", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getMutes:" << reply;
             try {
@@ -749,7 +767,7 @@ void Client::getList(const QString& listUri, std::optional<int> limit, const std
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getList", params,
+    mXrpc->get("app.bsky.graph.getList", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getList:" << reply;
             try {
@@ -771,7 +789,7 @@ void Client::getLists(const QString& actor, std::optional<int> limit, const std:
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getLists", params,
+    mXrpc->get("app.bsky.graph.getLists", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getLists:" << reply;
             try {
@@ -793,7 +811,7 @@ void Client::getListBlocks(std::optional<int> limit, const std::optional<QString
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getListBlocks", params,
+    mXrpc->get("app.bsky.graph.getListBlocks", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListBlocks:" << reply;
             try {
@@ -815,7 +833,7 @@ void Client::getListMutes(std::optional<int> limit, const std::optional<QString>
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getListMutes", params,
+    mXrpc->get("app.bsky.graph.getListMutes", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListMutes:" << reply;
             try {
@@ -868,7 +886,7 @@ void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt,
     Xrpc::Client::Params params;
     addOptionalDateTimeParam(params, "seenAt", seenAt);
 
-    mXrpc->get("app.bsky.notification.getUnreadCount", params,
+    mXrpc->get("app.bsky.notification.getUnreadCount", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getUnreadCount:" << reply;
             try {
@@ -913,7 +931,7 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
 
     const auto now = QDateTime::currentDateTimeUtc();
 
-    mXrpc->get("app.bsky.notification.listNotifications", params,
+    mXrpc->get("app.bsky.notification.listNotifications", params, {},
         [this, now, successCb, errorCb, updateSeen](const QJsonDocument& reply){
             try {
                 auto output = AppBskyNotification::ListNotificationsOutput::fromJson(reply.object());
@@ -978,7 +996,7 @@ void Client::getBlob(const QString& did, const QString& cid,
 {
     Xrpc::Client::Params params{{"did", did}, {"cid", cid}};
 
-    mXrpc->get("com.atproto.sync.getBlob", params,
+    mXrpc->get("com.atproto.sync.getBlob", params, {},
         [successCb](const QByteArray& bytes, const QString& contentType){
             qDebug() <<"Got blob:" << bytes.size() << "bytes" << "content:" << contentType;
 
@@ -995,7 +1013,7 @@ void Client::getRecord(const QString& repo, const QString& collection,
     Xrpc::Client::Params params{{"repo", repo}, {"collection", collection}, {"rkey", rkey}};
     addOptionalStringParam(params, "cid", cid);
 
-    mXrpc->get("com.atproto.repo.getRecord", params,
+    mXrpc->get("com.atproto.repo.getRecord", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Got record:" << reply;
             try {
@@ -1018,7 +1036,7 @@ void Client::listRecords(const QString& repo, const QString& collection,
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("com.atproto.repo.listRecords", params,
+    mXrpc->get("com.atproto.repo.listRecords", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Got records:" << reply;
             try {
@@ -1215,7 +1233,7 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params,
+    mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPopularFeedGenerators:" << reply;
             try {

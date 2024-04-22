@@ -160,10 +160,12 @@ public:
      * @brief getSuggestions
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param acceptLanguages add HTTP Accept-Language if languages are set
      * @param successCb
      * @param errorCb
      */
     void getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
+                        const QStringList& acceptLanguages,
                         const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
@@ -204,10 +206,12 @@ public:
      * @param feed feed at-uri
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param acceptLanguages add HTTP Accept-Language if languages are set
      * @param successCb
      * @param errorCb
      */
     void getFeed(const QString& feed, std::optional<int> limit, const std::optional<QString>& cursor,
+                 const QStringList& acceptLanguages,
                  const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -215,10 +219,12 @@ public:
      * @param list list at-uri
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param acceptLanguages add HTTP Accept-Language if languages are set
      * @param successCb
      * @param errorCb
      */
     void getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const QStringList& acceptLanguages,
                      const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
