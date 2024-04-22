@@ -1,6 +1,7 @@
 next
 ====
 * Support post.langs field
+* Accept-Language header
 
 1.5
 ===

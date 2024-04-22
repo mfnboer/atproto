@@ -70,20 +70,20 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
     sendRequest(request, successCb, errorCb);
 }
 
-void Client::get(const QString& service, const Params& params,
+void Client::get(const QString& service, const Params& params, const Params& rawHeaders,
                  const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
-    getImpl(service, params, successCb, errorCb, accessJwt);
+    getImpl(service, params, rawHeaders, successCb, errorCb, accessJwt);
 }
 
-void Client::get(const QString& service, const Params& params,
+void Client::get(const QString& service, const Params& params, const Params& rawHeaders,
                  const SuccessBytesCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
-    getImpl(service, params, successCb, errorCb, accessJwt);
+    getImpl(service, params, rawHeaders, successCb, errorCb, accessJwt);
 }
 
 template<typename Callback>
-void Client::getImpl(const QString& service, const Params& params,
+void Client::getImpl(const QString& service, const Params& params, const Params& rawHeaders,
                      const Callback& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
@@ -97,6 +97,7 @@ void Client::getImpl(const QString& service, const Params& params,
     if (!accessJwt.isNull())
         setAuthorization(request.mXrpcRequest, accessJwt);
 
+    setRawHeaders(request.mXrpcRequest, rawHeaders);
     sendRequest(request, successCb, errorCb);
 }
 
@@ -126,6 +127,15 @@ void Client::setAuthorization(QNetworkRequest& request, const QString& accessJwt
 {
     QString auth = QString("Bearer %1").arg(accessJwt);
     request.setRawHeader("Authorization", auth.toUtf8());
+}
+
+void Client::setRawHeaders(QNetworkRequest& request, const Params& params) const
+{
+    for (const auto& p : params)
+    {
+        qDebug() << p.first << ":" << p.second;
+        request.setRawHeader(p.first.toUtf8(), p.second.toUtf8());
+    }
 }
 
 static void invokeCallback(const Client::SuccessBytesCb& successCb, const QByteArray& data, const QString& contentType)
