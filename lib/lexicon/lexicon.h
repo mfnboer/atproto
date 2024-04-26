@@ -1,9 +1,11 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "qml_utils.h"
 #include <QException>
 #include <QJsonDocument>
 #include <QJsonObject>
+#include <QtQmlIntegration>
 
 namespace ATProto {
 
@@ -18,6 +20,19 @@ public:
 
 private:
     QString mMsg;
+};
+
+struct ATProtoErrorMsg : public QObject
+{
+    Q_OBJECT
+    QML_UNCREATABLE("Class only exposes constants to QML.")
+    QML_ELEMENT
+    QML_SINGLETON
+
+public:
+    SHARED_CONST(QString, BLOCKED_ACTOR, QStringLiteral("BlockedActor"));
+    SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
+    SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));
 };
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.
