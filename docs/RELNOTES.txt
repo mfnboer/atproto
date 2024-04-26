@@ -1,3 +1,7 @@
+next
+====
+* ATProto error constants
+
 1.6
 ===
 * Support post.langs field

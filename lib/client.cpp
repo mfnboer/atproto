@@ -41,7 +41,8 @@ static void addOptionalDateTimeParam(Xrpc::Client::Params& params, const QString
 // TODO: is there a better way to identify errors?
 bool Client::isListNotFoundError(const QString& error, const QString& msg)
 {
-    return error == "InvalidRequest" && msg.startsWith("List not found");
+    return error == ATProtoErrorMsg::INVALID_REQUEST &&
+           msg.startsWith(QStringLiteral("List not found"));
 }
 
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
