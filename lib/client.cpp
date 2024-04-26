@@ -50,12 +50,14 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
 {}
 
 void Client::createSession(const QString& user, const QString& pwd,
+                           const std::optional<QString>& authFactorToken,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mSession = nullptr;
     QJsonObject root;
     root.insert("identifier", user);
     root.insert("password", pwd);
+    XJsonObject::insertOptionalJsonValue(root, "authFactorToken", authFactorToken);
     QJsonDocument json(root);
 
     mXrpc->post("com.atproto.server.createSession", json,

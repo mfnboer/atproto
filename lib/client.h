@@ -85,10 +85,12 @@ public:
      * @brief createSession
      * @param user user handle or did
      * @param pwd password
+     * @param authFactorToken 2FA token
      * @param successCb
      * @param errorCb
      */
     void createSession(const QString& user, const QString& pwd,
+                       const std::optional<QString>& authFactorToken,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
