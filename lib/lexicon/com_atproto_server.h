@@ -15,6 +15,7 @@ struct Session
     QString mDid;
     std::optional<QString> mEmail;
     bool mEmailConfirmed = false;
+    bool mEmailAuthFactor = false;
     DidDocument::SharedPtr mDidDoc; // optional
 
     std::optional<QString> getPDS() const;
@@ -30,6 +31,7 @@ struct GetSessionOutput
     QString mDid;
     std::optional<QString> mEmail;
     bool mEmailConfirmed = false;
+    bool mEmailAuthFactor = false;
     DidDocument::SharedPtr mDidDoc; // optional
 
     using Ptr = std::unique_ptr<GetSessionOutput>;

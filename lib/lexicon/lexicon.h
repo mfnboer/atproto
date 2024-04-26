@@ -30,6 +30,7 @@ struct ATProtoErrorMsg : public QObject
     QML_SINGLETON
 
 public:
+    SHARED_CONST(QString, AUTH_FACTOR_TOKEN_REQUIRED, QStringLiteral("AuthFactorTokenRequired"));
     SHARED_CONST(QString, BLOCKED_ACTOR, QStringLiteral("BlockedActor"));
     SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
     SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));

@@ -1,5 +1,6 @@
 next
 ====
+* 2FA support
 * ATProto error constants
 
 1.6
