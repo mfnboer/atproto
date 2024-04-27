@@ -91,6 +91,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                     mSession->mHandle = resumed->mHandle;
                     mSession->mEmail = resumed->mEmail;
                     mSession->mEmailConfirmed = resumed->mEmailConfirmed;
+                    mSession->mEmailAuthFactor = resumed->mEmailAuthFactor;
                     mSession->mDidDoc = resumed->mDidDoc;
                     mXrpc->setPDSFromSession(*mSession);
 
