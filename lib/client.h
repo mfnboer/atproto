@@ -79,6 +79,7 @@ public:
 
     const QString& getHost() const { return mXrpc->getHost(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
+    void setSession(ComATProtoServer::Session::Ptr session) { mSession = std::move(session); }
 
     // com.atproto.server
     /**

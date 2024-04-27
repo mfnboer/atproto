@@ -34,6 +34,7 @@ public:
     SHARED_CONST(QString, BLOCKED_ACTOR, QStringLiteral("BlockedActor"));
     SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
     SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));
+    SHARED_CONST(QString, INVALID_TOKEN, QStringLiteral("InvalidToken"));
 };
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.
