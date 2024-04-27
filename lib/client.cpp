@@ -76,6 +76,25 @@ void Client::createSession(const QString& user, const QString& pwd,
         failure(errorCb));
 }
 
+void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (!mSession)
+    {
+        qWarning() << "There is no session";
+        return;
+    }
+
+    mXrpc->post("com.atproto.server.deleteSession", {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Delete session reply:" << reply;
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        refreshToken());
+}
+
 void Client::resumeSession(const ComATProtoServer::Session& session,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {

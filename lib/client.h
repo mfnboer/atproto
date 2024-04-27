@@ -95,6 +95,13 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief deleteSession Delete the current session
+     * @param successCb
+     * @param errorCb
+     */
+    void deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief resumeSession Resume a previously created session
      * @param session
      * @param successCb
