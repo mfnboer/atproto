@@ -8,12 +8,14 @@ namespace ATProto::ComATProtoLabel {
 // com.atproto.label.defs#label
 struct Label
 {
+    std::optional<int> mVersion;
     QString mSrc; // DID of creator
     QString mUri; // at-uri
     std::optional<QString> mCid;
     QString mVal;
     bool mNeg = false; // Negate the label
     QDateTime mCreatedAt;
+    std::optional<QDateTime> mExpires;
 
     using Ptr = std::unique_ptr<Label>;
     static Ptr fromJson(const QJsonObject& json);
