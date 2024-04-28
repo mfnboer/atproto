@@ -9,12 +9,14 @@ Label::Ptr Label::fromJson(const QJsonObject& json)
 {
     auto label = std::make_unique<Label>();
     XJsonObject xjson(json);
+    label->mVersion = xjson.getOptionalInt("ver");
     label->mSrc = xjson.getRequiredString("src");
     label->mUri = xjson.getRequiredString("uri");
     label->mCid = xjson.getOptionalString("cid");
     label->mVal = xjson.getRequiredString("val");
     label->mNeg = xjson.getOptionalBool("neg", false);
     label->mCreatedAt = xjson.getRequiredDateTime("cts");
+    label->mExpires = xjson.getOptionalDateTime("exp");
     return label;
 }
 
