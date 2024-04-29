@@ -13,6 +13,11 @@ namespace ATProto
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
 
+static QString boolValue(bool value)
+{
+    return value ? QStringLiteral("true") : QStringLiteral("false");
+}
+
 static void addOptionalIntParam(Xrpc::Client::Params& params, const QString& name, std::optional<int> value, int min, int max)
 {
     if (value)
@@ -347,6 +352,29 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
                 auto ouput = AppBskyActor::GetSuggestionsOutput::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getServices(const std::vector<QString>& dids, bool detailed,
+                         const GetServicesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"detailed", boolValue(detailed)}};
+
+    for (const auto& did : dids)
+        params.append({"dids", did});
+
+    mXrpc->get("app.bsky.labeler.getServices", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getServices:" << reply;
+            try {
+                auto output = AppBskyLabeler::GetServicesOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }

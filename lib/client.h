@@ -7,6 +7,7 @@
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
+#include "lexicon/app_bsky_labeler.h"
 #include "lexicon/app_bsky_notification.h"
 #include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/com_atproto_moderation.h"
@@ -68,6 +69,7 @@ public:
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::Ptr)>;
+    using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
     static constexpr int MAX_URIS_GET_POSTS = 25;
@@ -177,6 +179,17 @@ public:
     void getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
                         const QStringList& acceptLanguages,
                         const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.labeler
+    /**
+     * @brief getServices
+     * @param dids
+     * @param detailed
+     * @param successCb
+     * @param errorCb
+     */
+    void getServices(const std::vector<QString>& dids, bool detailed,
+                     const GetServicesSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
     /**
