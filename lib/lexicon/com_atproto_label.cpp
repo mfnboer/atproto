@@ -59,4 +59,78 @@ QJsonObject SelfLabels::toJson() const
     return json;
 }
 
+LabelValueDefinitionStrings::Ptr LabelValueDefinitionStrings::fromJson(const QJsonObject& json)
+{
+    auto defStrings = std::make_unique<LabelValueDefinitionStrings>();
+    XJsonObject xjson(json);
+    defStrings->mLang = xjson.getRequiredString("lang");
+    defStrings->mName = xjson.getRequiredString("name");
+    defStrings->mDescription = xjson.getRequiredString("description");
+    return defStrings;
+}
+
+LabelValueDefinition::Severity LabelValueDefinition::stringToSeverity(const QString& str)
+{
+    static const std::unordered_map<QString, Severity> mapping = {
+        { "inform", Severity::INFORM },
+        { "alert", Severity::ALERT },
+        { "none", Severity::NONE }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Unknown severity:" << str;
+    return Severity::UNKNOWN;
+}
+
+LabelValueDefinition::Blurs LabelValueDefinition::stringToBlurs(const QString& str)
+{
+    static const std::unordered_map<QString, Blurs> mapping = {
+        { "content", Blurs::CONTENT },
+        { "media", Blurs::MEDIA },
+        { "none", Blurs::NONE }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Unknown blurs:" << str;
+    return Blurs::UNKNOWN;
+}
+
+LabelValueDefinition::Setting LabelValueDefinition::stringToSetting(const QString& str)
+{
+    static const std::unordered_map<QString, Setting> mapping = {
+        { "ignore", Setting::IGNORE },
+        { "warn", Setting::WARN },
+        { "hide", Setting::HIDE }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Unknown settings:" << str;
+    return Setting::UNKNOWN;
+}
+
+LabelValueDefinition::Ptr LabelValueDefinition::fromJson(const QJsonObject& json)
+{
+    auto def = std::make_unique<LabelValueDefinition>();
+    XJsonObject xjson(json);
+    def->mIdentifier = xjson.getRequiredString("identifier");
+    def->mRawSeverity = xjson.getRequiredString("severity");
+    def->mSeverity = stringToSeverity(def->mRawSeverity);
+    def->mRawBlurs = xjson.getRequiredString("blurs");
+    def->mBlurs = stringToBlurs(def->mRawBlurs);
+    def->mRawDefaultSetting = xjson.getOptionalString("defaultSetting", "warn");
+    def->mDefaultSetting = stringToSetting(def->mRawDefaultSetting);
+    def->mAdultOnly = xjson.getOptionalBool("adultOnly", false);
+    def->mLocales = xjson.getOptionalVector<LabelValueDefinitionStrings>("locales");
+    return def;
+}
+
 }

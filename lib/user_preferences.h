@@ -52,6 +52,7 @@ private:
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
     AppBskyActor::ThreadViewPref mThreadViewPref;
     AppBskyActor::MutedWordsPref mMutedWordsPref;
+    AppBskyActor::LabelersPref mLabelersPref;
     std::vector<AppBskyActor::UnknownPref> mUnknownPrefs;
 };
 

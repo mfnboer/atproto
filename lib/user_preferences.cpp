@@ -61,6 +61,12 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             mMutedWordsPref = *mutedWords;
             break;
         }
+        case AppBskyActor::PreferenceType::LABELERS:
+        {
+            const auto& labelers = std::get<AppBskyActor::LabelersPref::Ptr>(pref->mItem);
+            mLabelersPref = *labelers;
+            break;
+        }
         case AppBskyActor::PreferenceType::UNKNOWN:
             const auto& unknowPref = std::get<AppBskyActor::UnknownPref::Ptr>(pref->mItem);
             mUnknownPrefs.push_back(*unknowPref);

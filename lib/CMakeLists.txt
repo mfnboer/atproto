@@ -73,6 +73,8 @@ qt_add_qml_module(libatproto
         rich_text_master.cpp
         lexicon/app_bsky_graph_include.h
         SOURCES qml_utils.h
+        SOURCES lexicon/app_bsky_labeler.h
+        SOURCES lexicon/app_bsky_labeler.cpp
 )
 
 if (NOT ANDROID)

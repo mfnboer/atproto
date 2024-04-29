@@ -23,6 +23,17 @@ struct ViewerState
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#profileAssociated
+struct ProfileAssociated
+{
+    int mLists = 0;
+    int mFeeds = 0;
+    bool mLabeler = false;
+
+    using Ptr = std::unique_ptr<ProfileAssociated>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#profileViewBasic
 struct ProfileViewBasic
 {
@@ -30,6 +41,7 @@ struct ProfileViewBasic
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
     std::optional<QString> mAvatar; // URL
+    ProfileAssociated::Ptr mAssociated; // optional
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
@@ -48,6 +60,7 @@ struct ProfileView
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
     std::optional<QString> mAvatar; // URL
+    ProfileAssociated::Ptr mAssociated; // optional
     std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
     std::optional<QDateTime> mIndexedAt;
     ViewerState::Ptr mViewer; // optional
@@ -74,6 +87,7 @@ struct ProfileViewDetailed
     int mFollowersCount = 0;
     int mFollowsCount = 0;
     int mPostsCount = 0;
+    ProfileAssociated::Ptr mAssociated; // optional
     std::optional<QDateTime> mIndexedAt;
     ViewerState::Ptr mViewer; // optional
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
@@ -132,13 +146,15 @@ struct ContentLabelPref
         UNKNOWN
     };
     static Visibility stringToVisibility(const QString& str);
-    static QString visibilityToString(Visibility visibility);
+    static QString visibilityToString(Visibility visibility, const QString& unknown);
 
+    std::optional<QString> mLabelerDid; // not set means global label
     QString mLabel;
     Visibility mVisibility;
     QString mRawVisibility;
     QJsonObject mJson;
 
+    bool isGlobal() const { return !mLabelerDid; }
     QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<ContentLabelPref>;
@@ -242,6 +258,30 @@ struct MutedWordsPref
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#labelerPrefItem
+struct LabelerPrefItem
+{
+    QString mDid;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<LabelerPrefItem>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct LabelersPref
+{
+    // No unique ptrs as preferences will be copied in UserPreferences()
+    std::vector<LabelerPrefItem> mLabelers;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<LabelersPref>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // Future preferences will be unknown. We store the json object, such that
 // we can send it back unmodified for preference updates.
 struct UnknownPref
@@ -263,6 +303,7 @@ enum class PreferenceType
     FEED_VIEW,
     THREAD_VIEW,
     MUTED_WORDS,
+    LABELERS,
     UNKNOWN
 };
 PreferenceType stringToPreferenceType(const QString& str);
@@ -274,6 +315,7 @@ using PreferenceItem = std::variant<AdultContentPref::Ptr,
                                     FeedViewPref::Ptr,
                                     ThreadViewPref::Ptr,
                                     MutedWordsPref::Ptr,
+                                    LabelersPref::Ptr,
                                     UnknownPref::Ptr>;
 
 struct Preference

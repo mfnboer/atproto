@@ -21,6 +21,16 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+ProfileAssociated::Ptr ProfileAssociated::fromJson(const QJsonObject& json)
+{
+    auto associated = std::make_unique<ProfileAssociated>();
+    XJsonObject xjson(json);
+    associated->mLists = xjson.getOptionalInt("lists", 0);
+    associated->mFeeds = xjson.getOptionalInt("feeds", 0);
+    associated->mLabeler = xjson.getOptionalBool("labeler", false);
+    return associated;
+}
+
 QJsonObject ProfileViewBasic::toJson() const
 {
     QJsonObject json;
@@ -39,11 +49,8 @@ ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");
     profileViewBasic->mAvatar = root.getOptionalString("avatar");
-    
-    const auto viewerJson = root.getOptionalJsonObject("viewer");
-    if (viewerJson)
-        profileViewBasic->mViewer = ViewerState::fromJson(*viewerJson);
-
+    profileViewBasic->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
+    profileViewBasic->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profileViewBasic->mLabels, json);
     return profileViewBasic;
 }
@@ -67,13 +74,10 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
     profile->mAvatar = root.getOptionalString("avatar");
+    profile->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profile->mDescription = root.getOptionalString("description");
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
-    
-    const auto viewerJson = root.getOptionalJsonObject("viewer");
-    if (viewerJson)
-        profile->mViewer = ViewerState::fromJson(*viewerJson);
-
+    profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
     return profile;
 }
@@ -91,12 +95,9 @@ ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
     profile->mFollowersCount = root.getOptionalInt("followersCount", 0);
     profile->mFollowsCount = root.getOptionalInt("followsCount", 0);
     profile->mPostsCount = root.getOptionalInt("postsCount", 0);
+    profile->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
-    
-    const auto viewerJson = root.getOptionalJsonObject("viewer");
-    if (viewerJson)
-        profile->mViewer = ViewerState::fromJson(*viewerJson);
-
+    profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
     return profile;
 }
@@ -152,7 +153,7 @@ ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString&
 {
     static const std::unordered_map<QString, Visibility> mapping = {
         { "show", Visibility::SHOW },
-        { "ignore", Visibility::SHOW }, // not in spec, but I get this from bluesky
+        { "ignore", Visibility::SHOW },
         { "warn", Visibility::WARN },
         { "hide", Visibility::HIDE }
     };
@@ -165,7 +166,7 @@ ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString&
     return Visibility::UNKNOWN;
 }
 
-QString ContentLabelPref::visibilityToString(Visibility visibility)
+QString ContentLabelPref::visibilityToString(Visibility visibility, const QString& unknown)
 {
     static const std::unordered_map<Visibility, QString> mapping = {
         { Visibility::SHOW, "show" },
@@ -179,7 +180,7 @@ QString ContentLabelPref::visibilityToString(Visibility visibility)
     if (it == mapping.end())
     {
         qWarning() << "Unknown visibility:" << int(visibility);
-        return "hide";
+        return unknown;
     }
 
     return it->second;
@@ -189,8 +190,14 @@ QJsonObject ContentLabelPref::toJson() const
 {
     QJsonObject json(mJson);
     json.insert("$type", "app.bsky.actor.defs#contentLabelPref");
+    XJsonObject::insertOptionalJsonValue(json, "labelerDid", mLabelerDid);
     json.insert("label", mLabel);
-    json.insert("visibility", visibilityToString(mVisibility));
+
+    if (!isGlobal() && mVisibility == Visibility::SHOW)
+        json.insert("visibility", "ignore");
+    else
+        json.insert("visibility", visibilityToString(mVisibility, mRawVisibility));
+
     return json;
 }
 
@@ -198,6 +205,7 @@ ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<ContentLabelPref>();
     XJsonObject xjson(json);
+    pref->mLabelerDid = xjson.getOptionalString("labelerDid");
     pref->mLabel = xjson.getRequiredString("label");
     pref->mRawVisibility = xjson.getRequiredString("visibility");
     pref->mVisibility = stringToVisibility(pref->mRawVisibility);
@@ -362,6 +370,49 @@ MutedWordsPref::Ptr MutedWordsPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
+QJsonObject LabelerPrefItem::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("did", mDid);
+    return json;
+}
+
+LabelerPrefItem::Ptr LabelerPrefItem::fromJson(const QJsonObject& json)
+{
+    auto item = std::make_unique<LabelerPrefItem>();
+    const XJsonObject xjson(json);
+    item->mDid = xjson.getRequiredString("did");
+    item->mJson = json;
+    return item;
+}
+
+QJsonObject LabelersPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", "app.bsky.actor.defs#labelersPref");
+
+    QJsonArray jsonArray;
+
+    for (const auto& labeler : mLabelers)
+        jsonArray.push_back(labeler.toJson());
+
+    return json;
+}
+
+LabelersPref::Ptr LabelersPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_unique<LabelersPref>();
+    const XJsonObject xjson(json);
+    auto labelers = xjson.getRequiredVector<LabelerPrefItem>("labelers");
+    pref->mLabelers.reserve(labelers.size());
+
+    for (auto& labeler : labelers)
+        pref->mLabelers.push_back(std::move(*labeler));
+
+    pref->mJson = json;
+    return pref;
+}
+
 UnknownPref::Ptr UnknownPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<UnknownPref>();
@@ -378,7 +429,8 @@ PreferenceType stringToPreferenceType(const QString& str)
         { "app.bsky.actor.defs#personalDetailsPref", PreferenceType::PERSONAL_DETAILS },
         { "app.bsky.actor.defs#feedViewPref", PreferenceType::FEED_VIEW },
         { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW },
-        { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS }
+        { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS },
+        { "app.bsky.actor.defs#labelersPref", PreferenceType::LABELERS }
     };
 
     const auto it = mapping.find(str);
@@ -417,6 +469,9 @@ Preference::Ptr Preference::fromJson(const QJsonObject& json)
         break;
     case PreferenceType::MUTED_WORDS:
         pref->mItem = MutedWordsPref::fromJson(json);
+        break;
+    case PreferenceType::LABELERS:
+        pref->mItem = LabelersPref::fromJson(json);
         break;
     case PreferenceType::UNKNOWN:
         pref->mItem = UnknownPref::fromJson(json);
