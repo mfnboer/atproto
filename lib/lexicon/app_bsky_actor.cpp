@@ -169,7 +169,7 @@ ContentLabelPref::Visibility ContentLabelPref::stringToVisibility(const QString&
 QString ContentLabelPref::visibilityToString(Visibility visibility, const QString& unknown)
 {
     static const std::unordered_map<Visibility, QString> mapping = {
-        { Visibility::SHOW, "show" },
+        { Visibility::SHOW, "ignore" },
         { Visibility::WARN, "warn" },
         { Visibility::HIDE, "hide" }
     };
@@ -192,12 +192,7 @@ QJsonObject ContentLabelPref::toJson() const
     json.insert("$type", "app.bsky.actor.defs#contentLabelPref");
     XJsonObject::insertOptionalJsonValue(json, "labelerDid", mLabelerDid);
     json.insert("label", mLabel);
-
-    if (!isGlobal() && mVisibility == Visibility::SHOW)
-        json.insert("visibility", "ignore");
-    else
-        json.insert("visibility", visibilityToString(mVisibility, mRawVisibility));
-
+    json.insert("visibility", visibilityToString(mVisibility, mRawVisibility));
     return json;
 }
 
