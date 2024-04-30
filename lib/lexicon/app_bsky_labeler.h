@@ -6,12 +6,12 @@
 
 namespace ATProto::AppBskyLabeler {
 
-// app.bsky.labeler.defs#labelerViewState
-struct LabelerViewState
+// app.bsky.labeler.defs#labelerViewerState
+struct LabelerViewerState
 {
     std::optional<QString> mLike;
 
-    using Ptr = std::unique_ptr<LabelerViewState>;
+    using Ptr = std::unique_ptr<LabelerViewerState>;
     static Ptr fromJson(const QJsonObject& json);
 };
 
@@ -32,7 +32,7 @@ struct LabelerView
     QString mCid;
     AppBskyActor::ProfileView::Ptr mCreator;
     int mLikeCount = 0;
-    LabelerViewState::Ptr mViewer; // optional
+    LabelerViewerState::Ptr mViewer; // optional
     QDateTime mIndexedAt;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
@@ -48,7 +48,7 @@ struct LabelerViewDetailed
     AppBskyActor::ProfileView::Ptr mCreator;
     LabelerPolicies::Ptr mPolicies;
     int mLikeCount = 0;
-    LabelerViewState::Ptr mViewer; // optional
+    LabelerViewerState::Ptr mViewer; // optional
     QDateTime mIndexedAt;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 

@@ -5,9 +5,9 @@
 
 namespace ATProto::AppBskyLabeler {
 
-LabelerViewState::Ptr LabelerViewState::fromJson(const QJsonObject& json)
+LabelerViewerState::Ptr LabelerViewerState::fromJson(const QJsonObject& json)
 {
-    auto state = std::make_unique<LabelerViewState>();
+    auto state = std::make_unique<LabelerViewerState>();
     XJsonObject xjson(json);
     state->mLike = xjson.getOptionalString("like");
     return state;
@@ -30,7 +30,7 @@ LabelerView::Ptr LabelerView::fromJson(const QJsonObject& json)
     view->mCid = xjson.getRequiredString("cid");
     view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileView>("creator");
     view->mLikeCount = xjson.getOptionalInt("likeCount", 0);
-    view->mViewer = xjson.getOptionalObject<LabelerViewState>("viewer");
+    view->mViewer = xjson.getOptionalObject<LabelerViewerState>("viewer");
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     view->mLabels = xjson.getOptionalVector<ComATProtoLabel::Label>("labels");
     return view;
@@ -45,7 +45,7 @@ LabelerViewDetailed::Ptr LabelerViewDetailed::fromJson(const QJsonObject& json)
     view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileView>("creator");
     view->mPolicies = xjson.getRequiredObject<LabelerPolicies>("policies");
     view->mLikeCount = xjson.getOptionalInt("likeCount", 0);
-    view->mViewer = xjson.getOptionalObject<LabelerViewState>("viewer");
+    view->mViewer = xjson.getOptionalObject<LabelerViewerState>("viewer");
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     view->mLabels = xjson.getOptionalVector<ComATProtoLabel::Label>("labels");
     return view;
