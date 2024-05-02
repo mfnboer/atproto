@@ -14,6 +14,7 @@ public:
     using ContentLabelPrefs = std::unordered_map<QString, LabelVisibility>;
     using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
     using MutedWordsPref = AppBskyActor::MutedWordsPref;
+    using LabelersPref = AppBskyActor::LabelersPref;
 
     UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
@@ -36,6 +37,9 @@ public:
 
     const MutedWordsPref& getMutedWordsPref() const { return mMutedWordsPref; }
     MutedWordsPref& getMutedWordsPref() { return mMutedWordsPref; }
+
+    const LabelersPref& getLabelersPref() const { return mLabelersPref; }
+    void setLabelersPref(const LabelersPref& pref) { mLabelersPref = pref; }
 
     AppBskyActor::PreferenceList toPreferenceList() const;
 
