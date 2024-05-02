@@ -391,6 +391,7 @@ QJsonObject LabelersPref::toJson() const
     for (const auto& labeler : mLabelers)
         jsonArray.push_back(labeler.toJson());
 
+    json.insert("labelers", jsonArray);
     return json;
 }
 
@@ -398,7 +399,7 @@ LabelersPref::Ptr LabelersPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_unique<LabelersPref>();
     const XJsonObject xjson(json);
-    auto labelers = xjson.getRequiredVector<LabelerPrefItem>("labelers");
+    auto labelers = xjson.getOptionalVector<LabelerPrefItem>("labelers");
     pref->mLabelers.reserve(labelers.size());
 
     for (auto& labeler : labelers)

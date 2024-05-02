@@ -11,7 +11,14 @@ class UserPreferences
 public:
     using LabelVisibility = AppBskyActor::ContentLabelPref::Visibility;
     using FeedViewPref = AppBskyActor::FeedViewPref;
-    using ContentLabelPrefs = std::unordered_map<QString, LabelVisibility>;
+    using DidLabelPair = std::pair<QString, QString>; // empty did means global label
+
+    struct DidLabelPairHash {
+        size_t operator()(DidLabelPair dlp) const noexcept { return qHash(dlp.second); }
+    };
+
+    // TODO: map in map may be better: first on DID then on label.
+    using ContentLabelPrefs = std::unordered_map<DidLabelPair, LabelVisibility, DidLabelPairHash>;
     using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
     using MutedWordsPref = AppBskyActor::MutedWordsPref;
     using LabelersPref = AppBskyActor::LabelersPref;
@@ -24,10 +31,10 @@ public:
     bool getAdultContent() const { return mAdultContent; }
     void setAdultContent(bool enabled) { mAdultContent = enabled; }
 
-    const ContentLabelPrefs& getContentLabelPrefs() const { return mContentLabelPrefs; }
+    void removeContentLabelPrefs(const QString& did);
 
-    LabelVisibility getLabelVisibility(const QString& label) const;
-    void setLabelVisibility(const QString& label, LabelVisibility visibility);
+    LabelVisibility getLabelVisibility(const QString& did, const QString& label) const;
+    void setLabelVisibility(const QString& did, const QString& label, LabelVisibility visibility);
 
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
     void setFeedViewPref(const FeedViewPref& pref);
