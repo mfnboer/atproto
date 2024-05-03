@@ -10,6 +10,7 @@
 namespace ATProto
 {
 
+constexpr int MAX_LABELERS = 10;
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
 
@@ -53,6 +54,25 @@ bool Client::isListNotFoundError(const QString& error, const QString& msg)
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
     mXrpc(std::move(xrpc))
 {}
+
+bool Client::addLabelerDid(const QString& did)
+{
+    if (mLabelerDids.size() >= MAX_LABELERS)
+    {
+        qWarning() << "Maximum labelers reached:" << mLabelerDids.size();
+        return false;
+    }
+
+    mLabelerDids.insert(did);
+    setAcceptLabalersHeaderValue();
+    return true;
+}
+
+void Client::removeLabelerDid(const QString& did)
+{
+    mLabelerDids.erase(did);
+    setAcceptLabalersHeaderValue();
+}
 
 void Client::createSession(const QString& user, const QString& pwd,
                            const std::optional<QString>& authFactorToken,
@@ -213,7 +233,10 @@ void Client::resolveHandle(const QString& handle,
 
 void Client::getProfile(const QString& user, const GetProfileSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}}, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}}, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getProfile:" << reply;
             try {
@@ -237,7 +260,10 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
     for (const auto& user : users)
         params.append({"actors", user});
 
-    mXrpc->get("app.bsky.actor.getProfiles", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.actor.getProfiles", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getProfiles:" << reply;
             try {
@@ -296,7 +322,10 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.actor.searchActors", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.actor.searchActors", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "searchActors:" << reply;
             try {
@@ -341,9 +370,8 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::Client::Params httpHeaders;
-
-    if (!acceptLanguages.empty())
-        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+    addAcceptLanguageHeader(httpHeaders, acceptLanguages);
+    addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -390,7 +418,10 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getAuthorFeed", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getAuthorFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAuthorFeed:" << reply;
             try {
@@ -434,7 +465,10 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getTimeline", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getTimeline", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getTimeline:" << reply;
             try {
@@ -458,9 +492,8 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::Client::Params httpHeaders;
-
-    if (!acceptLanguages.empty())
-        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+    addAcceptLanguageHeader(httpHeaders, acceptLanguages);
+    addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -486,9 +519,8 @@ void Client::getListFeed(const QString& list, std::optional<int> limit, const st
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::Client::Params httpHeaders;
-
-    if (!acceptLanguages.empty())
-        httpHeaders.push_back({"Accept-Language", acceptLanguages.join(',')});
+    addAcceptLanguageHeader(httpHeaders, acceptLanguages);
+    addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getListFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -582,7 +614,10 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
     addOptionalIntParam(params, "depth", depth, 0, 1000);
     addOptionalIntParam(params, "parentHeight", parentHeight, 0, 1000);
 
-    mXrpc->get("app.bsky.feed.getPostThread", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getPostThread", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPostThread:" << reply;
             try {
@@ -607,7 +642,10 @@ void Client::getPosts(const std::vector<QString>& uris,
     for (const auto& uri : uris)
         params.append({"uris", uri});
 
-    mXrpc->get("app.bsky.feed.getPosts", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getPosts", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPosts:" << reply;
             try {
@@ -631,7 +669,10 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.searchPosts", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.searchPosts", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "searchPosts:" << reply;
             try {
@@ -1348,6 +1389,31 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
         if (errorCb)
             errorCb(ERROR_INVALID_JSON, err);
     }
+}
+
+void Client::setAcceptLabalersHeaderValue()
+{
+    mAcceptLabelersHeaderValue.clear();
+
+    for (const auto& did : mLabelerDids)
+    {
+        if (!mAcceptLabelersHeaderValue.isEmpty())
+            mAcceptLabelersHeaderValue.push_back(',');
+
+        mAcceptLabelersHeaderValue.push_back(did);
+    }
+}
+
+void Client::addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const
+{
+    if (!mAcceptLabelersHeaderValue.isEmpty())
+        httpHeaders.push_back({QStringLiteral("atproto-accept-labelers"), mAcceptLabelersHeaderValue});
+}
+
+void Client::addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const
+{
+    if (!languages.empty())
+        httpHeaders.push_back({"Accept-Language", languages.join(',')});
 }
 
 }

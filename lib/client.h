@@ -83,6 +83,9 @@ public:
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::Ptr session) { mSession = std::move(session); }
 
+    bool addLabelerDid(const QString& did);
+    void removeLabelerDid(const QString& did);
+
     // com.atproto.server
     /**
      * @brief createSession
@@ -592,8 +595,14 @@ private:
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
 
+    void setAcceptLabalersHeaderValue();
+    void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
+    void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
+
     std::unique_ptr<Xrpc::Client> mXrpc;
     ComATProtoServer::Session::Ptr mSession;
+    std::unordered_set<QString> mLabelerDids;
+    QString mAcceptLabelersHeaderValue;
 };
 
 }
