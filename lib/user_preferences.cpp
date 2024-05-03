@@ -78,6 +78,16 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
     }
 }
 
+std::unordered_set<QString> UserPreferences::getLabelerDids() const
+{
+    std::unordered_set<QString> dids;
+
+    for (const auto& item : mLabelersPref.mLabelers)
+        dids.insert(item.mDid);
+
+    return dids;
+}
+
 AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
 {
     AppBskyActor::Preference::Ptr pref;
