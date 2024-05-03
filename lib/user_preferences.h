@@ -41,6 +41,8 @@ public:
 
     const LabelersPref& getLabelersPref() const { return mLabelersPref; }
     void setLabelersPref(const LabelersPref& pref) { mLabelersPref = pref; }
+    std::unordered_set<QString> getLabelerDids() const;
+    size_t numLabelers() const { return mLabelersPref.mLabelers.size(); }
 
     AppBskyActor::PreferenceList toPreferenceList() const;
 

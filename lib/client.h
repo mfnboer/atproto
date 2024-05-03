@@ -72,6 +72,7 @@ public:
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
+    static constexpr int MAX_LABELERS = 10;
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
 
@@ -83,6 +84,7 @@ public:
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::Ptr session) { mSession = std::move(session); }
 
+    bool setLabelerDids(const std::unordered_set<QString>& dids);
     bool addLabelerDid(const QString& did);
     void removeLabelerDid(const QString& did);
 
@@ -595,7 +597,7 @@ private:
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
 
-    void setAcceptLabalersHeaderValue();
+    void setAcceptLabelersHeaderValue();
     void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
     void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
 

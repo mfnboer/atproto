@@ -10,7 +10,6 @@
 namespace ATProto
 {
 
-constexpr int MAX_LABELERS = 10;
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
 
@@ -55,6 +54,19 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
     mXrpc(std::move(xrpc))
 {}
 
+bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
+{
+    if (dids.size() > MAX_LABELERS)
+    {
+        qDebug() << "Too many labelers:" << dids.size();
+        return false;
+    }
+
+    mLabelerDids = dids;
+    setAcceptLabelersHeaderValue();
+    return true;
+}
+
 bool Client::addLabelerDid(const QString& did)
 {
     if (mLabelerDids.size() >= MAX_LABELERS)
@@ -64,14 +76,14 @@ bool Client::addLabelerDid(const QString& did)
     }
 
     mLabelerDids.insert(did);
-    setAcceptLabalersHeaderValue();
+    setAcceptLabelersHeaderValue();
     return true;
 }
 
 void Client::removeLabelerDid(const QString& did)
 {
     mLabelerDids.erase(did);
-    setAcceptLabalersHeaderValue();
+    setAcceptLabelersHeaderValue();
 }
 
 void Client::createSession(const QString& user, const QString& pwd,
@@ -1391,7 +1403,7 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     }
 }
 
-void Client::setAcceptLabalersHeaderValue()
+void Client::setAcceptLabelersHeaderValue()
 {
     mAcceptLabelersHeaderValue.clear();
 
@@ -1402,6 +1414,8 @@ void Client::setAcceptLabalersHeaderValue()
 
         mAcceptLabelersHeaderValue.push_back(did);
     }
+
+    qDebug() << "Labelers:" << mAcceptLabelersHeaderValue;
 }
 
 void Client::addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const
