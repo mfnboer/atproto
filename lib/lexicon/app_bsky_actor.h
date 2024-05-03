@@ -5,6 +5,7 @@
 #include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
+#include <unordered_set>
 
 namespace ATProto::AppBskyActor {
 
@@ -265,15 +266,24 @@ struct LabelerPrefItem
     QJsonObject mJson;
 
     QJsonObject toJson() const;
+    bool operator==(const LabelerPrefItem& other) const { return mDid == other.mDid; }
 
     using Ptr = std::unique_ptr<LabelerPrefItem>;
     static Ptr fromJson(const QJsonObject& json);
+
+    struct Hash
+    {
+        size_t operator()(const LabelerPrefItem& item) const
+        {
+            return ::std::hash<QString>()(item.mDid);
+        }
+    };
 };
 
 struct LabelersPref
 {
     // No unique ptrs as preferences will be copied in UserPreferences()
-    std::vector<LabelerPrefItem> mLabelers;
+    std::unordered_set<LabelerPrefItem, LabelerPrefItem::Hash> mLabelers;
     QJsonObject mJson;
 
     QJsonObject toJson() const;
