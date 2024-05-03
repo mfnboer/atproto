@@ -27,8 +27,8 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
 
             if (contentLabel->mVisibility != LabelVisibility::UNKNOWN)
             {
-                const DidLabelPair dlp{ contentLabel->mLabelerDid.value_or(""), contentLabel->mLabel };
-                mContentLabelPrefs[dlp] = contentLabel->mVisibility;
+                const QString did = contentLabel->mLabelerDid.value_or("");
+                mContentLabelPrefs[did][contentLabel->mLabel] = contentLabel->mVisibility;
             }
 
             break;
@@ -90,19 +90,22 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
     pref->mType = AppBskyActor::PreferenceType::ADULT_CONTENT;
     preferences.push_back(std::move(pref));
 
-    for (const auto& [label, visibility] : mContentLabelPrefs)
+    for (const auto& [did, visibilityMap] : mContentLabelPrefs)
     {
-        auto contentLabelPref = std::make_unique<AppBskyActor::ContentLabelPref>();
+        for (const auto& [label, visibility] : visibilityMap)
+        {
+            auto contentLabelPref = std::make_unique<AppBskyActor::ContentLabelPref>();
 
-        if (!label.first.isEmpty())
-            contentLabelPref->mLabelerDid = label.first;
+            if (!did.isEmpty())
+                contentLabelPref->mLabelerDid = did;
 
-        contentLabelPref->mLabel = label.second;
-        contentLabelPref->mVisibility = visibility;
-        pref = std::make_unique<AppBskyActor::Preference>();
-        pref->mItem = std::move(contentLabelPref);
-        pref->mType = AppBskyActor::PreferenceType::CONTENT_LABEL;
-        preferences.push_back(std::move(pref));
+            contentLabelPref->mLabel = label;
+            contentLabelPref->mVisibility = visibility;
+            pref = std::make_unique<AppBskyActor::Preference>();
+            pref->mItem = std::move(contentLabelPref);
+            pref->mType = AppBskyActor::PreferenceType::CONTENT_LABEL;
+            preferences.push_back(std::move(pref));
+        }
     }
 
     auto savedFeedsPred = std::make_unique<AppBskyActor::SavedFeedsPref>(mSavedFeedsPref);
@@ -158,26 +161,19 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
 
 void UserPreferences::removeContentLabelPrefs(const QString& did)
 {
-    for (auto it = mContentLabelPrefs.begin(); it != mContentLabelPrefs.end(); )
-    {
-        const auto didLabelPair = it->first;
-
-        if (didLabelPair.first == did)
-        {
-            qDebug() << "Remove, did:" << didLabelPair.first << "label:" << didLabelPair.second;
-            it = mContentLabelPrefs.erase(it);
-        }
-        else
-        {
-            ++it;
-        }
-    }
+    mContentLabelPrefs.erase(did);
 }
 
 UserPreferences::LabelVisibility UserPreferences::getLabelVisibility(const QString& did, const QString& label) const
 {
-    auto it = mContentLabelPrefs.find({ did, label });
-    return it != mContentLabelPrefs.end() ? it->second : LabelVisibility::UNKNOWN;
+    auto itDid = mContentLabelPrefs.find(did);
+
+    if (itDid == mContentLabelPrefs.end())
+        return LabelVisibility::UNKNOWN;
+
+    const auto& labelVisibilityMap = itDid->second;
+    auto itLabel = labelVisibilityMap.find(label);
+    return itLabel != labelVisibilityMap.end() ? itLabel->second : LabelVisibility::UNKNOWN;
 }
 
 void UserPreferences::setLabelVisibility(const QString& did, const QString& label, LabelVisibility visibility)
@@ -190,7 +186,7 @@ void UserPreferences::setLabelVisibility(const QString& did, const QString& labe
         return;
     }
 
-    mContentLabelPrefs[{ did, label }] = visibility;
+    mContentLabelPrefs[did][label] = visibility;
 }
 
 const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QString& feed) const
