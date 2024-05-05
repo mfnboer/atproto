@@ -44,14 +44,14 @@ void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session
         setPDS("https://" + mHost);
 }
 
-void Client::post(const QString& service, const QJsonDocument& json,
+void Client::post(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
                   const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
-    post(service, data, "application/json", successCb, errorCb, accessJwt);
+    post(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt);
 }
 
-void Client::post(const QString& service, const QByteArray& data, const QString& mimeType,
+void Client::post(const QString& service, const QByteArray& data, const QString& mimeType, const Params& rawHeaders,
                   const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
@@ -66,6 +66,7 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
         setAuthorization(request.mXrpcRequest, accessJwt);
 
     request.mXrpcRequest.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
+    setRawHeaders(request.mXrpcRequest, rawHeaders);
     request.mData = data;
     sendRequest(request, successCb, errorCb);
 }

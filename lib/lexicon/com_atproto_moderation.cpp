@@ -21,6 +21,8 @@ QString reasonTypeToString(ReasonType reason)
         return "com.atproto.moderation.defs#reasonRude";
     case ReasonType::OTHER:
         return "com.atproto.moderation.defs#reasonOther";
+    case ReasonType::APPEAL:
+        return "com.atproto.moderation.defs#reasonAppeal";
     }
 
     Q_ASSERT(false);
@@ -43,6 +45,8 @@ QString reasonTypeToTitle(ReasonType reason)
         return "Rude";
     case ReasonType::OTHER:
         return "Other";
+    case ReasonType::APPEAL:
+        return "Appeal";
     }
 
     Q_ASSERT(false);
@@ -54,7 +58,7 @@ QString reasonTypeToDescription(ReasonType reason)
     switch (reason)
     {
     case ReasonType::SPAM:
-        return QObject::tr("Spam: frequent unwanted promotion, replies, mentions");
+        return QObject::tr("Frequent unwanted promotion, replies, mentions");
     case ReasonType::VIOLATION:
         return QObject::tr("Direct violation of server rules, laws, terms of service");
     case ReasonType::MISLEADING:
@@ -64,7 +68,9 @@ QString reasonTypeToDescription(ReasonType reason)
     case ReasonType::RUDE:
         return QObject::tr("Rude, harassing, explicit, or otherwise unwelcoming behavior");
     case ReasonType::OTHER:
-        return QObject::tr("Other: reports not falling under another report category");
+        return QObject::tr("Reports not falling under another report category");
+    case ReasonType::APPEAL:
+        return QObject::tr("Appeal a previously taken moderation action");
     }
 
     Q_ASSERT(false);
