@@ -62,6 +62,12 @@ bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
         return false;
     }
 
+    if (mLabelerDids == dids)
+    {
+        qDebug() << "No change";
+        return false;
+    }
+
     mLabelerDids = dids;
     setAcceptLabelersHeaderValue();
     return true;
