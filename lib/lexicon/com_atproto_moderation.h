@@ -12,7 +12,8 @@ enum class ReasonType
     MISLEADING,
     SEXUAL,
     RUDE,
-    OTHER
+    OTHER,
+    APPEAL
 };
 
 QString reasonTypeToString(ReasonType reason);

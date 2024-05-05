@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
-#include "qml_utils.h"
 #include <QJsonObject>
 #include <QtQmlIntegration>
 
@@ -105,27 +104,6 @@ struct LabelValueDefinition
 
     using Ptr = std::unique_ptr<LabelValueDefinition>;
     static Ptr fromJson(const QJsonObject& json);
-};
-
-struct LabelValue : public QObject
-{
-    Q_OBJECT
-    QML_UNCREATABLE("Class only exposes constants to QML.")
-    QML_ELEMENT
-    QML_SINGLETON
-
-public:
-    SHARED_CONST(QString, HIDE, QStringLiteral("!hide"));
-    SHARED_CONST(QString, NO_PROMOTE, QStringLiteral("!no-promote"));
-    SHARED_CONST(QString, WARN, QStringLiteral("!warn"));
-    SHARED_CONST(QString, NO_UNAUTHENTICATED, QStringLiteral("!no-unauthenticated"));
-    SHARED_CONST(QString, DMCA_VIOLATION, QStringLiteral("dmca-violation"));
-    SHARED_CONST(QString, DOXXING, QStringLiteral("doxxing"));
-    SHARED_CONST(QString, PORN, QStringLiteral("porn"));
-    SHARED_CONST(QString, SEXUAL, QStringLiteral("sexual"));
-    SHARED_CONST(QString, NUDITY, QStringLiteral("nudity"));
-    SHARED_CONST(QString, NSFL, QStringLiteral("nsfl"));
-    SHARED_CONST(QString, GORE, QStringLiteral("gore"));
 };
 
 }
