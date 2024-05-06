@@ -10,6 +10,7 @@
 namespace ATProto
 {
 
+#define SERVICE_KEY_ATPROTO_LABELER QStringLiteral("atproto_labeler")
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
 
@@ -1277,7 +1278,8 @@ void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesL
 }
 
 void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
-                          const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb)
+                          const QString& reason, const std::optional<QString>& labelerDid,
+                          const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
     json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
@@ -1293,9 +1295,15 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
     QJsonDocument jsonDoc;
     jsonDoc.setObject(json);
 
-    qDebug() << "Report author:" << jsonDoc;
+    Xrpc::Client::Params httpHeaders;
 
-    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, {},
+    if (labelerDid)
+        addAtprotoProxyHeader(httpHeaders, *labelerDid, SERVICE_KEY_ATPROTO_LABELER);
+
+    qDebug() << "Report author:" << jsonDoc;
+    qDebug() << "HTTP headers:" << httpHeaders;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() <<"Reported author:" << reply;
             if (successCb)
@@ -1305,8 +1313,10 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
         authToken());
 }
 
-void Client::reportPostOrFeed(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
-                        const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::reportPostOrFeed(const QString& uri, const QString& cid,
+                              ComATProtoModeration::ReasonType reasonType,
+                              const QString& reason, const std::optional<QString>& labelerDid,
+                              const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
     json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
@@ -1322,9 +1332,15 @@ void Client::reportPostOrFeed(const QString& uri, const QString& cid, ComATProto
     QJsonDocument jsonDoc;
     jsonDoc.setObject(json);
 
-    qDebug() << "Report post or feed:" << jsonDoc;
+    Xrpc::Client::Params httpHeaders;
 
-    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, {},
+    if (labelerDid)
+        addAtprotoProxyHeader(httpHeaders, *labelerDid, SERVICE_KEY_ATPROTO_LABELER);
+
+    qDebug() << "Report post or feed:" << jsonDoc;
+    qDebug() << "HTTP headers:" << httpHeaders;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() <<"Reported post or feed:" << reply;
             if (successCb)
@@ -1434,6 +1450,13 @@ void Client::addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QS
 {
     if (!languages.empty())
         httpHeaders.push_back({"Accept-Language", languages.join(',')});
+}
+
+void Client::addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const
+{
+    const QString value = QString("%1#%2").arg(did, serviceKey);
+    qDebug() << "Proxy:" << value;
+    httpHeaders.push_back({"atproto-proxy", value});
 }
 
 }

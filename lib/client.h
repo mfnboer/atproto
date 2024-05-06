@@ -555,11 +555,13 @@ public:
      * @param did
      * @param reasonType
      * @param reason
+     * @param labelerDid if set, then send the report to this labeler
      * @param successCb
      * @param errorCb
      */
     void reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
-                      const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
+                      const QString& reason, const std::optional<QString>& labelerDid,
+                      const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief reportPostOrFeed
@@ -567,11 +569,14 @@ public:
      * @param cid
      * @param reasonType
      * @param reason
+     * @param labelerDid if set, then send the report to this labeler
      * @param successCb
      * @param errorCb
      */
-    void reportPostOrFeed(const QString& uri, const QString& cid, ComATProtoModeration::ReasonType reasonType,
-                    const QString& reason, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void reportPostOrFeed(const QString& uri, const QString& cid,
+                          ComATProtoModeration::ReasonType reasonType,
+                          const QString& reason, const std::optional<QString>& labelerDid,
+                          const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.unspecced
 
@@ -600,6 +605,7 @@ private:
     void setAcceptLabelersHeaderValue();
     void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
     void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
+    void addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
 
     std::unique_ptr<Xrpc::Client> mXrpc;
     ComATProtoServer::Session::Ptr mSession;
