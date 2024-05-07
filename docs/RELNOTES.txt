@@ -1,6 +1,6 @@
-next
-====
-* app.bsky.labeler
+1.7
+===
+* HTTP headers: atproto-accept-labelers, atproto-proxy
 * label definition update
 * 2FA support
 * ATProto error constants
