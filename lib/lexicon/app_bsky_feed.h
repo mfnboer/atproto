@@ -141,6 +141,7 @@ struct ReplyRef
 {
     ReplyElement::Ptr mRoot; // required
     ReplyElement::Ptr mParent; // required
+    AppBskyActor::ProfileViewBasic::Ptr mGrandparentAuthor; // optional
 
     using Ptr = std::unique_ptr<ReplyRef>;
     static Ptr fromJson(const QJsonObject& json);

@@ -249,6 +249,7 @@ ReplyRef::Ptr ReplyRef::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     replyRef->mRoot = xjson.getRequiredObject<ReplyElement>("root");
     replyRef->mParent = xjson.getRequiredObject<ReplyElement>("parent");
+    replyRef->mGrandparentAuthor = xjson.getOptionalObject<AppBskyActor::ProfileViewBasic>("grandparentAuthor");
     return replyRef;
 }
 
