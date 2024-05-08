@@ -528,4 +528,12 @@ GetSuggestionsOutput::Ptr GetSuggestionsOutput::fromJson(const QJsonObject& json
     return output;
 }
 
+GetSuggestedFollowsByActor::Ptr GetSuggestedFollowsByActor::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetSuggestedFollowsByActor>();
+    const XJsonObject xjson(json);
+    output->mSuggestions = xjson.getRequiredVector<ProfileView>("suggestions");
+    return output;
+}
+
 }

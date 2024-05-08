@@ -407,6 +407,29 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
         authToken());
 }
 
+void Client::getSuggestedFollows(const QString& user, const QStringList& acceptLanguages,
+                                 const GetSuggestedFollowsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", user}};
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLanguageHeader(httpHeaders, acceptLanguages);
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getSuggestedFollowsByActor", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getSuggestedFOllows:" << reply;
+            try {
+                auto ouput = AppBskyActor::GetSuggestedFollowsByActor::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getServices(const std::vector<QString>& dids, bool detailed,
                          const GetServicesSuccessCb& successCb, const ErrorCb& errorCb)
 {
