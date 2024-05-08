@@ -2,6 +2,7 @@ next
 ====
 * Add sort order to searchPosts
 * app.bsky.graph.getSuggestedFollowsByActor
+* grandparentAuthor in replyRef
 
 1.7
 ===
