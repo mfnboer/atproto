@@ -380,4 +380,12 @@ struct GetSuggestionsOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+struct GetSuggestedFollowsByActor
+{
+    ProfileViewList mSuggestions;
+
+    using Ptr = std::unique_ptr<GetSuggestedFollowsByActor>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 }

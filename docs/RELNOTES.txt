@@ -1,6 +1,7 @@
 next
 ====
 * Add sort order to searchPosts
+* app.bsky.graph.getSuggestedFollowsByActor
 
 1.7
 ===

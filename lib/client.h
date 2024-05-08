@@ -69,6 +69,7 @@ public:
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::Ptr)>;
+    using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::Ptr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::Ptr)>;
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
@@ -407,6 +408,15 @@ public:
                        const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
     void getListMutes(std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getSuggestedFollows
+     * @param user handle or did
+     * @param successCb
+     * @param errorCb
+     */
+    void getSuggestedFollows(const QString& user, const QStringList& acceptLanguages,
+                             const GetSuggestedFollowsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.notification
 
