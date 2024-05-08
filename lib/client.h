@@ -313,6 +313,7 @@ public:
      * @param errorCb
      */
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                     const std::optional<QString>& sort,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**

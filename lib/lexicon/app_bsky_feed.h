@@ -260,6 +260,18 @@ struct GetLikesOutput
     static Ptr fromJson(const QJsonObject& json);
 };
 
+struct SearchSortOrder : public QObject
+{
+    Q_OBJECT
+    QML_UNCREATABLE("Class only exposes constants to QML.")
+    QML_ELEMENT
+    QML_SINGLETON
+
+public:
+    SHARED_CONST(QString, TOP, QStringLiteral("top"));
+    SHARED_CONST(QString, LATEST, QStringLiteral("latest"));
+};
+
 // app.bsky.feed.getRepostedBy/Ouput
 struct GetRepostedByOutput
 {
