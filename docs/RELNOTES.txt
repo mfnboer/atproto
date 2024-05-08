@@ -1,5 +1,5 @@
-next
-====
+1.8
+===
 * Add sort order to searchPosts
 * app.bsky.graph.getSuggestedFollowsByActor
 * grandparentAuthor in replyRef
