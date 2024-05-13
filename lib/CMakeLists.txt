@@ -75,6 +75,10 @@ qt_add_qml_module(libatproto
         SOURCES qml_utils.h
         SOURCES lexicon/app_bsky_labeler.h
         SOURCES lexicon/app_bsky_labeler.cpp
+        SOURCES lexicon/plc_directory.h
+        SOURCES lexicon/plc_directory.cpp
+        SOURCES plc_directory_client.h
+        SOURCES plc_directory_client.cpp
 )
 
 if (NOT ANDROID)

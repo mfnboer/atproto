@@ -200,7 +200,6 @@ void Client::networkError(const Request& request, QNetworkReply* reply, QNetwork
     }
 
     const auto data = reply->readAll();
-    const QJsonDocument json(QJsonDocument::fromJson(data));
 
     if (!*errorHandled)
     {
@@ -212,6 +211,7 @@ void Client::networkError(const Request& request, QNetworkReply* reply, QNetwork
                 return;
         }
 
+        const QJsonDocument json(QJsonDocument::fromJson(data));
         errorCb(errorMsg, json);
     }
     else
