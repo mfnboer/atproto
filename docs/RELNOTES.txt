@@ -1,5 +1,6 @@
 1.8
 ===
+* Access to PlcAuditLog
 * Add sort order to searchPosts
 * app.bsky.graph.getSuggestedFollowsByActor
 * grandparentAuthor in replyRef
