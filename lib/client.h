@@ -84,6 +84,7 @@ public:
     const QString& getHost() const { return mXrpc->getHost(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::Ptr session) { mSession = std::move(session); }
+    void updateTokens(const QString& accessJwt, const QString& refreshJwt);
 
     bool setLabelerDids(const std::unordered_set<QString>& dids);
     bool addLabelerDid(const QString& did);

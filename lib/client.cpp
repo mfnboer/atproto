@@ -93,6 +93,20 @@ void Client::removeLabelerDid(const QString& did)
     setAcceptLabelersHeaderValue();
 }
 
+void Client::updateTokens(const QString& accessJwt, const QString& refreshJwt)
+{
+    if (mSession)
+    {
+        qDebug() << "Update tokens";
+        mSession->mAccessJwt = accessJwt;
+        mSession->mRefreshJwt = refreshJwt;
+    }
+    else
+    {
+        qWarning() << "No session";
+    }
+}
+
 void Client::createSession(const QString& user, const QString& pwd,
                            const std::optional<QString>& authFactorToken,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
