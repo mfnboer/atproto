@@ -23,7 +23,7 @@ public:
     {
         auto xrpc = std::make_unique<Xrpc::Client>(host);
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
-        mBsky->createSession(user, password,
+        mBsky->createSession(user, password, {},
             [this, user]{
                 getProfile(user);
                 getAuthorFeed(user);

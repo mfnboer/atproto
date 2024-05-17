@@ -76,28 +76,20 @@ ControlView::Ptr ControlView::fromJson(const QJsonObject& json)
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
-    view->mLastMessage = xjson.getOptinalVariant<MessageView, DeletedMessageView>("lastMessage");
-
-#if 0
-    const auto lastMessageJson = xjson.getOptionalJsonObject("lastMessage");
-
-    if (lastMessageJson)
-    {
-        const XJsonObject lastMessageXJson(*lastMessageJson);
-        const QString lastMessageType = lastMessageXJson.getRequiredString("$type");
-
-        if (lastMessageType == MessageView::TYPE)
-            view->mLastMessage = MessageView::fromJson(*lastMessageJson);
-        else if (lastMessageType == DeletedMessageView::TYPE)
-            view->mLastMessage = DeletedMessageView::fromJson(*lastMessageJson);
-        else
-            throw InvalidJsonException("Unknown lastMessage type: " + lastMessageType);
-    }
-#endif
-
+    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
     view->mMuted = xjson.getOptionalBool("muted", false);
     view->mUnreadCount = xjson.getRequiredInt("unreadCount");
     return view;
+}
+
+LogCreateMessage::Ptr LogCreateMessage::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logCreateMessage = std::make_unique<LogCreateMessage>();
+    logCreateMessage->mConvoId = xjson.getRequiredString("convoId");
+    logCreateMessage->mRev = xjson.getRequiredString("rev");
+    logCreateMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
+    return logCreateMessage;
 }
 
 }

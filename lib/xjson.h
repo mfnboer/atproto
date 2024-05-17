@@ -76,7 +76,7 @@ public:
     std::variant<typename Types::Ptr...> getRequiredVariant(const QString& key) const;
 
     template<typename... Types>
-    std::optional<std::variant<typename Types::Ptr...>> getOptinalVariant(const QString& key) const;
+    std::optional<std::variant<typename Types::Ptr...>> getOptionalVariant(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
@@ -207,11 +207,12 @@ std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QStri
         };
     }
 
-    throw InvalidJsonException("No valid type for: " + key);
+    qWarning() << "Unknown type:" << type << "key:" << key;
+    return {};
 }
 
 template<typename... Types>
-std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptinalVariant(const QString& key) const
+std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVariant(const QString& key) const
 {
     if (mObject.contains(key))
         return getRequiredVariant<Types...>(key);
