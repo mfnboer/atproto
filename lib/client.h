@@ -604,6 +604,8 @@ public:
                                   const std::optional<QString>& cursor,
                                   const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
+    // chat.bsky.actor
+
 private:
     const QString& authToken() const;
     const QString& refreshToken() const;

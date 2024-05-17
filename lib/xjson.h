@@ -72,6 +72,12 @@ public:
     std::vector<QString> getRequiredStringVector(const QString& key) const;
     std::vector<QString> getOptionalStringVector(const QString& key) const;
 
+    template<typename... Types>
+    std::variant<typename Types::Ptr...> getRequiredVariant(const QString& key) const;
+
+    template<typename... Types>
+    std::optional<std::variant<typename Types::Ptr...>> getOptinalVariant(const QString& key) const;
+
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
 
@@ -173,6 +179,44 @@ std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString
     }
 
     return result;
+}
+
+#define VARIANT_CASE(i) \
+    case i: \
+    { \
+        using T = std::tuple_element<i, std::tuple<Types...>>::type; \
+        if (type == T::TYPE) \
+            return T::fromJson(objXJson.getObject()); \
+        \
+        break; \
+    }
+
+template<typename... Types>
+std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QString& key) const
+{
+    static_assert(sizeof...(Types) <= 2);
+    const XJsonObject objXJson(getRequiredJsonObject(key));
+    const QString type = objXJson.getRequiredString("$type");
+
+    for (size_t i = 0; i < sizeof...(Types); ++i)
+    {
+        switch (i)
+        {
+        VARIANT_CASE(0)
+        VARIANT_CASE(1)
+        };
+    }
+
+    throw InvalidJsonException("No valid type for: " + key);
+}
+
+template<typename... Types>
+std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptinalVariant(const QString& key) const
+{
+    if (mObject.contains(key))
+        return getRequiredVariant<Types...>(key);
+
+    return {};
 }
 
 }
