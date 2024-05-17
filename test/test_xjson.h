@@ -36,6 +36,7 @@ private slots:
 
     void requiredVariantUnknown()
     {
+        QTest::ignoreMessage(QtWarningMsg, "Unknown type: \"chat.bsky.convo.defs#unknown\" key: \"message\"");
         auto json = QJsonDocument::fromJson(LOG_CREATE_UNKNOWN);
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
@@ -43,9 +44,12 @@ private slots:
         auto messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
         QVERIFY(messageView);
         QVERIFY(!*messageView);
+        QCOMPARE(lcm->mMessage, VariantType{});
     }
 
 private:
+    using VariantType = std::variant<ChatBskyConvo::MessageView::Ptr, ChatBskyConvo::DeletedMessageView::Ptr>;
+
     static constexpr char const* LOG_CREATE_MESSAGE = R"##({
         "rev": "c1",
         "convoId": "c42",
