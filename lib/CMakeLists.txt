@@ -79,6 +79,10 @@ qt_add_qml_module(libatproto
         SOURCES lexicon/plc_directory.cpp
         SOURCES plc_directory_client.h
         SOURCES plc_directory_client.cpp
+        SOURCES lexicon/chat_bsky_actor.h
+        SOURCES lexicon/chat_bsky_actor.cpp
+        SOURCES lexicon/chat_bsky_convo.h
+        SOURCES lexicon/chat_bsky_convo.cpp
 )
 
 if (NOT ANDROID)
