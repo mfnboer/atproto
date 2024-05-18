@@ -18,7 +18,7 @@ private slots:
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
         QVERIFY(messageView);
         QCOMPARE((*messageView)->mId, "m1");
     }
@@ -29,7 +29,7 @@ private slots:
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto messageView = std::get_if<ChatBskyConvo::DeletedMessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::DeletedMessageView::Ptr>(&lcm->mMessage);
         QVERIFY(messageView);
         QCOMPARE((*messageView)->mId, "m2");
     }
@@ -41,15 +41,13 @@ private slots:
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
         QVERIFY(messageView);
         QVERIFY(!*messageView);
-        QCOMPARE(lcm->mMessage, VariantType{});
+        QVERIFY(isNullVariant(lcm->mMessage));
     }
 
 private:
-    using VariantType = std::variant<ChatBskyConvo::MessageView::Ptr, ChatBskyConvo::DeletedMessageView::Ptr>;
-
     static constexpr char const* LOG_CREATE_MESSAGE = R"##({
         "rev": "c1",
         "convoId": "c42",

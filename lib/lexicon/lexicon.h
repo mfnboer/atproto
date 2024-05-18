@@ -9,6 +9,16 @@
 
 namespace ATProto {
 
+// Variant types in the lexicon are like this variant<T:Ptr, U:Ptr, ...>
+// The default constructor construcst a variant with the first alternative st
+// to its default value, i.e. nullptr
+template<typename Variant>
+bool isNullVariant(const Variant& variant)
+{
+    auto* value = std::get_if<0>(&variant);
+    return value && !*value;
+}
+
 class InvalidContent : public QException
 {
 public:
