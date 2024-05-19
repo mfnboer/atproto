@@ -30,6 +30,7 @@ struct Message
 
     using Ptr = std::unique_ptr<Message>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.message";
 };
 
 // chat.bsky.convo.defs#messageViewSender
@@ -83,6 +84,8 @@ struct ControlView
     static Ptr fromJson(const QJsonObject& json);
 };
 
+using ControlViewList = std::vector<ControlView::Ptr>;
+
 // chat.bsky.convo.defs#logBeginConvo
 struct LogBeginConvo
 {
@@ -91,6 +94,7 @@ struct LogBeginConvo
 
     using Ptr = std::unique_ptr<LogBeginConvo>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logBeginConvo";
 };
 
 // chat.bsky.convo.defs#logLeaveConvo
@@ -101,6 +105,7 @@ struct LogLeaveConvo
 
     using Ptr = std::unique_ptr<LogLeaveConvo>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logLeaveConvo";
 };
 
 // chat.bsky.convo.defs#logCreateMessage
@@ -112,9 +117,10 @@ struct LogCreateMessage
 
     using Ptr = std::unique_ptr<LogCreateMessage>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logCreateMessage";
 };
 
-// chat.bsky.convo.defs#logCreateMessage
+// chat.bsky.convo.defs#logDeleteMessage
 struct LogDeleteMessage
 {
     QString mRev;
@@ -122,6 +128,54 @@ struct LogDeleteMessage
     std::variant<MessageView::Ptr, DeletedMessageView::Ptr> mMessage; // required
 
     using Ptr = std::unique_ptr<LogDeleteMessage>;
+    static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logDeleteMessage";
+};
+
+struct ConvoOuput
+{
+    ControlView::Ptr mConvo; // required
+
+    using Ptr = std::unique_ptr<ConvoOuput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct ConvoListOutput
+{
+    std::optional<QString> mCursor;
+    ControlViewList mConvos;
+
+    using Ptr = std::unique_ptr<ConvoListOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct LogOutput
+{
+    using LogType = std::variant<LogBeginConvo::Ptr, LogLeaveConvo::Ptr, LogCreateMessage::Ptr, LogDeleteMessage::Ptr>;
+
+    std::vector<LogType> mLogs;
+
+    using Ptr = std::unique_ptr<LogOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct GetMessagesOutput
+{
+    using MessageType = std::variant<MessageView::Ptr, DeletedMessageView::Ptr>;
+
+    std::optional<QString> mCursor;
+    std::vector<MessageType> mMessages;
+
+    using Ptr = std::unique_ptr<GetMessagesOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct LeaveConvoOutput
+{
+    QString mConvoId;
+    QString mRev;
+
+    using Ptr = std::unique_ptr<LeaveConvoOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
 

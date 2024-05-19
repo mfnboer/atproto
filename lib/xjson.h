@@ -73,10 +73,19 @@ public:
     std::vector<QString> getOptionalStringVector(const QString& key) const;
 
     template<typename... Types>
+    static std::variant<typename Types::Ptr...> toVariant(const QJsonObject& json);
+
+    template<typename... Types>
     std::variant<typename Types::Ptr...> getRequiredVariant(const QString& key) const;
 
     template<typename... Types>
     std::optional<std::variant<typename Types::Ptr...>> getOptionalVariant(const QString& key) const;
+
+    template<typename... Types>
+    std::vector<std::variant<typename Types::Ptr...>> getRequiredVariantList(const QString& key) const;
+
+    template<typename... Types>
+    std::vector<std::variant<typename Types::Ptr...>> getOptionalVariantList(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
@@ -184,7 +193,8 @@ std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString
 #define VARIANT_CASE(i) \
     case i: \
     { \
-        using T = std::tuple_element<i, std::tuple<Types...>>::type; \
+        using T = typename std::tuple_element<i < sizeof...(Types) ? i : 0, std::tuple<Types...>>::type; \
+        \
         if (type == T::TYPE) \
             return T::fromJson(objXJson.getObject()); \
         \
@@ -192,23 +202,36 @@ std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString
     }
 
 template<typename... Types>
-std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QString& key) const
+std::variant<typename Types::Ptr...> XJsonObject::toVariant(const QJsonObject& json)
 {
-    static_assert(sizeof...(Types) <= 2);
-    const XJsonObject objXJson(getRequiredJsonObject(key));
+    static_assert(sizeof...(Types) <= 4);
+    const XJsonObject objXJson(json);
     const QString type = objXJson.getRequiredString("$type");
 
     for (size_t i = 0; i < sizeof...(Types); ++i)
     {
         switch (i)
         {
-        VARIANT_CASE(0)
-        VARIANT_CASE(1)
+            VARIANT_CASE(0)
+            VARIANT_CASE(1)
+            VARIANT_CASE(2)
+            VARIANT_CASE(3)
         };
     }
 
-    qWarning() << "Unknown type:" << type << "key:" << key;
+    qWarning() << "Unknown type:" << type;
     return {};
+}
+
+template<typename... Types>
+std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QString& key) const
+{
+    auto v = toVariant<Types...>(getRequiredJsonObject(key));
+
+    if (isNullVariant(v))
+        qWarning() << "Unknown type for key:" << key;
+
+    return v;
 }
 
 template<typename... Types>
@@ -216,6 +239,34 @@ std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVari
 {
     if (mObject.contains(key))
         return getRequiredVariant<Types...>(key);
+
+    return {};
+}
+
+template<typename... Types>
+std::vector<std::variant<typename Types::Ptr...>> XJsonObject::getRequiredVariantList(const QString& key) const
+{
+    std::vector<std::variant<typename Types::Ptr...>> variantList;
+    const auto& arrayJson = getRequiredArray(key);
+
+    for (const auto& arrayElem : arrayJson)
+    {
+        if (!arrayElem.isObject())
+            throw InvalidJsonException("Inavlid array element: " + key);
+
+        const auto itemJson = arrayElem.toObject();
+        auto item = XJsonObject::toVariant<Types...>(itemJson);
+        variantList.push_back(std::move(item));
+    }
+
+    return variantList;
+}
+
+template<typename... Types>
+std::vector<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVariantList(const QString& key) const
+{
+    if (mObject.contains(key))
+        return getRequiredVariantList<Types...>(key);
 
     return {};
 }

@@ -10,6 +10,7 @@
 #include "lexicon/app_bsky_labeler.h"
 #include "lexicon/app_bsky_notification.h"
 #include "lexicon/app_bsky_unspecced.h"
+#include "lexicon/chat_bsky_convo.h"
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
@@ -71,11 +72,21 @@ public:
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::Ptr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::Ptr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::Ptr)>;
+
+    using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::Ptr)>;
+    using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOuput::Ptr)>;
+    using ConvoListSuccessCb = std::function<void(ChatBskyConvo::ConvoListOutput::Ptr)>;
+    using ConvoLogSuccessCb = std::function<void(ChatBskyConvo::LogOutput::Ptr)>;
+    using GetMessagesSuccessCb = std::function<void(ChatBskyConvo::GetMessagesOutput::Ptr)>;
+    using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::Ptr)>;
+    using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::Ptr)>;
+
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
     static constexpr int MAX_LABELERS = 10;
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
+    static constexpr int MAX_CONVO_MEMBERS = 10;
 
     static bool isListNotFoundError(const QString& error, const QString& msg);
 
@@ -604,7 +615,113 @@ public:
                                   const std::optional<QString>& cursor,
                                   const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
-    // chat.bsky.actor
+    // chat.bsky.convo
+
+    /**
+     * @brief deleteMessageForSelf
+     * @param convoId
+     * @param messageId
+     * @param successCb
+     * @param errorCb
+     */
+    void deleteMessageForSelf(const QString& convoId, const QString& messageId,
+                              const DeleteMessageSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvo(const QString& convoId,
+                  const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getConvoForMemnbers
+     * @param members list of DID's (min=1 max=10)
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvoForMemnbers(const std::vector<QString>& members,
+                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getConvoLog
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvoLog(const std::optional<QString>& cursor,
+                     const ConvoLogSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getMessages
+     * @param convoId
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getMessages(const QString& convoId, std::optional<int> limit,
+                     const std::optional<QString>& cursor,
+                     const GetMessagesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief leaveConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void leaveConvo(const QString& convoId,
+                    const LeaveConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief listConvos
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void listConvos(std::optional<int> limit, const std::optional<QString>& cursor,
+                    const ConvoListSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief muteConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void muteConvo(const QString& convoId,
+                   const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief sendMessage
+     * @param convoId
+     * @param message
+     * @param successCb
+     * @param errorCn
+     */
+    void sendMessage(const QString& convoId, const ChatBskyConvo::Message& message,
+                     const MessageSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief unmuteConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void unmuteConvo(const QString& convoId,
+                     const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief updateRead
+     * @param convoId
+     * @param messageId
+     * @param successCb
+     * @param errorCb
+     */
+    void updateRead(const QString& convoId, const std::optional<QString>& messageId,
+                    const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
