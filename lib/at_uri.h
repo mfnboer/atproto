@@ -15,6 +15,7 @@ public:
     static constexpr char const* COLLECTION_FEED_POST = "app.bsky.feed.post";
     static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
     static constexpr char const* COLLECTION_ACTOR_PROFILE = "app.bsky.actor.profile";
+    static constexpr char const* COLLECTION_CHAT_ACTOR_DECLARATION = "chat.bsky.actor.declaration";
     
     static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri fromHttpsFeedUri(const QString& uri);

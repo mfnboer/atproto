@@ -11,6 +11,10 @@ namespace ATProto
 {
 
 #define SERVICE_KEY_ATPROTO_LABELER QStringLiteral("atproto_labeler")
+#define SERVICE_KEY_BSKY_CHAT QStringLiteral("bsky_chat")
+
+#define SERVICE_DID_BSKY_CHAT QStringLiteral("did:web:api.bsky.chat")
+
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
 
@@ -1421,7 +1425,10 @@ void Client::deleteMessageForSelf(const QString& convoId, const QString& message
     json.insert("convoId", convoId);
     json.insert("messageId", messageId);
 
-    mXrpc->post("chat.bsky.convo.deleteMessageForSelf", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.deleteMessageForSelf", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Delete message for self:" << reply;
 
@@ -1443,7 +1450,10 @@ void Client::getConvo(const QString& convoId,
 {
     Xrpc::Client::Params params{{"convoId", convoId}};
 
-    mXrpc->get("chat.bsky.convo.getConvo", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.getConvo", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvo:" << reply;
             try {
@@ -1469,7 +1479,10 @@ void Client::getConvoForMemnbers(const std::vector<QString>& members,
     for (const auto& member : members)
         params.append({"member", member});
 
-    mXrpc->get("chat.bsky.convo.getConvoForMembbers", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.getConvoForMembbers", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvo:" << reply;
             try {
@@ -1491,7 +1504,10 @@ void Client::getConvoLog(const std::optional<QString>& cursor,
     Xrpc::Client::Params params;
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("chat.bsky.convo.getLog", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.getLog", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvoLog:" << reply;
             try {
@@ -1515,7 +1531,10 @@ void Client::getMessages(const QString& convoId, std::optional<int> limit,
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("chat.bsky.convo.getMessages", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.getMessages", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getMessages:" << reply;
             try {
@@ -1537,7 +1556,10 @@ void Client::leaveConvo(const QString& convoId,
     QJsonObject json;
     json.insert("convoId", convoId);
 
-    mXrpc->post("chat.bsky.convo.leaveConvo", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.leaveConvo", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Leave convo:" << reply;
 
@@ -1561,7 +1583,10 @@ void Client::listConvos(std::optional<int> limit, const std::optional<QString>& 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("chat.bsky.convo.listConvos", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.listConvos", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "List convos:" << reply;
             try {
@@ -1583,7 +1608,10 @@ void Client::muteConvo(const QString& convoId,
     QJsonObject json;
     json.insert("convoId", convoId);
 
-    mXrpc->post("chat.bsky.convo.muteConvo", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.muteConvo", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Mute convo:" << reply;
             try {
@@ -1606,7 +1634,10 @@ void Client::sendMessage(const QString& convoId, const ChatBskyConvo::Message& m
     json.insert("convoId", convoId);
     json.insert("message", message.toJson());
 
-    mXrpc->post("chat.bsky.convo.sendMessage", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.sendMessage", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() <<"Send message:" << reply;
 
@@ -1629,7 +1660,10 @@ void Client::unmuteConvo(const QString& convoId,
     QJsonObject json;
     json.insert("convoId", convoId);
 
-    mXrpc->post("chat.bsky.convo.unmuteConvo", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.unmuteConvo", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Unmute convo:" << reply;
             try {
@@ -1652,7 +1686,10 @@ void Client::updateRead(const QString& convoId, const std::optional<QString>& me
     json.insert("convoId", convoId);
     XJsonObject::insertOptionalJsonValue(json, "messageId", messageId);
 
-    mXrpc->post("chat.bsky.convo.updateRead", QJsonDocument(json), {},
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.updateRead", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Update read:" << reply;
             try {
