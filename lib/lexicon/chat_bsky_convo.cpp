@@ -17,7 +17,7 @@ MessageRef::Ptr MessageRef::fromJson(const QJsonObject& json)
 QJsonObject Message::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "chat.bsky.convo.message");
+    json.insert("$type", Message::TYPE);
     XJsonObject::insertOptionalJsonValue(json, "id", mId);
     json.insert("text", mText);
     json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
@@ -82,6 +82,24 @@ ControlView::Ptr ControlView::fromJson(const QJsonObject& json)
     return view;
 }
 
+LogBeginConvo::Ptr LogBeginConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logBeginConvo = std::make_unique<LogBeginConvo>();
+    logBeginConvo->mConvoId = xjson.getRequiredString("convoId");
+    logBeginConvo->mRev = xjson.getRequiredString("rev");
+    return logBeginConvo;
+}
+
+LogLeaveConvo::Ptr LogLeaveConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logLeaveConvo = std::make_unique<LogLeaveConvo>();
+    logLeaveConvo->mConvoId = xjson.getRequiredString("convoId");
+    logLeaveConvo->mRev = xjson.getRequiredString("rev");
+    return logLeaveConvo;
+}
+
 LogCreateMessage::Ptr LogCreateMessage::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -90,6 +108,59 @@ LogCreateMessage::Ptr LogCreateMessage::fromJson(const QJsonObject& json)
     logCreateMessage->mRev = xjson.getRequiredString("rev");
     logCreateMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
     return logCreateMessage;
+}
+
+LogDeleteMessage::Ptr LogDeleteMessage::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logDeleteMessage = std::make_unique<LogDeleteMessage>();
+    logDeleteMessage->mConvoId = xjson.getRequiredString("convoId");
+    logDeleteMessage->mRev = xjson.getRequiredString("rev");
+    logDeleteMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
+    return logDeleteMessage;
+}
+
+ConvoOuput::Ptr ConvoOuput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_unique<ConvoOuput>();
+    output->mConvo = xjson.getRequiredObject<ControlView>("convo");
+    return output;
+}
+
+ConvoListOutput::Ptr ConvoListOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_unique<ConvoListOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mConvos = xjson.getRequiredVector<ControlView>("convos");
+    return output;
+}
+
+LogOutput::Ptr LogOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_unique<LogOutput>();
+    output->mLogs = xjson.getRequiredVariantList<LogBeginConvo, LogLeaveConvo, LogCreateMessage, LogDeleteMessage>("logs");
+    return output;
+}
+
+GetMessagesOutput::Ptr GetMessagesOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_unique<GetMessagesOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mMessages = xjson.getRequiredVariantList<MessageView, DeletedMessageView>("messages");
+    return output;
+}
+
+LeaveConvoOutput::Ptr LeaveConvoOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_unique<LeaveConvoOutput>();
+    output->mConvoId = xjson.getRequiredString("convoId");
+    output->mRev = xjson.getRequiredString("rev");
+    return output;
 }
 
 }
