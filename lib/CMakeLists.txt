@@ -83,6 +83,8 @@ qt_add_qml_module(libatproto
         SOURCES lexicon/chat_bsky_actor.cpp
         SOURCES lexicon/chat_bsky_convo.h
         SOURCES lexicon/chat_bsky_convo.cpp
+        SOURCES chat_master.h
+        SOURCES chat_master.cpp
 )
 
 if (NOT ANDROID)
