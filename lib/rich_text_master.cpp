@@ -70,6 +70,14 @@ QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph:
                                                  linkColor);
 }
 
+QString RichTextMaster::getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor)
+{
+    if (msg.mFacets.empty())
+        return plainToHtml(msg.mText);
+    else
+        return ATProto::AppBskyRichtext::applyFacets(msg.mText, msg.mFacets, linkColor);
+}
+
 QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
 {
     const auto facets = RichTextMaster::parseFacets(text);

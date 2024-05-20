@@ -69,10 +69,10 @@ DeletedMessageView::Ptr DeletedMessageView::fromJson(const QJsonObject& json)
     return view;
 }
 
-ControlView::Ptr ControlView::fromJson(const QJsonObject& json)
+ConvoView::Ptr ConvoView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto view = std::make_unique<ControlView>();
+    auto view = std::make_unique<ConvoView>();
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
@@ -124,7 +124,7 @@ ConvoOuput::Ptr ConvoOuput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto output = std::make_unique<ConvoOuput>();
-    output->mConvo = xjson.getRequiredObject<ControlView>("convo");
+    output->mConvo = xjson.getRequiredObject<ConvoView>("convo");
     return output;
 }
 
@@ -133,7 +133,7 @@ ConvoListOutput::Ptr ConvoListOutput::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto output = std::make_unique<ConvoListOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
-    output->mConvos = xjson.getRequiredVector<ControlView>("convos");
+    output->mConvos = xjson.getRequiredVector<ConvoView>("convos");
     return output;
 }
 
