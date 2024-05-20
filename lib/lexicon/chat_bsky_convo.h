@@ -70,8 +70,8 @@ struct DeletedMessageView
     static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
-// chat.bsky.convo.defs#controlView
-struct ControlView
+// chat.bsky.convo.defs#convoView
+struct ConvoView
 {
     QString mId;
     QString mRev;
@@ -80,11 +80,11 @@ struct ControlView
     bool mMuted = false;
     int mUnreadCount = 0;
 
-    using Ptr = std::unique_ptr<ControlView>;
+    using Ptr = std::unique_ptr<ConvoView>;
     static Ptr fromJson(const QJsonObject& json);
 };
 
-using ControlViewList = std::vector<ControlView::Ptr>;
+using ConvoViewList = std::vector<ConvoView::Ptr>;
 
 // chat.bsky.convo.defs#logBeginConvo
 struct LogBeginConvo
@@ -134,7 +134,7 @@ struct LogDeleteMessage
 
 struct ConvoOuput
 {
-    ControlView::Ptr mConvo; // required
+    ConvoView::Ptr mConvo; // required
 
     using Ptr = std::unique_ptr<ConvoOuput>;
     static Ptr fromJson(const QJsonObject& json);
@@ -143,7 +143,7 @@ struct ConvoOuput
 struct ConvoListOutput
 {
     std::optional<QString> mCursor;
-    ControlViewList mConvos;
+    ConvoViewList mConvos;
 
     using Ptr = std::unique_ptr<ConvoListOutput>;
     static Ptr fromJson(const QJsonObject& json);
