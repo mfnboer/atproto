@@ -162,9 +162,10 @@ struct LogOutput
 struct GetMessagesOutput
 {
     using MessageType = std::variant<MessageView::Ptr, DeletedMessageView::Ptr>;
+    using MessageList = std::vector<MessageType>;
 
     std::optional<QString> mCursor;
-    std::vector<MessageType> mMessages;
+    MessageList mMessages;
 
     using Ptr = std::unique_ptr<GetMessagesOutput>;
     static Ptr fromJson(const QJsonObject& json);
