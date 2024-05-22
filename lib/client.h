@@ -639,13 +639,13 @@ public:
                   const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief getConvoForMemnbers
+     * @brief getConvoForMembers
      * @param members list of DID's (min=1 max=10)
      * @param successCb
      * @param errorCb
      */
-    void getConvoForMemnbers(const std::vector<QString>& members,
-                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+    void getConvoForMembers(const std::vector<QString>& members,
+                            const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getConvoLog

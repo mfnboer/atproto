@@ -1469,20 +1469,20 @@ void Client::getConvo(const QString& convoId,
         authToken());
 }
 
-void Client::getConvoForMemnbers(const std::vector<QString>& members,
-                                 const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+void Client::getConvoForMembers(const std::vector<QString>& members,
+                                const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(members.size() > 0);
     Q_ASSERT(members.size() <= MAX_CONVO_MEMBERS);
     Xrpc::Client::Params params;
 
     for (const auto& member : members)
-        params.append({"member", member});
+        params.append({"members", member});
 
     Xrpc::Client::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
-    mXrpc->get("chat.bsky.convo.getConvoForMembbers", params, httpHeaders,
+    mXrpc->get("chat.bsky.convo.getConvoForMembers", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvo:" << reply;
             try {
