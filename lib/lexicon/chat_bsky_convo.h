@@ -18,19 +18,19 @@ struct MessageRef
     static Ptr fromJson(const QJsonObject& json);
 };
 
-// chat.bsky.convo.defs#message
-struct Message
+// chat.bsky.convo.defs#messageInput
+struct MessageInput
 {
-    std::optional<QString> mId;
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
     ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional, only Record
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Message>;
+    using Ptr = std::unique_ptr<MessageInput>;
+    using SharedPtr = std::shared_ptr<MessageInput>;
     static Ptr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.convo.message";
+    static constexpr char const* TYPE = "chat.bsky.convo.messageInput";
 };
 
 // chat.bsky.convo.defs#messageViewSender

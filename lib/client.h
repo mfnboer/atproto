@@ -703,7 +703,7 @@ public:
      * @param successCb
      * @param errorCn
      */
-    void sendMessage(const QString& convoId, const ChatBskyConvo::Message& message,
+    void sendMessage(const QString& convoId, const ChatBskyConvo::MessageInput& message,
                      const MessageSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**

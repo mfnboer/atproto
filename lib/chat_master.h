@@ -3,6 +3,7 @@
 #pragma once
 #include "client.h"
 #include "presence.h"
+#include "rich_text_master.h"
 #include "lexicon/chat_bsky_actor.h"
 
 namespace ATProto {
@@ -10,6 +11,7 @@ namespace ATProto {
 class ChatMaster : public Presence
 {
 public:
+    using MessageCreatedCb = std::function<void(ChatBskyConvo::MessageInput::SharedPtr)>;
     using DeclarationCb = std::function<void(ChatBskyActor::Declaration::Ptr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
@@ -20,8 +22,12 @@ public:
     void updateDeclaration(const QString& did, const ChatBskyActor::Declaration& declaration,
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    void createMessage(const QString& text, const MessageCreatedCb& cb);
+    static void addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid);
+
 private:
     Client& mClient;
+    RichTextMaster mRichTextMaster;
 };
 
 }
