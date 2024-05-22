@@ -11,7 +11,8 @@ constexpr char const* DECLARATION_KEY = "self";
 
 ChatMaster::ChatMaster(Client& client) :
     Presence(),
-    mClient(client)
+    mClient(client),
+    mRichTextMaster(client)
 {
 }
 
@@ -54,6 +55,35 @@ void ChatMaster::updateDeclaration(const QString& did, const ChatBskyActor::Decl
             if (errorCb)
                 errorCb(error, msg);
         });
+}
+
+void ChatMaster::createMessage(const QString& text, const MessageCreatedCb& cb)
+{
+    Q_ASSERT(cb);
+    auto message = std::make_shared<ChatBskyConvo::MessageInput>();
+    auto facets = RichTextMaster::parseFacets(text);
+
+    mRichTextMaster.resolveFacets(text, facets, 0,
+        [message, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+            message->mText = richText;
+            message->mFacets = std::move(resolvedFacets);
+            cb(message);
+        });
+}
+
+void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid)
+{
+    auto ref = std::make_unique<ComATProtoRepo::StrongRef>();
+    ref->mUri = quoteUri;
+    ref->mCid = quoteCid;
+
+    Q_ASSERT(!message.mEmbed);
+    message.mEmbed = std::make_unique<AppBskyEmbed::Embed>();
+    message.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD;
+    message.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::Record>();
+
+    auto& record = std::get<AppBskyEmbed::Record::Ptr>(message.mEmbed->mEmbed);
+    record->mRecord = std::move(ref);
 }
 
 }

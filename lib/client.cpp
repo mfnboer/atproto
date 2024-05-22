@@ -1627,7 +1627,7 @@ void Client::muteConvo(const QString& convoId,
         authToken());
 }
 
-void Client::sendMessage(const QString& convoId, const ChatBskyConvo::Message& message,
+void Client::sendMessage(const QString& convoId, const ChatBskyConvo::MessageInput& message,
                          const MessageSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
