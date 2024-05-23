@@ -24,12 +24,31 @@ struct ViewerState
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// chat.bsky.actor.declaration enum
+enum class AllowIncomingType
+{
+    ALL,
+    NONE,
+    FOLLOWING
+};
+AllowIncomingType stringToAllowIncomingType(const QString& str);
+QString allowIncomingTypeToString(AllowIncomingType allowIncoming);
+
+struct ProfileAssociatedChat
+{
+    AppBskyActor::AllowIncomingType mAllowIncoming = AllowIncomingType::FOLLOWING;
+
+    using Ptr = std::unique_ptr<ProfileAssociatedChat>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#profileAssociated
 struct ProfileAssociated
 {
     int mLists = 0;
     int mFeeds = 0;
     bool mLabeler = false;
+    ProfileAssociatedChat::Ptr mChat; // optional
 
     using Ptr = std::unique_ptr<ProfileAssociated>;
     static Ptr fromJson(const QJsonObject& json);

@@ -6,19 +6,10 @@
 
 namespace ATProto::ChatBskyActor {
 
-enum class AllowIncomingType
-{
-    ALL,
-    NONE,
-    FOLLOWING
-};
-AllowIncomingType stringToAllowIncomingType(const QString& str);
-QString allowIncomingTypeToString(AllowIncomingType allowIncoming);
-
 // chat.bsky.actor.declaration
 struct Declaration
 {
-    AllowIncomingType mAllowIncoming;
+    AppBskyActor::AllowIncomingType mAllowIncoming;
     QJsonObject mJson;
 
     QJsonObject toJson() const;
