@@ -2,50 +2,14 @@
 // License: GPLv3
 #include "chat_bsky_actor.h"
 #include "../xjson.h"
-#include <unordered_map>
 
 namespace ATProto::ChatBskyActor {
-
-AllowIncomingType stringToAllowIncomingType(const QString& str)
-{
-    static const std::unordered_map<QString, AllowIncomingType> mapping = {
-        { "all", AllowIncomingType::ALL },
-        { "none", AllowIncomingType::NONE },
-        { "following", AllowIncomingType::FOLLOWING }
-    };
-
-    const auto it = mapping.find(str);
-    if (it != mapping.end())
-        return it->second;
-
-    return AllowIncomingType::NONE;
-}
-
-QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
-{
-    static const std::unordered_map<AllowIncomingType, QString> mapping = {
-        { AllowIncomingType::ALL, "all" },
-        { AllowIncomingType::NONE, "none" },
-        { AllowIncomingType::FOLLOWING, "following" }
-    };
-
-    const auto it = mapping.find(allowIncoming);
-    Q_ASSERT(it != mapping.end());
-
-    if (it == mapping.end())
-    {
-        qWarning() << "Unknown allow incoming type:" << int(allowIncoming);
-        return "none";
-    }
-
-    return it->second;
-}
 
 QJsonObject Declaration::toJson() const
 {
     QJsonObject json(mJson);
     json.insert("$type", "chat.bsky.actor.declaration");
-    json.insert("allowIncoming", allowIncomingTypeToString(mAllowIncoming));
+    json.insert("allowIncoming", AppBskyActor::allowIncomingTypeToString(mAllowIncoming));
     return json;
 }
 
@@ -53,7 +17,7 @@ Declaration::Ptr Declaration::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto declaration = std::make_unique<Declaration>();
-    declaration->mAllowIncoming = stringToAllowIncomingType(xjson.getRequiredString("allowIncoming"));
+    declaration->mAllowIncoming = AppBskyActor::stringToAllowIncomingType(xjson.getRequiredString("allowIncoming"));
     declaration->mJson = json;
     return declaration;
 }

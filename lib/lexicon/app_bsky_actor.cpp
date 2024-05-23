@@ -6,6 +6,41 @@
 
 namespace ATProto::AppBskyActor {
 
+AllowIncomingType stringToAllowIncomingType(const QString& str)
+{
+    static const std::unordered_map<QString, AllowIncomingType> mapping = {
+        { "all", AllowIncomingType::ALL },
+        { "none", AllowIncomingType::NONE },
+        { "following", AllowIncomingType::FOLLOWING }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    return AllowIncomingType::NONE;
+}
+
+QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
+{
+    static const std::unordered_map<AllowIncomingType, QString> mapping = {
+        { AllowIncomingType::ALL, "all" },
+        { AllowIncomingType::NONE, "none" },
+        { AllowIncomingType::FOLLOWING, "following" }
+    };
+
+    const auto it = mapping.find(allowIncoming);
+    Q_ASSERT(it != mapping.end());
+
+    if (it == mapping.end())
+    {
+        qWarning() << "Unknown allow incoming type:" << int(allowIncoming);
+        return "none";
+    }
+
+    return it->second;
+}
+
 ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
 {
     auto viewerState = std::make_unique<ViewerState>();
@@ -20,6 +55,15 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+ProfileAssociatedChat::Ptr ProfileAssociatedChat::fromJson(const QJsonObject& json)
+{
+    auto associated = std::make_unique<ProfileAssociatedChat>();
+    XJsonObject xjson(json);
+    const auto allowIncoming = xjson.getRequiredString("allowIncoming");
+    associated->mAllowIncoming = stringToAllowIncomingType(allowIncoming);
+    return associated;
+}
+
 ProfileAssociated::Ptr ProfileAssociated::fromJson(const QJsonObject& json)
 {
     auto associated = std::make_unique<ProfileAssociated>();
@@ -27,6 +71,8 @@ ProfileAssociated::Ptr ProfileAssociated::fromJson(const QJsonObject& json)
     associated->mLists = xjson.getOptionalInt("lists", 0);
     associated->mFeeds = xjson.getOptionalInt("feedgens", 0);
     associated->mLabeler = xjson.getOptionalBool("labeler", false);
+    associated->mChat = xjson.getOptionalObject<ProfileAssociatedChat>("chat");
+
     return associated;
 }
 
