@@ -603,6 +603,20 @@ public:
                           const QString& reason, const std::optional<QString>& labelerDid,
                           const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief reportDirectMessage
+     * @param did
+     * @param convoId
+     * @param messageId
+     * @param reasonType
+     * @param reason
+     * @param successCb
+     * @param errorCb
+     */
+    void reportDirectMessage(const QString& did, const QString& convoId, const QString& messageId,
+                             ComATProtoModeration::ReasonType reasonType, const QString& reason,
+                             const SuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.unspecced
 
     /**

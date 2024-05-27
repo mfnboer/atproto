@@ -1393,6 +1393,35 @@ void Client::reportPostOrFeed(const QString& uri, const QString& cid,
         authToken());
 }
 
+void Client::reportDirectMessage(const QString& did, const QString& convoId, const QString& messageId,
+                                 ComATProtoModeration::ReasonType reasonType, const QString& reason,
+                                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
+
+    if (!reason.isEmpty())
+        json.insert("reason", reason);
+
+    ChatBskyConvo::MessageRef ref;
+    ref.mDid = did;
+    ref.mConvoId = convoId;
+    ref.mMessageId = messageId;
+    json.insert("subject", ref.toJson());
+    QJsonDocument jsonDoc(json);
+
+    qDebug() << "Report direct message:" << jsonDoc;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() <<"Reported direct message:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::optional<int> limit,
                               const std::optional<QString>& cursor,
                               const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)

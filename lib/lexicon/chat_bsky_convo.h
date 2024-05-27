@@ -12,10 +12,14 @@ namespace ATProto::ChatBskyConvo {
 struct MessageRef
 {
     QString mDid;
+    QString mConvoId;
     QString mMessageId;
+
+    QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<MessageRef>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#messageRef";
 };
 
 // chat.bsky.convo.defs#messageInput

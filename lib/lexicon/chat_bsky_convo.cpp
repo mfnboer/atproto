@@ -5,11 +5,22 @@
 
 namespace ATProto::ChatBskyConvo {
 
+QJsonObject MessageRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("did", mDid);
+    json.insert("convoId", mConvoId);
+    json.insert("messageId", mMessageId);
+    return json;
+}
+
 MessageRef::Ptr MessageRef::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto ref = std::make_unique<MessageRef>();
     ref->mDid = xjson.getRequiredString("did");
+    ref->mConvoId = xjson.getRequiredString("convoId");
     ref->mMessageId = xjson.getRequiredString("messageId");
     return ref;
 }
