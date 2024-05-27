@@ -35,7 +35,7 @@ public:
     explicit RichTextMaster(Client& client);
 
     void resolveFacets(const QString& text, std::vector<ParsedMatch> facets, int facetIndex,
-                       const FacetsResolvedCb& cb);
+                       bool shortenLinks, const FacetsResolvedCb& cb);
     void addFacets(const QString& text, const std::vector<ParsedMatch>& facets,
                    const FacetsResolvedCb& cb);
 

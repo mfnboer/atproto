@@ -63,7 +63,7 @@ void ChatMaster::createMessage(const QString& text, const MessageCreatedCb& cb)
     auto message = std::make_shared<ChatBskyConvo::MessageInput>();
     auto facets = RichTextMaster::parseFacets(text);
 
-    mRichTextMaster.resolveFacets(text, facets, 0,
+    mRichTextMaster.resolveFacets(text, facets, 0, false,
         [message, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
             message->mText = richText;
             message->mFacets = std::move(resolvedFacets);

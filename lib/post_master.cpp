@@ -340,7 +340,7 @@ void PostMaster::createPost(const QString& text, const QString& language, AppBsk
     post->mReply = std::move(replyRef);
     auto facets = RichTextMaster::parseFacets(text);
 
-    mRichTextMaster.resolveFacets(text, facets, 0,
+    mRichTextMaster.resolveFacets(text, facets, 0, true,
         [post, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
             post->mText = richText;
             post->mFacets = std::move(resolvedFacets);

@@ -112,7 +112,7 @@ RichTextMaster::RichTextMaster(Client& client) :
 }
 
 void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch> facets, int facetIndex,
-                   const FacetsResolvedCb& cb)
+                                   bool shortenLinks, const FacetsResolvedCb& cb)
 {
     Q_ASSERT(cb);
     for (int i = facetIndex; i < (int)facets.size(); ++i)
@@ -122,25 +122,28 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
         switch (facet.mType) {
         case ParsedMatch::Type::LINK:
             facet.mRef = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
-            facet.mMatch = shortenWebLink(facet.mMatch);
+
+            if (shortenLinks)
+                facet.mMatch = shortenWebLink(facet.mMatch);
+
             break;
         case ParsedMatch::Type::MENTION:
             // The @-character is not part of the handle!
             mClient.resolveHandle(facet.mMatch.sliced(1),
-                [this, presence=getPresence(), i, text, facets, cb](const QString& did){
+                [this, presence=getPresence(), i, text, facets, shortenLinks, cb](const QString& did){
                     if (!presence)
                         return;
 
                     auto newFacets = facets;
                     newFacets[i].mRef = did;
-                    resolveFacets(text, newFacets, i + 1, cb);
+                    resolveFacets(text, newFacets, i + 1, shortenLinks, cb);
                 },
-                [this, presence=getPresence(), i, text, facets, cb](const QString& error, const QString& msg){
+                [this, presence=getPresence(), i, text, facets, shortenLinks, cb](const QString& error, const QString& msg){
                     if (!presence)
                         return;
 
                     qWarning() << "Could not resolve handle:" << error << " - " << msg << "match:" << facets[i].mMatch;
-                    resolveFacets(text, facets, i + 1, cb);
+                    resolveFacets(text, facets, i + 1, shortenLinks, cb);
                 });
             return;
         case ParsedMatch::Type::TAG:
