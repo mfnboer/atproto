@@ -61,7 +61,7 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
     list->mCreatedAt = QDateTime::currentDateTimeUtc();
     auto facets = RichTextMaster::parseFacets(description);
 
-    mRichTextMaster.resolveFacets(description, facets, 0,
+    mRichTextMaster.resolveFacets(description, facets, 0, true,
         [this, presence=getPresence(), list, rKey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
             if (!presence)
                 return;
@@ -144,7 +144,7 @@ void GraphMaster::updateList(AppBskyGraph::List::Ptr list, const QString& rkey, 
     auto facets = RichTextMaster::parseFacets(description);
     mRKeyListMap[rkey] = std::move(list);
 
-    mRichTextMaster.resolveFacets(description, facets, 0,
+    mRichTextMaster.resolveFacets(description, facets, 0, true,
         [this, presence=getPresence(), rkey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
             if (!presence)
                 return;
