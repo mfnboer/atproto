@@ -29,6 +29,7 @@ public:
     static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
     static QString getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor);
     static QString getFormattedListDescription(const ATProto::AppBskyGraph::ListView& list, const QString& linkColor);
+    static QString getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor);
     static QString getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor);
     static QString linkiFy(const QString& text, const QString& colorName);
 

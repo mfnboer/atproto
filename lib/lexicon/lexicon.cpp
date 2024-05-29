@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "lexicon.h"
+#include "app_bsky_labeler.h"
 #include "../xjson.h"
 #include <unordered_map>
 
@@ -57,6 +58,7 @@ RecordType stringToRecordType(const QString& str)
         { "app.bsky.feed.post", RecordType::APP_BSKY_FEED_POST },
         { "app.bsky.feed.defs#generatorView", RecordType::APP_BSKY_FEED_GENERATOR_VIEW },
         { "app.bsky.graph.defs#listView", RecordType::APP_BSKY_GRAPH_LIST_VIEW },
+        { AppBskyLabeler::LabelerView::TYPE, RecordType::APP_BSKY_LABELER_VIEW },
         { "app.bsky.embed.record#viewBlocked", RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED },
         { "app.bsky.embed.record#viewNotFound", RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND },
         { "app.bsky.embed.record#viewRecord", RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD }
@@ -76,6 +78,7 @@ QString recordTypeToString(RecordType recordType)
         { RecordType::APP_BSKY_FEED_POST, "app.bsky.feed.post" },
         { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, "app.bsky.feed.defs#generatorView" },
         { RecordType::APP_BSKY_GRAPH_LIST_VIEW, "app.bsky.graph.defs#listView" },
+        { RecordType::APP_BSKY_LABELER_VIEW, AppBskyLabeler::LabelerView::TYPE },
         { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, "app.bsky.embed.record#viewBlocked" },
         { RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND, "app.bsky.embed.record#viewNotFound" },
         { RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD, "app.bsky.embed.record#viewRecord" },

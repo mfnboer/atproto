@@ -70,6 +70,16 @@ QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph:
                                                  linkColor);
 }
 
+QString RichTextMaster::getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor)
+{
+    const auto& description = labeler.mCreator->mDescription;
+
+    if (!description)
+        return {};
+
+    return linkiFy(*description, linkColor);
+}
+
 QString RichTextMaster::getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor)
 {
     if (msg.mFacets.empty())
