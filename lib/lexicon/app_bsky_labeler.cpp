@@ -22,6 +22,16 @@ LabelerPolicies::Ptr LabelerPolicies::fromJson(const QJsonObject& json)
     return policies;
 }
 
+QJsonObject LabelerView::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("creator", mCreator->toJson());
+    return json;
+}
+
 LabelerView::Ptr LabelerView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_unique<LabelerView>();

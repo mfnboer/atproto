@@ -36,8 +36,11 @@ struct LabelerView
     QDateTime mIndexedAt;
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
 
+    QJsonObject toJson() const; // partial serialization
+
     using Ptr = std::unique_ptr<LabelerView>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.labeler.defs#labelerView";
 };
 
 // app.bsky.labeler.defs#labelerViewDetailed
