@@ -94,6 +94,7 @@ struct ListView
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::FacetList mDescriptionFacets;
     std::optional<QString> mAvatar;
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     ListViewerState::Ptr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 

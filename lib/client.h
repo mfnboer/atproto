@@ -353,6 +353,16 @@ public:
     void getRepostedBy(const QString& uri, std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetRepostedBySuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief sendInteractions
+     * @param interactions
+     * @param feedDid DID of the feed generator to which the feedback should be sent
+     * @param successCb
+     * @param errorCb
+     */
+    void sendInteractions(const AppBskyFeed::InteractionList& interactions, const QString& feedDid,
+                          const SuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.graph
 
     /**

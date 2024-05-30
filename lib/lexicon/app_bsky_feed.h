@@ -163,6 +163,7 @@ struct FeedViewPost
     PostView::Ptr mPost; // required
     ReplyRef::Ptr mReply;
     ReasonRepost::Ptr mReason;
+    std::optional<QString> mFeedContext;
 
     using Ptr = std::unique_ptr<FeedViewPost>;
     static Ptr fromJson(const QJsonObject& json);
@@ -322,5 +323,26 @@ struct GetActorFeedsOutput
     using Ptr = std::unique_ptr<GetActorFeedsOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
+
+// app.bsky.feed.defs#interaction
+struct Interaction
+{
+    enum class EventType
+    {
+        RequestLess,
+        RequestMore
+    };
+    static QString eventTypeToString(EventType eventType);
+
+    std::optional<QString> mItem; // at-uri
+    std::optional<EventType> mEvent;
+    std::optional<QString> mFeedContext;
+
+    QJsonObject toJson() const;
+
+    using Ptr = std::unique_ptr<Interaction>;
+};
+
+using InteractionList = std::vector<Interaction::Ptr>;
 
 }

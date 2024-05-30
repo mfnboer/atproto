@@ -32,6 +32,8 @@ struct GeneratorView {
     AppBskyRichtext::FacetList mDescriptionFacets;
     std::optional<QString> mAvatar;
     int mLikeCount = 0;
+    bool mAcceptsInteractions = false;
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     GeneratorViewerState::Ptr mViewer; // optional
     QDateTime mIndexedAt;
 

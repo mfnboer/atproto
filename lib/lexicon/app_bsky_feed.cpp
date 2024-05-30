@@ -269,6 +269,7 @@ FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
     feedViewPost->mPost = xjson.getRequiredObject<PostView>("post");
     feedViewPost->mReply = xjson.getOptionalObject<ReplyRef>("reply");
     feedViewPost->mReason = xjson.getOptionalObject<ReasonRepost>("reason");
+    feedViewPost->mFeedContext = xjson.getOptionalString("feedContext");
     return feedViewPost;
 }
 
@@ -515,6 +516,8 @@ GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
     view->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
     view->mAvatar = xjson.getOptionalString("avatar");
     view->mLikeCount = xjson.getOptionalInt("likeCount", 0);
+    view->mAcceptsInteractions = xjson.getOptionalBool("acceptsInteractions", false);
+    ComATProtoLabel::getLabels(view->mLabels, json);
     view->mViewer = xjson.getOptionalObject<GeneratorViewerState>("viewer");
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return view;
@@ -545,6 +548,37 @@ GetActorFeedsOutput::Ptr GetActorFeedsOutput::fromJson(const QJsonObject& json)
     output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
     output->mCursor = xjson.getOptionalString("cursor");
     return output;
+}
+
+QString Interaction::eventTypeToString(EventType eventType)
+{
+    static const std::unordered_map<EventType, QString> mapping = {
+        { EventType::RequestLess, "requestLess" },
+        { EventType::RequestMore, "requestMore" }
+    };
+
+    const auto it = mapping.find(eventType);
+    Q_ASSERT(it != mapping.end());
+
+    if (it == mapping.end())
+    {
+        qWarning() << "Unknown allow event type:" << int(eventType);
+        return {};
+    }
+
+    return it->second;
+}
+
+QJsonObject Interaction::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "item", mItem);
+
+    if (mEvent)
+        json.insert("event", eventTypeToString(*mEvent));
+
+    XJsonObject::insertOptionalJsonValue(json, "feedContext", mFeedContext);
+    return json;
 }
 
 }
