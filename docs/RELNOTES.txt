@@ -1,3 +1,7 @@
+next
+====
+* Spec udate MessageView.embed 
+
 2.0
 ===
 * Direct messages
