@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "com_atproto_label.h"
 #include <QJsonDocument>
 
 // Extra header to break cyclic dependencies
@@ -33,6 +34,7 @@ struct ListViewBasic
     ListPurpose mPurpose;
     QString mRawPurpose;
     std::optional<QString> mAvatar;
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     ListViewerState::Ptr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 

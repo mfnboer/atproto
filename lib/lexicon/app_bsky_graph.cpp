@@ -129,6 +129,7 @@ ListViewBasic::Ptr ListViewBasic::fromJson(const QJsonObject& json)
     listView->mRawPurpose = xjson.getRequiredString("purpose");
     listView->mPurpose = stringToListPurpose(listView->mRawPurpose);
     listView->mAvatar = xjson.getOptionalString("avatar");
+    ComATProtoLabel::getLabels(listView->mLabels, json);
     listView->mViewer = xjson.getOptionalObject<ListViewerState>("viewer");
     listView->mIndexedAt = xjson.getOptionalDateTime("indexedAt");
     return listView;
@@ -161,6 +162,7 @@ ListView::Ptr ListView::fromJson(const QJsonObject& json)
     listView->mDescription = xjson.getOptionalString("description");
     listView->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
     listView->mAvatar = xjson.getOptionalString("avatar");
+    ComATProtoLabel::getLabels(listView->mLabels, json);
     listView->mViewer = xjson.getOptionalObject<ListViewerState>("viewer");
     listView->mIndexedAt = xjson.getOptionalDateTime("indexedAt");
     return listView;

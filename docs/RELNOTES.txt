@@ -1,6 +1,7 @@
 next
 ====
 * Spec udate MessageView.embed 
+* Interactions
 
 2.0
 ===

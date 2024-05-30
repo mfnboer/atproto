@@ -12,6 +12,7 @@ namespace ATProto
 
 #define SERVICE_KEY_ATPROTO_LABELER QStringLiteral("atproto_labeler")
 #define SERVICE_KEY_BSKY_CHAT QStringLiteral("bsky_chat")
+#define SERVICE_KEY_BSKY_FEEDGEN QStringLiteral("bsky_fg")
 
 #define SERVICE_DID_BSKY_CHAT QStringLiteral("did:web:api.bsky.chat")
 
@@ -789,6 +790,24 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::sendInteractions(const AppBskyFeed::InteractionList& interactions, const QString& feedDid,
+                              const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto jsonArray = XJsonObject::toJsonArray<AppBskyFeed::Interaction>(interactions);
+
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, feedDid, SERVICE_KEY_BSKY_FEEDGEN);
+
+    mXrpc->post("app.bsky.feed.sendInteractions", QJsonDocument(jsonArray), httpHeaders,
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "sendInteractions:" << reply;
+            if (successCb)
+                successCb();
         },
         failure(errorCb),
         authToken());
