@@ -1,7 +1,7 @@
-next
-====
+2.1
+===
 * Text normalization
-* Spec udate MessageView.embed 
+* Spec update MessageView.embed 
 * Interactions
 
 2.0
