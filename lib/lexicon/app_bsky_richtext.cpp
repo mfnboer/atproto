@@ -1,7 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "app_bsky_richtext.h"
-#include "../post_master.h"
+#include "../rich_text_master.h"
 #include "../xjson.h"
 
 namespace ATProto::AppBskyRichtext {
@@ -167,7 +167,7 @@ struct HyperLink
     QString mText;
 };
 
-static QString createHtmlLink(const QString& linkText, const Facet::Feature& feature, const QString& linkColor)
+static QString createHtmlLink(const QString& linkText, const Facet::Feature& feature, const QString& linkColor, const std::set<QString>& emphasizeHashtags = {})
 {
     const QString linkStyle = linkColor.isEmpty() ? "" : QString(" style=\"color: %1; text-decoration: none\"").arg(linkColor);
 
@@ -183,15 +183,16 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     {
         const auto& facetLink = std::get<ATProto::AppBskyRichtext::FacetLink::Ptr>(feature.mFeature);
         return QString("<a href=\"%1\"%3>%2</a>").arg(facetLink->mUri, linkText, linkStyle);
-        break;
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::TAG:
     {
-        // Not yet supported by bsky
         const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::Ptr>(feature.mFeature);
+        const QString normalizedTag = RichTextMaster::normalizeText(facetTag->mTag);
+
+        if (emphasizeHashtags.contains(normalizedTag))
+            return QString("<a href=\"#%1\"%3><b>%2</b></a>").arg(facetTag->mTag, linkText, linkStyle);
+
         return QString("<a href=\"#%1\"%3>%2</a>").arg(facetTag->mTag, linkText, linkStyle);
-        qDebug() << "Facet tag:" << facetTag->mTag;
-        break;
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
         break;
@@ -204,7 +205,8 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
 }
 
 static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
-        const AppBskyRichtext::FacetList& facets, const QString& linkColor)
+        const AppBskyRichtext::FacetList& facets, const QString& linkColor,
+        const std::set<QString>& emphasizeHashtags = {})
 {
     std::map<int, HyperLink> startLinkMap;
 
@@ -233,7 +235,7 @@ static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
 
         const auto linkText = QString(bytes.sliced(link.mStart, sliceSize));
         const auto& feature = facet->mFeatures.front();
-        link.mText = createHtmlLink(linkText, feature, linkColor);
+        link.mText = createHtmlLink(linkText, feature, linkColor, emphasizeHashtags);
 
         if (!link.mText.isEmpty())
             startLinkMap[link.mStart] = link;
@@ -242,10 +244,10 @@ static std::map<int, HyperLink> buildStartLinkMap(const QByteArray& bytes,
     return startLinkMap;
 }
 
-QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor)
+QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor, const std::set<QString>& emphasizeHashtags)
 {
     const auto& bytes = text.toUtf8();
-    const auto startLinkMap = buildStartLinkMap(bytes, facets, linkColor);
+    const auto startLinkMap = buildStartLinkMap(bytes, facets, linkColor, emphasizeHashtags);
 
     QString result;
     int bytePos = 0;

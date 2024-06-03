@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include <QJsonDocument>
+#include <set>
 
 namespace ATProto::AppBskyRichtext {
 
@@ -86,6 +87,6 @@ using FacetList = std::vector<Facet::Ptr>;
  * @param linkColor If provided a style element to set the color will be added to the href anchor
  * @return HTML version of the text with links in it
  */
-QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor = "");
+QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor = "", const std::set<QString>& emphasizeHashtags = {});
 
 }

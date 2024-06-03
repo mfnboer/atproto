@@ -3,6 +3,7 @@
 #pragma once
 #include "client.h"
 #include "presence.h"
+#include <set>
 
 namespace ATProto {
 
@@ -26,12 +27,13 @@ public:
     static void setHtmlCleanup(const HtmlCleanupFun& cleanup);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
-    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor);
+    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor, const std::set<QString>& emphasizeHashtags = {});
     static QString getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor);
     static QString getFormattedListDescription(const ATProto::AppBskyGraph::ListView& list, const QString& linkColor);
     static QString getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor);
     static QString getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor);
     static QString linkiFy(const QString& text, const QString& colorName);
+    static QString normalizeText(const QString& text);
 
     explicit RichTextMaster(Client& client);
 
