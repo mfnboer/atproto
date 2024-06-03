@@ -1,5 +1,6 @@
 next
 ====
+* Text normalization
 * Spec udate MessageView.embed 
 * Interactions
 

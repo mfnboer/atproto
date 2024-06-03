@@ -38,12 +38,12 @@ QString RichTextMaster::plainToHtml(const QString& text)
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
 }
 
-QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor)
+QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor, const std::set<QString>& emphasizeHashtags)
 {
     if (post.mFacets.empty())
         return plainToHtml(post.mText);
     else
-        return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets, linkColor);
+        return ATProto::AppBskyRichtext::applyFacets(post.mText, post.mFacets, linkColor, emphasizeHashtags);
 }
 
 QString RichTextMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor)
@@ -113,6 +113,30 @@ QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
     linkified.append(toCleanedHtml(text.sliced(pos)));
     linkified.append("</span>");
     return linkified;
+}
+
+QString RichTextMaster::normalizeText(const QString& text)
+{
+    QLocale locale;
+    const QString NFKD = text.normalized(QString::NormalizationForm_KD);
+    QString normalized;
+
+    for (const auto ch : NFKD)
+    {
+        switch (ch.category())
+        {
+        case QChar::Mark_NonSpacing:
+        case QChar::Mark_SpacingCombining:
+        case QChar::Mark_Enclosing:
+            continue;
+        default:
+            break;
+        }
+
+        normalized.append(ch);
+    }
+
+    return locale.toLower(normalized);
 }
 
 RichTextMaster::RichTextMaster(Client& client) :
