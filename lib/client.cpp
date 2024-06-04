@@ -725,6 +725,7 @@ void Client::getPosts(const std::vector<QString>& uris,
 
 void Client::searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                          const std::optional<QString>& sort, const std::optional<QString>& author,
+                         const std::optional<QString>& mentions,
                          const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"q", q}};
@@ -732,6 +733,7 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalStringParam(params, "sort", sort);
     addOptionalStringParam(params, "author", author);
+    addOptionalStringParam(params, "mentions", mentions);
 
     Xrpc::Client::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
