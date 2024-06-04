@@ -324,11 +324,13 @@ public:
      * @param q search query
      * @param limit min=1 max=100 default=25
      * @param cursor
+     * @param sort "top", "latest" default="latest"
+     * @param author at-identifier
      * @param successCb
      * @param errorCb
      */
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
-                     const std::optional<QString>& sort,
+                     const std::optional<QString>& sort, const std::optional<QString>& author,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**

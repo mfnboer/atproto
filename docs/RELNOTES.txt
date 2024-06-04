@@ -1,3 +1,7 @@
+next
+====
+* Add search parameters to searchPosts
+
 2.1
 ===
 * Text normalization
