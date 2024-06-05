@@ -726,7 +726,7 @@ void Client::getPosts(const std::vector<QString>& uris,
 void Client::searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                          const std::optional<QString>& sort, const std::optional<QString>& author,
                          const std::optional<QString>& mentions, const std::optional<QDateTime>& since,
-                         const std::optional<QDateTime>& until,
+                         const std::optional<QDateTime>& until, const std::optional<QString>& lang,
                          const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"q", q}};
@@ -737,6 +737,7 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addOptionalStringParam(params, "mentions", mentions);
     addOptionalDateTimeParam(params, "since", since);
     addOptionalDateTimeParam(params, "until", until);
+    addOptionalStringParam(params, "lang", lang); // The spec says "langs" is an array???
 
     Xrpc::Client::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);

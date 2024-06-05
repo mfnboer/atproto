@@ -327,15 +327,16 @@ public:
      * @param sort "top", "latest" default="latest"
      * @param author at-identifier, post from this author
      * @param mentions at-identifier, posts mentioning this user
-     * @param since posts from this timestamp (inclusive)
-     * @param until posts until this timestamp (exclusive)
+     * @param since posts from this timestamp UTC (inclusive)
+     * @param until posts until this timestamp UTC (exclusive)
+     * @param lang posts in this language, 2-letter language code
      * @param successCb
      * @param errorCb
      */
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                      const std::optional<QString>& sort, const std::optional<QString>& author,
                      const std::optional<QString>& mentions, const std::optional<QDateTime>& since,
-                     const std::optional<QDateTime>& until,
+                     const std::optional<QDateTime>& until, const std::optional<QString>& lang,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -453,7 +454,7 @@ public:
 
     /**
      * @brief getUnreadCount Get the number of unread notifications since last time.
-     * @param seenAt Last timestamp the notifications were seen
+     * @param seenAt Last timestamp UTC the notifications were seen
      * @param successCb
      * @param errorCb
      */
