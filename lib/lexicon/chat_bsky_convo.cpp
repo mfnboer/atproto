@@ -61,7 +61,7 @@ MessageView::Ptr MessageView::fromJson(const QJsonObject& json)
     view->mRev = xjson.getRequiredString("rev");
     view->mText = xjson.getRequiredString("text");
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-    view->mEmbed = xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed");
+    view->mEmbed = AppBskyEmbed::RecordView::SharedPtr(xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed").release());
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
     return view;

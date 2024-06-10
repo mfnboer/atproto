@@ -196,6 +196,7 @@ struct RecordView
 
     QString mUnsupportedType; // not part of the spec
 
+    using SharedPtr = std::shared_ptr<RecordView>;
     using Ptr = std::unique_ptr<RecordView>;
     static Ptr fromJson(const QJsonObject& json);
 };
