@@ -31,7 +31,7 @@ QJsonObject MessageInput::toJson() const
     json.insert("$type", MessageInput::TYPE);
     json.insert("text", mText);
     json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
-    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Embed>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Record>(json, "embed", mEmbed);
     return json;
 }
 
@@ -41,7 +41,7 @@ MessageInput::Ptr MessageInput::fromJson(const QJsonObject& json)
     auto msg = std::make_unique<MessageInput>();
     msg->mText = xjson.getRequiredString("text");
     msg->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-    msg->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Embed>("embed");
+    msg->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Record>("embed");
     return msg;
 }
 

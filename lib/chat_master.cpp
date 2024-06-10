@@ -78,12 +78,8 @@ void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const Q
     ref->mCid = quoteCid;
 
     Q_ASSERT(!message.mEmbed);
-    message.mEmbed = std::make_unique<AppBskyEmbed::Embed>();
-    message.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD;
-    message.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::Record>();
-
-    auto& record = std::get<AppBskyEmbed::Record::Ptr>(message.mEmbed->mEmbed);
-    record->mRecord = std::move(ref);
+    message.mEmbed = std::make_unique<AppBskyEmbed::Record>();
+    message.mEmbed->mRecord = std::move(ref);
 }
 
 }

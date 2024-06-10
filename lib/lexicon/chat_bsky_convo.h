@@ -27,7 +27,7 @@ struct MessageInput
 {
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
-    ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional, only Record
+    ATProto::AppBskyEmbed::Record::Ptr mEmbed; // optional
 
     QJsonObject toJson() const;
 
