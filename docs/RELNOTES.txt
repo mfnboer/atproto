@@ -1,6 +1,7 @@
 next
 ====
 * Add search parameters to searchPosts
+* Spec update InputMessage.embed
 
 2.1
 ===
