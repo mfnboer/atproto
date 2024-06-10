@@ -53,7 +53,7 @@ struct MessageView
     QString mRev;
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
-    ATProto::AppBskyEmbed::RecordView::Ptr mEmbed; // optional
+    ATProto::AppBskyEmbed::RecordView::SharedPtr mEmbed; // optional
     MessageViewSender::Ptr mSender; // required
     QDateTime mSentAt;
 
