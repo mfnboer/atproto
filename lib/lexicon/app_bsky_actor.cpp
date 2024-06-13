@@ -41,6 +41,15 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
     return it->second;
 }
 
+KnownFollowers::Ptr KnownFollowers::fromJson(const QJsonObject& json)
+{
+    auto knownFollowers = std::make_unique<KnownFollowers>();
+    XJsonObject xjson(json);
+    knownFollowers->mCount = xjson.getRequiredInt("count");
+    knownFollowers->mFollowers = xjson.getRequiredVector<ProfileViewBasic>("followers");
+    return knownFollowers;
+}
+
 ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
 {
     auto viewerState = std::make_unique<ViewerState>();
@@ -52,6 +61,7 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mFollowedBy = xjson.getOptionalString("followedBy");
     viewerState->mMutedByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("mutedByList");
     viewerState->mBlockingByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("blockingByList");
+    viewerState->mKnownFollowers = xjson.getOptionalObject<KnownFollowers>("knownFollowers");
     return viewerState;
 }
 

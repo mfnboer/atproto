@@ -1,6 +1,7 @@
-next
-====
+2.2
+===
 * Add search parameters to searchPosts
+* Known followers
 * Spec update InputMessage.embed
 
 2.1
