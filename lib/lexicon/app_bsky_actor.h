@@ -9,6 +9,20 @@
 
 namespace ATProto::AppBskyActor {
 
+struct ProfileViewBasic;
+
+// app.bsky.actor.defs#knownFollowers
+struct KnownFollowers
+{
+    static constexpr int MAX_COUNT = 5;
+
+    int mCount = 0;
+    std::vector<std::unique_ptr<ProfileViewBasic>> mFollowers;
+
+    using Ptr = std::unique_ptr<KnownFollowers>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#viewerState
 struct ViewerState
 {
@@ -19,6 +33,7 @@ struct ViewerState
     std::optional<QString> mFollowedBy;
     std::unique_ptr<AppBskyGraph::ListViewBasic> mMutedByList;
     std::unique_ptr<AppBskyGraph::ListViewBasic> mBlockingByList;
+    KnownFollowers::Ptr mKnownFollowers;
 
     using Ptr = std::unique_ptr<ViewerState>;
     static Ptr fromJson(const QJsonObject& json);

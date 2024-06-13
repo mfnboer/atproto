@@ -394,6 +394,8 @@ public:
      */
     void getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
+    void getKnownFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                           const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
                    const GetBlocksSuccessCb& successCb, const ErrorCb& errorCb);

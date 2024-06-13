@@ -864,6 +864,28 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
         authToken());
 }
 
+void Client::getKnownFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                               const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    mXrpc->get("app.bsky.graph.getKnownFollowers", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getKnownFollowers:" << reply;
+            try {
+                auto follows = AppBskyGraph::GetFollowersOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(follows));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetBlocksSuccessCb& successCb, const ErrorCb& errorCb)
 {
