@@ -85,7 +85,7 @@ public:
 
     using Ptr = std::unique_ptr<Client>;
 
-    static constexpr int MAX_LABELERS = 10;
+    static constexpr int MAX_LABELERS = 20;
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;

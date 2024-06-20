@@ -1,3 +1,7 @@
+next
+====
+* Set MAX_LABELERS to 20
+
 2.2
 ===
 * Add search parameters to searchPosts
