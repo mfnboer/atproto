@@ -16,6 +16,7 @@ class PostMaster : public Presence
 public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
     using PostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using ThreadgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
@@ -28,7 +29,7 @@ public:
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const PostSuccessCb& successCb, const ErrorCb& errorCb);
     void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
-                       const Client::SuccessCb& successCb, const ErrorCb& errorCb);
+                       const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
                 const RepostSuccessCb& successCb, const ErrorCb& errorCb);
     void like(const QString& uri, const QString& cid,
