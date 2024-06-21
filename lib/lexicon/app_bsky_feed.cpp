@@ -178,6 +178,7 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
     post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    post->mBridgyOriginalText = xjson.getOptionalString("bridgyOriginalText");
     return post;
 }
 

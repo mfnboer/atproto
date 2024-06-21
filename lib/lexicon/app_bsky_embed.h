@@ -311,6 +311,9 @@ struct Post
     std::vector<QString> mLanguages;
     QDateTime mCreatedAt;
 
+    // Non-standard field added by bridgy-fed: https://github.com/snarfed/bridgy-fed/issues/1092
+    std::optional<QString> mBridgyOriginalText;
+
     QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<Post>;

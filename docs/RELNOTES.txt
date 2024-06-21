@@ -1,6 +1,7 @@
 next
 ====
 * Set MAX_LABELERS to 20
+* Support for Bridgy Fed field bridgyOriginalText
 
 2.2
 ===
