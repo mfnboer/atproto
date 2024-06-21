@@ -44,7 +44,9 @@ struct Threadgate
     QJsonObject toJson() const;
 
     using Ptr = std::unique_ptr<Threadgate>;
+    using SharedPtr = std::shared_ptr<Threadgate>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.threadgate";
 };
 
 // app.bsky.feed.defs#threadgateView

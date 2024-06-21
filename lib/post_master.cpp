@@ -42,7 +42,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
 }
 
 void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
-                   const Client::SuccessCb& successCb, const ErrorCb& errorCb)
+                               const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
     if (!atUri.isValid())
@@ -54,10 +54,10 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     const QString& repo = mClient.getSession()->mDid;
     const QString collection = threadgateJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, atUri.getRkey(), threadgateJson, true,
-        [successCb](auto){
+    mClient.putRecord(repo, collection, atUri.getRkey(), threadgateJson, true,
+        [successCb](auto strongRef){
             if (successCb)
-                successCb();
+                successCb(strongRef->mUri, strongRef->mCid);
         },
         [errorCb](const QString& error, const QString& msg) {
             if (errorCb)

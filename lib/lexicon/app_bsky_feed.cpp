@@ -37,7 +37,7 @@ ThreadgateListRule::Ptr ThreadgateListRule::fromJson(const QJsonObject& json)
 QJsonObject Threadgate::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.feed.threadgate");
+    json.insert("$type", TYPE);
     json.insert("post", mPost);
 
     QJsonArray allowArray;
