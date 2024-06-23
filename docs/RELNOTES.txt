@@ -1,5 +1,5 @@
-next
-====
+2.3
+===
 * Set MAX_LABELERS to 20
 * Support for Bridgy Fed field bridgyOriginalText
 * Functions to modify/delete threadgate
