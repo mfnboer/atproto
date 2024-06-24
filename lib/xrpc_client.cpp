@@ -65,7 +65,11 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
     if (!accessJwt.isNull())
         setAuthorization(request.mXrpcRequest, accessJwt);
 
-    request.mXrpcRequest.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
+    // Setting Content-Type header when no body is present causes this error on some
+    // PDS' as of 23-6-2024
+    if (!data.isEmpty())
+        request.mXrpcRequest.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
+
     setRawHeaders(request.mXrpcRequest, rawHeaders);
     request.mData = data;
     sendRequest(request, successCb, errorCb);

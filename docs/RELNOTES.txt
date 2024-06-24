@@ -1,3 +1,7 @@
+2.3.1
+=====
+* Do not set Content-Type header when body is empty
+
 2.3
 ===
 * Set MAX_LABELERS to 20
