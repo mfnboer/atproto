@@ -1,5 +1,6 @@
 next
 ====
+* muteThread, unmuteThread
 * Handle empty text in Rich Text formatting.
 
 2.3.1

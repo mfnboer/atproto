@@ -962,6 +962,38 @@ void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const
         authToken());
 }
 
+void Client::muteThread(const QString& root, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("root", root);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.muteThread", json, {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "muteActor:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::unmuteThread(const QString& root, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject jsonObj;
+    jsonObj.insert("root", root);
+    QJsonDocument json(jsonObj);
+
+    mXrpc->post("app.bsky.graph.unmuteThread", json, {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "muteActor:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getList(const QString& listUri, std::optional<int> limit, const std::optional<QString>& cursor,
                      const GetListSuccessCb& successCb, const ErrorCb& errorCb)
 {
