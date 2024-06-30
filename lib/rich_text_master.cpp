@@ -40,6 +40,9 @@ QString RichTextMaster::plainToHtml(const QString& text)
 
 QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor, const std::set<QString>& emphasizeHashtags)
 {
+    if (post.mText.isEmpty())
+        return {};
+
     if (post.mFacets.empty())
         return plainToHtml(post.mText);
     else
@@ -48,7 +51,7 @@ QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record:
 
 QString RichTextMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor)
 {
-    if (!feed.mDescription)
+    if (!feed.mDescription || feed.mDescription->isEmpty())
         return {};
 
     if (feed.mDescriptionFacets.empty())
@@ -60,7 +63,7 @@ QString RichTextMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::
 
 QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph::ListView& list, const QString& linkColor)
 {
-    if (!list.mDescription)
+    if (!list.mDescription || list.mDescription->isEmpty())
         return {};
 
     if (list.mDescriptionFacets.empty())
@@ -74,7 +77,7 @@ QString RichTextMaster::getFormattedLabelerDescription(const ATProto::AppBskyLab
 {
     const auto& description = labeler.mCreator->mDescription;
 
-    if (!description)
+    if (!description || description->isEmpty())
         return {};
 
     return linkiFy(*description, linkColor);
@@ -82,6 +85,9 @@ QString RichTextMaster::getFormattedLabelerDescription(const ATProto::AppBskyLab
 
 QString RichTextMaster::getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor)
 {
+    if (msg.mText.isEmpty())
+        return {};
+
     if (msg.mFacets.empty())
         return plainToHtml(msg.mText);
     else
