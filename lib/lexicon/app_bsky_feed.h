@@ -15,6 +15,7 @@ struct ViewerState
 {
     std::optional<QString> mRepost;
     std::optional<QString> mLike;
+    bool mThreadMuted = false;
     bool mReplyDisabled = false;
 
     using Ptr = std::unique_ptr<ViewerState>;

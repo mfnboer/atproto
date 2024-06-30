@@ -406,6 +406,15 @@ public:
     void unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief muteThread
+     * @param root at-uri
+     * @param successCb
+     * @param errorCb
+     */
+    void muteThread(const QString& root, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void unmuteThread(const QString& root, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief getList
      * @param listUri at-uri of list
      * @param limit min=1 default=50 max=100
