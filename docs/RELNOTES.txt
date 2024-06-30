@@ -1,3 +1,7 @@
+next
+====
+* Handle empty text in Rich Text formatting.
+
 2.3.1
 =====
 * Do not set Content-Type header when body is empty
