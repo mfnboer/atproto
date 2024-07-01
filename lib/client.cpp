@@ -148,8 +148,9 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
     }
 
     mXrpc->post("com.atproto.server.deleteSession", {}, {},
-        [successCb](const QJsonDocument& reply){
+        [this, successCb](const QJsonDocument& reply){
             qDebug() << "Delete session reply:" << reply;
+            clearSession();
 
             if (successCb)
                 successCb();
