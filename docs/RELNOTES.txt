@@ -1,6 +1,7 @@
 next
 ====
 * muteThread, unmuteThread
+* Starter packs
 * Handle empty text in Rich Text formatting.
 
 2.3.1

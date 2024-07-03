@@ -47,6 +47,29 @@ using GeneratorViewList = std::vector<GeneratorView::Ptr>;
 
 }
 
+namespace ATProto::AppBskyGraph {
+
+// app.bsky.graph.defs#starterPackView
+struct StarterPackView
+{
+    QString mUri; // at-uri
+    QString mCid;
+    std::variant<StarterPack::Ptr> mRecord;
+    AppBskyActor::ProfileViewBasic::Ptr mCreator;
+    ListViewBasic::Ptr mList; // optional
+    ListItemViewList mListItemsSample;
+    AppBskyFeed::GeneratorViewList mFeeds;
+    int mJoinedWeekCount = 0;
+    int mJoinedAllTimeCount = 0;
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    QDateTime mIndexedAt;
+
+    using Ptr = std::unique_ptr<StarterPackView>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+}
+
 namespace ATProto::AppBskyEmbed {
 
 // app.bsky.embed.images#aspectRatio

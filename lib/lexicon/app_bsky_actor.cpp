@@ -80,6 +80,7 @@ ProfileAssociated::Ptr ProfileAssociated::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     associated->mLists = xjson.getOptionalInt("lists", 0);
     associated->mFeeds = xjson.getOptionalInt("feedgens", 0);
+    associated->mStarterPacks = xjson.getOptionalInt("starterPacks", 0);
     associated->mLabeler = xjson.getOptionalBool("labeler", false);
     associated->mChat = xjson.getOptionalObject<ProfileAssociatedChat>("chat");
 

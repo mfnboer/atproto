@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "app_bsky_graph.h"
+#include "app_bsky_embed.h"
 #include "../xjson.h"
 #include <unordered_map>
 
@@ -86,7 +87,8 @@ ListPurpose stringToListPurpose(const QString& str)
 {
     static const std::unordered_map<QString, ListPurpose> mapping = {
         { "app.bsky.graph.defs#modlist", ListPurpose::MOD_LIST },
-        { "app.bsky.graph.defs#curatelist", ListPurpose::CURATE_LIST }
+        { "app.bsky.graph.defs#curatelist", ListPurpose::CURATE_LIST },
+        { "app.bsky.graph.defs#referencelist", ListPurpose::REFERENCE_LIST }
     };
 
     const auto it = mapping.find(str);
@@ -100,7 +102,8 @@ QString listPurposeToString(ListPurpose purpose)
 {
     static const std::unordered_map<ListPurpose, QString> mapping = {
         { ListPurpose::MOD_LIST, "app.bsky.graph.defs#modlist" },
-        { ListPurpose::CURATE_LIST, "app.bsky.graph.defs#curatelist" }
+        { ListPurpose::CURATE_LIST, "app.bsky.graph.defs#curatelist" },
+        { ListPurpose::REFERENCE_LIST, "app.bsky.graph.defs#referencelist" }
     };
 
     const auto it = mapping.find(purpose);
@@ -250,6 +253,60 @@ ListItem::Ptr ListItem::fromJson(const QJsonObject& json)
     listItem->mList = xjson.getRequiredString("list");
     listItem->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return listItem;
+}
+
+StarterPackFeedItem::Ptr StarterPackFeedItem::fromJson(const QJsonObject& json)
+{
+    auto feedItem = std::make_unique<StarterPackFeedItem>();
+    XJsonObject xjson(json);
+    feedItem->mUri = xjson.getRequiredString("uri");
+    return feedItem;
+}
+
+StarterPack::Ptr StarterPack::fromJson(const QJsonObject& json)
+{
+    auto starterPack = std::make_unique<StarterPack>();
+    XJsonObject xjson(json);
+    starterPack->mName = xjson.getRequiredString("name");
+    starterPack->mDescription = xjson.getOptionalString("description");
+    starterPack->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
+    starterPack->mList = xjson.getRequiredString("list");
+    starterPack->mFeeds = xjson.getOptionalVector<StarterPackFeedItem>("feeds");
+    starterPack->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return starterPack;
+}
+
+StarterPackViewBasic::Ptr StarterPackViewBasic::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_unique<StarterPackViewBasic>();
+    XJsonObject xjson(json);
+    view->mUri = xjson.getRequiredString("uri");
+    view->mCid = xjson.getRequiredString("cid");
+    view->mRecord = xjson.getRequiredVariant<StarterPack>("record");
+    view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("creator");
+    view->mListItemCount = xjson.getOptionalInt("listItemCount", 0);
+    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount", 0);
+    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount", 0);
+    ComATProtoLabel::getLabels(view->mLabels, json);
+    view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+    return view;
+}
+
+StarterPackView::Ptr StarterPackView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_unique<StarterPackView>();
+    XJsonObject xjson(json);
+    view->mUri = xjson.getRequiredString("uri");
+    view->mCid = xjson.getRequiredString("cid");
+    view->mRecord = xjson.getRequiredVariant<StarterPack>("record");
+    view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("creator");
+    view->mList = xjson.getOptionalObject<ListViewBasic>("list");
+    view->mListItemsSample = xjson.getOptionalVector<ListItemView>("listItemsSample");
+    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount", 0);
+    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount", 0);
+    ComATProtoLabel::getLabels(view->mLabels, json);
+    view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
+    return view;
 }
 
 GetListOutput::Ptr GetListOutput::fromJson(const QJsonObject& json)
