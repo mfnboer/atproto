@@ -22,6 +22,7 @@ enum class ListPurpose
 {
     MOD_LIST,
     CURATE_LIST,
+    REFERENCE_LIST,
     UNKNOWN
 };
 

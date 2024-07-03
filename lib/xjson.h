@@ -229,7 +229,10 @@ std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QStri
     auto v = toVariant<Types...>(getRequiredJsonObject(key));
 
     if (isNullVariant(v))
+    {
         qWarning() << "Unknown type for key:" << key;
+        throw InvalidJsonException("PROTO ERROR unknown type for key: " + key);
+    }
 
     return v;
 }

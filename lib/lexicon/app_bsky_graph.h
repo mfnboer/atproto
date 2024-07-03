@@ -166,6 +166,48 @@ struct ListItem
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.starterpack#feedItem
+struct StarterPackFeedItem
+{
+    QString mUri; // at-uri
+
+    using Ptr = std::unique_ptr<StarterPackFeedItem>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+using StarterPackFeedItemList = std::vector<StarterPackFeedItem::Ptr>;
+
+// app.bsky.graph.starterpack
+struct StarterPack
+{
+    QString mName; // max_graphemes=50 max_bytes=500 min_bytes=1
+    std::optional<QString> mDescription; // max_graphemes=300 max_bytes=3000
+    AppBskyRichtext::FacetList mDescriptionFacets;
+    QString mList; // at-uri
+    StarterPackFeedItemList mFeeds;
+    QDateTime mCreatedAt;
+
+    using Ptr = std::unique_ptr<StarterPack>;
+    static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.starterpack";
+};
+
+// app.bsky.graph.defs#starterPackViewBasic
+struct StarterPackViewBasic
+{
+    QString mUri; // at-uri
+    QString mCid;
+    std::variant<StarterPack::Ptr> mRecord;
+    AppBskyActor::ProfileViewBasic::Ptr mCreator;
+    int mListItemCount = 0;
+    int mJoinedWeekCount = 0;
+    int mJoinedAllTimeCount = 0;
+    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    QDateTime mIndexedAt;
+
+    using Ptr = std::unique_ptr<StarterPackViewBasic>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.graph.getList#output
 struct GetListOutput
 {

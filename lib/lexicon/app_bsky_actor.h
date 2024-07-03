@@ -62,6 +62,7 @@ struct ProfileAssociated
 {
     int mLists = 0;
     int mFeeds = 0;
+    int mStarterPacks = 0;
     bool mLabeler = false;
     ProfileAssociatedChat::Ptr mChat; // optional
 

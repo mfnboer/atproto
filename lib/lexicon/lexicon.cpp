@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "lexicon.h"
+#include "app_bsky_graph.h"
 #include "app_bsky_labeler.h"
 #include "../xjson.h"
 #include <unordered_map>
