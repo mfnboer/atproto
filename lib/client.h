@@ -55,6 +55,8 @@ public:
     using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::Ptr)>;
     using GetListSuccessCb = std::function<void(AppBskyGraph::GetListOutput::Ptr)>;
     using GetListsSuccessCb = std::function<void(AppBskyGraph::GetListsOutput::Ptr)>;
+    using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::Ptr)>;
+    using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::Ptr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::Ptr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
     using GetBlobSuccessCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
@@ -87,6 +89,7 @@ public:
 
     static constexpr int MAX_LABELERS = 20;
     static constexpr int MAX_URIS_GET_POSTS = 25;
+    static constexpr int MAX_URIS_GET_STARTER_PACKS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
@@ -440,7 +443,6 @@ public:
     void muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
     void unmuteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
 
-
     /**
      * @brief getListBlocks Get lists that the actor is blocking.
      * @param limit min=1 default=50 max=100
@@ -452,6 +454,34 @@ public:
                        const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
     void getListMutes(std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getActorStarterPacks
+     * @param actor min=1 default=50 max=100
+     * @param limit
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getActorStarterPacks(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                              const GetStarterPacksSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getStarterPacks
+     * @param uris max 25 at-uri's
+     * @param successCb
+     * @param errorCb
+     */
+    void getStarterPacks(const std::vector<QString>& uris,
+                         const GetStarterPacksSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getStarterPack
+     * @param starterPack at-uri of starter pack record
+     * @param successCb
+     * @param errorCb
+     */
+    void getStarterPack(const QString& starterPack, const GetStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getSuggestedFollows

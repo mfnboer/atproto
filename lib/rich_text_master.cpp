@@ -73,6 +73,18 @@ QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph:
                                                  linkColor);
 }
 
+QString RichTextMaster::getFormattedStarterPackDescription(const ATProto::AppBskyGraph::StarterPack& starterPack, const QString& linkColor)
+{
+    if (!starterPack.mDescription || starterPack.mDescription->isEmpty())
+        return {};
+
+    if (starterPack.mDescriptionFacets.empty())
+        return linkiFy(*starterPack.mDescription, linkColor);
+
+    return ATProto::AppBskyRichtext::applyFacets(*starterPack.mDescription, starterPack.mDescriptionFacets,
+                                                 linkColor);
+}
+
 QString RichTextMaster::getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor)
 {
     const auto& description = labeler.mCreator->mDescription;

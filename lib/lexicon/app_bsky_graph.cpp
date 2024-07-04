@@ -255,6 +255,25 @@ ListItem::Ptr ListItem::fromJson(const QJsonObject& json)
     return listItem;
 }
 
+GetListOutput::Ptr GetListOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetListOutput>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mList = xjson.getRequiredObject<ListView>("list");
+    output->mItems = xjson.getRequiredVector<ListItemView>("items");
+    return output;
+}
+
+GetListsOutput::Ptr GetListsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_unique<GetListsOutput>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mLists = xjson.getRequiredVector<ListView>("lists");
+    return output;
+}
+
 StarterPackFeedItem::Ptr StarterPackFeedItem::fromJson(const QJsonObject& json)
 {
     auto feedItem = std::make_unique<StarterPackFeedItem>();
@@ -302,6 +321,7 @@ StarterPackView::Ptr StarterPackView::fromJson(const QJsonObject& json)
     view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("creator");
     view->mList = xjson.getOptionalObject<ListViewBasic>("list");
     view->mListItemsSample = xjson.getOptionalVector<ListItemView>("listItemsSample");
+    view->mFeeds = xjson.getOptionalVector<AppBskyFeed::GeneratorView>("feeds");
     view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount", 0);
     view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount", 0);
     ComATProtoLabel::getLabels(view->mLabels, json);
@@ -309,22 +329,20 @@ StarterPackView::Ptr StarterPackView::fromJson(const QJsonObject& json)
     return view;
 }
 
-GetListOutput::Ptr GetListOutput::fromJson(const QJsonObject& json)
+GetStarterPacksOutput::Ptr GetStarterPacksOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetListOutput>();
+    auto output = std::make_unique<GetStarterPacksOutput>();
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
-    output->mList = xjson.getRequiredObject<ListView>("list");
-    output->mItems = xjson.getRequiredVector<ListItemView>("items");
+    output->mStarterPacks = xjson.getRequiredVector<StarterPackViewBasic>("starterPacks");
     return output;
 }
 
-GetListsOutput::Ptr GetListsOutput::fromJson(const QJsonObject& json)
+GetStarterPackOutput::Ptr GetStarterPackOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetListsOutput>();
+    auto output = std::make_unique<GetStarterPackOutput>();
     XJsonObject xjson(json);
-    output->mCursor = xjson.getOptionalString("cursor");
-    output->mLists = xjson.getRequiredVector<ListView>("lists");
+    output->mStarterPack = xjson.getRequiredObject<StarterPackView>("starterPack");
     return output;
 }
 
