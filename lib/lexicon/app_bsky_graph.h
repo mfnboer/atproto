@@ -229,6 +229,7 @@ struct StarterPackViewBasic
     using SharedPtr = std::shared_ptr<StarterPackViewBasic>;
     using Ptr = std::unique_ptr<StarterPackViewBasic>;
     static Ptr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.defs#starterPackViewBasic";
 };
 using StarterPackViewBasicList = std::vector<StarterPackViewBasic::Ptr>;
 

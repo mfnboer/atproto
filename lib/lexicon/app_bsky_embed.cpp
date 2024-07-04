@@ -208,6 +208,9 @@ RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
     case ATProto::RecordType::APP_BSKY_GRAPH_LIST_VIEW:
         view->mRecord = AppBskyGraph::ListView::fromJson(recordJson);
         break;
+    case ATProto::RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC:
+        view->mRecord = AppBskyGraph::StarterPackViewBasic::fromJson(recordJson);
+        break;
     case ATProto::RecordType::APP_BSKY_LABELER_VIEW:
         view->mRecord = AppBskyLabeler::LabelerView::fromJson(recordJson);
         break;
