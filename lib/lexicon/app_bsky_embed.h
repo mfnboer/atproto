@@ -64,7 +64,17 @@ struct StarterPackView
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     QDateTime mIndexedAt;
 
+    using SharedPtr = std::shared_ptr<StarterPackView>;
     using Ptr = std::unique_ptr<StarterPackView>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.getStarterPack/output
+struct GetStarterPackOutput
+{
+    StarterPackView::Ptr mStarterPack;
+
+    using Ptr = std::unique_ptr<GetStarterPackOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
 

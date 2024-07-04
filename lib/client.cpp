@@ -1083,6 +1083,81 @@ void Client::getListMutes(std::optional<int> limit, const std::optional<QString>
         authToken());
 }
 
+void Client::getActorStarterPacks(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+                                  const GetStarterPacksSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getActorStarterPacks", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getActorStarterPacks:" << reply;
+            try {
+                auto output = AppBskyGraph::GetStarterPacksOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getStarterPacks(const std::vector<QString>& uris,
+                             const GetStarterPacksSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(uris.size() > 0);
+    Q_ASSERT(uris.size() <= MAX_URIS_GET_STARTER_PACKS);
+    Xrpc::Client::Params params;
+
+    for (const auto& uri : uris)
+        params.append({"uris", uri});
+
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getStarterPacks", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getStarterPacks:" << reply;
+            try {
+                auto output = AppBskyGraph::GetStarterPacksOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getStarterPack(const QString& starterPack, const GetStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getStarterPack", {{"starterPack", starterPack}}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getStarterPack:" << reply;
+            try {
+                auto output = AppBskyGraph::GetStarterPackOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output->mStarterPack));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject jsonObj;

@@ -166,6 +166,27 @@ struct ListItem
     static Ptr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.getList#output
+struct GetListOutput
+{
+    std::optional<QString> mCursor;
+    ListView::Ptr mList; // required
+    ListItemViewList mItems;
+
+    using Ptr = std::unique_ptr<GetListOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.getLists#output
+struct GetListsOutput
+{
+    std::optional<QString> mCursor;
+    ListViewList mLists;
+
+    using Ptr = std::unique_ptr<GetListsOutput>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.graph.starterpack#feedItem
 struct StarterPackFeedItem
 {
@@ -186,6 +207,7 @@ struct StarterPack
     StarterPackFeedItemList mFeeds;
     QDateTime mCreatedAt;
 
+    using SharedPtr = std::shared_ptr<StarterPack>;
     using Ptr = std::unique_ptr<StarterPack>;
     static Ptr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.graph.starterpack";
@@ -204,28 +226,19 @@ struct StarterPackViewBasic
     std::vector<ComATProtoLabel::Label::Ptr> mLabels;
     QDateTime mIndexedAt;
 
+    using SharedPtr = std::shared_ptr<StarterPackViewBasic>;
     using Ptr = std::unique_ptr<StarterPackViewBasic>;
     static Ptr fromJson(const QJsonObject& json);
 };
+using StarterPackViewBasicList = std::vector<StarterPackViewBasic::Ptr>;
 
-// app.bsky.graph.getList#output
-struct GetListOutput
+// app.bsky.graph.getStarterPacks/output
+struct GetStarterPacksOutput
 {
+    StarterPackViewBasicList mStarterPacks;
     std::optional<QString> mCursor;
-    ListView::Ptr mList; // required
-    ListItemViewList mItems;
 
-    using Ptr = std::unique_ptr<GetListOutput>;
-    static Ptr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.graph.getLists#output
-struct GetListsOutput
-{
-    std::optional<QString> mCursor;
-    ListViewList mLists;
-
-    using Ptr = std::unique_ptr<GetListsOutput>;
+    using Ptr = std::unique_ptr<GetStarterPacksOutput>;
     static Ptr fromJson(const QJsonObject& json);
 };
 
