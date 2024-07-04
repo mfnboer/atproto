@@ -224,6 +224,7 @@ struct RecordView
                  RecordViewBlocked::Ptr,
                  AppBskyFeed::GeneratorView::Ptr,
                  AppBskyGraph::ListView::Ptr,
+                 AppBskyGraph::StarterPackViewBasic::Ptr,
                  AppBskyLabeler::LabelerView::Ptr> mRecord;
     RecordType mRecordType;
 
