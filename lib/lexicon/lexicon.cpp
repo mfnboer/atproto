@@ -8,9 +8,9 @@
 
 namespace ATProto {
 
-ATProtoError::Ptr ATProtoError::fromJson(const QJsonDocument& json)
+ATProtoError::SharedPtr ATProtoError::fromJson(const QJsonDocument& json)
 {
-    auto error = std::make_unique<ATProtoError>();
+    auto error = std::make_shared<ATProtoError>();
     const auto jsonObj = json.object();
     const XJsonObject xjson(jsonObj);
     error->mError = xjson.getRequiredString("error");
@@ -18,9 +18,9 @@ ATProtoError::Ptr ATProtoError::fromJson(const QJsonDocument& json)
     return error;
 }
 
-Blob::Ptr Blob::fromJson(const QJsonObject& json)
+Blob::SharedPtr Blob::fromJson(const QJsonObject& json)
 {
-    auto blob = std::make_unique<Blob>();
+    auto blob = std::make_shared<Blob>();
     const XJsonObject xjson(json);
     blob->mJson = json;
     
@@ -94,10 +94,10 @@ QString recordTypeToString(RecordType recordType)
     return {};
 }
 
-DidDocument::Ptr DidDocument::fromJson(const QJsonObject& json)
+DidDocument::SharedPtr DidDocument::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);
-    auto didDoc = std::make_unique<DidDocument>();
+    auto didDoc = std::make_shared<DidDocument>();
     const auto services = xjson.getOptionalArray("service");
 
     if (services)

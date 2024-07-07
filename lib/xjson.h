@@ -29,13 +29,13 @@ public:
     static QJsonArray toJsonArray(const std::vector<QString>& list);
 
     template<class Type>
-    static QJsonArray toJsonArray(const std::vector<typename Type::Ptr>& list);
+    static QJsonArray toJsonArray(const std::vector<typename Type::SharedPtr>& list);
 
     template<class Type>
     static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value);
 
     template<class Type>
-    static void insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::Ptr& value);
+    static void insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::SharedPtr& value);
 
     XJsonObject(const QJsonObject& obj);
 
@@ -58,34 +58,34 @@ public:
     std::optional<QJsonArray> getOptionalArray(const QString& key) const;
 
     template<class ObjType>
-    typename ObjType::Ptr getRequiredObject(const QString& key) const;
+    typename ObjType::SharedPtr getRequiredObject(const QString& key) const;
 
     template<class ObjType>
-    typename ObjType::Ptr getOptionalObject(const QString& key) const;
+    typename ObjType::SharedPtr getOptionalObject(const QString& key) const;
 
     template<class ElemType>
-    std::vector<typename ElemType::Ptr> getRequiredVector(const QString& key) const;
+    std::vector<typename ElemType::SharedPtr> getRequiredVector(const QString& key) const;
 
     template<class ElemType>
-    std::vector<typename ElemType::Ptr> getOptionalVector(const QString& key) const;
+    std::vector<typename ElemType::SharedPtr> getOptionalVector(const QString& key) const;
 
     std::vector<QString> getRequiredStringVector(const QString& key) const;
     std::vector<QString> getOptionalStringVector(const QString& key) const;
 
     template<typename... Types>
-    static std::variant<typename Types::Ptr...> toVariant(const QJsonObject& json);
+    static std::variant<typename Types::SharedPtr...> toVariant(const QJsonObject& json);
 
     template<typename... Types>
-    std::variant<typename Types::Ptr...> getRequiredVariant(const QString& key) const;
+    std::variant<typename Types::SharedPtr...> getRequiredVariant(const QString& key) const;
 
     template<typename... Types>
-    std::optional<std::variant<typename Types::Ptr...>> getOptionalVariant(const QString& key) const;
+    std::optional<std::variant<typename Types::SharedPtr...>> getOptionalVariant(const QString& key) const;
 
     template<typename... Types>
-    std::vector<std::variant<typename Types::Ptr...>> getRequiredVariantList(const QString& key) const;
+    std::vector<std::variant<typename Types::SharedPtr...>> getRequiredVariantList(const QString& key) const;
 
     template<typename... Types>
-    std::vector<std::variant<typename Types::Ptr...>> getOptionalVariantList(const QString& key) const;
+    std::vector<std::variant<typename Types::SharedPtr...>> getOptionalVariantList(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
@@ -94,7 +94,7 @@ private:
 };
 
 template<class Type>
-QJsonArray XJsonObject::toJsonArray(const std::vector<typename Type::Ptr>& list)
+QJsonArray XJsonObject::toJsonArray(const std::vector<typename Type::SharedPtr>& list)
 {
     QJsonArray jsonArray;
 
@@ -114,7 +114,7 @@ void XJsonObject::insertOptionalJsonValue(QJsonObject& json, const QString& key,
 }
 
 template<class Type>
-void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::Ptr& value)
+void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::SharedPtr& value)
 {
     if (value)
         json.insert(key, value->toJson());
@@ -123,14 +123,14 @@ void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key
 }
 
 template<class ObjType>
-typename ObjType::Ptr XJsonObject::getRequiredObject(const QString& key) const
+typename ObjType::SharedPtr XJsonObject::getRequiredObject(const QString& key) const
 {
     const auto json = getRequiredJsonObject(key);
     return ObjType::fromJson(json);
 }
 
 template<class ObjType>
-typename ObjType::Ptr XJsonObject::getOptionalObject(const QString& key) const
+typename ObjType::SharedPtr XJsonObject::getOptionalObject(const QString& key) const
 {
     const auto json = getOptionalJsonObject(key);
 
@@ -141,9 +141,9 @@ typename ObjType::Ptr XJsonObject::getOptionalObject(const QString& key) const
 }
 
 template<class ElemType>
-std::vector<typename ElemType::Ptr> XJsonObject::getRequiredVector(const QString& key) const
+std::vector<typename ElemType::SharedPtr> XJsonObject::getRequiredVector(const QString& key) const
 {
-    std::vector<typename ElemType::Ptr> result;
+    std::vector<typename ElemType::SharedPtr> result;
     const auto jsonArray = getRequiredArray(key);
     result.reserve(jsonArray.size());
 
@@ -156,7 +156,7 @@ std::vector<typename ElemType::Ptr> XJsonObject::getRequiredVector(const QString
             throw InvalidJsonException("PROTO ERROR invalid element: " + key);
         }
 
-        typename ElemType::Ptr elem = ElemType::fromJson(json.toObject());
+        typename ElemType::SharedPtr elem = ElemType::fromJson(json.toObject());
         result.push_back(std::move(elem));
     }
 
@@ -164,9 +164,9 @@ std::vector<typename ElemType::Ptr> XJsonObject::getRequiredVector(const QString
 }
 
 template<class ElemType>
-std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString& key) const
+std::vector<typename ElemType::SharedPtr> XJsonObject::getOptionalVector(const QString& key) const
 {
-    std::vector<typename ElemType::Ptr> result;
+    std::vector<typename ElemType::SharedPtr> result;
     const auto jsonArray = getOptionalArray(key);
 
     if (!jsonArray)
@@ -183,7 +183,7 @@ std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString
             throw InvalidJsonException("PROTO ERROR invalid element: " + key);
         }
 
-        typename ElemType::Ptr elem = ElemType::fromJson(json.toObject());
+        typename ElemType::SharedPtr elem = ElemType::fromJson(json.toObject());
         result.push_back(std::move(elem));
     }
 
@@ -202,7 +202,7 @@ std::vector<typename ElemType::Ptr> XJsonObject::getOptionalVector(const QString
     }
 
 template<typename... Types>
-std::variant<typename Types::Ptr...> XJsonObject::toVariant(const QJsonObject& json)
+std::variant<typename Types::SharedPtr...> XJsonObject::toVariant(const QJsonObject& json)
 {
     static_assert(sizeof...(Types) <= 4);
     const XJsonObject objXJson(json);
@@ -224,21 +224,20 @@ std::variant<typename Types::Ptr...> XJsonObject::toVariant(const QJsonObject& j
 }
 
 template<typename... Types>
-std::variant<typename Types::Ptr...> XJsonObject::getRequiredVariant(const QString& key) const
+std::variant<typename Types::SharedPtr...> XJsonObject::getRequiredVariant(const QString& key) const
 {
     auto v = toVariant<Types...>(getRequiredJsonObject(key));
 
     if (isNullVariant(v))
     {
         qWarning() << "Unknown type for key:" << key;
-        throw InvalidJsonException("PROTO ERROR unknown type for key: " + key);
     }
 
     return v;
 }
 
 template<typename... Types>
-std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVariant(const QString& key) const
+std::optional<std::variant<typename Types::SharedPtr...>> XJsonObject::getOptionalVariant(const QString& key) const
 {
     if (mObject.contains(key))
         return getRequiredVariant<Types...>(key);
@@ -247,15 +246,15 @@ std::optional<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVari
 }
 
 template<typename... Types>
-std::vector<std::variant<typename Types::Ptr...>> XJsonObject::getRequiredVariantList(const QString& key) const
+std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getRequiredVariantList(const QString& key) const
 {
-    std::vector<std::variant<typename Types::Ptr...>> variantList;
+    std::vector<std::variant<typename Types::SharedPtr...>> variantList;
     const auto& arrayJson = getRequiredArray(key);
 
     for (const auto& arrayElem : arrayJson)
     {
         if (!arrayElem.isObject())
-            throw InvalidJsonException("Inavlid array element: " + key);
+            throw InvalidJsonException("Invalid array element: " + key);
 
         const auto itemJson = arrayElem.toObject();
         auto item = XJsonObject::toVariant<Types...>(itemJson);
@@ -266,7 +265,7 @@ std::vector<std::variant<typename Types::Ptr...>> XJsonObject::getRequiredVarian
 }
 
 template<typename... Types>
-std::vector<std::variant<typename Types::Ptr...>> XJsonObject::getOptionalVariantList(const QString& key) const
+std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getOptionalVariantList(const QString& key) const
 {
     if (mObject.contains(key))
         return getRequiredVariantList<Types...>(key);

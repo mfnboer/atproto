@@ -14,7 +14,7 @@ class PlcDirectoryClient : public QObject
 public:
     using ErrorCb = std::function<void(int errorCode, const QString& errorMsg)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
-    using AuditLogSuccessCb = std::function<void(PlcAuditLog::Ptr)>;
+    using AuditLogSuccessCb = std::function<void(PlcAuditLog::SharedPtr)>;
     using FirstAppearanceSuccessCb = std::function<void(QDateTime)>;
 
     explicit PlcDirectoryClient(const QString host = "plc.directory");

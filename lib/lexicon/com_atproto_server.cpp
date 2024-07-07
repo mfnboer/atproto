@@ -5,11 +5,11 @@
 
 namespace ATProto::ComATProtoServer {
 
-Session::Ptr Session::fromJson(const QJsonDocument& json)
+Session::SharedPtr Session::fromJson(const QJsonDocument& json)
 {
     const auto jsonObj = json.object();
     const XJsonObject xjson(jsonObj);
-    auto session = std::make_unique<Session>();
+    auto session = std::make_shared<Session>();
     session->mHandle = xjson.getRequiredString("handle");
     session->mDid = xjson.getRequiredString("did");
     session->mAccessJwt = xjson.getRequiredString("accessJwt");
@@ -17,13 +17,7 @@ Session::Ptr Session::fromJson(const QJsonDocument& json)
     session->mEmail = xjson.getOptionalString("email");
     session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
     session->mEmailAuthFactor = xjson.getOptionalBool("emailAuthFactor", false);
-    auto didDocJson = xjson.getOptionalJsonObject("didDoc");
-
-    if (didDocJson)
-    {
-        auto didDoc = DidDocument::fromJson(*didDocJson);
-        session->mDidDoc = DidDocument::SharedPtr(didDoc.release());
-    }
+    session->mDidDoc = xjson.getOptionalObject<DidDocument>("didDoc");
 
     return session;
 }
@@ -33,40 +27,34 @@ std::optional<QString> Session::getPDS() const
     return mDidDoc ? mDidDoc->mATProtoPDS : std::nullopt;
 }
 
-GetSessionOutput::Ptr GetSessionOutput::fromJson(const QJsonDocument& json)
+GetSessionOutput::SharedPtr GetSessionOutput::fromJson(const QJsonDocument& json)
 {
     const auto jsonObj = json.object();
     const XJsonObject xjson(jsonObj);
-    auto session = std::make_unique<GetSessionOutput>();
+    auto session = std::make_shared<GetSessionOutput>();
     session->mHandle = xjson.getRequiredString("handle");
     session->mDid = xjson.getRequiredString("did");
     session->mEmail = xjson.getOptionalString("email");
     session->mEmailConfirmed = xjson.getOptionalBool("emailConfirmed", false);
     session->mEmailAuthFactor = xjson.getOptionalBool("emailAuthFactor", false);
-    auto didDocJson = xjson.getOptionalJsonObject("didDoc");
-
-    if (didDocJson)
-    {
-        auto didDoc = DidDocument::fromJson(*didDocJson);
-        session->mDidDoc = DidDocument::SharedPtr(didDoc.release());
-    }
+    session->mDidDoc = xjson.getOptionalObject<DidDocument>("didDoc");
 
     return session;
 }
 
-InviteCodeUse::Ptr InviteCodeUse::fromJson(const QJsonObject& json)
+InviteCodeUse::SharedPtr InviteCodeUse::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);
-    auto inviteCodeUse = std::make_unique<InviteCodeUse>();
+    auto inviteCodeUse = std::make_shared<InviteCodeUse>();
     inviteCodeUse->mUsedBy = xjson.getRequiredString("usedBy");
     inviteCodeUse->mUsedAt = xjson.getRequiredDateTime("usedAt");
     return inviteCodeUse;
 }
 
-InviteCode::Ptr InviteCode::fromJson(const QJsonObject& json)
+InviteCode::SharedPtr InviteCode::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);
-    auto inviteCode = std::make_unique<InviteCode>();
+    auto inviteCode = std::make_shared<InviteCode>();
     inviteCode->mCode = xjson.getRequiredString("code");
     inviteCode->mAvailable = xjson.getRequiredInt("available");
     inviteCode->mDisabled = xjson.getRequiredBool("disabled");
@@ -77,10 +65,10 @@ InviteCode::Ptr InviteCode::fromJson(const QJsonObject& json)
     return inviteCode;
 }
 
-GetAccountInviteCodesOutput::Ptr GetAccountInviteCodesOutput::fromJson(const QJsonObject& json)
+GetAccountInviteCodesOutput::SharedPtr GetAccountInviteCodesOutput::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);
-    auto output = std::make_unique<GetAccountInviteCodesOutput>();
+    auto output = std::make_shared<GetAccountInviteCodesOutput>();
     output->mCodes = xjson.getRequiredVector<InviteCode>("codes");
     return output;
 }

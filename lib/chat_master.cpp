@@ -20,7 +20,7 @@ void ChatMaster::getDeclaration(const QString& did, const DeclarationCb& success
 {
     qDebug() << "Get declatration" << did;
     mClient.getRecord(did, ATUri::COLLECTION_CHAT_ACTOR_DECLARATION, DECLARATION_KEY, {},
-        [successCb, errorCb](ComATProtoRepo::Record::Ptr record) {
+        [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
             qDebug() << "Got declaration:" << record->mValue;
 
             try {
@@ -73,12 +73,12 @@ void ChatMaster::createMessage(const QString& text, const MessageCreatedCb& cb)
 
 void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid)
 {
-    auto ref = std::make_unique<ComATProtoRepo::StrongRef>();
+    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
     ref->mUri = quoteUri;
     ref->mCid = quoteCid;
 
     Q_ASSERT(!message.mEmbed);
-    message.mEmbed = std::make_unique<AppBskyEmbed::Record>();
+    message.mEmbed = std::make_shared<AppBskyEmbed::Record>();
     message.mEmbed->mRecord = std::move(ref);
 }
 

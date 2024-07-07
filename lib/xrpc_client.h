@@ -11,6 +11,7 @@ namespace Xrpc {
 class Client : public QObject
 {
 public:
+    using Ptr = std::unique_ptr<Client>;
     using ErrorCb = std::function<void(const QString& err, const QJsonDocument& json)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
     using SuccessBytesCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;

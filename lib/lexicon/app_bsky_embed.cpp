@@ -14,9 +14,9 @@ QJsonObject AspectRatio::toJson() const
     return json;
 }
 
-AspectRatio::Ptr AspectRatio::fromJson(const QJsonObject& json)
+AspectRatio::SharedPtr AspectRatio::fromJson(const QJsonObject& json)
 {
-    auto aspectRatio = std::make_unique<AspectRatio>();
+    auto aspectRatio = std::make_shared<AspectRatio>();
     const XJsonObject xjson(json);
     aspectRatio->mWidth = xjson.getRequiredInt("width");
     aspectRatio->mHeight = xjson.getRequiredInt("height");
@@ -38,9 +38,9 @@ QJsonObject Image::toJson() const
     return json;
 }
 
-Image::Ptr Image::fromJson(const QJsonObject& json)
+Image::SharedPtr Image::fromJson(const QJsonObject& json)
 {
-    auto image = std::make_unique<Image>();
+    auto image = std::make_shared<Image>();
     const XJsonObject xjson(json);
     image->mImage = xjson.getRequiredObject<Blob>("image");
     image->mAlt = xjson.getRequiredString("alt");
@@ -64,17 +64,17 @@ QJsonObject Images::toJson() const
     return json;
 }
 
-Images::Ptr Images::fromJson(const QJsonObject& json)
+Images::SharedPtr Images::fromJson(const QJsonObject& json)
 {
-    auto images = std::make_unique<Images>();
+    auto images = std::make_shared<Images>();
     const XJsonObject xjson(json);
     images->mImages = xjson.getRequiredVector<Image>("images");
     return images;
 }
 
-ImagesViewImage::Ptr ImagesViewImage::fromJson(const QJsonObject& json)
+ImagesViewImage::SharedPtr ImagesViewImage::fromJson(const QJsonObject& json)
 {
-    auto viewImage = std::make_unique<ImagesViewImage>();
+    auto viewImage = std::make_shared<ImagesViewImage>();
     const XJsonObject xjson(json);
     viewImage->mThumb = xjson.getRequiredString("thumb");
     viewImage->mFullSize = xjson.getRequiredString("fullsize");
@@ -83,9 +83,9 @@ ImagesViewImage::Ptr ImagesViewImage::fromJson(const QJsonObject& json)
     return viewImage;
 }
 
-ImagesView::Ptr ImagesView::fromJson(const QJsonObject& json)
+ImagesView::SharedPtr ImagesView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<ImagesView>();
+    auto view = std::make_shared<ImagesView>();
     const XJsonObject xjson(json);
     view->mImages = xjson.getRequiredVector<ImagesViewImage>("images");
     return view;
@@ -104,9 +104,9 @@ QJsonObject ExternalExternal::toJson() const
     return json;
 }
 
-ExternalExternal::Ptr ExternalExternal::fromJson(const QJsonObject& json)
+ExternalExternal::SharedPtr ExternalExternal::fromJson(const QJsonObject& json)
 {
-    auto external = std::make_unique<ExternalExternal>();
+    auto external = std::make_shared<ExternalExternal>();
     const XJsonObject xjson(json);
     external->mUri = xjson.getRequiredString("uri");
     external->mTitle = xjson.getRequiredString("title");
@@ -123,17 +123,17 @@ QJsonObject External::toJson() const
     return json;
 }
 
-External::Ptr External::fromJson(const QJsonObject& json)
+External::SharedPtr External::fromJson(const QJsonObject& json)
 {
-    auto external = std::make_unique<External>();
+    auto external = std::make_shared<External>();
     const XJsonObject xjson(json);
     external->mExternal = xjson.getRequiredObject<ExternalExternal>("external");
     return external;
 }
 
-ExternalViewExternal::Ptr ExternalViewExternal::fromJson(const QJsonObject& json)
+ExternalViewExternal::SharedPtr ExternalViewExternal::fromJson(const QJsonObject& json)
 {
-    auto viewExternal = std::make_unique<ExternalViewExternal>();
+    auto viewExternal = std::make_shared<ExternalViewExternal>();
     const XJsonObject xjson(json);
     viewExternal->mUri = xjson.getRequiredString("uri");
     viewExternal->mTitle = xjson.getRequiredString("title");
@@ -142,9 +142,9 @@ ExternalViewExternal::Ptr ExternalViewExternal::fromJson(const QJsonObject& json
     return viewExternal;
 }
 
-ExternalView::Ptr ExternalView::fromJson(const QJsonObject& json)
+ExternalView::SharedPtr ExternalView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<ExternalView>();
+    auto view = std::make_shared<ExternalView>();
     XJsonObject xjson(json);
     view->mExternal = xjson.getRequiredObject<ExternalViewExternal>("external");
     return view;
@@ -158,33 +158,33 @@ QJsonObject Record::toJson() const
     return json;
 }
 
-Record::Ptr Record::fromJson(const QJsonObject& json)
+Record::SharedPtr Record::fromJson(const QJsonObject& json)
 {
-    auto record = std::make_unique<Record>();
+    auto record = std::make_shared<Record>();
     XJsonObject xjson(json);
     record->mRecord = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("record");
     return record;
 }
 
-RecordViewNotFound::Ptr RecordViewNotFound::fromJson(const QJsonObject& json)
+RecordViewNotFound::SharedPtr RecordViewNotFound::fromJson(const QJsonObject& json)
 {
-    auto viewNotFound = std::make_unique<RecordViewNotFound>();
+    auto viewNotFound = std::make_shared<RecordViewNotFound>();
     const XJsonObject xjson(json);
     viewNotFound->mUri = xjson.getRequiredString("uri");
     return viewNotFound;
 }
 
-RecordViewBlocked::Ptr RecordViewBlocked::fromJson(const QJsonObject& json)
+RecordViewBlocked::SharedPtr RecordViewBlocked::fromJson(const QJsonObject& json)
 {
-    auto viewBlocked = std::make_unique<RecordViewBlocked>();
+    auto viewBlocked = std::make_shared<RecordViewBlocked>();
     const XJsonObject xjson(json);
     viewBlocked->mUri = xjson.getRequiredString("uri");
     return viewBlocked;
 }
 
-RecordView::Ptr RecordView::fromJson(const QJsonObject& json)
+RecordView::SharedPtr RecordView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<RecordView>();
+    auto view = std::make_shared<RecordView>();
     const XJsonObject xjson(json);
     const auto recordJson = xjson.getRequiredJsonObject("record");
     const XJsonObject recordXJson(recordJson);
@@ -248,10 +248,10 @@ QJsonObject RecordWithMedia::toJson() const
     switch (mMediaType)
     {
     case EmbedType::IMAGES:
-        json.insert("media", std::get<Images::Ptr>(mMedia)->toJson());
+        json.insert("media", std::get<Images::SharedPtr>(mMedia)->toJson());
         break;
     case EmbedType::EXTERNAL:
-        json.insert("media", std::get<External::Ptr>(mMedia)->toJson());
+        json.insert("media", std::get<External::SharedPtr>(mMedia)->toJson());
         break;
     case EmbedType::RECORD:
     case EmbedType::RECORD_WITH_MEDIA:
@@ -264,9 +264,9 @@ QJsonObject RecordWithMedia::toJson() const
     return json;
 }
 
-RecordWithMedia::Ptr RecordWithMedia::fromJson(const QJsonObject& json)
+RecordWithMedia::SharedPtr RecordWithMedia::fromJson(const QJsonObject& json)
 {
-    auto recordMedia = std::make_unique<RecordWithMedia>();
+    auto recordMedia = std::make_shared<RecordWithMedia>();
     const XJsonObject xjson(json);
     recordMedia->mRecord = xjson.getRequiredObject<Record>("record");
     const auto mediaJson = xjson.getRequiredJsonObject("media");
@@ -316,13 +316,13 @@ QJsonObject Embed::toJson() const
     switch (mType)
     {
     case EmbedType::IMAGES:
-        return std::get<Images::Ptr>(mEmbed)->toJson();
+        return std::get<Images::SharedPtr>(mEmbed)->toJson();
     case EmbedType::EXTERNAL:
-        return std::get<External::Ptr>(mEmbed)->toJson();
+        return std::get<External::SharedPtr>(mEmbed)->toJson();
     case EmbedType::RECORD:
-        return std::get<Record::Ptr>(mEmbed)->toJson();
+        return std::get<Record::SharedPtr>(mEmbed)->toJson();
     case EmbedType::RECORD_WITH_MEDIA:
-        return std::get<RecordWithMedia::Ptr>(mEmbed)->toJson();
+        return std::get<RecordWithMedia::SharedPtr>(mEmbed)->toJson();
     case EmbedType::UNKNOWN:
         qWarning() << "Unknow embed type:" << mRawType;
         throw InvalidContent(mRawType);
@@ -332,9 +332,9 @@ QJsonObject Embed::toJson() const
     return {};
 }
 
-Embed::Ptr Embed::fromJson(const QJsonObject& json)
+Embed::SharedPtr Embed::fromJson(const QJsonObject& json)
 {
-    auto embed = std::make_unique<Embed>();
+    auto embed = std::make_shared<Embed>();
     const XJsonObject xjson(json);
     embed->mRawType = xjson.getRequiredString("$type");
     embed->mType = stringToEmbedType(embed->mRawType);
@@ -361,9 +361,9 @@ Embed::Ptr Embed::fromJson(const QJsonObject& json)
     return embed;
 }
 
-RecordWithMediaView::Ptr RecordWithMediaView::fromJson(const QJsonObject& json)
+RecordWithMediaView::SharedPtr RecordWithMediaView::fromJson(const QJsonObject& json)
 {
-    auto recordMediaView = std::make_unique<RecordWithMediaView>();
+    auto recordMediaView = std::make_shared<RecordWithMediaView>();
     const XJsonObject xjson(json);
     recordMediaView->mRecord = xjson.getRequiredObject<RecordView>("record");
     const auto mediaJson = xjson.getRequiredJsonObject("media");
@@ -390,9 +390,9 @@ RecordWithMediaView::Ptr RecordWithMediaView::fromJson(const QJsonObject& json)
     return recordMediaView;
 }
 
-EmbedView::Ptr EmbedView::fromJson(const QJsonObject& json)
+EmbedView::SharedPtr EmbedView::fromJson(const QJsonObject& json)
 {
-    auto embed = std::make_unique<EmbedView>();
+    auto embed = std::make_shared<EmbedView>();
     const XJsonObject xjson(json);
     embed->mRawType = xjson.getRequiredString("$type");
     embed->mType = stringToEmbedViewType(embed->mRawType);
@@ -419,9 +419,9 @@ EmbedView::Ptr EmbedView::fromJson(const QJsonObject& json)
     return embed;
 }
 
-RecordViewRecord::Ptr RecordViewRecord::fromJson(const QJsonObject& json)
+RecordViewRecord::SharedPtr RecordViewRecord::fromJson(const QJsonObject& json)
 {
-    auto viewRecord = std::make_unique<RecordViewRecord>();
+    auto viewRecord = std::make_shared<RecordViewRecord>();
     const XJsonObject xjson(json);
     viewRecord->mUri = xjson.getRequiredString("uri");
     viewRecord->mCid = xjson.getRequiredString("cid");

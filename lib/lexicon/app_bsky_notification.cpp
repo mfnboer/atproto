@@ -24,9 +24,9 @@ NotificationReason stringToNotificationReason(const QString& str)
     return NotificationReason::UNKNOWN;
 }
 
-Notification::Ptr Notification::fromJson(const QJsonObject& json)
+Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
 {
-    auto notification = std::make_unique<Notification>();
+    auto notification = std::make_shared<Notification>();
     XJsonObject xjson(json);
     notification->mUri = xjson.getRequiredString("uri");
     notification->mCid = xjson.getRequiredString("cid");
@@ -100,9 +100,9 @@ static void getNotificationList(NotificationList& list, const QJsonObject& json)
     }
 }
 
-ListNotificationsOutput::Ptr ListNotificationsOutput::fromJson(const QJsonObject& json)
+ListNotificationsOutput::SharedPtr ListNotificationsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<ListNotificationsOutput>();
+    auto output = std::make_shared<ListNotificationsOutput>();
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     getNotificationList(output->mNotifications, json);

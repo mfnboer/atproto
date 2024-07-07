@@ -12,8 +12,8 @@ struct GetPopularFeedGeneratorsOutput
     AppBskyFeed::GeneratorViewList mFeeds;
     std::optional<QString> mCursor;
 
-    using Ptr = std::unique_ptr<GetPopularFeedGeneratorsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetPopularFeedGeneratorsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

@@ -31,9 +31,9 @@ QJsonObject FacetMention::toJson() const
     return json;
 }
 
-FacetMention::Ptr FacetMention::fromJson(const QJsonObject& json)
+FacetMention::SharedPtr FacetMention::fromJson(const QJsonObject& json)
 {
-    auto mention = std::make_unique<FacetMention>();
+    auto mention = std::make_shared<FacetMention>();
     const XJsonObject root(json);
     mention->mDid = root.getRequiredString("did");
     return mention;
@@ -47,9 +47,9 @@ QJsonObject FacetLink::toJson() const
     return json;
 }
 
-FacetLink::Ptr FacetLink::fromJson(const QJsonObject& json)
+FacetLink::SharedPtr FacetLink::fromJson(const QJsonObject& json)
 {
-    auto link = std::make_unique<FacetLink>();
+    auto link = std::make_shared<FacetLink>();
     const XJsonObject root(json);
     link->mUri = root.getRequiredString("uri");
     return link;
@@ -63,9 +63,9 @@ QJsonObject FacetTag::toJson() const
     return json;
 }
 
-FacetTag::Ptr FacetTag::fromJson(const QJsonObject& json)
+FacetTag::SharedPtr FacetTag::fromJson(const QJsonObject& json)
 {
-    auto tag = std::make_unique<FacetTag>();
+    auto tag = std::make_shared<FacetTag>();
     const XJsonObject root(json);
     tag->mTag = root.getRequiredString("tag");
     return tag;
@@ -96,13 +96,13 @@ QJsonObject Facet::toJson() const
         switch (f.mType)
         {
         case Feature::Type::LINK:
-            featureJson = std::get<FacetLink::Ptr>(f.mFeature)->toJson();
+            featureJson = std::get<FacetLink::SharedPtr>(f.mFeature)->toJson();
             break;
         case Feature::Type::MENTION:
-            featureJson = std::get<FacetMention::Ptr>(f.mFeature)->toJson();
+            featureJson = std::get<FacetMention::SharedPtr>(f.mFeature)->toJson();
             break;
         case Feature::Type::TAG:
-            featureJson = std::get<FacetTag::Ptr>(f.mFeature)->toJson();
+            featureJson = std::get<FacetTag::SharedPtr>(f.mFeature)->toJson();
             break;
         case Feature::Type::PARTIAL_MENTION:
         case Feature::Type::UNKNOWN:
@@ -119,9 +119,9 @@ QJsonObject Facet::toJson() const
     return json;
 }
 
-Facet::Ptr Facet::fromJson(const QJsonObject& json)
+Facet::SharedPtr Facet::fromJson(const QJsonObject& json)
 {
-    auto facet = std::make_unique<Facet>();
+    auto facet = std::make_shared<Facet>();
     const XJsonObject root(json);
     facet->mIndex = FacetByteSlice::fromJson(root.getRequiredJsonObject("index"));
     const auto features = root.getRequiredArray("features");
@@ -175,18 +175,18 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     {
     case ATProto::AppBskyRichtext::Facet::Feature::Type::MENTION:
     {
-        const auto& facetMention = std::get<ATProto::AppBskyRichtext::FacetMention::Ptr>(feature.mFeature);
+        const auto& facetMention = std::get<ATProto::AppBskyRichtext::FacetMention::SharedPtr>(feature.mFeature);
         return QString("<a href=\"%1\"%3>%2</a>").arg(facetMention->mDid, linkText, linkStyle);
         break;
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::LINK:
     {
-        const auto& facetLink = std::get<ATProto::AppBskyRichtext::FacetLink::Ptr>(feature.mFeature);
+        const auto& facetLink = std::get<ATProto::AppBskyRichtext::FacetLink::SharedPtr>(feature.mFeature);
         return QString("<a href=\"%1\"%3>%2</a>").arg(facetLink->mUri, linkText, linkStyle);
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::TAG:
     {
-        const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::Ptr>(feature.mFeature);
+        const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::SharedPtr>(feature.mFeature);
         const QString normalizedTag = RichTextMaster::normalizeText(facetTag->mTag);
 
         if (emphasizeHashtags.contains(normalizedTag))

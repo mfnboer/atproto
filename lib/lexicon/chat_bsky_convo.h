@@ -17,8 +17,8 @@ struct MessageRef
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<MessageRef>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<MessageRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageRef";
 };
 
@@ -27,13 +27,12 @@ struct MessageInput
 {
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
-    ATProto::AppBskyEmbed::Record::Ptr mEmbed; // optional
+    ATProto::AppBskyEmbed::Record::SharedPtr mEmbed; // optional
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<MessageInput>;
     using SharedPtr = std::shared_ptr<MessageInput>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.messageInput";
 };
 
@@ -42,8 +41,8 @@ struct MessageViewSender
 {
     QString mDid;
 
-    using Ptr = std::unique_ptr<MessageViewSender>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<MessageViewSender>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // chat.bsky.convo.defs#messageView
@@ -54,11 +53,11 @@ struct MessageView
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
     ATProto::AppBskyEmbed::RecordView::SharedPtr mEmbed; // optional
-    MessageViewSender::Ptr mSender; // required
+    MessageViewSender::SharedPtr mSender; // required
     QDateTime mSentAt;
 
-    using Ptr = std::unique_ptr<MessageView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<MessageView>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageView";
 };
 
@@ -66,11 +65,11 @@ struct DeletedMessageView
 {
     QString mId;
     QString mRev;
-    MessageViewSender::Ptr mSender; // required
+    MessageViewSender::SharedPtr mSender; // required
     QDateTime mSentAt;
 
-    using Ptr = std::unique_ptr<DeletedMessageView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<DeletedMessageView>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
@@ -80,15 +79,15 @@ struct ConvoView
     QString mId;
     QString mRev;
     ChatBskyActor::ProfileViewBasicList mMembers;
-    std::optional<std::variant<MessageView::Ptr, DeletedMessageView::Ptr>> mLastMessage;
+    std::optional<std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>> mLastMessage;
     bool mMuted = false;
     int mUnreadCount = 0;
 
-    using Ptr = std::unique_ptr<ConvoView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ConvoView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using ConvoViewList = std::vector<ConvoView::Ptr>;
+using ConvoViewList = std::vector<ConvoView::SharedPtr>;
 
 // chat.bsky.convo.defs#logBeginConvo
 struct LogBeginConvo
@@ -96,8 +95,8 @@ struct LogBeginConvo
     QString mRev;
     QString mConvoId;
 
-    using Ptr = std::unique_ptr<LogBeginConvo>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LogBeginConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logBeginConvo";
 };
 
@@ -107,8 +106,8 @@ struct LogLeaveConvo
     QString mRev;
     QString mConvoId;
 
-    using Ptr = std::unique_ptr<LogLeaveConvo>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LogLeaveConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logLeaveConvo";
 };
 
@@ -117,10 +116,12 @@ struct LogCreateMessage
 {
     QString mRev;
     QString mConvoId;
-    std::variant<MessageView::Ptr, DeletedMessageView::Ptr> mMessage; // required
 
-    using Ptr = std::unique_ptr<LogCreateMessage>;
-    static Ptr fromJson(const QJsonObject& json);
+    // null variant for unknown type
+    std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr> mMessage; // required
+
+    using SharedPtr = std::shared_ptr<LogCreateMessage>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logCreateMessage";
 };
 
@@ -129,19 +130,21 @@ struct LogDeleteMessage
 {
     QString mRev;
     QString mConvoId;
-    std::variant<MessageView::Ptr, DeletedMessageView::Ptr> mMessage; // required
 
-    using Ptr = std::unique_ptr<LogDeleteMessage>;
-    static Ptr fromJson(const QJsonObject& json);
+    // null variant for unknown type
+    std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr> mMessage; // required
+
+    using SharedPtr = std::shared_ptr<LogDeleteMessage>;
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logDeleteMessage";
 };
 
 struct ConvoOuput
 {
-    ConvoView::Ptr mConvo; // required
+    ConvoView::SharedPtr mConvo; // required
 
-    using Ptr = std::unique_ptr<ConvoOuput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ConvoOuput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct ConvoListOutput
@@ -149,30 +152,30 @@ struct ConvoListOutput
     std::optional<QString> mCursor;
     ConvoViewList mConvos;
 
-    using Ptr = std::unique_ptr<ConvoListOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ConvoListOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct LogOutput
 {
-    using LogType = std::variant<LogBeginConvo::Ptr, LogLeaveConvo::Ptr, LogCreateMessage::Ptr, LogDeleteMessage::Ptr>;
+    using LogType = std::variant<LogBeginConvo::SharedPtr, LogLeaveConvo::SharedPtr, LogCreateMessage::SharedPtr, LogDeleteMessage::SharedPtr>;
 
     std::vector<LogType> mLogs;
 
-    using Ptr = std::unique_ptr<LogOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LogOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct GetMessagesOutput
 {
-    using MessageType = std::variant<MessageView::Ptr, DeletedMessageView::Ptr>;
+    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>;
     using MessageList = std::vector<MessageType>;
 
     std::optional<QString> mCursor;
     MessageList mMessages;
 
-    using Ptr = std::unique_ptr<GetMessagesOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetMessagesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct LeaveConvoOutput
@@ -180,8 +183,8 @@ struct LeaveConvoOutput
     QString mConvoId;
     QString mRev;
 
-    using Ptr = std::unique_ptr<LeaveConvoOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LeaveConvoOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

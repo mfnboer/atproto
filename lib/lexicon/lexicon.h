@@ -53,8 +53,8 @@ struct ATProtoError
     QString mError;
     QString mMessage;
 
-    using Ptr = std::unique_ptr<ATProtoError>;
-    static Ptr fromJson(const QJsonDocument& json);
+    using SharedPtr = std::shared_ptr<ATProtoError>;
+    static SharedPtr fromJson(const QJsonDocument& json);
 };
 
 struct Blob {
@@ -66,8 +66,8 @@ struct Blob {
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Blob>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Blob>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 enum class RecordType
@@ -93,9 +93,8 @@ struct DidDocument {
     std::optional<QString> mATProtoPDS;
     QJsonObject mJson;
 
-    using Ptr = std::unique_ptr<DidDocument>;
     using SharedPtr = std::shared_ptr<DidDocument>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }
