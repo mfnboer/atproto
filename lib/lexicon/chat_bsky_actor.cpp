@@ -13,19 +13,19 @@ QJsonObject Declaration::toJson() const
     return json;
 }
 
-Declaration::Ptr Declaration::fromJson(const QJsonObject& json)
+Declaration::SharedPtr Declaration::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto declaration = std::make_unique<Declaration>();
+    auto declaration = std::make_shared<Declaration>();
     declaration->mAllowIncoming = AppBskyActor::stringToAllowIncomingType(xjson.getRequiredString("allowIncoming"));
     declaration->mJson = json;
     return declaration;
 }
 
-ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
+ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
-    auto profileViewBasic = std::make_unique<ProfileViewBasic>();
+    auto profileViewBasic = std::make_shared<ProfileViewBasic>();
     profileViewBasic->mDid = root.getRequiredString("did");
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");

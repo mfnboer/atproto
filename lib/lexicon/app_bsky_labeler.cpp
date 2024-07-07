@@ -5,17 +5,17 @@
 
 namespace ATProto::AppBskyLabeler {
 
-LabelerViewerState::Ptr LabelerViewerState::fromJson(const QJsonObject& json)
+LabelerViewerState::SharedPtr LabelerViewerState::fromJson(const QJsonObject& json)
 {
-    auto state = std::make_unique<LabelerViewerState>();
+    auto state = std::make_shared<LabelerViewerState>();
     XJsonObject xjson(json);
     state->mLike = xjson.getOptionalString("like");
     return state;
 }
 
-LabelerPolicies::Ptr LabelerPolicies::fromJson(const QJsonObject& json)
+LabelerPolicies::SharedPtr LabelerPolicies::fromJson(const QJsonObject& json)
 {
-    auto policies = std::make_unique<LabelerPolicies>();
+    auto policies = std::make_shared<LabelerPolicies>();
     XJsonObject xjson(json);
     policies->mLabelValues = xjson.getRequiredStringVector("labelValues");
     policies->mLabelValueDefinitions = xjson.getOptionalVector<ComATProtoLabel::LabelValueDefinition>("labelValueDefinitions");
@@ -32,9 +32,9 @@ QJsonObject LabelerView::toJson() const
     return json;
 }
 
-LabelerView::Ptr LabelerView::fromJson(const QJsonObject& json)
+LabelerView::SharedPtr LabelerView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<LabelerView>();
+    auto view = std::make_shared<LabelerView>();
     XJsonObject xjson(json);
     view->mUri = xjson.getRequiredString("uri");
     view->mCid = xjson.getRequiredString("cid");
@@ -46,9 +46,9 @@ LabelerView::Ptr LabelerView::fromJson(const QJsonObject& json)
     return view;
 }
 
-LabelerViewDetailed::Ptr LabelerViewDetailed::fromJson(const QJsonObject& json)
+LabelerViewDetailed::SharedPtr LabelerViewDetailed::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<LabelerViewDetailed>();
+    auto view = std::make_shared<LabelerViewDetailed>();
     XJsonObject xjson(json);
     view->mUri = xjson.getRequiredString("uri");
     view->mCid = xjson.getRequiredString("cid");
@@ -75,9 +75,9 @@ GetServicesOutputView::ViewType GetServicesOutputView::stringToViewType(const QS
     return ViewType::UNKNOWN;
 }
 
-GetServicesOutputView::Ptr GetServicesOutputView::fromJson(const QJsonObject& json)
+GetServicesOutputView::SharedPtr GetServicesOutputView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<GetServicesOutputView>();
+    auto view = std::make_shared<GetServicesOutputView>();
     XJsonObject xjson(json);
     view->mRawViewType = xjson.getRequiredString("$type");
     view->mViewType = stringToViewType(view->mRawViewType);
@@ -98,9 +98,9 @@ GetServicesOutputView::Ptr GetServicesOutputView::fromJson(const QJsonObject& js
     return view;
 }
 
-GetServicesOutput::Ptr GetServicesOutput::fromJson(const QJsonObject& json)
+GetServicesOutput::SharedPtr GetServicesOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetServicesOutput>();
+    auto output = std::make_shared<GetServicesOutput>();
     XJsonObject xjson(json);
     output->mViews = xjson.getRequiredVector<GetServicesOutputView>("views");
     return output;

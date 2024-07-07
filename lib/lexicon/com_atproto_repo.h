@@ -15,17 +15,17 @@ struct StrongRef
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<StrongRef>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<StrongRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.repo.uploadBlob#output
 struct UploadBlobOutput
 {
-    Blob::Ptr mBlob;
+    Blob::SharedPtr mBlob;
 
-    using Ptr = std::unique_ptr<UploadBlobOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<UploadBlobOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.repo.getRecord#output
@@ -35,11 +35,11 @@ struct Record
     std::optional<QString> mCid;
     QJsonObject mValue;
 
-    using Ptr = std::unique_ptr<Record>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Record>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using RecordList = std::vector<Record::Ptr>;
+using RecordList = std::vector<Record::SharedPtr>;
 
 // com.atproto.repo.listRecords#output
 struct ListRecordsOutput
@@ -47,8 +47,8 @@ struct ListRecordsOutput
     std::optional<QString> mCursor;
     RecordList mRecords;
 
-    using Ptr = std::unique_ptr<ListRecordsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ListRecordsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.repo.applyWrites#create
@@ -60,7 +60,7 @@ struct ApplyWritesCreate
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<ApplyWritesCreate>;
+    using SharedPtr = std::shared_ptr<ApplyWritesCreate>;
 };
 
 // com.atproto.repo.applyWrites.defs#update
@@ -72,7 +72,7 @@ struct ApplyWritesUpdate
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<ApplyWritesUpdate>;
+    using SharedPtr = std::shared_ptr<ApplyWritesUpdate>;
 };
 
 // com.atproto.repo.applyWrites.defs#delete
@@ -83,10 +83,10 @@ struct ApplyWritesDelete
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<ApplyWritesDelete>;
+    using SharedPtr = std::shared_ptr<ApplyWritesDelete>;
 };
 
-using ApplyWritesType = std::variant<ApplyWritesCreate::Ptr, ApplyWritesUpdate::Ptr, ApplyWritesDelete::Ptr>;
+using ApplyWritesType = std::variant<ApplyWritesCreate::SharedPtr, ApplyWritesUpdate::SharedPtr, ApplyWritesDelete::SharedPtr>;
 using ApplyWritesList = std::vector<ApplyWritesType>;
 
 }

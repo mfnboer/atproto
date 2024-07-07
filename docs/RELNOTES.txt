@@ -1,5 +1,9 @@
 next
 ====
+* Use shared_ptr in protocol structs
+
+2.4
+===
 * Starter packs
 * muteThread, unmuteThread
 * Starter packs

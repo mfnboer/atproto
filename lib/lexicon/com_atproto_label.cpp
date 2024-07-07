@@ -5,9 +5,9 @@
 
 namespace ATProto::ComATProtoLabel {
 
-Label::Ptr Label::fromJson(const QJsonObject& json)
+Label::SharedPtr Label::fromJson(const QJsonObject& json)
 {
-    auto label = std::make_unique<Label>();
+    auto label = std::make_shared<Label>();
     XJsonObject xjson(json);
     label->mVersion = xjson.getOptionalInt("ver");
     label->mSrc = xjson.getRequiredString("src");
@@ -26,9 +26,9 @@ void getLabels(LabelList& labels, const QJsonObject& json)
     labels = xjson.getOptionalVector<Label>("labels");
 }
 
-SelfLabel::Ptr SelfLabel::fromJson(const QJsonObject& json)
+SelfLabel::SharedPtr SelfLabel::fromJson(const QJsonObject& json)
 {
-    auto label = std::make_unique<SelfLabel>();
+    auto label = std::make_shared<SelfLabel>();
     XJsonObject xjson(json);
     label->mJson = json;
     label->mVal = xjson.getRequiredString("val");
@@ -42,9 +42,9 @@ QJsonObject SelfLabel::toJson() const
     return json;
 }
 
-SelfLabels::Ptr SelfLabels::fromJson(const QJsonObject& json)
+SelfLabels::SharedPtr SelfLabels::fromJson(const QJsonObject& json)
 {
-    auto labels = std::make_unique<SelfLabels>();
+    auto labels = std::make_shared<SelfLabels>();
     XJsonObject xjson(json);
     labels->mJson = json;
     labels->mValues = xjson.getRequiredVector<SelfLabel>("values");
@@ -59,9 +59,9 @@ QJsonObject SelfLabels::toJson() const
     return json;
 }
 
-LabelValueDefinitionStrings::Ptr LabelValueDefinitionStrings::fromJson(const QJsonObject& json)
+LabelValueDefinitionStrings::SharedPtr LabelValueDefinitionStrings::fromJson(const QJsonObject& json)
 {
-    auto defStrings = std::make_unique<LabelValueDefinitionStrings>();
+    auto defStrings = std::make_shared<LabelValueDefinitionStrings>();
     XJsonObject xjson(json);
     defStrings->mLang = xjson.getRequiredString("lang");
     defStrings->mName = xjson.getRequiredString("name");
@@ -118,9 +118,9 @@ LabelValueDefinition::Setting LabelValueDefinition::stringToSetting(const QStrin
     return Setting::UNKNOWN;
 }
 
-LabelValueDefinition::Ptr LabelValueDefinition::fromJson(const QJsonObject& json)
+LabelValueDefinition::SharedPtr LabelValueDefinition::fromJson(const QJsonObject& json)
 {
-    auto def = std::make_unique<LabelValueDefinition>();
+    auto def = std::make_shared<LabelValueDefinition>();
     XJsonObject xjson(json);
     def->mIdentifier = xjson.getRequiredString("identifier");
     def->mRawSeverity = xjson.getRequiredString("severity");

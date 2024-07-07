@@ -73,16 +73,16 @@ private:
         );
     }
 
-    void logFeed(const std::vector<AppBskyFeed::FeedViewPost::Ptr>& feed)
+    void logFeed(const std::vector<AppBskyFeed::FeedViewPost::SharedPtr>& feed)
     {
         int n = 0;
-        for (const AppBskyFeed::FeedViewPost::Ptr& feedEntry : feed)
+        for (const AppBskyFeed::FeedViewPost::SharedPtr& feedEntry : feed)
         {
             ++n;
             const auto& postView = feedEntry->mPost;
             Q_ASSERT(postView->mRecordType == RecordType::APP_BSKY_FEED_POST);
             const auto& record = postView->mRecord;
-            const auto& post = std::get<AppBskyFeed::Record::Post::Ptr>(record);
+            const auto& post = std::get<AppBskyFeed::Record::Post::SharedPtr>(record);
             qDebug() << QString("Post %1:").arg(n) << post->mText;
             qDebug() << "Author:" << postView->mAuthor->mHandle;
 
@@ -92,9 +92,9 @@ private:
             if (feedEntry->mReply)
             {
                 qDebug() << "REPLY TO:";
-                logPostView(*std::get<AppBskyFeed::PostView::Ptr>(feedEntry->mReply->mParent->mPost));
+                logPostView(*std::get<AppBskyFeed::PostView::SharedPtr>(feedEntry->mReply->mParent->mPost));
                 qDebug() << "ROOT:";
-                logPostView(*std::get<AppBskyFeed::PostView::Ptr>(feedEntry->mReply->mRoot->mPost));
+                logPostView(*std::get<AppBskyFeed::PostView::SharedPtr>(feedEntry->mReply->mRoot->mPost));
             }
         }
     }
@@ -105,7 +105,7 @@ private:
         {
         case AppBskyEmbed::EmbedViewType::IMAGES_VIEW:
         {
-            const auto& view = std::get<AppBskyEmbed::ImagesView::Ptr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::ImagesView::SharedPtr>(embed.mEmbed);
             for (const auto& image : view->mImages)
             {
                 qDebug() << "Image:" << image->mFullSize;
@@ -115,17 +115,17 @@ private:
         }
         case AppBskyEmbed::EmbedViewType::EXTERNAL_VIEW:
         {
-            const auto& view = std::get<AppBskyEmbed::ExternalView::Ptr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::ExternalView::SharedPtr>(embed.mEmbed);
             qDebug() << "External:" << view->mExternal->mTitle;
             break;
         }
         case AppBskyEmbed::EmbedViewType::RECORD_VIEW:
         {
-            const auto& view = std::get<AppBskyEmbed::RecordView::Ptr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::RecordView::SharedPtr>(embed.mEmbed);
             switch (view->mRecordType)
             {
             case RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD:
-                logRecordViewRecord(*std::get<AppBskyEmbed::RecordViewRecord::Ptr>(view->mRecord));
+                logRecordViewRecord(*std::get<AppBskyEmbed::RecordViewRecord::SharedPtr>(view->mRecord));
                 break;
             case RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND:
                 qDebug() << "RECORD NOT FOUND";
@@ -149,7 +149,7 @@ private:
     void logRecordViewRecord(const AppBskyEmbed::RecordViewRecord& recordViewRecord)
     {
         qDebug() << "RECORD:";
-        const auto& post = std::get<AppBskyFeed::Record::Post::Ptr>(recordViewRecord.mValue);
+        const auto& post = std::get<AppBskyFeed::Record::Post::SharedPtr>(recordViewRecord.mValue);
         qDebug() << "  Author:" << recordViewRecord.mAuthor->mHandle;
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
@@ -158,12 +158,12 @@ private:
     {
         qDebug() << "  cid:" << view.mCid;
         qDebug() << "  Author:" << view.mAuthor->mHandle;
-        const auto& post = std::get<AppBskyFeed::Record::Post::Ptr>(view.mRecord);
+        const auto& post = std::get<AppBskyFeed::Record::Post::SharedPtr>(view.mRecord);
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
     std::unique_ptr<ATProto::Client> mBsky;
-    AppBskyActor::ProfileViewDetailed::Ptr mProfile;
+    AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
 };
 
 }

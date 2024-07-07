@@ -33,7 +33,7 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 {
     qDebug() << "Get profile:" << did;
     mClient.getRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {},
-        [successCb, errorCb](ComATProtoRepo::Record::Ptr record) {
+        [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
             qDebug() << "Got profile:" << record->mValue;
 
             try {
@@ -71,7 +71,7 @@ void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profil
 }
 
 void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
-                                  Blob::Ptr avatar, bool updateAvatar, Blob::Ptr banner, bool updateBanner,
+                                  Blob::SharedPtr avatar, bool updateAvatar, Blob::SharedPtr banner, bool updateBanner,
                                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     if (updateAvatar)
@@ -112,7 +112,7 @@ void ProfileMaster::updateProfile(const QString& did, const QString& name, const
 bool ProfileMaster::addLabel(AppBskyActor::Profile& profile, const QString& label) const
 {
     if (!profile.mLabels)
-        profile.mLabels = std::make_unique<ComATProtoLabel::SelfLabels>();
+        profile.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
 
     auto& labels = profile.mLabels->mValues;
     auto it = std::find_if(labels.begin(), labels.end(),
@@ -124,7 +124,7 @@ bool ProfileMaster::addLabel(AppBskyActor::Profile& profile, const QString& labe
         return false;
     }
 
-    auto l = std::make_unique<ComATProtoLabel::SelfLabel>();
+    auto l = std::make_shared<ComATProtoLabel::SelfLabel>();
     l->mVal = label;
     labels.push_back(std::move(l));
     return true;
@@ -159,7 +159,7 @@ void ProfileMaster::addSelfLabel(const QString& did, const QString& label,
 bool ProfileMaster::removeLabel(AppBskyActor::Profile& profile, const QString& label) const
 {
     if (!profile.mLabels)
-        profile.mLabels = std::make_unique<ComATProtoLabel::SelfLabels>();
+        profile.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
 
     auto& labels = profile.mLabels->mValues;
     auto it = std::find_if(labels.begin(), labels.end(),

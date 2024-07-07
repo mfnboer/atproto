@@ -10,7 +10,7 @@ namespace ATProto {
 class ProfileMaster : public Presence
 {
 public:
-    using ProfileCb = std::function<void(AppBskyActor::Profile::Ptr)>;
+    using ProfileCb = std::function<void(AppBskyActor::Profile::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -23,7 +23,7 @@ public:
     void updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
     void updateProfile(const QString& did, const QString& name, const QString& description,
-                       Blob::Ptr avatar, bool updateAvatar, Blob::Ptr banner, bool updatebanner,
+                       Blob::SharedPtr avatar, bool updateAvatar, Blob::SharedPtr banner, bool updatebanner,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void addSelfLabel(const QString& did, const QString& label,
@@ -39,8 +39,8 @@ private:
     bool removeLabel(AppBskyActor::Profile& profile, const QString& label) const;
 
     Client& mClient;
-    std::unordered_map<QString, Blob::Ptr> mDidAvatarBlobMap;
-    std::unordered_map<QString, Blob::Ptr> mDidBannerBlobMap;
+    std::unordered_map<QString, Blob::SharedPtr> mDidAvatarBlobMap;
+    std::unordered_map<QString, Blob::SharedPtr> mDidBannerBlobMap;
 };
 
 }

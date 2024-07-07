@@ -7,39 +7,39 @@
 
 namespace ATProto::AppBskyGraph {
 
-GetFollowsOutput::Ptr GetFollowsOutput::fromJson(const QJsonObject& json)
+GetFollowsOutput::SharedPtr GetFollowsOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto follows = std::make_unique<GetFollowsOutput>();
+    auto follows = std::make_shared<GetFollowsOutput>();
     follows->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
     follows->mFollows = xjson.getRequiredVector<AppBskyActor::ProfileView>("follows");
     follows->mCursor = xjson.getOptionalString("cursor");
     return follows;
 }
 
-GetFollowersOutput::Ptr GetFollowersOutput::fromJson(const QJsonObject& json)
+GetFollowersOutput::SharedPtr GetFollowersOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto followers = std::make_unique<GetFollowersOutput>();
+    auto followers = std::make_shared<GetFollowersOutput>();
     followers->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
     followers->mFollowers = xjson.getRequiredVector<AppBskyActor::ProfileView>("followers");
     followers->mCursor = xjson.getOptionalString("cursor");
     return followers;
 }
 
-GetBlocksOutput::Ptr GetBlocksOutput::fromJson(const QJsonObject& json)
+GetBlocksOutput::SharedPtr GetBlocksOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto blocks = std::make_unique<GetBlocksOutput>();
+    auto blocks = std::make_shared<GetBlocksOutput>();
     blocks->mBlocks = xjson.getRequiredVector<AppBskyActor::ProfileView>("blocks");
     blocks->mCursor = xjson.getOptionalString("cursor");
     return blocks;
 }
 
-GetMutesOutput::Ptr GetMutesOutput::fromJson(const QJsonObject& json)
+GetMutesOutput::SharedPtr GetMutesOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto blocks = std::make_unique<GetMutesOutput>();
+    auto blocks = std::make_shared<GetMutesOutput>();
     blocks->mMutes = xjson.getRequiredVector<AppBskyActor::ProfileView>("mutes");
     blocks->mCursor = xjson.getOptionalString("cursor");
     return blocks;
@@ -54,9 +54,9 @@ QJsonObject Follow::toJson() const
     return json;
 }
 
-Follow::Ptr Follow::fromJson(const QJsonObject& json)
+Follow::SharedPtr Follow::fromJson(const QJsonObject& json)
 {
-    auto follow = std::make_unique<Follow>();
+    auto follow = std::make_shared<Follow>();
     XJsonObject xjson(json);
     follow->mJson = json;
     follow->mSubject = xjson.getRequiredString("subject");
@@ -73,9 +73,9 @@ QJsonObject Block::toJson() const
     return json;
 }
 
-Block::Ptr Block::fromJson(const QJsonObject& json)
+Block::SharedPtr Block::fromJson(const QJsonObject& json)
 {
-    auto block = std::make_unique<Block>();
+    auto block = std::make_shared<Block>();
     XJsonObject xjson(json);
     block->mJson = json;
     block->mSubject = xjson.getRequiredString("subject");
@@ -113,18 +113,18 @@ QString listPurposeToString(ListPurpose purpose)
     return {};
 }
 
-ListViewerState::Ptr ListViewerState::fromJson(const QJsonObject& json)
+ListViewerState::SharedPtr ListViewerState::fromJson(const QJsonObject& json)
 {
-    auto viewerState = std::make_unique<ListViewerState>();
+    auto viewerState = std::make_shared<ListViewerState>();
     XJsonObject xjson(json);
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
     viewerState->mBlocked = xjson.getOptionalString("blocked");
     return viewerState;
 }
 
-ListViewBasic::Ptr ListViewBasic::fromJson(const QJsonObject& json)
+ListViewBasic::SharedPtr ListViewBasic::fromJson(const QJsonObject& json)
 {
-    auto listView = std::make_unique<ListViewBasic>();
+    auto listView = std::make_shared<ListViewBasic>();
     XJsonObject xjson(json);
     listView->mUri = xjson.getRequiredString("uri");
     listView->mCid = xjson.getRequiredString("cid");
@@ -152,9 +152,9 @@ QJsonObject ListView::toJson() const
     return json;
 }
 
-ListView::Ptr ListView::fromJson(const QJsonObject& json)
+ListView::SharedPtr ListView::fromJson(const QJsonObject& json)
 {
-    auto listView = std::make_unique<ListView>();
+    auto listView = std::make_shared<ListView>();
     XJsonObject xjson(json);
     listView->mUri = xjson.getRequiredString("uri");
     listView->mCid = xjson.getRequiredString("cid");
@@ -171,9 +171,9 @@ ListView::Ptr ListView::fromJson(const QJsonObject& json)
     return listView;
 }
 
-ListItemView::Ptr ListItemView::fromJson(const QJsonObject& json)
+ListItemView::SharedPtr ListItemView::fromJson(const QJsonObject& json)
 {
-    auto listItemView = std::make_unique<ListItemView>();
+    auto listItemView = std::make_shared<ListItemView>();
     XJsonObject xjson(json);
     listItemView->mUri = xjson.getRequiredString("uri");
     listItemView->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
@@ -199,9 +199,9 @@ QJsonObject List::toJson() const
     return json;
 }
 
-List::Ptr List::fromJson(const QJsonObject& json)
+List::SharedPtr List::fromJson(const QJsonObject& json)
 {
-    auto list = std::make_unique<List>();
+    auto list = std::make_shared<List>();
     XJsonObject xjson(json);
     list->mJson = json;
     list->mRawPurpose = xjson.getRequiredString("purpose");
@@ -224,9 +224,9 @@ QJsonObject ListBlock::toJson() const
     return json;
 }
 
-ListBlock::Ptr ListBlock::fromJson(const QJsonObject& json)
+ListBlock::SharedPtr ListBlock::fromJson(const QJsonObject& json)
 {
-    auto listBlock = std::make_unique<ListBlock>();
+    auto listBlock = std::make_shared<ListBlock>();
     XJsonObject xjson(json);
     listBlock->mJson = json;
     listBlock->mSubject = xjson.getRequiredString("subject");
@@ -244,9 +244,9 @@ QJsonObject ListItem::toJson() const
     return json;
 }
 
-ListItem::Ptr ListItem::fromJson(const QJsonObject& json)
+ListItem::SharedPtr ListItem::fromJson(const QJsonObject& json)
 {
-    auto listItem = std::make_unique<ListItem>();
+    auto listItem = std::make_shared<ListItem>();
     XJsonObject xjson(json);
     listItem->mJson = json;
     listItem->mSubject = xjson.getRequiredString("subject");
@@ -255,9 +255,9 @@ ListItem::Ptr ListItem::fromJson(const QJsonObject& json)
     return listItem;
 }
 
-GetListOutput::Ptr GetListOutput::fromJson(const QJsonObject& json)
+GetListOutput::SharedPtr GetListOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetListOutput>();
+    auto output = std::make_shared<GetListOutput>();
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mList = xjson.getRequiredObject<ListView>("list");
@@ -265,26 +265,26 @@ GetListOutput::Ptr GetListOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
-GetListsOutput::Ptr GetListsOutput::fromJson(const QJsonObject& json)
+GetListsOutput::SharedPtr GetListsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetListsOutput>();
+    auto output = std::make_shared<GetListsOutput>();
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mLists = xjson.getRequiredVector<ListView>("lists");
     return output;
 }
 
-StarterPackFeedItem::Ptr StarterPackFeedItem::fromJson(const QJsonObject& json)
+StarterPackFeedItem::SharedPtr StarterPackFeedItem::fromJson(const QJsonObject& json)
 {
-    auto feedItem = std::make_unique<StarterPackFeedItem>();
+    auto feedItem = std::make_shared<StarterPackFeedItem>();
     XJsonObject xjson(json);
     feedItem->mUri = xjson.getRequiredString("uri");
     return feedItem;
 }
 
-StarterPack::Ptr StarterPack::fromJson(const QJsonObject& json)
+StarterPack::SharedPtr StarterPack::fromJson(const QJsonObject& json)
 {
-    auto starterPack = std::make_unique<StarterPack>();
+    auto starterPack = std::make_shared<StarterPack>();
     XJsonObject xjson(json);
     starterPack->mName = xjson.getRequiredString("name");
     starterPack->mDescription = xjson.getOptionalString("description");
@@ -295,9 +295,9 @@ StarterPack::Ptr StarterPack::fromJson(const QJsonObject& json)
     return starterPack;
 }
 
-StarterPackViewBasic::Ptr StarterPackViewBasic::fromJson(const QJsonObject& json)
+StarterPackViewBasic::SharedPtr StarterPackViewBasic::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<StarterPackViewBasic>();
+    auto view = std::make_shared<StarterPackViewBasic>();
     XJsonObject xjson(json);
     view->mUri = xjson.getRequiredString("uri");
     view->mCid = xjson.getRequiredString("cid");
@@ -311,9 +311,9 @@ StarterPackViewBasic::Ptr StarterPackViewBasic::fromJson(const QJsonObject& json
     return view;
 }
 
-StarterPackView::Ptr StarterPackView::fromJson(const QJsonObject& json)
+StarterPackView::SharedPtr StarterPackView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<StarterPackView>();
+    auto view = std::make_shared<StarterPackView>();
     XJsonObject xjson(json);
     view->mUri = xjson.getRequiredString("uri");
     view->mCid = xjson.getRequiredString("cid");
@@ -329,18 +329,18 @@ StarterPackView::Ptr StarterPackView::fromJson(const QJsonObject& json)
     return view;
 }
 
-GetStarterPacksOutput::Ptr GetStarterPacksOutput::fromJson(const QJsonObject& json)
+GetStarterPacksOutput::SharedPtr GetStarterPacksOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetStarterPacksOutput>();
+    auto output = std::make_shared<GetStarterPacksOutput>();
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mStarterPacks = xjson.getRequiredVector<StarterPackViewBasic>("starterPacks");
     return output;
 }
 
-GetStarterPackOutput::Ptr GetStarterPackOutput::fromJson(const QJsonObject& json)
+GetStarterPackOutput::SharedPtr GetStarterPackOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetStarterPackOutput>();
+    auto output = std::make_shared<GetStarterPackOutput>();
     XJsonObject xjson(json);
     output->mStarterPack = xjson.getRequiredObject<StarterPackView>("starterPack");
     return output;
