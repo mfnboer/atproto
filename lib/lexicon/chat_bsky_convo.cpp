@@ -15,10 +15,10 @@ QJsonObject MessageRef::toJson() const
     return json;
 }
 
-MessageRef::Ptr MessageRef::fromJson(const QJsonObject& json)
+MessageRef::SharedPtr MessageRef::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto ref = std::make_unique<MessageRef>();
+    auto ref = std::make_shared<MessageRef>();
     ref->mDid = xjson.getRequiredString("did");
     ref->mConvoId = xjson.getRequiredString("convoId");
     ref->mMessageId = xjson.getRequiredString("messageId");
@@ -35,42 +35,42 @@ QJsonObject MessageInput::toJson() const
     return json;
 }
 
-MessageInput::Ptr MessageInput::fromJson(const QJsonObject& json)
+MessageInput::SharedPtr MessageInput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto msg = std::make_unique<MessageInput>();
+    auto msg = std::make_shared<MessageInput>();
     msg->mText = xjson.getRequiredString("text");
     msg->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     msg->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Record>("embed");
     return msg;
 }
 
-MessageViewSender::Ptr MessageViewSender::fromJson(const QJsonObject& json)
+MessageViewSender::SharedPtr MessageViewSender::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto sender = std::make_unique<MessageViewSender>();
+    auto sender = std::make_shared<MessageViewSender>();
     sender->mDid = xjson.getRequiredString("did");
     return sender;
 }
 
-MessageView::Ptr MessageView::fromJson(const QJsonObject& json)
+MessageView::SharedPtr MessageView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto view = std::make_unique<MessageView>();
+    auto view = std::make_shared<MessageView>();
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mText = xjson.getRequiredString("text");
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-    view->mEmbed = AppBskyEmbed::RecordView::SharedPtr(xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed").release());
+    view->mEmbed = xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
     return view;
 }
 
-DeletedMessageView::Ptr DeletedMessageView::fromJson(const QJsonObject& json)
+DeletedMessageView::SharedPtr DeletedMessageView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto view = std::make_unique<DeletedMessageView>();
+    auto view = std::make_shared<DeletedMessageView>();
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
@@ -78,10 +78,10 @@ DeletedMessageView::Ptr DeletedMessageView::fromJson(const QJsonObject& json)
     return view;
 }
 
-ConvoView::Ptr ConvoView::fromJson(const QJsonObject& json)
+ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto view = std::make_unique<ConvoView>();
+    auto view = std::make_shared<ConvoView>();
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
@@ -91,82 +91,82 @@ ConvoView::Ptr ConvoView::fromJson(const QJsonObject& json)
     return view;
 }
 
-LogBeginConvo::Ptr LogBeginConvo::fromJson(const QJsonObject& json)
+LogBeginConvo::SharedPtr LogBeginConvo::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto logBeginConvo = std::make_unique<LogBeginConvo>();
+    auto logBeginConvo = std::make_shared<LogBeginConvo>();
     logBeginConvo->mConvoId = xjson.getRequiredString("convoId");
     logBeginConvo->mRev = xjson.getRequiredString("rev");
     return logBeginConvo;
 }
 
-LogLeaveConvo::Ptr LogLeaveConvo::fromJson(const QJsonObject& json)
+LogLeaveConvo::SharedPtr LogLeaveConvo::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto logLeaveConvo = std::make_unique<LogLeaveConvo>();
+    auto logLeaveConvo = std::make_shared<LogLeaveConvo>();
     logLeaveConvo->mConvoId = xjson.getRequiredString("convoId");
     logLeaveConvo->mRev = xjson.getRequiredString("rev");
     return logLeaveConvo;
 }
 
-LogCreateMessage::Ptr LogCreateMessage::fromJson(const QJsonObject& json)
+LogCreateMessage::SharedPtr LogCreateMessage::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto logCreateMessage = std::make_unique<LogCreateMessage>();
+    auto logCreateMessage = std::make_shared<LogCreateMessage>();
     logCreateMessage->mConvoId = xjson.getRequiredString("convoId");
     logCreateMessage->mRev = xjson.getRequiredString("rev");
     logCreateMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
     return logCreateMessage;
 }
 
-LogDeleteMessage::Ptr LogDeleteMessage::fromJson(const QJsonObject& json)
+LogDeleteMessage::SharedPtr LogDeleteMessage::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto logDeleteMessage = std::make_unique<LogDeleteMessage>();
+    auto logDeleteMessage = std::make_shared<LogDeleteMessage>();
     logDeleteMessage->mConvoId = xjson.getRequiredString("convoId");
     logDeleteMessage->mRev = xjson.getRequiredString("rev");
     logDeleteMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
     return logDeleteMessage;
 }
 
-ConvoOuput::Ptr ConvoOuput::fromJson(const QJsonObject& json)
+ConvoOuput::SharedPtr ConvoOuput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_unique<ConvoOuput>();
+    auto output = std::make_shared<ConvoOuput>();
     output->mConvo = xjson.getRequiredObject<ConvoView>("convo");
     return output;
 }
 
-ConvoListOutput::Ptr ConvoListOutput::fromJson(const QJsonObject& json)
+ConvoListOutput::SharedPtr ConvoListOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_unique<ConvoListOutput>();
+    auto output = std::make_shared<ConvoListOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
     output->mConvos = xjson.getRequiredVector<ConvoView>("convos");
     return output;
 }
 
-LogOutput::Ptr LogOutput::fromJson(const QJsonObject& json)
+LogOutput::SharedPtr LogOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_unique<LogOutput>();
+    auto output = std::make_shared<LogOutput>();
     output->mLogs = xjson.getRequiredVariantList<LogBeginConvo, LogLeaveConvo, LogCreateMessage, LogDeleteMessage>("logs");
     return output;
 }
 
-GetMessagesOutput::Ptr GetMessagesOutput::fromJson(const QJsonObject& json)
+GetMessagesOutput::SharedPtr GetMessagesOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_unique<GetMessagesOutput>();
+    auto output = std::make_shared<GetMessagesOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
     output->mMessages = xjson.getRequiredVariantList<MessageView, DeletedMessageView>("messages");
     return output;
 }
 
-LeaveConvoOutput::Ptr LeaveConvoOutput::fromJson(const QJsonObject& json)
+LeaveConvoOutput::SharedPtr LeaveConvoOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_unique<LeaveConvoOutput>();
+    auto output = std::make_shared<LeaveConvoOutput>();
     output->mConvoId = xjson.getRequiredString("convoId");
     output->mRev = xjson.getRequiredString("rev");
     return output;

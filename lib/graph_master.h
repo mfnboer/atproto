@@ -32,11 +32,11 @@ public:
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void createList(AppBskyGraph::ListPurpose purpose, const QString& name,
-                    const QString& description, Blob::Ptr avatar, const QString& rKey,
+                    const QString& description, Blob::SharedPtr avatar, const QString& rKey,
                     const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     void updateList(const QString& listUri, const QString& name,
-                    const QString& description, Blob::Ptr avatar, bool updateAvatar,
+                    const QString& description, Blob::SharedPtr avatar, bool updateAvatar,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     void addUserToList(const QString& listUri, const QString& did,
@@ -44,7 +44,7 @@ public:
 
 private:
     void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
-    void updateList(AppBskyGraph::List::Ptr list, const QString& rkey, const QString& description,
+    void updateList(AppBskyGraph::List::SharedPtr list, const QString& rkey, const QString& description,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
@@ -54,8 +54,8 @@ private:
 
     Client& mClient;
     RichTextMaster mRichTextMaster;
-    std::unordered_map<QString, Blob::Ptr> mRKeyBlobMap;
-    std::unordered_map<QString, AppBskyGraph::List::Ptr> mRKeyListMap;
+    std::unordered_map<QString, Blob::SharedPtr> mRKeyBlobMap;
+    std::unordered_map<QString, AppBskyGraph::List::SharedPtr> mRKeyListMap;
     QObject mPresence;
 };
 

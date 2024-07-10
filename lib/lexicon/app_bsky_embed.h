@@ -17,8 +17,8 @@ struct GeneratorViewerState
 {
     std::optional<QString> mLike; // at-uri
 
-    using Ptr = std::unique_ptr<GeneratorViewerState>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GeneratorViewerState>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#generatorView
@@ -26,24 +26,23 @@ struct GeneratorView {
     QString mUri;
     QString mCid;
     QString mDid;
-    AppBskyActor::ProfileView::Ptr mCreator; // required
+    AppBskyActor::ProfileView::SharedPtr mCreator; // required
     QString mDisplayName;
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::FacetList mDescriptionFacets;
     std::optional<QString> mAvatar;
     int mLikeCount = 0;
     bool mAcceptsInteractions = false;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
-    GeneratorViewerState::Ptr mViewer; // optional
+    ComATProtoLabel::LabelList mLabels;
+    GeneratorViewerState::SharedPtr mViewer; // optional
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const; // partial serialization
 
     using SharedPtr = std::shared_ptr<GeneratorView>;
-    using Ptr = std::unique_ptr<GeneratorView>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
-using GeneratorViewList = std::vector<GeneratorView::Ptr>;
+using GeneratorViewList = std::vector<GeneratorView::SharedPtr>;
 
 }
 
@@ -54,28 +53,27 @@ struct StarterPackView
 {
     QString mUri; // at-uri
     QString mCid;
-    std::variant<StarterPack::Ptr> mRecord;
-    AppBskyActor::ProfileViewBasic::Ptr mCreator;
-    ListViewBasic::Ptr mList; // optional
+    std::variant<StarterPack::SharedPtr> mRecord;
+    AppBskyActor::ProfileViewBasic::SharedPtr mCreator;
+    ListViewBasic::SharedPtr mList; // optional
     ListItemViewList mListItemsSample;
     AppBskyFeed::GeneratorViewList mFeeds;
     int mJoinedWeekCount = 0;
     int mJoinedAllTimeCount = 0;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    ComATProtoLabel::LabelList mLabels;
     QDateTime mIndexedAt;
 
     using SharedPtr = std::shared_ptr<StarterPackView>;
-    using Ptr = std::unique_ptr<StarterPackView>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.graph.getStarterPack/output
 struct GetStarterPackOutput
 {
-    StarterPackView::Ptr mStarterPack;
+    StarterPackView::SharedPtr mStarterPack;
 
-    using Ptr = std::unique_ptr<GetStarterPackOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetStarterPackOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }
@@ -90,32 +88,33 @@ struct AspectRatio
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<AspectRatio>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<AspectRatio>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.images#image
 struct Image
 {
-    Blob::Ptr mImage; // max 1,000,000 bytes mime: image/*
+    Blob::SharedPtr mImage; // max 1,000,000 bytes mime: image/*
     QString mAlt;
-    AspectRatio::Ptr mAspectRatio; // optional
+    AspectRatio::SharedPtr mAspectRatio; // optional
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Image>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Image>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using ImageList = std::vector<Image::SharedPtr>;
 
 // app.bsky.embed.images
 struct Images
 {
-    std::vector<Image::Ptr> mImages; // max 4
+    ImageList mImages; // max 4
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Images>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Images>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.images#viewImage
@@ -124,19 +123,20 @@ struct ImagesViewImage
     QString mThumb;
     QString mFullSize;
     QString mAlt;
-    AspectRatio::Ptr mAspectRatio; // optional
+    AspectRatio::SharedPtr mAspectRatio; // optional
 
-    using Ptr = std::unique_ptr<ImagesViewImage>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ImagesViewImage>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using ImagesViewImageList = std::vector<ImagesViewImage::SharedPtr>;
 
 // app.bsky.embed.images#view
 struct ImagesView
 {
-    std::vector<ImagesViewImage::Ptr> mImages; // max length 4
+    ImagesViewImageList mImages; // max length 4
 
-    using Ptr = std::unique_ptr<ImagesView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ImagesView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.external#external
@@ -145,23 +145,23 @@ struct ExternalExternal
     QString mUri;
     QString mTitle;
     QString mDescription;
-    Blob::Ptr mThumb; // optional: max 1,000,000 bytes mime: image/*
+    Blob::SharedPtr mThumb; // optional: max 1,000,000 bytes mime: image/*
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<ExternalExternal>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ExternalExternal>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.external
 struct External
 {
-    ExternalExternal::Ptr mExternal;
+    ExternalExternal::SharedPtr mExternal;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<External>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<External>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.external#viewExternal
@@ -172,28 +172,28 @@ struct ExternalViewExternal
     QString mDescription;
     std::optional<QString> mThumb;
 
-    using Ptr = std::unique_ptr<ExternalViewExternal>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ExternalViewExternal>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.external#view
 struct ExternalView
 {
-    ExternalViewExternal::Ptr mExternal; // required
+    ExternalViewExternal::SharedPtr mExternal; // required
 
-    using Ptr = std::unique_ptr<ExternalView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ExternalView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.record
 struct Record
 {
-    ComATProtoRepo::StrongRef::Ptr mRecord;
+    ComATProtoRepo::StrongRef::SharedPtr mRecord;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Record>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Record>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct RecordViewRecord;
@@ -203,8 +203,8 @@ struct RecordViewNotFound
 {
     QString mUri; // at-uri
 
-    using Ptr = std::unique_ptr<RecordViewNotFound>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<RecordViewNotFound>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.record#viewBlocked
@@ -212,27 +212,26 @@ struct RecordViewBlocked
 {
     QString mUri; // at-uri
 
-    using Ptr = std::unique_ptr<RecordViewBlocked>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<RecordViewBlocked>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.embed.record#view
 struct RecordView
 {
-    std::variant<std::unique_ptr<RecordViewRecord>,
-                 RecordViewNotFound::Ptr,
-                 RecordViewBlocked::Ptr,
-                 AppBskyFeed::GeneratorView::Ptr,
-                 AppBskyGraph::ListView::Ptr,
-                 AppBskyGraph::StarterPackViewBasic::Ptr,
-                 AppBskyLabeler::LabelerView::Ptr> mRecord;
+    std::variant<std::shared_ptr<RecordViewRecord>,
+                 RecordViewNotFound::SharedPtr,
+                 RecordViewBlocked::SharedPtr,
+                 AppBskyFeed::GeneratorView::SharedPtr,
+                 AppBskyGraph::ListView::SharedPtr,
+                 AppBskyGraph::StarterPackViewBasic::SharedPtr,
+                 AppBskyLabeler::LabelerView::SharedPtr> mRecord;
     RecordType mRecordType;
 
     QString mUnsupportedType; // not part of the spec
 
     using SharedPtr = std::shared_ptr<RecordView>;
-    using Ptr = std::unique_ptr<RecordView>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 enum class EmbedType
@@ -249,21 +248,21 @@ EmbedType stringToEmbedType(const QString& str);
 // app.bsky.embed.recordWithMedia
 struct RecordWithMedia
 {
-    Record::Ptr mRecord;
-    std::variant<Images::Ptr, External::Ptr> mMedia;
+    Record::SharedPtr mRecord;
+    std::variant<Images::SharedPtr, External::SharedPtr> mMedia;
     EmbedType mMediaType;
     QString mRawMediaType;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<RecordWithMedia>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<RecordWithMedia>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using EmbedUnion = std::variant<Images::Ptr,
-                                External::Ptr,
-                                Record::Ptr,
-                                RecordWithMedia::Ptr>;
+using EmbedUnion = std::variant<Images::SharedPtr,
+                                External::SharedPtr,
+                                Record::SharedPtr,
+                                RecordWithMedia::SharedPtr>;
 
 struct Embed
 {
@@ -273,8 +272,8 @@ struct Embed
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Embed>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Embed>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 enum class EmbedViewType
@@ -291,19 +290,19 @@ EmbedViewType stringToEmbedViewType(const QString& str);
 // app.bsky.embed.recordWithMedia#view
 struct RecordWithMediaView
 {
-    RecordView::Ptr mRecord;
-    std::variant<ImagesView::Ptr, ExternalView::Ptr> mMedia;
+    RecordView::SharedPtr mRecord;
+    std::variant<ImagesView::SharedPtr, ExternalView::SharedPtr> mMedia;
     EmbedViewType mMediaType;
     QString mRawMediaType;
 
-    using Ptr = std::unique_ptr<RecordWithMediaView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<RecordWithMediaView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using EmbedViewUnion = std::variant<ImagesView::Ptr,
-                                ExternalView::Ptr,
-                                RecordView::Ptr,
-                                RecordWithMediaView::Ptr>;
+using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
+                                ExternalView::SharedPtr,
+                                RecordView::SharedPtr,
+                                RecordWithMediaView::SharedPtr>;
 
 struct EmbedView
 {
@@ -311,9 +310,10 @@ struct EmbedView
     EmbedViewType mType;
     QString mRawType;
 
-    using Ptr = std::unique_ptr<EmbedView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<EmbedView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using EmbedViewList = std::vector<EmbedView::SharedPtr>;
 
 }
 
@@ -322,13 +322,13 @@ namespace ATProto::AppBskyFeed {
 // app.bsky.feed.post#replyRef
 struct PostReplyRef
 {
-    ComATProtoRepo::StrongRef::Ptr mRoot; // required
-    ComATProtoRepo::StrongRef::Ptr mParent; // required
+    ComATProtoRepo::StrongRef::SharedPtr mRoot; // required
+    ComATProtoRepo::StrongRef::SharedPtr mParent; // required
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<PostReplyRef>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<PostReplyRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // Record types
@@ -339,9 +339,9 @@ struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::FacetList mFacets;
-    PostReplyRef::Ptr mReply; // optional
-    ATProto::AppBskyEmbed::Embed::Ptr mEmbed; // optional
-    ComATProtoLabel::SelfLabels::Ptr mLabels; // optional
+    PostReplyRef::SharedPtr mReply; // optional
+    ATProto::AppBskyEmbed::Embed::SharedPtr mEmbed; // optional
+    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     std::vector<QString> mLanguages;
     QDateTime mCreatedAt;
 
@@ -350,9 +350,8 @@ struct Post
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Post>;
     using SharedPtr = std::shared_ptr<Post>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }}
@@ -364,19 +363,19 @@ struct RecordViewRecord
 {
     QString mUri;
     QString mCid;
-    AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
-    std::variant<AppBskyFeed::Record::Post::Ptr,
-                 AppBskyFeed::GeneratorView::Ptr,
-                 AppBskyGraph::ListView::Ptr,
-                 AppBskyLabeler::LabelerView::Ptr> mValue;
+    AppBskyActor::ProfileViewBasic::SharedPtr mAuthor; // required
+    std::variant<AppBskyFeed::Record::Post::SharedPtr,
+                 AppBskyFeed::GeneratorView::SharedPtr,
+                 AppBskyGraph::ListView::SharedPtr,
+                 AppBskyLabeler::LabelerView::SharedPtr> mValue;
     RecordType mValueType;
     QString mRawValueType;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
-    std::vector<EmbedView::Ptr> mEmbeds;
+    ComATProtoLabel::LabelList mLabels;
+    EmbedViewList mEmbeds;
     QDateTime mIndexedAt;
 
-    using Ptr = std::unique_ptr<RecordViewRecord>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<RecordViewRecord>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

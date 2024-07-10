@@ -18,7 +18,7 @@ private slots:
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto* messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::MessageView::SharedPtr>(&lcm->mMessage);
         QVERIFY(messageView);
         QCOMPARE((*messageView)->mId, "m1");
     }
@@ -29,19 +29,20 @@ private slots:
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto* messageView = std::get_if<ChatBskyConvo::DeletedMessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::DeletedMessageView::SharedPtr>(&lcm->mMessage);
         QVERIFY(messageView);
         QCOMPARE((*messageView)->mId, "m2");
     }
 
     void requiredVariantUnknown()
     {
-        QTest::ignoreMessage(QtWarningMsg, "Unknown type: \"chat.bsky.convo.defs#unknown\" key: \"message\"");
+        QTest::ignoreMessage(QtWarningMsg, "Unknown type: \"chat.bsky.convo.defs#unknown\"");
+        QTest::ignoreMessage(QtWarningMsg, "Unknown type for key: \"message\"");
         auto json = QJsonDocument::fromJson(LOG_CREATE_UNKNOWN);
         QVERIFY(!json.isEmpty());
         auto lcm = ChatBskyConvo::LogCreateMessage::fromJson(json.object());
         QVERIFY(lcm);
-        auto* messageView = std::get_if<ChatBskyConvo::MessageView::Ptr>(&lcm->mMessage);
+        auto* messageView = std::get_if<ChatBskyConvo::MessageView::SharedPtr>(&lcm->mMessage);
         QVERIFY(messageView);
         QVERIFY(!*messageView);
         QVERIFY(isNullVariant(lcm->mMessage));

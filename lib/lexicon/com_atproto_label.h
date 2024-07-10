@@ -18,11 +18,11 @@ struct Label
     QDateTime mCreatedAt;
     std::optional<QDateTime> mExpires;
 
-    using Ptr = std::unique_ptr<Label>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Label>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using LabelList = std::vector<Label::Ptr>;
+using LabelList = std::vector<Label::SharedPtr>;
 void getLabels(LabelList& labels, const QJsonObject& json);
 
 // com.atproto.label.defs#selfLabel
@@ -33,11 +33,11 @@ struct SelfLabel
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<SelfLabel>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<SelfLabel>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using SelfLabelList = std::vector<SelfLabel::Ptr>;
+using SelfLabelList = std::vector<SelfLabel::SharedPtr>;
 
 // com.atproto.label.defs#selfLabels
 struct SelfLabels
@@ -47,8 +47,8 @@ struct SelfLabels
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<SelfLabels>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<SelfLabels>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.label.defs#labelValueDefinitionStrings
@@ -58,9 +58,10 @@ struct LabelValueDefinitionStrings
     QString mName;
     QString mDescription;
 
-    using Ptr = std::unique_ptr<LabelValueDefinitionStrings>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LabelValueDefinitionStrings>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using LabelValueDefinitionStringsList = std::vector<LabelValueDefinitionStrings::SharedPtr>;
 
 // com.atproto.label.defs#labelValueDefinition
 struct LabelValueDefinition
@@ -100,10 +101,11 @@ struct LabelValueDefinition
     Setting mDefaultSetting = Setting::WARN;
     QString mRawDefaultSetting = QStringLiteral("warn");
     bool mAdultOnly = false;
-    std::vector<LabelValueDefinitionStrings::Ptr> mLocales;
+    LabelValueDefinitionStringsList mLocales;
 
-    using Ptr = std::unique_ptr<LabelValueDefinition>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<LabelValueDefinition>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using LabelValueDefinitionList = std::vector<LabelValueDefinition::SharedPtr>;
 
 }

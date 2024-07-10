@@ -24,8 +24,8 @@ struct FacetMention
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<FacetMention>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<FacetMention>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.richtext.facet#link
@@ -35,8 +35,8 @@ struct FacetLink
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<FacetLink>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<FacetLink>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.richtext.facet#tag
@@ -46,8 +46,8 @@ struct FacetTag
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<FacetTag>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<FacetTag>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.richtext.facet
@@ -66,7 +66,7 @@ struct Facet
 
         static Type stringToType(const QString& str);
 
-        std::variant<FacetMention::Ptr, FacetLink::Ptr, FacetTag::Ptr> mFeature;
+        std::variant<FacetMention::SharedPtr, FacetLink::SharedPtr, FacetTag::SharedPtr> mFeature;
         Type mType;
     };
 
@@ -75,10 +75,10 @@ struct Facet
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Facet>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Facet>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
-using FacetList = std::vector<Facet::Ptr>;
+using FacetList = std::vector<Facet::SharedPtr>;
 
 /**
  * @brief applyFacets Replace the links in the text by HTML href anchors

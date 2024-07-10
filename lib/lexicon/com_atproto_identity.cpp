@@ -5,9 +5,9 @@
 
 namespace ATProto::ComATProtoIdentity {
 
-ResolveHandleOutput::Ptr ResolveHandleOutput::fromJson(const QJsonObject& json)
+ResolveHandleOutput::SharedPtr ResolveHandleOutput::fromJson(const QJsonObject& json)
 {
-    auto mention = std::make_unique<ResolveHandleOutput>();
+    auto mention = std::make_shared<ResolveHandleOutput>();
     const XJsonObject root(json);
     mention->mDid = root.getRequiredString("did");
     return mention;
