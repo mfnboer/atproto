@@ -19,9 +19,9 @@ public:
     using ThreadgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
-    using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::Ptr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
-    using FeedCb = std::function<void(AppBskyFeed::GeneratorView::Ptr)>;
-    using ListCb = std::function<void(AppBskyGraph::ListView::Ptr)>;
+    using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::SharedPtr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
+    using FeedCb = std::function<void(AppBskyFeed::GeneratorView::SharedPtr)>;
+    using ListCb = std::function<void(AppBskyGraph::ListView::SharedPtr)>;
     using ErrorCb = Client::ErrorCb;
 
     explicit PostMaster(Client& client);
@@ -42,27 +42,27 @@ public:
                          const Client::SuccessCb& successCb, const ErrorCb& errorCb);
 
     void getPost(const QString& httpsUri, const PostCb& successCb);
-    void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb);
+    void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::SharedPtr author, const PostCb& successCb);
     void getFeed(const QString& httpsUri, const FeedCb& successCb);
     void continueGetFeed(const ATUri& atUri, const FeedCb& successCb);
     void getList(const QString& httpsUri, const ListCb& successCb);
     void continueGetList(const ATUri& atUri, const ListCb& successCb);
 
-    static AppBskyFeed::Threadgate::Ptr createThreadgate(const QString& uri, bool allowMention,
+    static AppBskyFeed::Threadgate::SharedPtr createThreadgate(const QString& uri, bool allowMention,
             bool allowFollowing, const QStringList& allowLists);
 
-    static AppBskyFeed::PostReplyRef::Ptr createReplyRef(
+    static AppBskyFeed::PostReplyRef::SharedPtr createReplyRef(
             const QString& replyToUri, const QString& replyToCid,
             const QString& replyRootUri, const QString& replyRootCid);
-    static AppBskyFeed::Record::Post::Ptr createPostWithoutFacets(
-        const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef);
+    static AppBskyFeed::Record::Post::SharedPtr createPostWithoutFacets(
+        const QString& text, const QString& language, AppBskyFeed::PostReplyRef::SharedPtr replyRef);
 
-    void createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb);
+    void createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::SharedPtr replyRef, const PostCreatedCb& cb);
     static void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
     static void addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringList& labels);
-    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText);
+    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
-                                  const QString& title, const QString& description, Blob::Ptr blob = nullptr);
+                                  const QString& title, const QString& description, Blob::SharedPtr blob = nullptr);
 
 private:
     Client& mClient;

@@ -5,9 +5,9 @@
 
 namespace ATProto::AppBskyUnspecced {
 
-GetPopularFeedGeneratorsOutput::Ptr GetPopularFeedGeneratorsOutput::fromJson(const QJsonObject& json)
+GetPopularFeedGeneratorsOutput::SharedPtr GetPopularFeedGeneratorsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetPopularFeedGeneratorsOutput>();
+    auto output = std::make_shared<GetPopularFeedGeneratorsOutput>();
     const XJsonObject xjson(json);
     output->mFeeds = xjson.getRequiredVector<AppBskyFeed::GeneratorView>("feeds");
     output->mCursor = xjson.getOptionalString("cursor");

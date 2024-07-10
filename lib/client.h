@@ -36,52 +36,52 @@ class Client
 public:
     using SuccessCb = std::function<void()>;
     using ResolveHandleSuccessCb = std::function<void(QString)>;
-    using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::Ptr)>;
+    using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::SharedPtr)>;
     using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailedList)>;
-    using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using GetActorLikesSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::Ptr)>;
-    using GetFeedGeneratorSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorOutput::Ptr)>;
-    using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::Ptr)>;
-    using GetActorFeedsSuccessCb = std::function<void(AppBskyFeed::GetActorFeedsOutput::Ptr)>;
-    using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::Ptr)>;
+    using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
+    using GetActorLikesSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
+    using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
+    using GetFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
+    using GetFeedGeneratorSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorOutput::SharedPtr)>;
+    using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr)>;
+    using GetActorFeedsSuccessCb = std::function<void(AppBskyFeed::GetActorFeedsOutput::SharedPtr)>;
+    using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::SharedPtr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
-    using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::Ptr)>;
-    using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::Ptr)>;
-    using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::Ptr)>;
-    using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::Ptr)>;
-    using GetBlocksSuccessCb = std::function<void(AppBskyGraph::GetBlocksOutput::Ptr)>;
-    using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::Ptr)>;
-    using GetListSuccessCb = std::function<void(AppBskyGraph::GetListOutput::Ptr)>;
-    using GetListsSuccessCb = std::function<void(AppBskyGraph::GetListsOutput::Ptr)>;
-    using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::Ptr)>;
-    using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::Ptr)>;
-    using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::Ptr)>;
-    using UploadBlobSuccessCb = std::function<void(Blob::Ptr)>;
+    using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::SharedPtr)>;
+    using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::SharedPtr)>;
+    using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::SharedPtr)>;
+    using GetFollowersSuccessCb = std::function<void(AppBskyGraph::GetFollowersOutput::SharedPtr)>;
+    using GetBlocksSuccessCb = std::function<void(AppBskyGraph::GetBlocksOutput::SharedPtr)>;
+    using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::SharedPtr)>;
+    using GetListSuccessCb = std::function<void(AppBskyGraph::GetListOutput::SharedPtr)>;
+    using GetListsSuccessCb = std::function<void(AppBskyGraph::GetListsOutput::SharedPtr)>;
+    using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::SharedPtr)>;
+    using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
+    using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
+    using UploadBlobSuccessCb = std::function<void(Blob::SharedPtr)>;
     using GetBlobSuccessCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
-    using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::Ptr)>;
-    using ListRecordsSuccessCb = std::function<void(ComATProtoRepo::ListRecordsOutput::Ptr)>;
-    using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
-    using PutRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::Ptr)>;
+    using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::SharedPtr)>;
+    using ListRecordsSuccessCb = std::function<void(ComATProtoRepo::ListRecordsOutput::SharedPtr)>;
+    using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
+    using PutRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
     using UnreadCountSuccessCb = std::function<void(int)>;
-    using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::Ptr)>;
+    using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::SharedPtr)>;
     using UserPrefsSuccessCb = std::function<void(UserPreferences)>;
-    using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::Ptr)>;
-    using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::Ptr)>;
-    using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::Ptr)>;
-    using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::Ptr)>;
-    using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::Ptr)>;
-    using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::Ptr)>;
-    using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::Ptr)>;
+    using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::SharedPtr)>;
+    using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
+    using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::SharedPtr)>;
+    using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
+    using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
+    using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
+    using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
 
-    using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::Ptr)>;
-    using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOuput::Ptr)>;
-    using ConvoListSuccessCb = std::function<void(ChatBskyConvo::ConvoListOutput::Ptr)>;
-    using ConvoLogSuccessCb = std::function<void(ChatBskyConvo::LogOutput::Ptr)>;
-    using GetMessagesSuccessCb = std::function<void(ChatBskyConvo::GetMessagesOutput::Ptr)>;
-    using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::Ptr)>;
-    using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::Ptr)>;
+    using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
+    using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOuput::SharedPtr)>;
+    using ConvoListSuccessCb = std::function<void(ChatBskyConvo::ConvoListOutput::SharedPtr)>;
+    using ConvoLogSuccessCb = std::function<void(ChatBskyConvo::LogOutput::SharedPtr)>;
+    using GetMessagesSuccessCb = std::function<void(ChatBskyConvo::GetMessagesOutput::SharedPtr)>;
+    using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::SharedPtr)>;
+    using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
@@ -95,11 +95,11 @@ public:
 
     static bool isListNotFoundError(const QString& error, const QString& msg);
 
-    explicit Client(std::unique_ptr<Xrpc::Client>&& xrpc);
+    explicit Client(Xrpc::Client::Ptr&& xrpc);
 
     const QString& getHost() const { return mXrpc->getHost(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
-    void setSession(ComATProtoServer::Session::Ptr session) { mSession = std::move(session); }
+    void setSession(ComATProtoServer::Session::SharedPtr session) { mSession = std::move(session); }
     void clearSession() { mSession = nullptr; }
     void updateTokens(const QString& accessJwt, const QString& refreshJwt);
 
@@ -814,8 +814,8 @@ private:
     void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
     void addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
 
-    std::unique_ptr<Xrpc::Client> mXrpc;
-    ComATProtoServer::Session::Ptr mSession;
+    Xrpc::Client::Ptr mXrpc;
+    ComATProtoServer::Session::SharedPtr mSession;
     std::unordered_set<QString> mLabelerDids;
     QString mAcceptLabelersHeaderValue;
 };
