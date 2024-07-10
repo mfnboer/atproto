@@ -14,26 +14,26 @@ QJsonObject StrongRef::toJson() const
     return json;
 }
 
-StrongRef::Ptr StrongRef::fromJson(const QJsonObject& json)
+StrongRef::SharedPtr StrongRef::fromJson(const QJsonObject& json)
 {
-    auto strongRef = std::make_unique<StrongRef>();
+    auto strongRef = std::make_shared<StrongRef>();
     const XJsonObject xjson(json);
     strongRef->mUri = xjson.getRequiredString("uri");
     strongRef->mCid = xjson.getRequiredString("cid");
     return strongRef;
 }
 
-UploadBlobOutput::Ptr UploadBlobOutput::fromJson(const QJsonObject& json)
+UploadBlobOutput::SharedPtr UploadBlobOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<UploadBlobOutput>();
+    auto output = std::make_shared<UploadBlobOutput>();
     const XJsonObject xjson(json);
     output->mBlob = xjson.getRequiredObject<Blob>("blob");
     return output;
 }
 
-Record::Ptr Record::fromJson(const QJsonObject& json)
+Record::SharedPtr Record::fromJson(const QJsonObject& json)
 {
-    auto record = std::make_unique<Record>();
+    auto record = std::make_shared<Record>();
     const XJsonObject xjson(json);
     record->mUri = xjson.getRequiredString("uri");
     record->mCid = xjson.getOptionalString("cid");
@@ -41,9 +41,9 @@ Record::Ptr Record::fromJson(const QJsonObject& json)
     return record;
 }
 
-ListRecordsOutput::Ptr ListRecordsOutput::fromJson(const QJsonObject& json)
+ListRecordsOutput::SharedPtr ListRecordsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<ListRecordsOutput>();
+    auto output = std::make_shared<ListRecordsOutput>();
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mRecords = xjson.getRequiredVector<Record>("records");

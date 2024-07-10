@@ -41,18 +41,18 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
     return it->second;
 }
 
-KnownFollowers::Ptr KnownFollowers::fromJson(const QJsonObject& json)
+KnownFollowers::SharedPtr KnownFollowers::fromJson(const QJsonObject& json)
 {
-    auto knownFollowers = std::make_unique<KnownFollowers>();
+    auto knownFollowers = std::make_shared<KnownFollowers>();
     XJsonObject xjson(json);
     knownFollowers->mCount = xjson.getRequiredInt("count");
     knownFollowers->mFollowers = xjson.getRequiredVector<ProfileViewBasic>("followers");
     return knownFollowers;
 }
 
-ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
+ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
 {
-    auto viewerState = std::make_unique<ViewerState>();
+    auto viewerState = std::make_shared<ViewerState>();
     XJsonObject xjson(json);
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
     viewerState->mBlockedBy = xjson.getOptionalBool("blockedBy", false);
@@ -65,18 +65,18 @@ ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
-ProfileAssociatedChat::Ptr ProfileAssociatedChat::fromJson(const QJsonObject& json)
+ProfileAssociatedChat::SharedPtr ProfileAssociatedChat::fromJson(const QJsonObject& json)
 {
-    auto associated = std::make_unique<ProfileAssociatedChat>();
+    auto associated = std::make_shared<ProfileAssociatedChat>();
     XJsonObject xjson(json);
     const auto allowIncoming = xjson.getRequiredString("allowIncoming");
     associated->mAllowIncoming = stringToAllowIncomingType(allowIncoming);
     return associated;
 }
 
-ProfileAssociated::Ptr ProfileAssociated::fromJson(const QJsonObject& json)
+ProfileAssociated::SharedPtr ProfileAssociated::fromJson(const QJsonObject& json)
 {
-    auto associated = std::make_unique<ProfileAssociated>();
+    auto associated = std::make_shared<ProfileAssociated>();
     XJsonObject xjson(json);
     associated->mLists = xjson.getOptionalInt("lists", 0);
     associated->mFeeds = xjson.getOptionalInt("feedgens", 0);
@@ -97,10 +97,10 @@ QJsonObject ProfileViewBasic::toJson() const
     return json;
 }
 
-ProfileViewBasic::Ptr ProfileViewBasic::fromJson(const QJsonObject& json)
+ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
-    auto profileViewBasic = std::make_unique<ProfileViewBasic>();
+    auto profileViewBasic = std::make_shared<ProfileViewBasic>();
     profileViewBasic->mDid = root.getRequiredString("did");
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");
@@ -122,10 +122,10 @@ QJsonObject ProfileView::toJson() const
     return json;
 }
 
-ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
+ProfileView::SharedPtr ProfileView::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
-    auto profile = std::make_unique<ProfileView>();
+    auto profile = std::make_shared<ProfileView>();
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
@@ -138,10 +138,10 @@ ProfileView::Ptr ProfileView::fromJson(const QJsonObject& json)
     return profile;
 }
 
-ProfileViewDetailed::Ptr ProfileViewDetailed::fromJson(const QJsonObject& json)
+ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& json)
 {
     XJsonObject root(json);
-    auto profile = std::make_unique<ProfileViewDetailed>();
+    auto profile = std::make_shared<ProfileViewDetailed>();
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
@@ -175,9 +175,9 @@ QJsonObject Profile::toJson() const
     return json;
 }
 
-Profile::Ptr Profile::fromJson(const QJsonObject& json)
+Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
 {
-    auto profile = std::make_unique<Profile>();
+    auto profile = std::make_shared<Profile>();
     XJsonObject xjson(json);
     profile->mJson = json;
     profile->mDisplayName = xjson.getOptionalString("displayName");
@@ -196,9 +196,9 @@ QJsonObject AdultContentPref::toJson() const
     return json;
 }
 
-AdultContentPref::Ptr AdultContentPref::fromJson(const QJsonObject& json)
+AdultContentPref::SharedPtr AdultContentPref::fromJson(const QJsonObject& json)
 {
-    auto adultPref = std::make_unique<AdultContentPref>();
+    auto adultPref = std::make_shared<AdultContentPref>();
     XJsonObject xjson(json);
     adultPref->mEnabled = xjson.getRequiredBool("enabled");
     adultPref->mJson = json;
@@ -252,9 +252,9 @@ QJsonObject ContentLabelPref::toJson() const
     return json;
 }
 
-ContentLabelPref::Ptr ContentLabelPref::fromJson(const QJsonObject& json)
+ContentLabelPref::SharedPtr ContentLabelPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<ContentLabelPref>();
+    auto pref = std::make_shared<ContentLabelPref>();
     XJsonObject xjson(json);
     pref->mLabelerDid = xjson.getOptionalString("labelerDid");
     pref->mLabel = xjson.getRequiredString("label");
@@ -273,9 +273,9 @@ QJsonObject SavedFeedsPref::toJson() const
     return json;
 }
 
-SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
+SavedFeedsPref::SharedPtr SavedFeedsPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<SavedFeedsPref>();
+    auto pref = std::make_shared<SavedFeedsPref>();
     XJsonObject xjson(json);
     pref->mPinned = xjson.getRequiredStringVector("pinned");
     pref->mSaved = xjson.getRequiredStringVector("saved");
@@ -283,9 +283,9 @@ SavedFeedsPref::Ptr SavedFeedsPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
-PersonalDetailsPref::Ptr PersonalDetailsPref::fromJson(const QJsonObject& json)
+PersonalDetailsPref::SharedPtr PersonalDetailsPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<PersonalDetailsPref>();
+    auto pref = std::make_shared<PersonalDetailsPref>();
     XJsonObject xjson(json);
     pref->mBirthDate = xjson.getOptionalDateTime("birthDate");
     pref->mJson = json;
@@ -305,9 +305,9 @@ QJsonObject FeedViewPref::toJson() const
     return json;
 }
 
-FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
+FeedViewPref::SharedPtr FeedViewPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<FeedViewPref>();
+    auto pref = std::make_shared<FeedViewPref>();
     XJsonObject xjson(json);
     pref->mFeed = xjson.getRequiredString("feed");
     pref->mHideReplies = xjson.getOptionalBool("hideReplies", false);
@@ -319,9 +319,9 @@ FeedViewPref::Ptr FeedViewPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
-ThreadViewPref::Ptr ThreadViewPref::fromJson(const QJsonObject& json)
+ThreadViewPref::SharedPtr ThreadViewPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<ThreadViewPref>();
+    auto pref = std::make_shared<ThreadViewPref>();
     XJsonObject xjson(json);
     pref->mSort = xjson.getOptionalString("sort");
     pref->mPrioritizeFollowedUsers = xjson.getOptionalBool("prioritizeFollowedUsers", false);
@@ -375,9 +375,9 @@ QJsonObject MutedWord::toJson() const
     return json;
 }
 
-MutedWord::Ptr MutedWord::fromJson(const QJsonObject& json)
+MutedWord::SharedPtr MutedWord::fromJson(const QJsonObject& json)
 {
-    auto mutedWord = std::make_unique<MutedWord>();
+    auto mutedWord = std::make_shared<MutedWord>();
     const XJsonObject xjson(json);
     mutedWord->mValue = xjson.getRequiredString("value");
     const auto targets = xjson.getRequiredStringVector("targets");
@@ -407,9 +407,9 @@ QJsonObject MutedWordsPref::toJson() const
     return json;
 }
 
-MutedWordsPref::Ptr MutedWordsPref::fromJson(const QJsonObject& json)
+MutedWordsPref::SharedPtr MutedWordsPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<MutedWordsPref>();
+    auto pref = std::make_shared<MutedWordsPref>();
     const XJsonObject xjson(json);
     auto items = xjson.getRequiredVector<MutedWord>("items");
     pref->mItems.reserve(items.size());
@@ -428,9 +428,9 @@ QJsonObject LabelerPrefItem::toJson() const
     return json;
 }
 
-LabelerPrefItem::Ptr LabelerPrefItem::fromJson(const QJsonObject& json)
+LabelerPrefItem::SharedPtr LabelerPrefItem::fromJson(const QJsonObject& json)
 {
-    auto item = std::make_unique<LabelerPrefItem>();
+    auto item = std::make_shared<LabelerPrefItem>();
     const XJsonObject xjson(json);
     item->mDid = xjson.getRequiredString("did");
     item->mJson = json;
@@ -451,9 +451,9 @@ QJsonObject LabelersPref::toJson() const
     return json;
 }
 
-LabelersPref::Ptr LabelersPref::fromJson(const QJsonObject& json)
+LabelersPref::SharedPtr LabelersPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<LabelersPref>();
+    auto pref = std::make_shared<LabelersPref>();
     const XJsonObject xjson(json);
     auto labelers = xjson.getOptionalVector<LabelerPrefItem>("labelers");
 
@@ -464,9 +464,9 @@ LabelersPref::Ptr LabelersPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
-UnknownPref::Ptr UnknownPref::fromJson(const QJsonObject& json)
+UnknownPref::SharedPtr UnknownPref::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<UnknownPref>();
+    auto pref = std::make_shared<UnknownPref>();
     pref->mJson = json;
     return pref;
 }
@@ -492,9 +492,9 @@ PreferenceType stringToPreferenceType(const QString& str)
     return PreferenceType::UNKNOWN;
 }
 
-Preference::Ptr Preference::fromJson(const QJsonObject& json)
+Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
 {
-    auto pref = std::make_unique<Preference>();
+    auto pref = std::make_shared<Preference>();
     const XJsonObject xjson(json);
     pref->mRawType = xjson.getRequiredString("$type");
     pref->mType = stringToPreferenceType(pref->mRawType);
@@ -550,43 +550,43 @@ QJsonObject GetPreferencesOutput::toJson() const
     return json;
 }
 
-GetPreferencesOutput::Ptr GetPreferencesOutput::fromJson(const QJsonObject& json)
+GetPreferencesOutput::SharedPtr GetPreferencesOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetPreferencesOutput>();
+    auto output = std::make_shared<GetPreferencesOutput>();
     const XJsonObject xjson(json);
     output->mPreferences = xjson.getRequiredVector<Preference>("preferences");
     return output;
 }
 
-SearchActorsOutput::Ptr SearchActorsOutput::fromJson(const QJsonObject& json)
+SearchActorsOutput::SharedPtr SearchActorsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<SearchActorsOutput>();
+    auto output = std::make_shared<SearchActorsOutput>();
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mActors = xjson.getRequiredVector<ProfileView>("actors");
     return output;
 }
 
-SearchActorsTypeaheadOutput::Ptr SearchActorsTypeaheadOutput::fromJson(const QJsonObject& json)
+SearchActorsTypeaheadOutput::SharedPtr SearchActorsTypeaheadOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<SearchActorsTypeaheadOutput>();
+    auto output = std::make_shared<SearchActorsTypeaheadOutput>();
     const XJsonObject xjson(json);
     output->mActors = xjson.getRequiredVector<ProfileViewBasic>("actors");
     return output;
 }
 
-GetSuggestionsOutput::Ptr GetSuggestionsOutput::fromJson(const QJsonObject& json)
+GetSuggestionsOutput::SharedPtr GetSuggestionsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetSuggestionsOutput>();
+    auto output = std::make_shared<GetSuggestionsOutput>();
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mActors = xjson.getRequiredVector<ProfileView>("actors");
     return output;
 }
 
-GetSuggestedFollowsByActor::Ptr GetSuggestedFollowsByActor::fromJson(const QJsonObject& json)
+GetSuggestedFollowsByActor::SharedPtr GetSuggestedFollowsByActor::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetSuggestedFollowsByActor>();
+    auto output = std::make_shared<GetSuggestedFollowsByActor>();
     const XJsonObject xjson(json);
     output->mSuggestions = xjson.getRequiredVector<ProfileView>("suggestions");
     return output;

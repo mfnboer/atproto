@@ -18,8 +18,8 @@ struct ViewerState
     bool mThreadMuted = false;
     bool mReplyDisabled = false;
 
-    using Ptr = std::unique_ptr<ViewerState>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ViewerState>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.threadgate#listRule
@@ -29,8 +29,8 @@ struct ThreadgateListRule
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<ThreadgateListRule>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ThreadgateListRule>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.threadgate
@@ -39,14 +39,13 @@ struct Threadgate
     QString mPost; // at-uri
     bool mAllowMention = false;
     bool mAllowFollowing = false;
-    std::vector<ThreadgateListRule::Ptr> mAllowList;
+    std::vector<ThreadgateListRule::SharedPtr> mAllowList;
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Threadgate>;
     using SharedPtr = std::shared_ptr<Threadgate>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.feed.threadgate";
 };
 
@@ -56,12 +55,12 @@ struct ThreadgateView
     // NOTE: It seems odd that all fields are optional.
     std::optional<QString> mUri;
     std::optional<QString> mCid;
-    Threadgate::Ptr mRecord; // Can be nullptr when other record types get spec'd
+    Threadgate::SharedPtr mRecord; // Can be nullptr when other record types get spec'd
     QString mRawRecordType;
     AppBskyGraph::ListViewBasicList mLists;
 
-    using Ptr = std::unique_ptr<ThreadgateView>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ThreadgateView>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#postView
@@ -69,25 +68,24 @@ struct PostView
 {
     QString mUri; // at-uri
     QString mCid;
-    AppBskyActor::ProfileViewBasic::Ptr mAuthor; // required
-    std::variant<Record::Post::Ptr> mRecord;
+    AppBskyActor::ProfileViewBasic::SharedPtr mAuthor; // required
+    std::variant<Record::Post::SharedPtr> mRecord;
     RecordType mRecordType;
     QString mRawRecordType;
-    AppBskyEmbed::EmbedView::Ptr mEmbed; // optional
+    AppBskyEmbed::EmbedView::SharedPtr mEmbed; // optional
     int mReplyCount = 0;
     int mRepostCount = 0;
     int mLikeCount = 0;
     QDateTime mIndexedAt;
-    ViewerState::Ptr mViewer;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
-    ThreadgateView::Ptr mThreadgate; // optional
+    ViewerState::SharedPtr mViewer;
+    ComATProtoLabel::LabelList mLabels;
+    ThreadgateView::SharedPtr mThreadgate; // optional
 
     using SharedPtr = std::shared_ptr<PostView>;
-    using Ptr = std::unique_ptr<PostView>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using PostViewList = std::vector<PostView::Ptr>;
+using PostViewList = std::vector<PostView::SharedPtr>;
 void getPostViewList(PostViewList& list, const QJsonObject& json);
 
 // app.bsky.feed.defs#notFoundPost
@@ -95,8 +93,8 @@ struct NotFoundPost
 {
     QString mUri; // at-uri
 
-    using Ptr = std::unique_ptr<NotFoundPost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<NotFoundPost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#blockedAuthor
@@ -105,18 +103,18 @@ struct BlockedAuthor
     QString mDid;
     // NOT IMPLEMENTED viewer
 
-    using Ptr = std::unique_ptr<BlockedAuthor>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<BlockedAuthor>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#blockedPost
 struct BlockedPost
 {
     QString mUri; // at-uri
-    BlockedAuthor::Ptr mAuthor; // required
+    BlockedAuthor::SharedPtr mAuthor; // required
 
-    using Ptr = std::unique_ptr<BlockedPost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<BlockedPost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 enum class PostElementType
@@ -133,46 +131,46 @@ struct ReplyElement
 {
     PostElementType mType;
     QString mUnsupportedType;
-    std::variant<PostView::Ptr, NotFoundPost::Ptr, BlockedPost::Ptr> mPost;
+    std::variant<PostView::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
 
-    using Ptr = std::unique_ptr<ReplyElement>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ReplyElement>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#replyRef
 struct ReplyRef
 {
-    ReplyElement::Ptr mRoot; // required
-    ReplyElement::Ptr mParent; // required
-    AppBskyActor::ProfileViewBasic::Ptr mGrandparentAuthor; // optional
+    ReplyElement::SharedPtr mRoot; // required
+    ReplyElement::SharedPtr mParent; // required
+    AppBskyActor::ProfileViewBasic::SharedPtr mGrandparentAuthor; // optional
 
-    using Ptr = std::unique_ptr<ReplyRef>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ReplyRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#reasonRepost
 struct ReasonRepost
 {
-    AppBskyActor::ProfileViewBasic::Ptr mBy;
+    AppBskyActor::ProfileViewBasic::SharedPtr mBy;
     QDateTime mIndexedAt;
 
-    using Ptr = std::unique_ptr<ReasonRepost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ReasonRepost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#feedViewPost
 struct FeedViewPost
 {
-    PostView::Ptr mPost; // required
-    ReplyRef::Ptr mReply;
-    ReasonRepost::Ptr mReason;
+    PostView::SharedPtr mPost; // required
+    ReplyRef::SharedPtr mReply;
+    ReasonRepost::SharedPtr mReason;
     std::optional<QString> mFeedContext;
 
-    using Ptr = std::unique_ptr<FeedViewPost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<FeedViewPost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using PostFeed = std::vector<FeedViewPost::Ptr>;
+using PostFeed = std::vector<FeedViewPost::SharedPtr>;
 
 // app.bsky.feed.getAuthorFeed#output
 // app.bsky.feed.getTimeline#ouput
@@ -182,8 +180,8 @@ struct OutputFeed
     std::optional<QString> mCursor;
     PostFeed mFeed;
 
-    using Ptr = std::unique_ptr<OutputFeed>;
-    static Ptr fromJson(const QJsonDocument& json);
+    using SharedPtr = std::shared_ptr<OutputFeed>;
+    static SharedPtr fromJson(const QJsonDocument& json);
 };
 
 struct ThreadElement;
@@ -191,55 +189,55 @@ struct ThreadElement;
 // app.bsky.feed.defs#threadViewPost
 struct ThreadViewPost
 {
-    PostView::Ptr mPost; // required
-    std::unique_ptr<ThreadElement> mParent; // optional
-    std::vector<std::unique_ptr<ThreadElement>> mReplies;
+    PostView::SharedPtr mPost; // required
+    std::shared_ptr<ThreadElement> mParent; // optional
+    std::vector<std::shared_ptr<ThreadElement>> mReplies;
 
-    using Ptr = std::unique_ptr<ThreadViewPost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ThreadViewPost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct ThreadElement
 {
     PostElementType mType;
     QString mUnsupportedType;
-    std::variant<ThreadViewPost::Ptr, NotFoundPost::Ptr, BlockedPost::Ptr> mPost;
+    std::variant<ThreadViewPost::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
 
-    using Ptr = std::unique_ptr<ThreadElement>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ThreadElement>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.getPostThread/output
 struct PostThread
 {
-    ThreadElement::Ptr mThread; // required
+    ThreadElement::SharedPtr mThread; // required
 
-    using Ptr = std::unique_ptr<PostThread>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<PostThread>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.like
 struct Like
 {
-    ComATProtoRepo::StrongRef::Ptr mSubject;
+    ComATProtoRepo::StrongRef::SharedPtr mSubject;
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Like>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Like>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.repost
 struct Repost
 {
-    ComATProtoRepo::StrongRef::Ptr mSubject;
+    ComATProtoRepo::StrongRef::SharedPtr mSubject;
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Repost>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Repost>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.getLikes#like
@@ -247,10 +245,10 @@ struct GetLikesLike
 {
     QDateTime mIndexedAt;
     QDateTime mCreatedAt;
-    AppBskyActor::ProfileView::Ptr mActor;
+    AppBskyActor::ProfileView::SharedPtr mActor;
 
-    using Ptr = std::unique_ptr<GetLikesLike>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetLikesLike>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.getLikes/output
@@ -258,11 +256,11 @@ struct GetLikesOutput
 {
     QString mUri;
     std::optional<QString> mCid;
-    std::vector<GetLikesLike::Ptr> mLikes;
+    std::vector<GetLikesLike::SharedPtr> mLikes;
     std::optional<QString> mCursor;
 
-    using Ptr = std::unique_ptr<GetLikesOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetLikesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct SearchSortOrder : public QObject
@@ -285,8 +283,8 @@ struct GetRepostedByOutput
     AppBskyActor::ProfileViewList mRepostedBy;
     std::optional<QString> mCursor;
 
-    using Ptr = std::unique_ptr<GetRepostedByOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetRepostedByOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.searchPosts#output
@@ -296,26 +294,26 @@ struct SearchPostsOutput
     std::optional<int> mHitsTotal;
     PostViewList mPosts;
 
-    using Ptr = std::unique_ptr<SearchPostsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<SearchPostsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct GetFeedGeneratorOutput
 {
-    GeneratorView::Ptr mView; // required
+    GeneratorView::SharedPtr mView; // required
     bool mIsOnline;
     bool mIsValid;
 
-    using Ptr = std::unique_ptr<GetFeedGeneratorOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetFeedGeneratorOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct GetFeedGeneratorsOutput
 {
     GeneratorViewList mFeeds;
 
-    using Ptr = std::unique_ptr<GetFeedGeneratorsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetFeedGeneratorsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct GetActorFeedsOutput
@@ -323,8 +321,8 @@ struct GetActorFeedsOutput
     GeneratorViewList mFeeds;
     std::optional<QString> mCursor;
 
-    using Ptr = std::unique_ptr<GetActorFeedsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetActorFeedsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // app.bsky.feed.defs#interaction
@@ -343,9 +341,9 @@ struct Interaction
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Interaction>;
+    using SharedPtr = std::shared_ptr<Interaction>;
 };
 
-using InteractionList = std::vector<Interaction::Ptr>;
+using InteractionList = std::vector<Interaction::SharedPtr>;
 
 }

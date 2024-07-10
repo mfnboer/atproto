@@ -65,10 +65,10 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
         });
 }
 
-AppBskyFeed::Threadgate::Ptr PostMaster::createThreadgate(const QString& uri, bool allowMention,
+AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& uri, bool allowMention,
         bool allowFollowing, const QStringList& allowLists)
 {
-    auto threadgate = std::make_unique<AppBskyFeed::Threadgate>();
+    auto threadgate = std::make_shared<AppBskyFeed::Threadgate>();
     threadgate->mPost = uri;
     threadgate->mAllowMention = allowMention;
     threadgate->mAllowFollowing = allowFollowing;
@@ -76,7 +76,7 @@ AppBskyFeed::Threadgate::Ptr PostMaster::createThreadgate(const QString& uri, bo
 
     for (const auto& listUri : allowLists)
     {
-        auto listRule = std::make_unique<AppBskyFeed::ThreadgateListRule>();
+        auto listRule = std::make_shared<AppBskyFeed::ThreadgateListRule>();
         listRule->mList = listUri;
         threadgate->mAllowList.push_back(std::move(listRule));
     }
@@ -92,7 +92,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
         return;
 
     AppBskyFeed::Repost repost;
-    repost.mSubject = std::make_unique<ComATProtoRepo::StrongRef>();
+    repost.mSubject = std::make_shared<ComATProtoRepo::StrongRef>();
     repost.mSubject->mUri = uri;
     repost.mSubject->mCid = cid;
     repost.mCreatedAt = QDateTime::currentDateTimeUtc();
@@ -120,7 +120,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
         return;
 
     AppBskyFeed::Like like;
-    like.mSubject = std::make_unique<ComATProtoRepo::StrongRef>();
+    like.mSubject = std::make_shared<ComATProtoRepo::StrongRef>();
     like.mSubject->mUri = uri;
     like.mSubject->mCid = cid;
     like.mCreatedAt = QDateTime::currentDateTimeUtc();
@@ -199,17 +199,15 @@ void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
         });
 }
 
-void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::Ptr author, const PostCb& successCb)
+void PostMaster::continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::SharedPtr author, const PostCb& successCb)
 {
-    auto newAuthor = AppBskyActor::ProfileViewDetailed::SharedPtr(author.release());
-
     mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
-        [successCb, newAuthor](ComATProtoRepo::Record::Ptr record){
+        [successCb, author](ComATProtoRepo::Record::SharedPtr record){
             try {
                 auto post = AppBskyFeed::Record::Post::fromJson(record->mValue);
 
                 if (successCb)
-                    successCb(record->mUri, record->mCid.value_or(""), std::move(post), newAuthor);
+                    successCb(record->mUri, record->mCid.value_or(""), std::move(post), author);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
             }
@@ -295,29 +293,29 @@ void PostMaster::continueGetList(const ATUri& atUri, const ListCb& successCb)
         });
 }
 
-AppBskyFeed::PostReplyRef::Ptr PostMaster::createReplyRef(const QString& replyToUri, const QString& replyToCid,
+AppBskyFeed::PostReplyRef::SharedPtr PostMaster::createReplyRef(const QString& replyToUri, const QString& replyToCid,
                                               const QString& replyRootUri, const QString& replyRootCid)
 {
     if (replyToUri.isEmpty() || replyToCid.isEmpty())
         return nullptr;
 
-    auto replyRef = std::make_unique<ATProto::AppBskyFeed::PostReplyRef>();
+    auto replyRef = std::make_shared<ATProto::AppBskyFeed::PostReplyRef>();
 
-    replyRef->mParent = std::make_unique<ATProto::ComATProtoRepo::StrongRef>();
+    replyRef->mParent = std::make_shared<ATProto::ComATProtoRepo::StrongRef>();
     replyRef->mParent->mUri = replyToUri;
     replyRef->mParent->mCid = replyToCid;
 
-    replyRef->mRoot = std::make_unique<ATProto::ComATProtoRepo::StrongRef>();
+    replyRef->mRoot = std::make_shared<ATProto::ComATProtoRepo::StrongRef>();
     replyRef->mRoot->mUri = replyRootUri.isEmpty() ? replyToUri : replyRootUri;
     replyRef->mRoot->mCid = replyRootCid.isEmpty() ? replyToCid : replyRootCid;
 
     return replyRef;
 }
 
-AppBskyFeed::Record::Post::Ptr PostMaster::createPostWithoutFacets(
-    const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef)
+AppBskyFeed::Record::Post::SharedPtr PostMaster::createPostWithoutFacets(
+    const QString& text, const QString& language, AppBskyFeed::PostReplyRef::SharedPtr replyRef)
 {
-    auto post = std::make_unique<AppBskyFeed::Record::Post>();
+    auto post = std::make_shared<AppBskyFeed::Record::Post>();
     post->mCreatedAt = QDateTime::currentDateTimeUtc();
     post->mText = text;
 
@@ -328,7 +326,7 @@ AppBskyFeed::Record::Post::Ptr PostMaster::createPostWithoutFacets(
     return post;
 }
 
-void PostMaster::createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::Ptr replyRef, const PostCreatedCb& cb)
+void PostMaster::createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::SharedPtr replyRef, const PostCreatedCb& cb)
 {
     Q_ASSERT(cb);
     auto post = std::make_shared<AppBskyFeed::Record::Post>();
@@ -350,16 +348,16 @@ void PostMaster::createPost(const QString& text, const QString& language, AppBsk
 
 void PostMaster::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid)
 {
-    auto ref = std::make_unique<ComATProtoRepo::StrongRef>();
+    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
     ref->mUri = quoteUri;
     ref->mCid = quoteCid;
 
     Q_ASSERT(!post.mEmbed);
-    post.mEmbed = std::make_unique<AppBskyEmbed::Embed>();
+    post.mEmbed = std::make_shared<AppBskyEmbed::Embed>();
     post.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD;
-    post.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::Record>();
+    post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::Record>();
 
-    auto& record = std::get<AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+    auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(post.mEmbed->mEmbed);
     record->mRecord = std::move(ref);
 }
 
@@ -369,52 +367,52 @@ void PostMaster::addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringL
         return;
 
     if (!post.mLabels)
-        post.mLabels = std::make_unique<ComATProtoLabel::SelfLabels>();
+        post.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
 
     for (const auto& label : labels)
     {
-        auto l = std::make_unique<ComATProtoLabel::SelfLabel>();
+        auto l = std::make_shared<ComATProtoLabel::SelfLabel>();
         l->mVal = label;
         post.mLabels->mValues.push_back(std::move(l));
     }
 }
 
-void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob, const QString& altText)
+void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText)
 {
     if (!post.mEmbed)
     {
-        post.mEmbed = std::make_unique<AppBskyEmbed::Embed>();
+        post.mEmbed = std::make_shared<AppBskyEmbed::Embed>();
         post.mEmbed->mType = AppBskyEmbed::EmbedType::IMAGES;
-        post.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::Images>();
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::Images>();
     }
     else if (post.mEmbed->mType == AppBskyEmbed::EmbedType::RECORD)
     {
-        auto& record = std::get<AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+        auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(post.mEmbed->mEmbed);
         auto ref = std::move(record->mRecord);
         post.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA;
-        post.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::RecordWithMedia>();
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::RecordWithMedia>();
 
-        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
-        recordWithMedia->mRecord = std::make_unique<AppBskyEmbed::Record>();
+        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(post.mEmbed->mEmbed);
+        recordWithMedia->mRecord = std::make_shared<AppBskyEmbed::Record>();
         recordWithMedia->mRecord->mRecord = std::move(ref);
         recordWithMedia->mMediaType = AppBskyEmbed::EmbedType::IMAGES;
-        recordWithMedia->mMedia = std::make_unique<AppBskyEmbed::Images>();
+        recordWithMedia->mMedia = std::make_shared<AppBskyEmbed::Images>();
     }
 
-    auto image = std::make_unique<AppBskyEmbed::Image>();
+    auto image = std::make_shared<AppBskyEmbed::Image>();
     image->mImage = std::move(blob);
     image->mAlt = altText;
 
     AppBskyEmbed::Images* images = nullptr;
     if (post.mEmbed->mType == AppBskyEmbed::EmbedType::IMAGES)
     {
-        images = std::get<AppBskyEmbed::Images::Ptr>(post.mEmbed->mEmbed).get();
+        images = std::get<AppBskyEmbed::Images::SharedPtr>(post.mEmbed->mEmbed).get();
     }
     else
     {
         Q_ASSERT(post.mEmbed->mType == AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA);
-        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
-        images = std::get<AppBskyEmbed::Images::Ptr>(recordWithMedia->mMedia).get();
+        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(post.mEmbed->mEmbed);
+        images = std::get<AppBskyEmbed::Images::SharedPtr>(recordWithMedia->mMedia).get();
     }
 
     Q_ASSERT(images);
@@ -422,36 +420,36 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::Ptr blob,
 }
 
 void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
-                               const QString& title, const QString& description, Blob::Ptr blob)
+                               const QString& title, const QString& description, Blob::SharedPtr blob)
 {
     AppBskyEmbed::External* embed = nullptr;
 
     if (!post.mEmbed)
     {
-        post.mEmbed = std::make_unique<AppBskyEmbed::Embed>();
+        post.mEmbed = std::make_shared<AppBskyEmbed::Embed>();
         post.mEmbed->mType = AppBskyEmbed::EmbedType::EXTERNAL;
-        post.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::External>();
-        embed = std::get<AppBskyEmbed::External::Ptr>(post.mEmbed->mEmbed).get();
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::External>();
+        embed = std::get<AppBskyEmbed::External::SharedPtr>(post.mEmbed->mEmbed).get();
     }
     else
     {
         Q_ASSERT(post.mEmbed->mType == AppBskyEmbed::EmbedType::RECORD);
-        auto& record = std::get<AppBskyEmbed::Record::Ptr>(post.mEmbed->mEmbed);
+        auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(post.mEmbed->mEmbed);
         auto ref = std::move(record->mRecord);
         post.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA;
-        post.mEmbed->mEmbed = std::make_unique<AppBskyEmbed::RecordWithMedia>();
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::RecordWithMedia>();
 
-        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::Ptr>(post.mEmbed->mEmbed);
-        recordWithMedia->mRecord = std::make_unique<AppBskyEmbed::Record>();
+        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(post.mEmbed->mEmbed);
+        recordWithMedia->mRecord = std::make_shared<AppBskyEmbed::Record>();
         recordWithMedia->mRecord->mRecord = std::move(ref);
         recordWithMedia->mMediaType = AppBskyEmbed::EmbedType::EXTERNAL;
-        recordWithMedia->mMedia = std::make_unique<AppBskyEmbed::External>();
+        recordWithMedia->mMedia = std::make_shared<AppBskyEmbed::External>();
 
-        embed = std::get<AppBskyEmbed::External::Ptr>(recordWithMedia->mMedia).get();
+        embed = std::get<AppBskyEmbed::External::SharedPtr>(recordWithMedia->mMedia).get();
     }
 
     Q_ASSERT(embed);
-    embed->mExternal = std::make_unique<AppBskyEmbed::ExternalExternal>();
+    embed->mExternal = std::make_shared<AppBskyEmbed::ExternalExternal>();
     embed->mExternal->mUri = link;
     embed->mExternal->mTitle = title;
     embed->mExternal->mDescription = description;

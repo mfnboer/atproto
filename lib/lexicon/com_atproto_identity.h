@@ -10,8 +10,8 @@ struct ResolveHandleOutput
 {
     QString mDid;
 
-    using Ptr = std::unique_ptr<ResolveHandleOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ResolveHandleOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }
