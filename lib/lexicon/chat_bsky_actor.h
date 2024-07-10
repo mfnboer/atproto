@@ -14,8 +14,8 @@ struct Declaration
 
     QJsonObject toJson() const;
 
-    using Ptr = std::unique_ptr<Declaration>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Declaration>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // chat.bsky.actor.defs#profileViewBasic
@@ -25,15 +25,15 @@ struct ProfileViewBasic
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
     std::optional<QString> mAvatar; // URL
-    AppBskyActor::ProfileAssociated::Ptr mAssociated; // optional
-    AppBskyActor::ViewerState::Ptr mViewer; // optional
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    AppBskyActor::ProfileAssociated::SharedPtr mAssociated; // optional
+    AppBskyActor::ViewerState::SharedPtr mViewer; // optional
+    ComATProtoLabel::LabelList mLabels;
     bool mChatDisabled = false;
 
-    using Ptr = std::unique_ptr<ProfileViewBasic>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ProfileViewBasic>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using ProfileViewBasicList = std::vector<ProfileViewBasic::Ptr>;
+using ProfileViewBasicList = std::vector<ProfileViewBasic::SharedPtr>;
 
 }

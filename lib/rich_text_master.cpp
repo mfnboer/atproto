@@ -237,7 +237,7 @@ void RichTextMaster::addFacets(const QString& text, const std::vector<ParsedMatc
         const int end = convertIndextoUtf8Index(shortenedText.size(), shortenedText);
         pos = f.mEndIndex;
 
-        auto facet = std::make_unique<AppBskyRichtext::Facet>();
+        auto facet = std::make_shared<AppBskyRichtext::Facet>();
         facet->mIndex.mByteStart = start;
         facet->mIndex.mByteEnd = end;
 
@@ -248,21 +248,21 @@ void RichTextMaster::addFacets(const QString& text, const std::vector<ParsedMatc
         {
         case AppBskyRichtext::Facet::Feature::Type::LINK:
         {
-            auto link = std::make_unique<AppBskyRichtext::FacetLink>();
+            auto link = std::make_shared<AppBskyRichtext::FacetLink>();
             link->mUri = f.mRef;
             feature.mFeature = std::move(link);
             break;
         }
         case AppBskyRichtext::Facet::Feature::Type::MENTION:
         {
-            auto mention = std::make_unique<AppBskyRichtext::FacetMention>();
+            auto mention = std::make_shared<AppBskyRichtext::FacetMention>();
             mention->mDid = f.mRef;
             feature.mFeature = std::move(mention);
             break;
         }
         case AppBskyRichtext::Facet::Feature::Type::TAG:
         {
-            auto tag = std::make_unique<AppBskyRichtext::FacetTag>();
+            auto tag = std::make_shared<AppBskyRichtext::FacetTag>();
             tag->mTag = f.mRef;
             feature.mFeature = std::move(tag);
             break;
@@ -501,7 +501,7 @@ std::vector<QString> RichTextMaster::getFacetTags(AppBskyFeed::Record::Post& pos
         {
             if (feature.mType == ATProto::AppBskyRichtext::Facet::Feature::Type::TAG)
             {
-                const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::Ptr>(feature.mFeature);
+                const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::SharedPtr>(feature.mFeature);
                 tags.push_back(facetTag->mTag);
             }
         }

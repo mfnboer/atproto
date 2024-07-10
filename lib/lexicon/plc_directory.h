@@ -9,8 +9,8 @@ struct PlcError
 {
     std::optional<QString> mMessage;
 
-    using Ptr = std::unique_ptr<PlcError>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<PlcError>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct PlcAuditLogEntry
@@ -18,18 +18,18 @@ struct PlcAuditLogEntry
     QString mDid;
     QDateTime mCreatedAt;
 
-    using Ptr = std::unique_ptr<PlcAuditLogEntry>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<PlcAuditLogEntry>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using PlcAutitLogEntryList = std::vector<PlcAuditLogEntry::Ptr>;
+using PlcAutitLogEntryList = std::vector<PlcAuditLogEntry::SharedPtr>;
 
 struct PlcAuditLog
 {
     PlcAutitLogEntryList mEntries;
 
-    using Ptr = std::unique_ptr<PlcAuditLog>;
-    static Ptr fromJson(const QJsonDocument& json);
+    using SharedPtr = std::shared_ptr<PlcAuditLog>;
+    static SharedPtr fromJson(const QJsonDocument& json);
 };
 
 }

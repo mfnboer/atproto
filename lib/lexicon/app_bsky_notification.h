@@ -27,24 +27,24 @@ struct Notification
 {
     QString mUri;
     QString mCid;
-    AppBskyActor::ProfileView::Ptr mAuthor;
+    AppBskyActor::ProfileView::SharedPtr mAuthor;
     NotificationReason mReason;
     QString mRawReason;
     std::optional<QString> mReasonSubject; // at-uri
-    std::variant<AppBskyFeed::Record::Post::Ptr,
-                 AppBskyFeed::Like::Ptr,
-                 AppBskyFeed::Repost::Ptr,
-                 AppBskyGraph::Follow::Ptr> mRecord;
+    std::variant<AppBskyFeed::Record::Post::SharedPtr,
+                 AppBskyFeed::Like::SharedPtr,
+                 AppBskyFeed::Repost::SharedPtr,
+                 AppBskyGraph::Follow::SharedPtr> mRecord;
     QString mRawRecordType;
     bool mIsRead;
     QDateTime mIndexedAt;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
+    ComATProtoLabel::LabelList mLabels;
 
-    using Ptr = std::unique_ptr<Notification>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<Notification>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using NotificationList = std::vector<Notification::Ptr>;
+using NotificationList = std::vector<Notification::SharedPtr>;
 
 // app.bsky.notification.listNotifications#Output
 struct ListNotificationsOutput
@@ -52,8 +52,8 @@ struct ListNotificationsOutput
     std::optional<QString> mCursor;
     NotificationList mNotifications;
 
-    using Ptr = std::unique_ptr<ListNotificationsOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ListNotificationsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

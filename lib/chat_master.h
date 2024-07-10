@@ -12,7 +12,7 @@ class ChatMaster : public Presence
 {
 public:
     using MessageCreatedCb = std::function<void(ChatBskyConvo::MessageInput::SharedPtr)>;
-    using DeclarationCb = std::function<void(ChatBskyActor::Declaration::Ptr)>;
+    using DeclarationCb = std::function<void(ChatBskyActor::Declaration::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 

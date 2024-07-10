@@ -53,7 +53,7 @@ void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppea
     }
 
     getAuditLog(did,
-        [this, did, successCb, errorCb](PlcAuditLog::Ptr auditLog) {
+        [this, did, successCb, errorCb](PlcAuditLog::SharedPtr auditLog) {
             if (auditLog->mEntries.empty())
             {
                 qWarning() << "Empty audit log";

@@ -14,8 +14,8 @@ struct ListViewerState
     bool mMuted = false;
     std::optional<QString> mBlocked; // at-uri
 
-    using Ptr = std::unique_ptr<ListViewerState>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<ListViewerState>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 enum class ListPurpose
@@ -35,13 +35,12 @@ struct ListViewBasic
     ListPurpose mPurpose;
     QString mRawPurpose;
     std::optional<QString> mAvatar;
-    std::vector<ComATProtoLabel::Label::Ptr> mLabels;
-    ListViewerState::Ptr mViewer; // optional
+    ComATProtoLabel::LabelList mLabels;
+    ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 
     using SharedPtr = std::shared_ptr<ListViewBasic>;
-    using Ptr = std::unique_ptr<ListViewBasic>;
-    static Ptr fromJson(const QJsonObject& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

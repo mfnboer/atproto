@@ -20,8 +20,8 @@ struct Session
 
     std::optional<QString> getPDS() const;
 
-    using Ptr = std::unique_ptr<Session>;
-    static Ptr fromJson(const QJsonDocument& json);
+    using SharedPtr = std::shared_ptr<Session>;
+    static SharedPtr fromJson(const QJsonDocument& json);
 };
 
 // com.atproto.server.refreshSession#output
@@ -34,8 +34,8 @@ struct GetSessionOutput
     bool mEmailAuthFactor = false;
     DidDocument::SharedPtr mDidDoc; // optional
 
-    using Ptr = std::unique_ptr<GetSessionOutput>;
-    static Ptr fromJson(const QJsonDocument& json);
+    using SharedPtr = std::shared_ptr<GetSessionOutput>;
+    static SharedPtr fromJson(const QJsonDocument& json);
 };
 
 // com.atproto.server.defs#inviteCodeUse
@@ -44,9 +44,10 @@ struct InviteCodeUse
     QString mUsedBy;
     QDateTime mUsedAt;
 
-    using Ptr = std::unique_ptr<InviteCodeUse>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<InviteCodeUse>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using InviteCodeUseList = std::vector<InviteCodeUse::SharedPtr>;
 
 // com.atproto.server.defs#inviteCode
 struct InviteCode
@@ -57,19 +58,20 @@ struct InviteCode
     QString mForAccount;
     QString mCreatedBy;
     QDateTime mCreatedAt;
-    std::vector<InviteCodeUse::Ptr> mUses;
+    InviteCodeUseList mUses;
 
-    using Ptr = std::unique_ptr<InviteCode>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<InviteCode>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
+using InviteCodeList = std::vector<InviteCode::SharedPtr>;
 
 // com.atproto.server.getAccountInviteCodes#ouput
 struct GetAccountInviteCodesOutput
 {
-    std::vector<InviteCode::Ptr> mCodes;
+    InviteCodeList mCodes;
 
-    using Ptr = std::unique_ptr<GetAccountInviteCodesOutput>;
-    static Ptr fromJson(const QJsonObject& json);
+    using SharedPtr = std::shared_ptr<GetAccountInviteCodesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

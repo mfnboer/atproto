@@ -8,9 +8,9 @@
 
 namespace ATProto::AppBskyFeed {
 
-ViewerState::Ptr ViewerState::fromJson(const QJsonObject& json)
+ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
 {
-    auto viewerState = std::make_unique<ViewerState>();
+    auto viewerState = std::make_shared<ViewerState>();
     XJsonObject xjson(json);
     viewerState->mRepost = xjson.getOptionalString("repost");
     viewerState->mLike = xjson.getOptionalString("like");
@@ -27,9 +27,9 @@ QJsonObject ThreadgateListRule::toJson() const
     return json;
 }
 
-ThreadgateListRule::Ptr ThreadgateListRule::fromJson(const QJsonObject& json)
+ThreadgateListRule::SharedPtr ThreadgateListRule::fromJson(const QJsonObject& json)
 {
-    auto rule = std::make_unique<ThreadgateListRule>();
+    auto rule = std::make_shared<ThreadgateListRule>();
     XJsonObject xjson(json);
     rule->mList = xjson.getRequiredString("list");
     return rule;
@@ -65,9 +65,9 @@ QJsonObject Threadgate::toJson() const
     return json;
 }
 
-Threadgate::Ptr Threadgate::fromJson(const QJsonObject& json)
+Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
 {
-    auto threadgate = std::make_unique<Threadgate>();
+    auto threadgate = std::make_shared<Threadgate>();
     XJsonObject xjson(json);
     threadgate->mPost = xjson.getRequiredString("post");
     const auto allowArray = xjson.getOptionalArray("allow");
@@ -111,9 +111,9 @@ Threadgate::Ptr Threadgate::fromJson(const QJsonObject& json)
     return threadgate;
 }
 
-ThreadgateView::Ptr ThreadgateView::fromJson(const QJsonObject& json)
+ThreadgateView::SharedPtr ThreadgateView::fromJson(const QJsonObject& json)
 {
-    auto threadgateView = std::make_unique<ThreadgateView>();
+    auto threadgateView = std::make_shared<ThreadgateView>();
     XJsonObject xjson(json);
     threadgateView->mUri = xjson.getOptionalString("uri");
     threadgateView->mCid = xjson.getOptionalString("cid");
@@ -142,9 +142,9 @@ QJsonObject PostReplyRef::toJson() const
     return json;
 }
 
-PostReplyRef::Ptr PostReplyRef::fromJson(const QJsonObject& json)
+PostReplyRef::SharedPtr PostReplyRef::fromJson(const QJsonObject& json)
 {
-    auto replyRef = std::make_unique<PostReplyRef>();
+    auto replyRef = std::make_shared<PostReplyRef>();
     XJsonObject xjson(json);
     replyRef->mRoot = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("root");
     replyRef->mParent = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("parent");
@@ -168,9 +168,9 @@ QJsonObject Record::Post::toJson() const
     return json;
 }
 
-Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
+Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
 {
-    auto post = std::make_unique<Record::Post>();
+    auto post = std::make_shared<Record::Post>();
     XJsonObject xjson(json);
     post->mText = xjson.getRequiredString("text");
     post->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
@@ -183,9 +183,9 @@ Record::Post::Ptr Record::Post::fromJson(const QJsonObject& json)
     return post;
 }
 
-PostView::Ptr PostView::fromJson(const QJsonObject& json)
+PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
 {
-    auto postView = std::make_unique<PostView>();
+    auto postView = std::make_shared<PostView>();
     XJsonObject xjson(json);
     postView->mUri = xjson.getRequiredString("uri");
     postView->mCid = xjson.getRequiredString("cid");
@@ -217,9 +217,9 @@ void getPostViewList(PostViewList& list, const QJsonObject& json)
     list = xjson.getRequiredVector<PostView>("posts");
 }
 
-ReplyElement::Ptr ReplyElement::fromJson(const QJsonObject& json)
+ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
 {
-    auto element = std::make_unique<ReplyElement>();
+    auto element = std::make_shared<ReplyElement>();
     const XJsonObject xjson(json);
     const auto typeString = xjson.getRequiredString("$type");
     element->mType = stringToPostElementType(typeString);
@@ -245,9 +245,9 @@ ReplyElement::Ptr ReplyElement::fromJson(const QJsonObject& json)
     return element;
 }
 
-ReplyRef::Ptr ReplyRef::fromJson(const QJsonObject& json)
+ReplyRef::SharedPtr ReplyRef::fromJson(const QJsonObject& json)
 {
-    auto replyRef = std::make_unique<ReplyRef>();
+    auto replyRef = std::make_shared<ReplyRef>();
     XJsonObject xjson(json);
     replyRef->mRoot = xjson.getRequiredObject<ReplyElement>("root");
     replyRef->mParent = xjson.getRequiredObject<ReplyElement>("parent");
@@ -255,18 +255,18 @@ ReplyRef::Ptr ReplyRef::fromJson(const QJsonObject& json)
     return replyRef;
 }
 
-ReasonRepost::Ptr ReasonRepost::fromJson(const QJsonObject& json)
+ReasonRepost::SharedPtr ReasonRepost::fromJson(const QJsonObject& json)
 {
-    auto reason = std::make_unique<ReasonRepost>();
+    auto reason = std::make_shared<ReasonRepost>();
     XJsonObject xjson(json);
     reason->mBy = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("by");
     reason->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return reason;
 }
 
-FeedViewPost::Ptr FeedViewPost::fromJson(const QJsonObject& json)
+FeedViewPost::SharedPtr FeedViewPost::fromJson(const QJsonObject& json)
 {
-    auto feedViewPost = std::make_unique<FeedViewPost>();
+    auto feedViewPost = std::make_shared<FeedViewPost>();
     XJsonObject xjson(json);
     feedViewPost->mPost = xjson.getRequiredObject<PostView>("post");
     feedViewPost->mReply = xjson.getOptionalObject<ReplyRef>("reply");
@@ -307,9 +307,9 @@ static void getFeed(PostFeed& feed, const QJsonObject& json)
     }
 }
 
-OutputFeed::Ptr OutputFeed::fromJson(const QJsonDocument& json)
+OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonDocument& json)
 {
-    auto outputFeed = std::make_unique<OutputFeed>();
+    auto outputFeed = std::make_shared<OutputFeed>();
     const auto jsonObj = json.object();
     XJsonObject xjson(jsonObj);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
@@ -317,34 +317,34 @@ OutputFeed::Ptr OutputFeed::fromJson(const QJsonDocument& json)
     return outputFeed;
 }
 
-NotFoundPost::Ptr NotFoundPost::fromJson(const QJsonObject& json)
+NotFoundPost::SharedPtr NotFoundPost::fromJson(const QJsonObject& json)
 {
-    auto notFound = std::make_unique<NotFoundPost>();
+    auto notFound = std::make_shared<NotFoundPost>();
     const XJsonObject xjson(json);
     notFound->mUri = xjson.getRequiredString("uri");
     return notFound;
 }
 
-BlockedAuthor::Ptr BlockedAuthor::fromJson(const QJsonObject& json)
+BlockedAuthor::SharedPtr BlockedAuthor::fromJson(const QJsonObject& json)
 {
-    auto blockedAuthor = std::make_unique<BlockedAuthor>();
+    auto blockedAuthor = std::make_shared<BlockedAuthor>();
     const XJsonObject xjson(json);
     blockedAuthor->mDid = xjson.getRequiredString("did");
     return blockedAuthor;
 }
 
-BlockedPost::Ptr BlockedPost::fromJson(const QJsonObject& json)
+BlockedPost::SharedPtr BlockedPost::fromJson(const QJsonObject& json)
 {
-    auto blockedPost = std::make_unique<BlockedPost>();
+    auto blockedPost = std::make_shared<BlockedPost>();
     const XJsonObject xjson(json);
     blockedPost->mUri = xjson.getRequiredString("uri");
     blockedPost->mAuthor = xjson.getRequiredObject<BlockedAuthor>("author");
     return blockedPost;
 }
 
-ThreadViewPost::Ptr ThreadViewPost::fromJson(const QJsonObject& json)
+ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
 {
-    auto thread = std::make_unique<ThreadViewPost>();
+    auto thread = std::make_shared<ThreadViewPost>();
     const XJsonObject xjson(json);
     thread->mPost = xjson.getRequiredObject<PostView>("post");
     thread->mParent = xjson.getOptionalObject<ThreadElement>("parent");
@@ -368,9 +368,9 @@ PostElementType stringToPostElementType(const QString& str)
     return PostElementType::UNKNOWN;
 }
 
-ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
+ThreadElement::SharedPtr ThreadElement::fromJson(const QJsonObject& json)
 {
-    auto element = std::make_unique<ThreadElement>();
+    auto element = std::make_shared<ThreadElement>();
     const XJsonObject xjson(json);
     const auto typeString = xjson.getRequiredString("$type");
     element->mType = stringToPostElementType(typeString);
@@ -396,9 +396,9 @@ ThreadElement::Ptr ThreadElement::fromJson(const QJsonObject& json)
     return element;
 }
 
-PostThread::Ptr PostThread::fromJson(const QJsonObject& json)
+PostThread::SharedPtr PostThread::fromJson(const QJsonObject& json)
 {
-    auto postThread = std::make_unique<PostThread>();
+    auto postThread = std::make_shared<PostThread>();
     const XJsonObject xjson(json);
     postThread->mThread = xjson.getRequiredObject<ThreadElement>("thread");
     return postThread;
@@ -413,9 +413,9 @@ QJsonObject Like::toJson() const
     return json;
 }
 
-Like::Ptr Like::fromJson(const QJsonObject& json)
+Like::SharedPtr Like::fromJson(const QJsonObject& json)
 {
-    auto like = std::make_unique<Like>();
+    auto like = std::make_shared<Like>();
     const XJsonObject xjson(json);
     like->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
@@ -431,18 +431,18 @@ QJsonObject Repost::toJson() const
     return json;
 }
 
-Repost::Ptr Repost::fromJson(const QJsonObject& json)
+Repost::SharedPtr Repost::fromJson(const QJsonObject& json)
 {
-    auto repost = std::make_unique<Repost>();
+    auto repost = std::make_shared<Repost>();
     const XJsonObject xjson(json);
     repost->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     repost->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return repost;
 }
 
-GetLikesLike::Ptr GetLikesLike::fromJson(const QJsonObject& json)
+GetLikesLike::SharedPtr GetLikesLike::fromJson(const QJsonObject& json)
 {
-    auto like = std::make_unique<GetLikesLike>();
+    auto like = std::make_shared<GetLikesLike>();
     const XJsonObject xjson(json);
     like->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
@@ -450,9 +450,9 @@ GetLikesLike::Ptr GetLikesLike::fromJson(const QJsonObject& json)
     return like;
 }
 
-GetLikesOutput::Ptr GetLikesOutput::fromJson(const QJsonObject& json)
+GetLikesOutput::SharedPtr GetLikesOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetLikesOutput>();
+    auto output = std::make_shared<GetLikesOutput>();
     const XJsonObject xjson(json);
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
@@ -461,9 +461,9 @@ GetLikesOutput::Ptr GetLikesOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
-GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
+GetRepostedByOutput::SharedPtr GetRepostedByOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetRepostedByOutput>();
+    auto output = std::make_shared<GetRepostedByOutput>();
     const XJsonObject xjson(json);
     output->mUri = xjson.getRequiredString("uri");
     output->mCid = xjson.getOptionalString("cid");
@@ -472,9 +472,9 @@ GetRepostedByOutput::Ptr GetRepostedByOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
-SearchPostsOutput::Ptr SearchPostsOutput::fromJson(const QJsonObject& json)
+SearchPostsOutput::SharedPtr SearchPostsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<SearchPostsOutput>();
+    auto output = std::make_shared<SearchPostsOutput>();
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
@@ -482,9 +482,9 @@ SearchPostsOutput::Ptr SearchPostsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
-GeneratorViewerState::Ptr GeneratorViewerState::fromJson(const QJsonObject& json)
+GeneratorViewerState::SharedPtr GeneratorViewerState::fromJson(const QJsonObject& json)
 {
-    auto viewerState = std::make_unique<GeneratorViewerState>();
+    auto viewerState = std::make_shared<GeneratorViewerState>();
     const XJsonObject xjson(json);
     viewerState->mLike = xjson.getOptionalString("like");
     return viewerState;
@@ -505,9 +505,9 @@ QJsonObject GeneratorView::toJson() const
     return json;
 }
 
-GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
+GeneratorView::SharedPtr GeneratorView::fromJson(const QJsonObject& json)
 {
-    auto view = std::make_unique<GeneratorView>();
+    auto view = std::make_shared<GeneratorView>();
     const XJsonObject xjson(json);
     view->mUri = xjson.getRequiredString("uri");
     view->mCid = xjson.getRequiredString("cid");
@@ -525,9 +525,9 @@ GeneratorView::Ptr GeneratorView::fromJson(const QJsonObject& json)
     return view;
 }
 
-GetFeedGeneratorOutput::Ptr GetFeedGeneratorOutput::fromJson(const QJsonObject& json)
+GetFeedGeneratorOutput::SharedPtr GetFeedGeneratorOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetFeedGeneratorOutput>();
+    auto output = std::make_shared<GetFeedGeneratorOutput>();
     const XJsonObject xjson(json);
     output->mView = xjson.getRequiredObject<GeneratorView>("view");
     output->mIsOnline = xjson.getRequiredBool("isOnline");
@@ -535,17 +535,17 @@ GetFeedGeneratorOutput::Ptr GetFeedGeneratorOutput::fromJson(const QJsonObject& 
     return output;
 }
 
-GetFeedGeneratorsOutput::Ptr GetFeedGeneratorsOutput::fromJson(const QJsonObject& json)
+GetFeedGeneratorsOutput::SharedPtr GetFeedGeneratorsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetFeedGeneratorsOutput>();
+    auto output = std::make_shared<GetFeedGeneratorsOutput>();
     const XJsonObject xjson(json);
     output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
     return output;
 }
 
-GetActorFeedsOutput::Ptr GetActorFeedsOutput::fromJson(const QJsonObject& json)
+GetActorFeedsOutput::SharedPtr GetActorFeedsOutput::fromJson(const QJsonObject& json)
 {
-    auto output = std::make_unique<GetActorFeedsOutput>();
+    auto output = std::make_shared<GetActorFeedsOutput>();
     const XJsonObject xjson(json);
     output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
     output->mCursor = xjson.getOptionalString("cursor");

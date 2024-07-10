@@ -170,7 +170,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                 if (resumed->mDid == session.mDid)
                 {
                     qInfo() << "Session resumed";
-                    mSession = std::make_unique<ComATProtoServer::Session>(session);
+                    mSession = std::make_shared<ComATProtoServer::Session>(session);
                     mSession->mHandle = resumed->mHandle;
                     mSession->mEmail = resumed->mEmail;
                     mSession->mEmailConfirmed = resumed->mEmailConfirmed;
