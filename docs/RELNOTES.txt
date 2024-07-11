@@ -1,5 +1,5 @@
-next
-====
+3.0
+===
 * Use shared_ptr in protocol structs
 
 2.4
