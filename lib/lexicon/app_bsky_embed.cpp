@@ -80,6 +80,7 @@ ImagesViewImage::SharedPtr ImagesViewImage::fromJson(const QJsonObject& json)
     viewImage->mFullSize = xjson.getRequiredString("fullsize");
     viewImage->mAlt = xjson.getRequiredString("alt");
     viewImage->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    viewImage->mJson = json;
     return viewImage;
 }
 
