@@ -124,6 +124,7 @@ struct ImagesViewImage
     QString mFullSize;
     QString mAlt;
     AspectRatio::SharedPtr mAspectRatio; // optional
+    QJsonObject mJson;
 
     using SharedPtr = std::shared_ptr<ImagesViewImage>;
     static SharedPtr fromJson(const QJsonObject& json);
