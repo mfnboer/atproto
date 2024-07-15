@@ -402,6 +402,7 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
     auto image = std::make_shared<AppBskyEmbed::Image>();
     image->mImage = std::move(blob);
     image->mAlt = altText;
+    // TODO: set aspectRatio
 
     AppBskyEmbed::Images* images = nullptr;
     if (post.mEmbed->mType == AppBskyEmbed::EmbedType::IMAGES)
