@@ -60,7 +60,7 @@ public:
     void createPost(const QString& text, const QString& language, AppBskyFeed::PostReplyRef::SharedPtr replyRef, const PostCreatedCb& cb);
     static void addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid);
     static void addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringList& labels);
-    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText);
+    static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::SharedPtr blob = nullptr);
 

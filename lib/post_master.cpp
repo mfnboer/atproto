@@ -377,7 +377,7 @@ void PostMaster::addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringL
     }
 }
 
-void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText)
+void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText)
 {
     if (!post.mEmbed)
     {
@@ -402,7 +402,9 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
     auto image = std::make_shared<AppBskyEmbed::Image>();
     image->mImage = std::move(blob);
     image->mAlt = altText;
-    // TODO: set aspectRatio
+    image->mAspectRatio = std::make_shared<AppBskyEmbed::AspectRatio>();
+    image->mAspectRatio->mWidth = width;
+    image->mAspectRatio->mHeight = height;
 
     AppBskyEmbed::Images* images = nullptr;
     if (post.mEmbed->mType == AppBskyEmbed::EmbedType::IMAGES)
