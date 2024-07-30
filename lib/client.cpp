@@ -1921,6 +1921,14 @@ void Client::requestFailed(const QString& err, const QJsonDocument& json, const 
     qInfo() << "Request failed:" << err;
     qInfo() << json;
 
+    if (json.isNull())
+    {
+        if (errorCb)
+            errorCb(err, err);
+
+        return;
+    }
+
     if (json.isEmpty())
     {
         if (errorCb)

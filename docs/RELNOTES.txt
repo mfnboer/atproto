@@ -1,6 +1,7 @@
 next
 ====
 * Avatar thumbnails
+* Pass XRPC_TIMEOUT errors to caller
 
 3.1
 ===

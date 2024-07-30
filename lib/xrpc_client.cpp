@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "xrpc_client.h"
+#include "lexicon/lexicon.h"
 #include <QSslSocket>
 #include <QUrlQuery>
 
@@ -199,7 +200,7 @@ void Client::networkError(const Request& request, QNetworkReply* reply, QNetwork
     if (errorCode == QNetworkReply::OperationCanceledError)
     {
         reply->disconnect();
-        errorCb(errorMsg, {});
+        errorCb(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {});
         return;
     }
 

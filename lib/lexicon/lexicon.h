@@ -45,6 +45,9 @@ public:
     SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
     SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));
     SHARED_CONST(QString, INVALID_TOKEN, QStringLiteral("InvalidToken"));
+
+    // Internal stack error
+    SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 };
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.
