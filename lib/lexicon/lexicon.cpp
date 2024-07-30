@@ -123,4 +123,10 @@ DidDocument::SharedPtr DidDocument::fromJson(const QJsonObject& json)
     return didDoc;
 }
 
+QString createAvatarThumbUrl(const QString& avatarUrl)
+{
+    QString url = avatarUrl;
+    return url.replace("/img/avatar/plain/", "/img/avatar_thumbnail/plain/");
+}
+
 }
