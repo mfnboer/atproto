@@ -1190,10 +1190,10 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
         authToken());
 }
 
-void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt,
+void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, bool priority,
                                         const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    Xrpc::Client::Params params;
+    Xrpc::Client::Params params{{ "priority", boolValue(priority) }};
     addOptionalDateTimeParam(params, "seenAt", seenAt);
 
     mXrpc->get("app.bsky.notification.getUnreadCount", params, {},
@@ -1230,11 +1230,11 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 }
 
 void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
-                       const std::optional<QDateTime>& seenAt,
+                       const std::optional<QDateTime>& seenAt, bool priority,
                        const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                        bool updateSeen)
 {
-    Xrpc::Client::Params params;
+    Xrpc::Client::Params params{{ "priority", boolValue(priority) }};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalDateTimeParam(params, "seenAt", seenAt);
