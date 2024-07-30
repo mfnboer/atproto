@@ -97,4 +97,6 @@ struct DidDocument {
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+QString createAvatarThumbUrl(const QString& avatarUrl);
+
 }
