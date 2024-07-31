@@ -51,6 +51,8 @@ struct ListNotificationsOutput
 {
     std::optional<QString> mCursor;
     NotificationList mNotifications;
+    bool mPriority = false;
+    std::optional<QDateTime> mSeenAt;
 
     using SharedPtr = std::shared_ptr<ListNotificationsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

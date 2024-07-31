@@ -49,6 +49,13 @@ static void addOptionalDateTimeParam(Xrpc::Client::Params& params, const QString
         params.append({name, value->toString(Qt::ISODateWithMs)});
 }
 
+static void addOptionalBoolParam(Xrpc::Client::Params& params, const QString& name,
+                                 const std::optional<bool>& value)
+{
+    if (value)
+        params.append({name, boolValue(*value)});
+}
+
 // TODO: is there a better way to identify errors?
 bool Client::isListNotFoundError(const QString& error, const QString& msg)
 {
@@ -1190,11 +1197,12 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
         authToken());
 }
 
-void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, bool priority,
+void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
                                         const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    Xrpc::Client::Params params{{ "priority", boolValue(priority) }};
+    Xrpc::Client::Params params;
     addOptionalDateTimeParam(params, "seenAt", seenAt);
+    addOptionalBoolParam(params, "priority", priority);
 
     mXrpc->get("app.bsky.notification.getUnreadCount", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
@@ -1230,20 +1238,22 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 }
 
 void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
-                       const std::optional<QDateTime>& seenAt, bool priority,
-                       const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
-                       bool updateSeen)
+                               const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
+                               const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
+                               bool updateSeen)
 {
-    Xrpc::Client::Params params{{ "priority", boolValue(priority) }};
+    Xrpc::Client::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalDateTimeParam(params, "seenAt", seenAt);
+    addOptionalBoolParam(params, "priority", priority);
 
     const auto now = QDateTime::currentDateTimeUtc();
 
     mXrpc->get("app.bsky.notification.listNotifications", params, {},
         [this, now, successCb, errorCb, updateSeen](const QJsonDocument& reply){
             try {
+                qDebug() << "List notifications:" << reply;
                 auto output = AppBskyNotification::ListNotificationsOutput::fromJson(reply.object());
 
                 if (successCb)
@@ -1254,6 +1264,24 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::putNotificationPreferences(bool priority,
+                                        const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument json;
+    QJsonObject paramsJson;
+    paramsJson.insert("priority", priority);
+    json.setObject(paramsJson);
+
+    mXrpc->post("app.bsky.notification.putPreferences", json, {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Put notification preferences:" << reply;
+            if (successCb)
+                successCb();
         },
         failure(errorCb),
         authToken());

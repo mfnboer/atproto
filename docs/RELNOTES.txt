@@ -2,7 +2,7 @@ next
 ====
 * Avatar thumbnails
 * Pass XRPC_TIMEOUT errors to caller
-* Added priority to notifcation.getUnreadCount and .listNotifications
+* Priority notification filter
 
 3.1
 ===
