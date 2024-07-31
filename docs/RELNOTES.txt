@@ -1,5 +1,5 @@
-next
-====
+3.2
+===
 * Avatar thumbnails
 * Pass XRPC_TIMEOUT errors to caller
 * Priority notification filter
