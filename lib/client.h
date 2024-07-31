@@ -497,11 +497,11 @@ public:
     /**
      * @brief getUnreadCount Get the number of unread notifications since last time.
      * @param seenAt Last timestamp UTC the notifications were seen
-     * @param priority Filter priority notifications
+     * @param priority Filter priority notifications (to override preference)
      * @param successCb
      * @param errorCb
      */
-    void getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, bool priority,
+    void getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
                                     const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb);
 
     void updateNotificationSeen(const QDateTime& dateTime,
@@ -512,15 +512,18 @@ public:
      * @param limit min=1, max=100, default=50
      * @param cursor
      * @param seenAt
-     * @param priority Filter priority notifications
+     * @param priority Filter priority notifications (to override preference)
      * @param successCb
      * @param errorCb
      * @param updateSeen update the seen timestamp to the time of sending this request
      */
     void listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
-                           const std::optional<QDateTime>& seenAt, bool priority,
+                           const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
                            const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                            bool updateSeen = false);
+
+    void putNotificationPreferences(bool priority,
+                                    const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief registerPushNotifications
