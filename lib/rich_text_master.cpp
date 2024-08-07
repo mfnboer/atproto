@@ -202,6 +202,9 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
             // The reference is the text from the hashtag
             facet.mRef = facet.mMatch.sliced(1);
             break;
+        case ParsedMatch::Type::BLUE_MOJI:
+            facet.mRef = facet.mMatch;
+            break;
         case ParsedMatch::Type::PARTIAL_MENTION:
             break;
         case ParsedMatch::Type::UNKNOWN:
@@ -267,6 +270,7 @@ void RichTextMaster::addFacets(const QString& text, const std::vector<ParsedMatc
             feature.mFeature = std::move(tag);
             break;
         }
+        case AppBskyRichtext::Facet::Feature::Type::BLUE_MOJI:
         case AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
             continue;
         case AppBskyRichtext::Facet::Feature::Type::UNKNOWN:

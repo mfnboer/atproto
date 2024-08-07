@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "blue_moji_richtext.h"
 #include <QJsonDocument>
 #include <set>
 
@@ -61,12 +62,13 @@ struct Facet
             MENTION,
             LINK,
             TAG,
+            BLUE_MOJI,
             UNKNOWN
         };
 
         static Type stringToType(const QString& str);
 
-        std::variant<FacetMention::SharedPtr, FacetLink::SharedPtr, FacetTag::SharedPtr> mFeature;
+        std::variant<FacetMention::SharedPtr, FacetLink::SharedPtr, FacetTag::SharedPtr, BlueMojiRichtext::FacetBlueMoji::SharedPtr> mFeature;
         Type mType;
     };
 

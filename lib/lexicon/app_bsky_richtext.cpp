@@ -3,6 +3,7 @@
 #include "app_bsky_richtext.h"
 #include "../rich_text_master.h"
 #include "../xjson.h"
+#include <QFont>
 
 namespace ATProto::AppBskyRichtext {
 
@@ -79,6 +80,8 @@ Facet::Feature::Type Facet::Feature::stringToType(const QString& str)
         return Type::MENTION;
     if (str == "app.bsky.richtext.facet#tag")
         return Type::TAG;
+    if (str == BlueMojiRichtext::FacetBlueMoji::TYPE)
+        return Type::BLUE_MOJI;
 
     return Type::UNKNOWN;
 }
@@ -103,6 +106,9 @@ QJsonObject Facet::toJson() const
             break;
         case Feature::Type::TAG:
             featureJson = std::get<FacetTag::SharedPtr>(f.mFeature)->toJson();
+            break;
+        case Feature::Type::BLUE_MOJI:
+            featureJson = std::get<BlueMojiRichtext::FacetBlueMoji::SharedPtr>(f.mFeature)->toJson();
             break;
         case Feature::Type::PARTIAL_MENTION:
         case Feature::Type::UNKNOWN:
@@ -147,6 +153,9 @@ Facet::SharedPtr Facet::fromJson(const QJsonObject& json)
             break;
         case Feature::Type::TAG:
             feature.mFeature = FacetTag::fromJson(featureJson);
+            break;
+        case Feature::Type::BLUE_MOJI:
+            feature.mFeature = BlueMojiRichtext::FacetBlueMoji::fromJson(featureJson);
             break;
         case Feature::Type::PARTIAL_MENTION:
         case Feature::Type::UNKNOWN:
@@ -193,6 +202,12 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
             return QString("<a href=\"#%1\"%3><b>%2</b></a>").arg(facetTag->mTag, linkText, linkStyle);
 
         return QString("<a href=\"#%1\"%3>%2</a>").arg(facetTag->mTag, linkText, linkStyle);
+    }
+    case ATProto::AppBskyRichtext::Facet::Feature::Type::BLUE_MOJI:
+    {
+        const auto& facetBlueMoji = std::get<ATProto::BlueMojiRichtext::FacetBlueMoji::SharedPtr>(feature.mFeature);
+        const auto height = QFont().pixelSize();
+        return QString("<span style=\"vertical-align:bottom\"><img src=\"%1\" height=%2 width=auto/></span>").arg(facetBlueMoji->mUri).arg(height);
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
         break;
