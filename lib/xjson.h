@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "lexicon/lexicon.h"
 #include <QDateTime>
 #include <QException>
 #include <QJsonArray>
@@ -34,8 +35,13 @@ public:
     template<class Type>
     static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value);
 
+    static void insertBoolIfTrue(QJsonObject& json, const QString& key, bool value);
+
     template<class Type>
     static void insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::SharedPtr& value);
+
+    template<class Type>
+    static void insertVariant(QJsonObject& json, const QString& key, const Type& value);
 
     XJsonObject(const QJsonObject& obj);
 
@@ -118,6 +124,18 @@ void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key
 {
     if (value)
         json.insert(key, value->toJson());
+    else
+        json.remove(key);
+}
+
+template<class Type>
+void XJsonObject::insertVariant(QJsonObject& json, const QString& key, const Type& value)
+{
+    QJsonObject valueJson;
+    std::visit([&valueJson](auto&& x){ valueJson = x->toJson(); }, value);
+
+    if (!valueJson.empty())
+        json.insert(key, valueJson);
     else
         json.remove(key);
 }

@@ -206,8 +206,24 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     case ATProto::AppBskyRichtext::Facet::Feature::Type::BLUE_MOJI:
     {
         const auto& facetBlueMoji = std::get<ATProto::BlueMojiRichtext::FacetBlueMoji::SharedPtr>(feature.mFeature);
+        const auto* formats = std::get_if<ATProto::BlueMojiRichtext::Formats_v0::SharedPtr>(&facetBlueMoji->mFormats);
+
+        if (!formats)
+        {
+            qWarning() << "Unsupported blue moji format";
+            return facetBlueMoji->mName;
+        }
+
+        if (!(*formats)->mPng128)
+        {
+            qDebug() << "Only PNG support";
+            return facetBlueMoji->mName;
+        }
+
+        const QString uri = "TODO";
+
         const auto height = QFont().pixelSize();
-        return QString("<span style=\"vertical-align:bottom\"><img src=\"%1\" height=%2 width=auto/></span>").arg(facetBlueMoji->mUri).arg(height);
+        return QString("<span style=\"vertical-align:bottom\"><img src=\"%1\" height=%2 width=auto/></span>").arg(uri).arg(height);
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
         break;
