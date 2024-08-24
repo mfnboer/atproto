@@ -17,6 +17,7 @@ struct ViewerState
     std::optional<QString> mLike;
     bool mThreadMuted = false;
     bool mReplyDisabled = false;
+    bool mEmbeddingDisabled = false;
 
     using SharedPtr = std::shared_ptr<ViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -40,6 +41,7 @@ struct Threadgate
     bool mAllowMention = false;
     bool mAllowFollowing = false;
     std::vector<ThreadgateListRule::SharedPtr> mAllowList;
+    std::vector<QString> mHiddenReplies; // at-uri list
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
@@ -76,6 +78,7 @@ struct PostView
     int mReplyCount = 0;
     int mRepostCount = 0;
     int mLikeCount = 0;
+    int mQuoteCount = 0;
     QDateTime mIndexedAt;
     ViewerState::SharedPtr mViewer;
     ComATProtoLabel::LabelList mLabels;

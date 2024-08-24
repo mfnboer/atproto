@@ -1,3 +1,8 @@
+next
+====
+* Hidden replies in threadgate
+* Detached view
+
 3.2
 ===
 * Avatar thumbnails

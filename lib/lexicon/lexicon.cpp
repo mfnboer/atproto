@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "lexicon.h"
+#include "app_bsky_embed.h"
 #include "app_bsky_graph.h"
 #include "app_bsky_labeler.h"
 #include "../xjson.h"
@@ -61,9 +62,10 @@ RecordType stringToRecordType(const QString& str)
         { "app.bsky.graph.defs#listView", RecordType::APP_BSKY_GRAPH_LIST_VIEW },
         { AppBskyGraph::StarterPackViewBasic::TYPE, RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC },
         { AppBskyLabeler::LabelerView::TYPE, RecordType::APP_BSKY_LABELER_VIEW },
-        { "app.bsky.embed.record#viewBlocked", RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED },
-        { "app.bsky.embed.record#viewNotFound", RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND },
-        { "app.bsky.embed.record#viewRecord", RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD }
+        { AppBskyEmbed::RecordViewBlocked::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED },
+        { AppBskyEmbed::RecordViewNotFound::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND },
+        { AppBskyEmbed::RecordViewDetached::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED },
+        { AppBskyEmbed::RecordViewRecord::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD }
     };
 
     const auto it = recordMapping.find(str);
@@ -82,9 +84,10 @@ QString recordTypeToString(RecordType recordType)
         { RecordType::APP_BSKY_GRAPH_LIST_VIEW, "app.bsky.graph.defs#listView" },
         { RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC, AppBskyGraph::StarterPackViewBasic::TYPE },
         { RecordType::APP_BSKY_LABELER_VIEW, AppBskyLabeler::LabelerView::TYPE },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, "app.bsky.embed.record#viewBlocked" },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND, "app.bsky.embed.record#viewNotFound" },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD, "app.bsky.embed.record#viewRecord" },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, AppBskyEmbed::RecordViewBlocked::TYPE },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND, AppBskyEmbed::RecordViewNotFound::TYPE },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED, AppBskyEmbed::RecordViewDetached::TYPE },
+        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD, AppBskyEmbed::RecordViewRecord::TYPE },
     };
 
     const auto it = mapping.find(recordType);

@@ -16,6 +16,7 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mLike = xjson.getOptionalString("like");
     viewerState->mThreadMuted = xjson.getOptionalBool("threadMuted", false);
     viewerState->mReplyDisabled = xjson.getOptionalBool("replyDisabled", false);
+    viewerState->mEmbeddingDisabled = xjson.getOptionalBool("embeddingDisabled", false);
     return viewerState;
 }
 
@@ -107,6 +108,7 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
         }
     }
 
+    threadgate->mHiddenReplies = xjson.getOptionalStringVector("hiddenReplies");
     threadgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return threadgate;
 }
@@ -204,6 +206,7 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);
     postView->mLikeCount = xjson.getOptionalInt("likeCount", 0);
+    postView->mQuoteCount = xjson.getOptionalInt("quoteCount", 0);
     postView->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     postView->mViewer = xjson.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(postView->mLabels, json);
