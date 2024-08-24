@@ -206,6 +206,7 @@ struct RecordViewNotFound
 
     using SharedPtr = std::shared_ptr<RecordViewNotFound>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record#viewNotFound";
 };
 
 // app.bsky.embed.record#viewBlocked
@@ -215,6 +216,17 @@ struct RecordViewBlocked
 
     using SharedPtr = std::shared_ptr<RecordViewBlocked>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record#viewBlocked";
+};
+
+// app.bsky.embed.record#viewDetached
+struct RecordViewDetached
+{
+    QString mUri; // at-uri
+
+    using SharedPtr = std::shared_ptr<RecordViewDetached>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record#viewDetached";
 };
 
 // app.bsky.embed.record#view
@@ -223,6 +235,7 @@ struct RecordView
     std::variant<std::shared_ptr<RecordViewRecord>,
                  RecordViewNotFound::SharedPtr,
                  RecordViewBlocked::SharedPtr,
+                 RecordViewDetached::SharedPtr,
                  AppBskyFeed::GeneratorView::SharedPtr,
                  AppBskyGraph::ListView::SharedPtr,
                  AppBskyGraph::StarterPackViewBasic::SharedPtr,
@@ -377,6 +390,7 @@ struct RecordViewRecord
 
     using SharedPtr = std::shared_ptr<RecordViewRecord>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record#viewRecord";
 };
 
 }

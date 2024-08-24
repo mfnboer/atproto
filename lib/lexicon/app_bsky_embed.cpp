@@ -183,6 +183,14 @@ RecordViewBlocked::SharedPtr RecordViewBlocked::fromJson(const QJsonObject& json
     return viewBlocked;
 }
 
+RecordViewDetached::SharedPtr RecordViewDetached::fromJson(const QJsonObject& json)
+{
+    auto viewDetached = std::make_shared<RecordViewDetached>();
+    const XJsonObject xjson(json);
+    viewDetached->mUri = xjson.getRequiredString("uri");
+    return viewDetached;
+}
+
 RecordView::SharedPtr RecordView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_shared<RecordView>();
@@ -202,6 +210,9 @@ RecordView::SharedPtr RecordView::fromJson(const QJsonObject& json)
         break;
     case RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED:
         view->mRecord = RecordViewBlocked::fromJson(recordJson);
+        break;
+    case RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED:
+        view->mRecord = RecordViewDetached::fromJson(recordJson);
         break;
     case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
         view->mRecord = AppBskyFeed::GeneratorView::fromJson(recordJson);
