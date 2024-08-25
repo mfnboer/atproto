@@ -47,6 +47,7 @@ public:
     using GetActorFeedsSuccessCb = std::function<void(AppBskyFeed::GetActorFeedsOutput::SharedPtr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::SharedPtr)>;
     using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
+    using GetQuotesSuccessCb = std::function<void(AppBskyFeed::GetQuotesOutput::SharedPtr)>;
     using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::SharedPtr)>;
     using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::SharedPtr)>;
     using GetFollowsSuccessCb = std::function<void(AppBskyGraph::GetFollowsOutput::SharedPtr)>;
@@ -322,6 +323,18 @@ public:
      */
     void getPosts(const std::vector<QString>& uris,
                   const GetPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getQuotes
+     * @param uri get quotes for this post
+     * @param cid
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getQuotes(const QString& uri, const std::optional<QString>& cid, std::optional<int> limit,
+                   const std::optional<QString>& cursor, const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief searchPosts

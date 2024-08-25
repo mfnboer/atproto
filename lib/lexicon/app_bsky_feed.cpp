@@ -555,6 +555,17 @@ GetActorFeedsOutput::SharedPtr GetActorFeedsOutput::fromJson(const QJsonObject& 
     return output;
 }
 
+GetQuotesOutput::SharedPtr GetQuotesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetQuotesOutput>();
+    const XJsonObject xjson(json);
+    output->mUri = xjson.getRequiredString("uri");
+    output->mCid = xjson.getOptionalString("cid");
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mPosts = xjson.getRequiredVector<PostView>("posts");
+    return output;
+}
+
 QString Interaction::eventTypeToString(EventType eventType)
 {
     static const std::unordered_map<EventType, QString> mapping = {
