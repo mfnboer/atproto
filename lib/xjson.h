@@ -28,8 +28,19 @@ class XJsonObject
 public:
     static QJsonArray toJsonArray(const std::vector<QString>& list);
 
+    static void insertOptionalArray(QJsonObject& json, const QString& key, const std::vector<QString>& list);
+
     template<class Type>
     static QJsonArray toJsonArray(const std::vector<typename Type::SharedPtr>& list);
+
+    template<class Type>
+    static void insertOptionalArray(QJsonObject& json, const QString& key, const std::vector<typename Type::SharedPtr>& list);
+
+    template<class VariantType>
+    static QJsonArray toVariantJsonArray(const std::vector<VariantType>& list);
+
+    template<class VariantType>
+    static void insertOptionalVariantArray(QJsonObject& json, const QString& key, const std::vector<VariantType>& list);
 
     template<class Type>
     static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value);
@@ -102,6 +113,15 @@ QJsonArray XJsonObject::toJsonArray(const std::vector<typename Type::SharedPtr>&
         jsonArray.append(elem->toJson());
 
     return jsonArray;
+}
+
+template<class Type>
+void XJsonObject::insertOptionalArray(QJsonObject& json, const QString& key, const std::vector<typename Type::SharedPtr>& list)
+{
+    if (list.empty())
+        json.remove(key);
+    else
+        json.insert(key, toJsonArray(list));
 }
 
 template<class Type>
@@ -258,7 +278,9 @@ std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getRequired
 
         const auto itemJson = arrayElem.toObject();
         auto item = XJsonObject::toVariant<Types...>(itemJson);
-        variantList.push_back(std::move(item));
+
+        if (!isNullVariant(item))
+            variantList.push_back(std::move(item));
     }
 
     return variantList;
@@ -271,6 +293,26 @@ std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getOptional
         return getRequiredVariantList<Types...>(key);
 
     return {};
+}
+
+template<class VariantType>
+QJsonArray XJsonObject::toVariantJsonArray(const std::vector<VariantType>& list)
+{
+    QJsonArray jsonArray;
+
+    for (const auto& elem : list)
+        std::visit([&jsonArray](auto&& x){ jsonArray.append(x->toJson()); }, elem);
+
+    return jsonArray;
+}
+
+template<class VariantType>
+void XJsonObject::insertOptionalVariantArray(QJsonObject& json, const QString& key, const std::vector<VariantType>& list)
+{
+    if (list.empty())
+        json.remove(key);
+    else
+        json.insert(key, toVariantJsonArray(list));
 }
 
 }

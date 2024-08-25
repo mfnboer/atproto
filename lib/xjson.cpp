@@ -14,6 +14,14 @@ QJsonArray XJsonObject::toJsonArray(const std::vector<QString>& list)
     return jsonArray;
 }
 
+void XJsonObject::insertOptionalArray(QJsonObject& json, const QString& key, const std::vector<QString>& list)
+{
+    if (list.empty())
+        json.remove(key);
+    else
+        json.insert(key, toJsonArray(list));
+}
+
 XJsonObject::XJsonObject(const QJsonObject& obj) :
     mObject(obj)
 {

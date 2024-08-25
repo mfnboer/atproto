@@ -23,6 +23,33 @@ struct ViewerState
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.postgate#disableRule
+struct PostgateDisableRule
+{
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<PostgateDisableRule>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.postgate#disableRule";
+};
+
+// app.bsky.feed.postgate
+struct Postgate
+{
+    using RuleType = std::variant<PostgateDisableRule::SharedPtr>;
+
+    QDateTime mCreatedAt;
+    QString mPost; // at-uri
+    std::vector<QString> mDetachedEmbeddingUris;
+    bool mDisableEmbedding = false;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Postgate>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.postgate";
+};
+
 // app.bsky.feed.threadgate#listRule
 struct ThreadgateListRule
 {
@@ -32,6 +59,7 @@ struct ThreadgateListRule
 
     using SharedPtr = std::shared_ptr<ThreadgateListRule>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.threadgate#listRule";
 };
 
 // app.bsky.feed.threadgate
