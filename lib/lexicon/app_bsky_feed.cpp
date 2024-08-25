@@ -20,10 +20,59 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+QJsonObject PostgateDisableRule::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    return json;
+}
+
+PostgateDisableRule::SharedPtr PostgateDisableRule::fromJson(const QJsonObject&)
+{
+    auto rule = std::make_shared<PostgateDisableRule>();
+    return rule;
+}
+
+QJsonObject Postgate::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("post", mPost);
+    XJsonObject::insertOptionalArray(json, "detachedEmbeddingUris", mDetachedEmbeddingUris);
+
+    std::vector<RuleType> rules;
+
+    if (mDisableEmbedding)
+        rules.push_back(std::make_unique<PostgateDisableRule>());
+
+    XJsonObject::insertOptionalVariantArray(json, "embeddingRules", rules);
+    return json;
+}
+
+Postgate::SharedPtr Postgate::fromJson(const QJsonObject& json)
+{
+    auto postgate = std::make_shared<Postgate>();
+    XJsonObject xjson(json);
+    postgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    postgate->mPost = xjson.getRequiredString("post");
+    postgate->mDetachedEmbeddingUris = xjson.getOptionalStringVector("detachedEmbeddingUris");
+
+    std::vector<RuleType> rules = xjson.getOptionalVariantList<PostgateDisableRule>("embeddingRules");
+
+    for (const auto& rule : rules)
+    {
+        if (std::holds_alternative<PostgateDisableRule::SharedPtr>(rule))
+            postgate->mDisableEmbedding = true;
+    }
+
+    return postgate;
+}
+
 QJsonObject ThreadgateListRule::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.feed.threadgate#listRule");
+    json.insert("$type", TYPE);
     json.insert("list", mList);
     return json;
 }
