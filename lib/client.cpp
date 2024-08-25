@@ -731,6 +731,33 @@ void Client::getPosts(const std::vector<QString>& uris,
         authToken());
 }
 
+void Client::getQuotes(const QString& uri, const std::optional<QString>& cid, std::optional<int> limit,
+                       const std::optional<QString>& cursor, const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"uri", uri}};
+    addOptionalStringParam(params, "cid", cid);
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getQuotes", params, httpHeaders,
+               [this, successCb, errorCb](const QJsonDocument& reply){
+                   qDebug() << "getQuotes:" << reply;
+                   try {
+                       auto output = AppBskyFeed::GetQuotesOutput::fromJson(reply.object());
+
+                       if (successCb)
+                           successCb(std::move(output));
+                   } catch (InvalidJsonException& e) {
+                       invalidJsonError(e, errorCb);
+                   }
+               },
+               failure(errorCb),
+               authToken());
+}
+
 void Client::searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                          const std::optional<QString>& sort, const std::optional<QString>& author,
                          const std::optional<QString>& mentions, const std::optional<QDateTime>& since,

@@ -328,6 +328,17 @@ struct GetActorFeedsOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+struct GetQuotesOutput
+{
+    QString mUri; // at-uri
+    std::optional<QString> mCid;
+    std::optional<QString> mCursor;
+    PostViewList mPosts;
+
+    using SharedPtr = std::shared_ptr<GetQuotesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.feed.defs#interaction
 struct Interaction
 {

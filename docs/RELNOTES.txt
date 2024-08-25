@@ -1,5 +1,6 @@
 next
 ====
+* GetQuotes
 * Hidden replies in threadgate
 * Detached view
 
