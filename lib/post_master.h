@@ -18,6 +18,7 @@ public:
     using PostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using ThreadgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using EmbeddingDetachedCb = std::function<void(const QString& uri, const QString& cid, bool detached)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::SharedPtr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
@@ -34,6 +35,16 @@ public:
                        const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb);
     void addPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris,
                      const PostgateSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @param detach true -> detach, false -> re-attach
+     */
+    void detachEmbedding(const QString& uri, const QString& embeddingUri, const QString& embeddingCid,
+                         bool detach, const EmbeddingDetachedCb& successCb, const ErrorCb& errorCb);
+
+    void continueDetachEmbedding(const QString& uri, const QString& embeddingUri, const QString& embeddingCid,
+                                 const std::vector<QString>& currentDetachedEmbeddingUris, bool detach,
+                                 const EmbeddingDetachedCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
                 const RepostSuccessCb& successCb, const ErrorCb& errorCb);
     void like(const QString& uri, const QString& cid,
