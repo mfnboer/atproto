@@ -242,6 +242,7 @@ struct ThreadElement
 struct PostThread
 {
     ThreadElement::SharedPtr mThread; // required
+    ThreadgateView::SharedPtr mThreadgate; // optional
 
     using SharedPtr = std::shared_ptr<PostThread>;
     static SharedPtr fromJson(const QJsonObject& json);

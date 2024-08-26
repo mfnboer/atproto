@@ -17,11 +17,13 @@ public:
     using PostCreatedCb = std::function<void(AppBskyFeed::Record::Post::SharedPtr)>;
     using PostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using ThreadgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using PostgateSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using RepostSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using LikeSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::SharedPtr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
     using FeedCb = std::function<void(AppBskyFeed::GeneratorView::SharedPtr)>;
     using ListCb = std::function<void(AppBskyGraph::ListView::SharedPtr)>;
+    using PostgateCb = std::function<void(AppBskyFeed::Postgate::SharedPtr)>;
     using ErrorCb = Client::ErrorCb;
 
     explicit PostMaster(Client& client);
@@ -30,6 +32,8 @@ public:
               const PostSuccessCb& successCb, const ErrorCb& errorCb);
     void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
                        const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb);
+    void addPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris,
+                     const PostgateSuccessCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
                 const RepostSuccessCb& successCb, const ErrorCb& errorCb);
     void like(const QString& uri, const QString& cid,
@@ -48,8 +52,13 @@ public:
     void getList(const QString& httpsUri, const ListCb& successCb);
     void continueGetList(const ATUri& atUri, const ListCb& successCb);
 
+    void getPostgate(const QString& postUri, const PostgateCb& successCb, const ErrorCb& errorCb);
+
     static AppBskyFeed::Threadgate::SharedPtr createThreadgate(const QString& uri, bool allowMention,
             bool allowFollowing, const QStringList& allowLists);
+
+    static AppBskyFeed::Postgate::SharedPtr createPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris);
+    QString createPostgateUri(const QString postUri);
 
     static AppBskyFeed::PostReplyRef::SharedPtr createReplyRef(
             const QString& replyToUri, const QString& replyToCid,
