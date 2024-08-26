@@ -453,6 +453,7 @@ PostThread::SharedPtr PostThread::fromJson(const QJsonObject& json)
     auto postThread = std::make_shared<PostThread>();
     const XJsonObject xjson(json);
     postThread->mThread = xjson.getRequiredObject<ThreadElement>("thread");
+    postThread->mThreadgate = xjson.getOptionalObject<ThreadgateView>("threadgate");
     return postThread;
 }
 

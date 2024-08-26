@@ -1,5 +1,6 @@
 next
 ====
+* Threadgate view in getPostThread output
 * Postgate
 * GetQuotes
 * Hidden replies in threadgate

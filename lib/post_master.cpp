@@ -65,6 +65,30 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
         });
 }
 
+void PostMaster::addPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris,
+                             const PostgateSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
+    if (!atUri.isValid())
+        return;
+
+    auto postgate = createPostgate(uri, disableEmbedding, detachedEmbeddingUris);
+    QJsonObject postgateJson = postgate->toJson();
+    qDebug() << "Add postgate:" << postgateJson;
+    const QString& repo = mClient.getSession()->mDid;
+    const QString collection = postgateJson["$type"].toString();
+
+    mClient.putRecord(repo, collection, atUri.getRkey(), postgateJson, true,
+        [successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
 AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& uri, bool allowMention,
         bool allowFollowing, const QStringList& allowLists)
 {
@@ -82,6 +106,31 @@ AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& u
     }
 
     return threadgate;
+}
+
+AppBskyFeed::Postgate::SharedPtr PostMaster::createPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris)
+{
+    auto postgate = std::make_shared<AppBskyFeed::Postgate>();
+    postgate->mPost = uri;
+    postgate->mDisableEmbedding = disableEmbedding;
+    postgate->mDetachedEmbeddingUris.assign(detachedEmbeddingUris.begin(), detachedEmbeddingUris.end());
+    postgate->mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    return postgate;
+}
+
+QString PostMaster::createPostgateUri(const QString postUri)
+{
+    ATUri atUri(postUri);
+
+    if (!atUri.isValid())
+    {
+        qWarning() << "Invalid at-uri:" << postUri;
+        return {};
+    }
+
+    atUri.setCollection(AppBskyFeed::Postgate::TYPE);
+    return atUri.toString();
 }
 
 void PostMaster::repost(const QString& uri, const QString& cid,
@@ -290,6 +339,38 @@ void PostMaster::continueGetList(const ATUri& atUri, const ListCb& successCb)
         },
         [](const QString& err, const QString& msg){
             qDebug() << err << " - " << msg;
+        });
+}
+
+void PostMaster::getPostgate(const QString& postUri, const PostgateCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get postgate:" << postUri;
+    const auto atUri = ATUri::createAtUri(postUri, mPresence, errorCb);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getRecord(atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {},
+        [successCb, errorCb](auto record){
+            qDebug() << "Got postgate:" << record->mValue;
+
+            try {
+                auto postgate = AppBskyFeed::Postgate::fromJson(record->mValue);
+
+                if (successCb)
+                    successCb(std::move(postgate));
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+
+            if (errorCb)
+                errorCb(err, msg);
         });
 }
 
