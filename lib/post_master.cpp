@@ -89,6 +89,49 @@ void PostMaster::addPostgate(const QString& uri, bool disableEmbedding, const QS
         });
 }
 
+void PostMaster::detachEmbedding(const QString& uri, const QString& embeddingUri, const QString& embeddingCid,
+                                 bool detach, const EmbeddingDetachedCb& successCb, const ErrorCb& errorCb)
+{
+    getPostgate(uri,
+        [this, presence=getPresence(), uri, embeddingUri, embeddingCid, detach, successCb, errorCb](auto postgate){
+            if (!presence)
+                return;
+
+            continueDetachEmbedding(uri, embeddingUri, embeddingCid, postgate->mDetachedEmbeddingUris, detach, successCb, errorCb);
+        },
+        [this, presence=getPresence(), uri, embeddingUri, embeddingCid, detach, successCb, errorCb](const QString& error, const QString& msg){
+            if (!presence)
+                return;
+
+            if (error == ATProtoErrorMsg::INVALID_REQUEST)
+                continueDetachEmbedding(uri, embeddingUri, embeddingCid, {}, detach, successCb, errorCb);
+            else if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void PostMaster::continueDetachEmbedding(const QString& uri, const QString& embeddingUri, const QString& embeddingCid,
+                             const std::vector<QString>& currentDetachedEmbeddingUris, bool detach,
+                             const EmbeddingDetachedCb& successCb, const ErrorCb& errorCb)
+{
+    QStringList detachedEmbeddingUris(currentDetachedEmbeddingUris.begin(), currentDetachedEmbeddingUris.end());
+
+    if (detach)
+        detachedEmbeddingUris.push_back(embeddingUri);
+    else
+        detachedEmbeddingUris.removeOne(embeddingUri);
+
+    addPostgate(uri, false, detachedEmbeddingUris,
+        [embeddingUri, embeddingCid, detach, successCb](const QString&, const QString&){
+            if (successCb)
+                successCb(embeddingUri, embeddingCid, detach);
+        },
+        [errorCb](const QString& error, const QString& msg){
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
 AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& uri, bool allowMention,
         bool allowFollowing, const QStringList& allowLists)
 {
