@@ -110,7 +110,9 @@ QJsonObject Threadgate::toJson() const
     for (const auto& listRule : mAllowList)
         allowArray.append(listRule->toJson());
 
-    json.insert("allow", allowArray);
+    if (!allowArray.isEmpty() || mAllowNobody)
+        json.insert("allow", allowArray);
+
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     return json;
 }
@@ -158,6 +160,11 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
     }
 
     threadgate->mHiddenReplies = xjson.getOptionalStringVector("hiddenReplies");
+
+    // Initially the hidden replies did not exist and an empty threadgate was interpreted
+    // as nobody.
+    threadgate->mAllowNobody = (allowArray && allowArray->isEmpty()) || (!allowArray && threadgate->mHiddenReplies.empty());
+
     threadgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return threadgate;
 }

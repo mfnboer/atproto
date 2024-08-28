@@ -66,6 +66,7 @@ struct ThreadgateListRule
 struct Threadgate
 {
     QString mPost; // at-uri
+    bool mAllowNobody = false;
     bool mAllowMention = false;
     bool mAllowFollowing = false;
     std::vector<ThreadgateListRule::SharedPtr> mAllowList;
