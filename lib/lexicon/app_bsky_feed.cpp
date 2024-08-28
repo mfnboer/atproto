@@ -113,6 +113,9 @@ QJsonObject Threadgate::toJson() const
     if (!allowArray.isEmpty() || mAllowNobody)
         json.insert("allow", allowArray);
 
+    std::vector<QString> replies(mHiddenReplies.begin(), mHiddenReplies.end());
+    XJsonObject::insertOptionalArray(json, "hiddenReplies", replies);
+
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     return json;
 }
@@ -159,7 +162,8 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
         }
     }
 
-    threadgate->mHiddenReplies = xjson.getOptionalStringVector("hiddenReplies");
+    const auto replies = xjson.getOptionalStringVector("hiddenReplies");
+    threadgate->mHiddenReplies.insert(replies.begin(), replies.end());
 
     // Initially the hidden replies did not exist and an empty threadgate was interpreted
     // as nobody.

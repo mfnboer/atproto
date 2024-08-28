@@ -70,7 +70,7 @@ struct Threadgate
     bool mAllowMention = false;
     bool mAllowFollowing = false;
     std::vector<ThreadgateListRule::SharedPtr> mAllowList;
-    std::vector<QString> mHiddenReplies; // at-uri list
+    std::unordered_set<QString> mHiddenReplies; // at-uri list
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;

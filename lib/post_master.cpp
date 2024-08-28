@@ -141,7 +141,7 @@ AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& u
     threadgate->mAllowNobody = allowNobody;
     threadgate->mAllowMention = allowMention;
     threadgate->mAllowFollowing = allowFollowing;
-    threadgate->mHiddenReplies.assign(hiddenReplies.begin(), hiddenReplies.end());
+    threadgate->mHiddenReplies.insert(hiddenReplies.begin(), hiddenReplies.end());
     threadgate->mCreatedAt = QDateTime::currentDateTimeUtc();
 
     for (const auto& listUri : allowLists)
