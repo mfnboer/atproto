@@ -92,6 +92,58 @@ ImagesView::SharedPtr ImagesView::fromJson(const QJsonObject& json)
     return view;
 }
 
+QJsonObject VideoCaption::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("lang", mLang);
+    json.insert("file", mFile->toJson());
+    return json;
+}
+
+VideoCaption::SharedPtr VideoCaption::fromJson(const QJsonObject& json)
+{
+    auto caption = std::make_unique<VideoCaption>();
+    const XJsonObject xjson(json);
+    caption->mLang = xjson.getRequiredString("lang");
+    caption->mFile = xjson.getRequiredObject<Blob>("file");
+    return caption;
+}
+
+QJsonObject Video::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("video", mVideo->toJson());
+    XJsonObject::insertOptionalArray<VideoCaption>(json, "captions", mCaptions);
+    XJsonObject::insertOptionalJsonValue(json, "alt", mAlt);
+    XJsonObject::insertOptionalJsonObject<AspectRatio>(json, "aspectRatio", mAspectRatio);
+    return json;
+}
+
+Video::SharedPtr Video::fromJson(const QJsonObject& json)
+{
+    auto video = std::make_unique<Video>();
+    const XJsonObject xjson(json);
+    video->mVideo = xjson.getRequiredObject<Blob>("video");
+    video->mCaptions = xjson.getOptionalVector<VideoCaption>("captions");
+    video->mAlt = xjson.getOptionalString("alt");
+    video->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    return video;
+}
+
+VideoView::SharedPtr VideoView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_unique<VideoView>();
+    const XJsonObject xjson(json);
+    view->mCid = xjson.getRequiredString("cid");
+    view->mPlaylist = xjson.getRequiredString("playlist");
+    view->mThumbnail = xjson.getOptionalString("thumbnail");
+    view->mAlt = xjson.getOptionalString("alt");
+    view->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    return view;
+}
+
 QJsonObject ExternalExternal::toJson() const
 {
     QJsonObject json;
@@ -239,6 +291,7 @@ EmbedType stringToEmbedType(const QString& str)
 {
     static const std::unordered_map<QString, EmbedType> mapping = {
         { "app.bsky.embed.images", EmbedType::IMAGES },
+        { Video::TYPE, EmbedType::VIDEO },
         { "app.bsky.embed.external", EmbedType::EXTERNAL },
         { "app.bsky.embed.record", EmbedType::RECORD },
         { "app.bsky.embed.recordWithMedia", EmbedType::RECORD_WITH_MEDIA }
@@ -261,6 +314,9 @@ QJsonObject RecordWithMedia::toJson() const
     {
     case EmbedType::IMAGES:
         json.insert("media", std::get<Images::SharedPtr>(mMedia)->toJson());
+        break;
+    case EmbedType::VIDEO:
+        json.insert("media", std::get<Video::SharedPtr>(mMedia)->toJson());
         break;
     case EmbedType::EXTERNAL:
         json.insert("media", std::get<External::SharedPtr>(mMedia)->toJson());
@@ -291,6 +347,9 @@ RecordWithMedia::SharedPtr RecordWithMedia::fromJson(const QJsonObject& json)
     case EmbedType::IMAGES:
         recordMedia->mMedia = Images::fromJson(mediaJson);
         break;
+    case EmbedType::VIDEO:
+        recordMedia->mMedia = Video::fromJson(mediaJson);
+        break;
     case EmbedType::EXTERNAL:
         recordMedia->mMedia = External::fromJson(mediaJson);
         break;
@@ -309,6 +368,7 @@ EmbedViewType stringToEmbedViewType(const QString& str)
 {
     static const std::unordered_map<QString, EmbedViewType> mapping = {
         { "app.bsky.embed.images#view", EmbedViewType::IMAGES_VIEW },
+        { VideoView::TYPE, EmbedViewType::VIDEO_VIEW },
         { "app.bsky.embed.external#view", EmbedViewType::EXTERNAL_VIEW },
         { "app.bsky.embed.record#view", EmbedViewType::RECORD_VIEW },
         { "app.bsky.embed.recordWithMedia#view", EmbedViewType::RECORD_WITH_MEDIA_VIEW }
@@ -336,7 +396,7 @@ QJsonObject Embed::toJson() const
     case EmbedType::RECORD_WITH_MEDIA:
         return std::get<RecordWithMedia::SharedPtr>(mEmbed)->toJson();
     case EmbedType::UNKNOWN:
-        qWarning() << "Unknow embed type:" << mRawType;
+        qWarning() << "Unknown embed type:" << mRawType;
         throw InvalidContent(mRawType);
         break;
     }
@@ -366,7 +426,7 @@ Embed::SharedPtr Embed::fromJson(const QJsonObject& json)
         embed->mEmbed = RecordWithMedia::fromJson(json);
         break;
     case EmbedType::UNKNOWN:
-        qWarning() << "Unknow embed type:" << embed->mRawType;
+        qWarning() << "Unknown embed type:" << embed->mRawType;
         break;
     }
 
@@ -414,6 +474,9 @@ EmbedView::SharedPtr EmbedView::fromJson(const QJsonObject& json)
     case EmbedViewType::IMAGES_VIEW:
         embed->mEmbed = ImagesView::fromJson(json);
         break;
+    case EmbedViewType::VIDEO_VIEW:
+        embed->mEmbed = VideoView::fromJson(json);
+        break;
     case EmbedViewType::EXTERNAL_VIEW:
         embed->mEmbed = ExternalView::fromJson(json);
         break;
@@ -424,7 +487,7 @@ EmbedView::SharedPtr EmbedView::fromJson(const QJsonObject& json)
         embed->mEmbed = RecordWithMediaView::fromJson(json);
         break;
     case EmbedViewType::UNKNOWN:
-        qWarning() << "Unknow embed type:" << embed->mRawType;
+        qWarning() << "Unknown embed type:" << embed->mRawType;
         break;
     }
 

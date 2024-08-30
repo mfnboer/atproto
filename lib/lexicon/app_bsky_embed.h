@@ -80,7 +80,7 @@ struct GetStarterPackOutput
 
 namespace ATProto::AppBskyEmbed {
 
-// app.bsky.embed.images#aspectRatio
+// app.bsky.embed.defs#aspectRatio
 struct AspectRatio
 {
     int mWidth; // >=1
@@ -103,6 +103,7 @@ struct Image
 
     using SharedPtr = std::shared_ptr<Image>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_BYTES = 1'000'000;
 };
 using ImageList = std::vector<Image::SharedPtr>;
 
@@ -115,6 +116,7 @@ struct Images
 
     using SharedPtr = std::shared_ptr<Images>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_IMAGES = 4;
 };
 
 // app.bsky.embed.images#viewImage
@@ -138,6 +140,51 @@ struct ImagesView
 
     using SharedPtr = std::shared_ptr<ImagesView>;
     static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.embed.video#caption
+struct VideoCaption
+{
+    QString mLang;
+    Blob::SharedPtr mFile; // max 20,000 bytes mime: text/vtt
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<VideoCaption>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_BYTES = 20'000;
+    static constexpr char const* TYPE = "app.bsky.embed.video#caption";
+};
+using VideoCaptionList = std::vector<VideoCaption::SharedPtr>;
+
+// app.bsky.embed.video
+struct Video
+{
+    Blob::SharedPtr mVideo; // max 50,000,000 bytes mime: video/mp4
+    VideoCaptionList mCaptions;
+    std::optional<QString> mAlt; // max 1000 graphemes, 10,000 bytes
+    AspectRatio::SharedPtr mAspectRatio; // optional
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Video>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_BYTES = 50'000'000;
+    static constexpr char const* TYPE = "app.bsky.embed.video";
+};
+
+// app.bsky.embed.video#view
+struct VideoView
+{
+    QString mCid;
+    QString mPlaylist; // URI
+    std::optional<QString> mThumbnail; // URI
+    std::optional<QString> mAlt;
+    AspectRatio::SharedPtr mAspectRatio; // optional
+
+    using SharedPtr = std::shared_ptr<VideoView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.video#view";
 };
 
 // app.bsky.embed.external#external
@@ -251,6 +298,7 @@ struct RecordView
 enum class EmbedType
 {
     IMAGES,
+    VIDEO,
     EXTERNAL,
     RECORD,
     RECORD_WITH_MEDIA,
@@ -263,7 +311,7 @@ EmbedType stringToEmbedType(const QString& str);
 struct RecordWithMedia
 {
     Record::SharedPtr mRecord;
-    std::variant<Images::SharedPtr, External::SharedPtr> mMedia;
+    std::variant<Images::SharedPtr, Video::SharedPtr, External::SharedPtr> mMedia;
     EmbedType mMediaType;
     QString mRawMediaType;
 
@@ -293,6 +341,7 @@ struct Embed
 enum class EmbedViewType
 {
     IMAGES_VIEW,
+    VIDEO_VIEW,
     EXTERNAL_VIEW,
     RECORD_VIEW,
     RECORD_WITH_MEDIA_VIEW,
@@ -314,9 +363,10 @@ struct RecordWithMediaView
 };
 
 using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
-                                ExternalView::SharedPtr,
-                                RecordView::SharedPtr,
-                                RecordWithMediaView::SharedPtr>;
+                                    VideoView::SharedPtr,
+                                    ExternalView::SharedPtr,
+                                    RecordView::SharedPtr,
+                                    RecordWithMediaView::SharedPtr>;
 
 struct EmbedView
 {
