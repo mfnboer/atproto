@@ -121,7 +121,7 @@ void XJsonObject::insertOptionalArray(QJsonObject& json, const QString& key, con
     if (list.empty())
         json.remove(key);
     else
-        json.insert(key, toJsonArray(list));
+        json.insert(key, toJsonArray<Type>(list));
 }
 
 template<class Type>

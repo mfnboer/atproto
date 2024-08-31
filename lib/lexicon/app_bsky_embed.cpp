@@ -383,12 +383,12 @@ EmbedViewType stringToEmbedViewType(const QString& str)
 
 QJsonObject Embed::toJson() const
 {
-
-
     switch (mType)
     {
     case EmbedType::IMAGES:
         return std::get<Images::SharedPtr>(mEmbed)->toJson();
+    case EmbedType::VIDEO:
+        return std::get<Video::SharedPtr>(mEmbed)->toJson();
     case EmbedType::EXTERNAL:
         return std::get<External::SharedPtr>(mEmbed)->toJson();
     case EmbedType::RECORD:
@@ -415,6 +415,9 @@ Embed::SharedPtr Embed::fromJson(const QJsonObject& json)
     {
     case EmbedType::IMAGES:
         embed->mEmbed = Images::fromJson(json);
+        break;
+    case EmbedType::VIDEO:
+        embed->mEmbed = Video::fromJson(json);
         break;
     case EmbedType::EXTERNAL:
         embed->mEmbed = External::fromJson(json);
@@ -447,6 +450,9 @@ RecordWithMediaView::SharedPtr RecordWithMediaView::fromJson(const QJsonObject& 
     {
     case EmbedViewType::IMAGES_VIEW:
         recordMediaView->mMedia = ImagesView::fromJson(mediaJson);
+        break;
+    case EmbedViewType::VIDEO_VIEW:
+        recordMediaView->mMedia = VideoView::fromJson(mediaJson);
         break;
     case EmbedViewType::EXTERNAL_VIEW:
         recordMediaView->mMedia = ExternalView::fromJson(mediaJson);
