@@ -322,6 +322,7 @@ struct RecordWithMedia
 };
 
 using EmbedUnion = std::variant<Images::SharedPtr,
+                                Video::SharedPtr,
                                 External::SharedPtr,
                                 Record::SharedPtr,
                                 RecordWithMedia::SharedPtr>;
@@ -354,7 +355,7 @@ EmbedViewType stringToEmbedViewType(const QString& str);
 struct RecordWithMediaView
 {
     RecordView::SharedPtr mRecord;
-    std::variant<ImagesView::SharedPtr, ExternalView::SharedPtr> mMedia;
+    std::variant<ImagesView::SharedPtr, VideoView::SharedPtr, ExternalView::SharedPtr> mMedia;
     EmbedViewType mMediaType;
     QString mRawMediaType;
 
