@@ -1338,12 +1338,67 @@ void Client::registerPushNotifications(const QString& serviceDid, const QString&
         authToken());
 }
 
+void Client::getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"jobId", jobId}};
+
+    mXrpc->get("app.bsky.video.getJobStatus", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            try {
+                qDebug() << "Get video job status:" << reply;
+                auto output = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("app.bsky.video.getUploadLimits", {}, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            try {
+                qDebug() << "Get video upload limits:" << reply;
+                auto output = AppBskyVideo::GetUploadLimitsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->post("app.bsky.video.uploadVideo", blob, "video/mp4", {},
+                [this, successCb, errorCb](const QJsonDocument& reply){
+                    qDebug() << "Upload video:" << reply;
+                    try {
+                        auto ouput = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
+                        if (successCb)
+                            successCb(std::move(ouput));
+                    } catch (InvalidJsonException& e) {
+                        invalidJsonError(e, errorCb);
+                    }
+                },
+                failure(errorCb),
+                authToken());
+}
+
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                         const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "Posted:" << reply;
+            qDebug() << "Upload blob:" << reply;
             try {
                 auto ouput = ComATProtoRepo::UploadBlobOutput::fromJson(reply.object());
                 if (successCb)
