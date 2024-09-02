@@ -10,6 +10,7 @@
 #include "lexicon/app_bsky_labeler.h"
 #include "lexicon/app_bsky_notification.h"
 #include "lexicon/app_bsky_unspecced.h"
+#include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_repo.h"
@@ -75,6 +76,8 @@ public:
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
+    using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
+    using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
 
     using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
     using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOuput::SharedPtr)>;
@@ -550,6 +553,32 @@ public:
     void registerPushNotifications(const QString& serviceDid, const QString& token,
                                    const QString& platform, const QString& appId,
                                    const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.video
+
+    /**
+     * @brief getVideoJobStatus
+     * @param jobId
+     * @param successCb
+     * @param errorCb
+     */
+    void getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getVideoUploadLimits
+     * @param successCb
+     * @param errorCb
+     */
+    void getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief uploadVideo
+     * @param blob mp4 encoded video
+     * @param successCb
+     * @param errorCb
+     */
+    void uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
+    // TODO: upload a file instead of byte array?
 
     // com.atproto.repo
 
