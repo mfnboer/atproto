@@ -73,4 +73,12 @@ GetAccountInviteCodesOutput::SharedPtr GetAccountInviteCodesOutput::fromJson(con
     return output;
 }
 
+GetServiceAuthOutput::SharedPtr GetServiceAuthOutput::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto output = std::make_shared<GetServiceAuthOutput>();
+    output->mToken = xjson.getRequiredString("token");
+    return output;
+}
+
 }

@@ -110,7 +110,11 @@ void Client::getImpl(const QString& service, const Params& params, const Params&
 QUrl Client::buildUrl(const QString& service) const
 {
     Q_ASSERT(!service.isEmpty());
-    return QUrl(mPDS + "/xrpc/" + service);
+
+    if (service.startsWith("app.bsky.video."))
+        return QUrl("https://video.bsky.app/xrpc/" + service);
+    else
+        return QUrl(mPDS + "/xrpc/" + service);
 }
 
 QUrl Client::buildUrl(const QString& service, const Params& params) const

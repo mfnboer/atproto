@@ -60,6 +60,7 @@ public:
     using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::SharedPtr)>;
     using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
+    using GetServiceAuthSuccessCb = std::function<void(ComATProtoServer::GetServiceAuthOutput::SharedPtr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::SharedPtr)>;
     using GetBlobSuccessCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::SharedPtr)>;
@@ -143,6 +144,17 @@ public:
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getServiceAuth
+     * @param aud
+     * @param expiry
+     * @param lexiconMethod
+     * @param successCb
+     * @param errorCb
+     */
+    void getServiceAuth(const QString& aud, const std::optional<QDateTime>& expiry, const std::optional<QString>& lexiconMethod,
+                        const GetServiceAuthSuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**
@@ -578,6 +590,7 @@ public:
      * @param errorCb
      */
     void uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(const QByteArray& blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
     // TODO: upload a file instead of byte array?
 
     // com.atproto.repo

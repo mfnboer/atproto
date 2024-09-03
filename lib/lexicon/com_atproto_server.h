@@ -74,4 +74,13 @@ struct GetAccountInviteCodesOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// com.atproto.server.getServiceAuth#output
+struct GetServiceAuthOutput
+{
+    QString mToken;
+
+    using SharedPtr = std::shared_ptr<GetServiceAuthOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
