@@ -21,6 +21,7 @@ public:
     ~Client();
 
     const QString& getHost() const { return mHost; }
+    const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds);
     void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
 

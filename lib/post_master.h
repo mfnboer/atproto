@@ -25,6 +25,7 @@ public:
     using FeedCb = std::function<void(AppBskyFeed::GeneratorView::SharedPtr)>;
     using ListCb = std::function<void(AppBskyGraph::ListView::SharedPtr)>;
     using PostgateCb = std::function<void(AppBskyFeed::Postgate::SharedPtr)>;
+    using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
     explicit PostMaster(Client& client);
@@ -84,6 +85,12 @@ public:
     static void addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText);
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::SharedPtr blob = nullptr);
+
+    static void addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText);
+    void addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
+                        const SuccessCb& successCb, const ErrorCb& errorCb);
+    void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
+                                const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     Client& mClient;

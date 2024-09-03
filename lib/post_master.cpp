@@ -586,4 +586,95 @@ void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QStrin
     embed->mExternal->mThumb = std::move(blob);
 }
 
+void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText)
+{
+    // Post duplication
+    AppBskyEmbed::Video* embed = nullptr;
+
+    if (!post.mEmbed)
+    {
+        post.mEmbed = std::make_shared<AppBskyEmbed::Embed>();
+        post.mEmbed->mType = AppBskyEmbed::EmbedType::VIDEO;
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::Video>();
+        embed = std::get<AppBskyEmbed::Video::SharedPtr>(post.mEmbed->mEmbed).get();
+    }
+    else if (post.mEmbed->mType == AppBskyEmbed::EmbedType::RECORD)
+    {
+        auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(post.mEmbed->mEmbed);
+        auto ref = std::move(record->mRecord);
+        post.mEmbed->mType = AppBskyEmbed::EmbedType::RECORD_WITH_MEDIA;
+        post.mEmbed->mEmbed = std::make_shared<AppBskyEmbed::RecordWithMedia>();
+
+        auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(post.mEmbed->mEmbed);
+        recordWithMedia->mRecord = std::make_shared<AppBskyEmbed::Record>();
+        recordWithMedia->mRecord->mRecord = std::move(ref);
+        recordWithMedia->mMediaType = AppBskyEmbed::EmbedType::VIDEO;
+        recordWithMedia->mMedia = std::make_shared<AppBskyEmbed::Video>();
+        embed = std::get<AppBskyEmbed::Video::SharedPtr>(post.mEmbed->mEmbed).get();
+    }
+
+    Q_ASSERT(embed);
+    embed->mVideo = blob;
+
+    if (!altText.isEmpty())
+        embed->mAlt = altText;
+
+    // TODO: aspect ratio?
+}
+
+void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
+                                const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    switch (jobStatus.mState)
+    {
+    case AppBskyVideo::JobStatusState::JOB_STATE_COMPLETED:
+    {
+        if (jobStatus.mBlob)
+        {
+            addVideoToPost(*post, jobStatus.mBlob, altText);
+
+            if (successCb)
+                successCb();
+        }
+        else
+        {
+            qWarning() << "Blob missing from job status";
+            if (errorCb)
+                errorCb("UpdloadError", "Video blob missing");
+        }
+
+        break;
+    }
+    case AppBskyVideo::JobStatusState::JOB_STATE_FAILED:
+        if (errorCb)
+            errorCb(jobStatus.mError.value_or("UploadError"), jobStatus.mMessage.value_or("Job failed"));
+
+        break;
+    case AppBskyVideo::JobStatusState::JOB_STATE_INPROG:
+        qDebug() << "Upload in progress, job:" << jobStatus.mJobId << "progress:" << jobStatus.mProgress;
+
+        QTimer::singleShot(500, &mPresence, [this, post, jobId=jobStatus.mJobId, altText, successCb, errorCb]{
+            checkVideoUploadStatus(post, jobId, altText, successCb, errorCb); });
+        break;
+    }
+}
+
+void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
+                                        const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mClient.getVideoJobStatus(jobId,
+        [this, presence=getPresence(), post, altText, successCb, errorCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
+            if (!presence)
+                return;
+
+            addVideoToPost(post, *output->mJobStatus, altText, successCb, errorCb);
+        },
+        [errorCb](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
 }

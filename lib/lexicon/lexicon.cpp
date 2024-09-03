@@ -15,7 +15,8 @@ ATProtoError::SharedPtr ATProtoError::fromJson(const QJsonDocument& json)
     const auto jsonObj = json.object();
     const XJsonObject xjson(jsonObj);
     error->mError = xjson.getRequiredString("error");
-    error->mMessage = xjson.getRequiredString("message");
+    const auto msg = xjson.getOptionalString("message");
+    error->mMessage = msg.value_or(error->mError);
     return error;
 }
 

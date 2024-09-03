@@ -259,6 +259,33 @@ void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& success
         authToken());
 }
 
+void Client::getServiceAuth(const QString& aud, const std::optional<QDateTime>& expiry, const std::optional<QString>& lexiconMethod,
+                    const GetServiceAuthSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get serviceAuth:" << aud;
+    Xrpc::Client::Params params{{"aud", aud}};
+
+    if (!expiry)
+        params.append({"exp", QString::number(expiry->toSecsSinceEpoch())});
+
+    addOptionalStringParam(params, "lxm", lexiconMethod);
+
+    mXrpc->get("com.atproto.server.getServiceAuth", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getServiceAuth reply:" << reply;
+            try {
+                auto output = ComATProtoServer::GetServiceAuthOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(output);
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::resolveHandle(const QString& handle,
                    const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -1378,19 +1405,36 @@ void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const
 
 void Client::uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
 {
+    QUrl url(mXrpc->getPDS());
+    QString aud = "did:web:" + url.host();
+    QDateTime expiry = QDateTime::currentDateTimeUtc().addSecs(30 * 60);
+
+    getServiceAuth(aud, expiry, "com.atproto.repo.uploadBlob",
+        [this, blob, successCb, errorCb](auto output){
+            uploadVideo(blob, output->mToken, successCb, errorCb);
+        },
+        [errorCb](const QString& error, const QString& msg){
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void Client::uploadVideo(const QByteArray& blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Upload video:" << blob.size();
     mXrpc->post("app.bsky.video.uploadVideo", blob, "video/mp4", {},
-                [this, successCb, errorCb](const QJsonDocument& reply){
-                    qDebug() << "Upload video:" << reply;
-                    try {
-                        auto ouput = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
-                        if (successCb)
-                            successCb(std::move(ouput));
-                    } catch (InvalidJsonException& e) {
-                        invalidJsonError(e, errorCb);
-                    }
-                },
-                failure(errorCb),
-                authToken());
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Upload video:" << reply;
+            try {
+                auto ouput = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        serviceAuthToken);
 }
 
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
