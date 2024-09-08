@@ -618,8 +618,6 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
 
     if (!altText.isEmpty())
         embed->mAlt = altText;
-
-    // TODO: aspect ratio?
 }
 
 void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
