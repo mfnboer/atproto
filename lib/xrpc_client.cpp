@@ -52,7 +52,21 @@ void Client::post(const QString& service, const QJsonDocument& json, const Param
     post(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt);
 }
 
-void Client::post(const QString& service, const QByteArray& data, const QString& mimeType, const Params& rawHeaders,
+static bool isEmpty(const Client::DataType& data)
+{
+    if (std::holds_alternative<QByteArray>(data))
+    {
+        const auto& bytes = std::get<QByteArray>(data);
+        return bytes.isEmpty();
+    }
+    else
+    {
+        auto* ioDevice = std::get<QIODevice*>(data);
+        return ioDevice->atEnd();
+    }
+}
+
+void Client::post(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
                   const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
@@ -68,7 +82,7 @@ void Client::post(const QString& service, const QByteArray& data, const QString&
 
     // Setting Content-Type header when no body is present causes this error on some
     // PDS' as of 23-6-2024
-    if (!data.isEmpty())
+    if (!isEmpty(data))
         request.mXrpcRequest.setHeader(QNetworkRequest::ContentTypeHeader, mimeType);
 
     setRawHeaders(request.mXrpcRequest, rawHeaders);
@@ -256,9 +270,22 @@ void Client::sendRequest(const Request& request, const Callback& successCb, cons
     QNetworkReply* reply;
 
     if (request.mIsPost)
-        reply = mNetwork.post(request.mXrpcRequest, request.mData);
+    {
+        if (std::holds_alternative<QByteArray>(request.mData))
+        {
+            const auto& bytes = std::get<QByteArray>(request.mData);
+            reply = mNetwork.post(request.mXrpcRequest, bytes);
+        }
+        else
+        {
+            auto* ioDevice = std::get<QIODevice*>(request.mData);
+            reply = mNetwork.post(request.mXrpcRequest, ioDevice);
+        }
+    }
     else
+    {
         reply = mNetwork.get(request.mXrpcRequest);
+    }
 
     // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
     // The latter call is not guaranteed however. We must only call errorCb once!
