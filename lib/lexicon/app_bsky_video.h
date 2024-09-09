@@ -44,7 +44,7 @@ struct JobStatusOutput
 // app.bsky.video.getUploadLimits#output
 struct GetUploadLimitsOutput
 {
-    bool mCanUptload;
+    bool mCanUpload;
     std::optional<int> mRemainingDailyVideos;
     std::optional<int> mRemainingDailyBytes;
     std::optional<QString> mError;

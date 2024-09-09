@@ -16,6 +16,7 @@ public:
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
     using SuccessBytesCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
     using Params = QList<QPair<QString, QString>>;
+    using DataType = std::variant<QByteArray, QIODevice*>;
 
     explicit Client(const QString& host);
     ~Client();
@@ -27,7 +28,7 @@ public:
 
     void post(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
               const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
-    void post(const QString& service, const QByteArray& data, const QString& mimeType, const Params& rawHeaders,
+    void post(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
               const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt);
     void get(const QString& service, const Params& params, const Params& rawHeaders,
              const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
@@ -39,7 +40,7 @@ private:
     {
         bool mIsPost = false;
         QNetworkRequest mXrpcRequest;
-        QByteArray mData;
+        DataType mData;
         int mResendCount = 0;
     };
 

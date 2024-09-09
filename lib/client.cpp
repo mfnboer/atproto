@@ -6,6 +6,7 @@
 #include "lexicon/lexicon.h"
 #include <QTimer>
 #include <QUrl>
+#include <QUuid>
 
 namespace ATProto
 {
@@ -15,6 +16,7 @@ namespace ATProto
 #define SERVICE_KEY_BSKY_FEEDGEN QStringLiteral("bsky_fg")
 
 #define SERVICE_DID_BSKY_CHAT QStringLiteral("did:web:api.bsky.chat")
+#define SERVICE_DID_BSKY_VIDEO QStringLiteral("did:web:video.bsky.app")
 
 constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
@@ -265,7 +267,7 @@ void Client::getServiceAuth(const QString& aud, const std::optional<QDateTime>& 
     qDebug() << "Get serviceAuth:" << aud;
     Xrpc::Client::Params params{{"aud", aud}};
 
-    if (!expiry)
+    if (expiry)
         params.append({"exp", QString::number(expiry->toSecsSinceEpoch())});
 
     addOptionalStringParam(params, "lxm", lexiconMethod);
@@ -1387,6 +1389,18 @@ void Client::getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputC
 
 void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
 {
+    getServiceAuth(SERVICE_DID_BSKY_VIDEO, {}, "app.bsky.video.getUploadLimits",
+        [this, successCb, errorCb](auto output){
+            getVideoUploadLimits(output->mToken, successCb, errorCb);
+        },
+        [errorCb](const QString& error, const QString& msg){
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
+{
     mXrpc->get("app.bsky.video.getUploadLimits", {}, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             try {
@@ -1400,10 +1414,10 @@ void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const
             }
         },
         failure(errorCb),
-        authToken());
+        serviceAuthToken);
 }
 
-void Client::uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QFile* blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
 {
     QUrl url(mXrpc->getPDS());
     QString aud = "did:web:" + url.host();
@@ -1419,10 +1433,14 @@ void Client::uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& s
         });
 }
 
-void Client::uploadVideo(const QByteArray& blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Upload video:" << blob.size();
-    mXrpc->post("app.bsky.video.uploadVideo", blob, "video/mp4", {},
+    qDebug() << "Upload video:" << blob->size();
+    const QString name = QUuid::createUuid().toString(QUuid::WithoutBraces);
+    const QString service = QString("app.bsky.video.uploadVideo?did=%1&name=%2.mp4").arg(QUrl::toPercentEncoding(mSession->mDid), name);
+    qDebug() << "Service:" << service;
+
+    mXrpc->post(service, blob, "video/mp4", {},
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Upload video:" << reply;
             try {

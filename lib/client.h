@@ -582,6 +582,7 @@ public:
      * @param errorCb
      */
     void getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb);
+    void getVideoUploadLimits(const QString& serviceAuthToken, const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief uploadVideo
@@ -589,9 +590,8 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void uploadVideo(const QByteArray& blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
-    void uploadVideo(const QByteArray& blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
-    // TODO: upload a file instead of byte array?
+    void uploadVideo(QFile* blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.repo
 

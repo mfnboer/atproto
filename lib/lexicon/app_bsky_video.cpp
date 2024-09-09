@@ -49,7 +49,7 @@ GetUploadLimitsOutput::SharedPtr GetUploadLimitsOutput::fromJson(const QJsonObje
 {
     auto output = std::make_shared<GetUploadLimitsOutput>();
     const XJsonObject xjson(json);
-    output->mCanUptload = xjson.getRequiredBool("canUpload");
+    output->mCanUpload = xjson.getRequiredBool("canUpload");
     output->mRemainingDailyVideos = xjson.getOptionalInt("remainingDailyVideos");
     output->mRemainingDailyBytes = xjson.getOptionalInt("remainingDailyBytes");
     output->mError = xjson.getOptionalString("error");
