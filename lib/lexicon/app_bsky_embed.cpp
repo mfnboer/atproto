@@ -141,6 +141,7 @@ VideoView::SharedPtr VideoView::fromJson(const QJsonObject& json)
     view->mThumbnail = xjson.getOptionalString("thumbnail");
     view->mAlt = xjson.getOptionalString("alt");
     view->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    view->mJson = json;
     return view;
 }
 
