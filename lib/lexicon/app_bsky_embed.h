@@ -181,6 +181,7 @@ struct VideoView
     std::optional<QString> mThumbnail; // URI
     std::optional<QString> mAlt;
     AspectRatio::SharedPtr mAspectRatio; // optional
+    QJsonObject mJson;
 
     using SharedPtr = std::shared_ptr<VideoView>;
     static SharedPtr fromJson(const QJsonObject& json);
