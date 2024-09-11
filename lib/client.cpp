@@ -1417,7 +1417,7 @@ void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVide
         serviceAuthToken);
 }
 
-void Client::uploadVideo(QFile* blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     QUrl url(mXrpc->getPDS());
     QString aud = "did:web:" + url.host();
@@ -1433,7 +1433,7 @@ void Client::uploadVideo(QFile* blob, const VideoJobStatusOutputCb& successCb, c
         });
 }
 
-void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Upload video:" << blob->size();
     const QString name = QUuid::createUuid().toString(QUuid::WithoutBraces);
@@ -1444,7 +1444,9 @@ void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const Vid
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Upload video:" << reply;
             try {
-                auto ouput = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
+                // According to the spec the reply should be an object with jobStatus field.
+                // But it seems we get a JobStatus itself...
+                auto ouput = AppBskyVideo::JobStatus::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(ouput));
             } catch (InvalidJsonException& e) {

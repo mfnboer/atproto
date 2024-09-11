@@ -78,6 +78,7 @@ public:
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
     using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
+    using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
 
     using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
@@ -590,8 +591,8 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void uploadVideo(QFile* blob, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
-    void uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoJobStatusOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.repo
 
