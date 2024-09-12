@@ -22,7 +22,7 @@ struct JobStatus
     QString mDid;
     JobStatusState mState;
     QString mRawState;
-    int mProgress; // [0, 100]
+    std::optional<int> mProgress; // [0, 100]
     Blob::SharedPtr mBlob; // optional
     std::optional<QString> mError;
     std::optional<QString> mMessage;

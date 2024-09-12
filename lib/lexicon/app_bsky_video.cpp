@@ -30,7 +30,7 @@ JobStatus::SharedPtr JobStatus::fromJson(const QJsonObject& json)
     jobStatus->mDid = xjson.getRequiredString("did");
     jobStatus->mRawState = xjson.getRequiredString("state");
     jobStatus->mState = stringToJobStatusState(jobStatus->mRawState);
-    jobStatus->mProgress = xjson.getOptionalInt("progress", 0);
+    jobStatus->mProgress = xjson.getOptionalInt("progress");
     jobStatus->mBlob = xjson.getOptionalObject<Blob>("blob");
     jobStatus->mError = xjson.getOptionalString("error");
     jobStatus->mMessage = xjson.getOptionalString("message");

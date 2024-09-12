@@ -27,6 +27,7 @@ public:
     using PostgateCb = std::function<void(AppBskyFeed::Postgate::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
+    using ProgressCb = std::function<void(const QString& status, std::optional<int> progress)>;
 
     explicit PostMaster(Client& client);
 
@@ -88,9 +89,9 @@ public:
 
     static void addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText);
     void addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
-                        const SuccessCb& successCb, const ErrorCb& errorCb);
+                        const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
     void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
-                                const SuccessCb& successCb, const ErrorCb& errorCb);
+                                const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
 
 private:
     Client& mClient;

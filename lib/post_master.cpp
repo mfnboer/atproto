@@ -621,7 +621,7 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
 }
 
 void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
-                                const SuccessCb& successCb, const ErrorCb& errorCb)
+                                const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
 {
     switch (jobStatus.mState)
     {
@@ -649,23 +649,29 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const
 
         break;
     case AppBskyVideo::JobStatusState::JOB_STATE_INPROG:
-        qDebug() << "Upload in progress, job:" << jobStatus.mJobId << "progress:" << jobStatus.mProgress;
+        qDebug() << "Upload in progress, job:" << jobStatus.mJobId << "progress:" << jobStatus.mProgress.value_or(-1);
 
-        QTimer::singleShot(500, &mPresence, [this, post, jobId=jobStatus.mJobId, altText, successCb, errorCb]{
-            checkVideoUploadStatus(post, jobId, altText, successCb, errorCb); });
+        if (progressCb)
+        {
+            const QString status = jobStatus.mRawState.startsWith("JOB_STATE_") ? jobStatus.mRawState.sliced(10) : jobStatus.mRawState;
+            progressCb(status, jobStatus.mProgress);
+        }
+
+        QTimer::singleShot(1500, &mPresence, [this, post, jobId=jobStatus.mJobId, altText, successCb, errorCb, progressCb]{
+            checkVideoUploadStatus(post, jobId, altText, successCb, errorCb, progressCb); });
         break;
     }
 }
 
 void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
-                                        const SuccessCb& successCb, const ErrorCb& errorCb)
+                                        const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
 {
     mClient.getVideoJobStatus(jobId,
-        [this, presence=getPresence(), post, altText, successCb, errorCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
+        [this, presence=getPresence(), post, altText, successCb, errorCb, progressCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
             if (!presence)
                 return;
 
-            addVideoToPost(post, *output->mJobStatus, altText, successCb, errorCb);
+            addVideoToPost(post, *output->mJobStatus, altText, successCb, errorCb, progressCb);
         },
         [errorCb](const QString& err, const QString& msg){
             qDebug() << err << " - " << msg;
