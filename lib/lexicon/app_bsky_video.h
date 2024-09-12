@@ -46,7 +46,7 @@ struct GetUploadLimitsOutput
 {
     bool mCanUpload;
     std::optional<int> mRemainingDailyVideos;
-    std::optional<int> mRemainingDailyBytes;
+    std::optional<qint64> mRemainingDailyBytes;
     std::optional<QString> mError;
     std::optional<QString> mMessage;
 
