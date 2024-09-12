@@ -51,7 +51,7 @@ GetUploadLimitsOutput::SharedPtr GetUploadLimitsOutput::fromJson(const QJsonObje
     const XJsonObject xjson(json);
     output->mCanUpload = xjson.getRequiredBool("canUpload");
     output->mRemainingDailyVideos = xjson.getOptionalInt("remainingDailyVideos");
-    output->mRemainingDailyBytes = xjson.getOptionalInt("remainingDailyBytes");
+    output->mRemainingDailyBytes = xjson.getOptionalInt64("remainingDailyBytes");
     output->mError = xjson.getOptionalString("error");
     output->mMessage = xjson.getOptionalString("message");
     return output;

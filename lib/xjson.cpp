@@ -129,6 +129,22 @@ int XJsonObject::getOptionalInt(const QString& key, int dflt) const
     return dflt;
 }
 
+std::optional<qint64> XJsonObject::getOptionalInt64(const QString& key) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toInteger();
+
+    return {};
+}
+
+qint64 XJsonObject::getOptionalInt64(const QString& key, qint64 dflt) const
+{
+    if (mObject.contains(key))
+        return mObject[key].toInteger(dflt);
+
+    return dflt;
+}
+
 bool XJsonObject::getOptionalBool(const QString& key, bool dflt) const
 {
     if (mObject.contains(key))
