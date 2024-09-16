@@ -717,7 +717,7 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
 
     mXrpc->get("app.bsky.feed.getPostThread", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getPostThread:" << reply;
+            qDebug() << "getPostThread OK";
             try {
                 auto thread = AppBskyFeed::PostThread::fromJson(reply.object());
                 if (successCb)
