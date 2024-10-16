@@ -155,6 +155,7 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
+    profile->mPinndedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
     return profile;
 }
 
@@ -172,6 +173,7 @@ QJsonObject Profile::toJson() const
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "pinnedPost", mPinndedPost);
     return json;
 }
 
@@ -185,6 +187,7 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
     profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
     profile->mBanner = xjson.getOptionalObject<Blob>("banner");
     profile->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    profile->mPinndedPost = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
     return profile;
 }
 

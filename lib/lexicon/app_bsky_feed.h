@@ -18,6 +18,7 @@ struct ViewerState
     bool mThreadMuted = false;
     bool mReplyDisabled = false;
     bool mEmbeddingDisabled = false;
+    bool mPinned = false;
 
     using SharedPtr = std::shared_ptr<ViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -188,6 +189,15 @@ struct ReasonRepost
 
     using SharedPtr = std::shared_ptr<ReasonRepost>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#reasonRepost";
+};
+
+// app.bsky.feed.defs#reasonPin
+struct ReasonPin
+{
+    using SharedPtr = std::shared_ptr<ReasonPin>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#reasonPin";
 };
 
 // app.bsky.feed.defs#feedViewPost
@@ -195,7 +205,7 @@ struct FeedViewPost
 {
     PostView::SharedPtr mPost; // required
     ReplyRef::SharedPtr mReply;
-    ReasonRepost::SharedPtr mReason;
+    std::optional<std::variant<ReasonRepost::SharedPtr, ReasonPin::SharedPtr>> mReason;
     std::optional<QString> mFeedContext;
 
     using SharedPtr = std::shared_ptr<FeedViewPost>;
@@ -306,6 +316,20 @@ struct SearchSortOrder : public QObject
 public:
     SHARED_CONST(QString, TOP, QStringLiteral("top"));
     SHARED_CONST(QString, LATEST, QStringLiteral("latest"));
+};
+
+struct AuthorFeedFilter : public QObject
+{
+    Q_OBJECT
+    QML_UNCREATABLE("Class only exposes constants to QML.")
+    QML_ELEMENT
+    QML_SINGLETON
+
+public:
+    SHARED_CONST(QString, POSTS_WITH_REPLIES, QStringLiteral("posts_with_replies"));
+    SHARED_CONST(QString, POSTS_NO_REPLIES, QStringLiteral("posts_no_replies"));
+    SHARED_CONST(QString, POSTS_WITH_MEDIA, QStringLiteral("posts_with_media"));
+    SHARED_CONST(QString, POSTS_AND_AUTHOR_THREADS, QStringLiteral("posts_and_author_threads"));
 };
 
 // app.bsky.feed.getRepostedBy/Ouput

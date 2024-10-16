@@ -3,6 +3,7 @@
 #pragma once
 #include "app_bsky_graph_include.h"
 #include "com_atproto_label.h"
+#include "com_atproto_repo.h"
 #include "lexicon.h"
 #include <QJsonDocument>
 #include <unordered_set>
@@ -126,6 +127,7 @@ struct ProfileViewDetailed
     std::optional<QDateTime> mIndexedAt;
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
+    ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -142,6 +144,7 @@ struct Profile
     Blob::SharedPtr mAvatar; // optional
     Blob::SharedPtr mBanner; // optional
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
     QJsonObject mJson;
 
     QJsonObject toJson() const;
