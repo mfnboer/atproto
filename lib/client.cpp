@@ -510,11 +510,14 @@ void Client::getServices(const std::vector<QString>& dids, bool detailed,
 }
 
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
+                           const std::optional<QString> filter, std::optional<bool> includePins,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"actor", user}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "filter", filter);
+    addOptionalBoolParam(params, "includePins", includePins);
 
     Xrpc::Client::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);

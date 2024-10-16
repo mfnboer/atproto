@@ -17,6 +17,7 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mThreadMuted = xjson.getOptionalBool("threadMuted", false);
     viewerState->mReplyDisabled = xjson.getOptionalBool("replyDisabled", false);
     viewerState->mEmbeddingDisabled = xjson.getOptionalBool("embeddingDisabled", false);
+    viewerState->mPinned = xjson.getOptionalBool("pinned", false);
     return viewerState;
 }
 
@@ -327,13 +328,19 @@ ReasonRepost::SharedPtr ReasonRepost::fromJson(const QJsonObject& json)
     return reason;
 }
 
+ReasonPin::SharedPtr ReasonPin::fromJson(const QJsonObject&)
+{
+    auto reason = std::make_shared<ReasonPin>();
+    return reason;
+}
+
 FeedViewPost::SharedPtr FeedViewPost::fromJson(const QJsonObject& json)
 {
     auto feedViewPost = std::make_shared<FeedViewPost>();
     XJsonObject xjson(json);
     feedViewPost->mPost = xjson.getRequiredObject<PostView>("post");
     feedViewPost->mReply = xjson.getOptionalObject<ReplyRef>("reply");
-    feedViewPost->mReason = xjson.getOptionalObject<ReasonRepost>("reason");
+    feedViewPost->mReason = xjson.getOptionalVariant<ReasonRepost, ReasonPin>("reason");
     feedViewPost->mFeedContext = xjson.getOptionalString("feedContext");
     return feedViewPost;
 }

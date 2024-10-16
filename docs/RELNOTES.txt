@@ -1,3 +1,7 @@
+next
+====
+* Pinned post
+
 3.4.1
 =====
 * Log change
