@@ -127,7 +127,7 @@ struct ProfileViewDetailed
     std::optional<QDateTime> mIndexedAt;
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
-    ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
+    ComATProtoRepo::StrongRef::SharedPtr mPinnedPost; // optional
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);

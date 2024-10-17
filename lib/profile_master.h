@@ -34,9 +34,15 @@ public:
     void setLoggedOutVisibility(const QString& did, bool enable,
                                 const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    void setPinnedPost(const QString& did, const QString& uri, const QString& cid,
+                       const SuccessCb& successCb, const ErrorCb& errorCb);
+    void clearPinnedPost(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     bool addLabel(AppBskyActor::Profile& profile, const QString& label) const;
     bool removeLabel(AppBskyActor::Profile& profile, const QString& label) const;
+    bool setPinnedPost(AppBskyActor::Profile& profile, const QString& uri, const QString& cid) const;
+    bool clearPinnedPost(AppBskyActor::Profile& profile) const;
 
     Client& mClient;
     std::unordered_map<QString, Blob::SharedPtr> mDidAvatarBlobMap;
