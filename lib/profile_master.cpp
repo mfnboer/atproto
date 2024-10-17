@@ -210,4 +210,81 @@ void ProfileMaster::setLoggedOutVisibility(const QString& did, bool enable,
         addSelfLabel(did, LOGGED_OUT_VISIBILITY_LABEL, successCb, errorCb);
 }
 
+void ProfileMaster::setPinnedPost(const QString& did, const QString& uri, const QString& cid,
+                                  const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Set pinned post, did:" << did << "uri:" << uri << "cid:" << cid;
+    getProfile(did,
+        [this, presence=getPresence(), did, uri, cid, successCb, errorCb](auto&& profile){
+            if (!presence)
+                return;
+
+            if (setPinnedPost(*profile, uri, cid))
+            {
+                updateProfile(did, *profile, successCb, errorCb);
+            }
+            else
+            {
+                // Pinned post was already set, no need to update
+                if (successCb)
+                    successCb();
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void ProfileMaster::clearPinnedPost(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Clear pinned post, did:" << did;
+    getProfile(did,
+        [this, presence=getPresence(), did, successCb, errorCb](auto&& profile){
+            if (!presence)
+                return;
+
+            if (clearPinnedPost(*profile))
+            {
+                updateProfile(did, *profile, successCb, errorCb);
+            }
+            else
+            {
+                // No pinned post was set, no need to update
+                if (successCb)
+                    successCb();
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+bool ProfileMaster::setPinnedPost(AppBskyActor::Profile& profile, const QString& uri, const QString& cid) const
+{
+    if (profile.mPinndedPost && profile.mPinndedPost->mUri == uri && profile.mPinndedPost->mCid == cid)
+    {
+        qDebug() << "Post already pinned:" << uri << cid;
+        return false;
+    }
+
+    profile.mPinndedPost = std::make_shared<ComATProtoRepo::StrongRef>();
+    profile.mPinndedPost->mUri = uri;
+    profile.mPinndedPost->mCid = cid;
+    return true;
+}
+
+bool ProfileMaster::clearPinnedPost(AppBskyActor::Profile& profile) const
+{
+    if (!profile.mPinndedPost)
+    {
+        qDebug() << "No pinned post";
+        return false;
+    }
+
+    profile.mPinndedPost = nullptr;
+    return true;
+}
+
 }

@@ -155,7 +155,7 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
-    profile->mPinndedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
+    profile->mPinnedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
     return profile;
 }
 
