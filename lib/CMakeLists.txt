@@ -19,7 +19,7 @@ endif()
 include_directories(lexicon)
 
 qt_add_qml_module(libatproto
-    URI atproto
+    URI atproto.lib
     IMPORT_PATH .
     SOURCES
         client.h
