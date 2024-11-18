@@ -275,7 +275,6 @@ void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, con
 template<typename Callback>
 void Client::sendRequest(const Request& request, const Callback& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << request.mXrpcRequest.rawHeader("User-Agent");
     QNetworkReply* reply;
 
     if (request.mIsPost)
