@@ -76,6 +76,7 @@ void Client::post(const QString& service, const DataType& data, const QString& m
     Request request;
     request.mIsPost = true;
     request.mXrpcRequest = QNetworkRequest(buildUrl(service));
+    setUserAgent(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
         setAuthorization(request.mXrpcRequest, accessJwt);
@@ -113,6 +114,7 @@ void Client::getImpl(const QString& service, const Params& params, const Params&
     Request request;
     request.mIsPost = false;
     request.mXrpcRequest =  QNetworkRequest(buildUrl(service, params));
+    setUserAgent(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
         setAuthorization(request.mXrpcRequest, accessJwt);
@@ -145,6 +147,12 @@ QUrl Client::buildUrl(const QString& service, const Params& params) const
     }
 
     return url;
+}
+
+void Client::setUserAgent(QNetworkRequest& request) const
+{
+    if (!mUserAgent.isEmpty())
+        request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
 void Client::setAuthorization(QNetworkRequest& request, const QString& accessJwt) const
@@ -267,6 +275,7 @@ void Client::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, con
 template<typename Callback>
 void Client::sendRequest(const Request& request, const Callback& successCb, const ErrorCb& errorCb)
 {
+    qDebug() << request.mXrpcRequest.rawHeader("User-Agent");
     QNetworkReply* reply;
 
     if (request.mIsPost)
