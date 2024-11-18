@@ -21,6 +21,7 @@ public:
     explicit Client(const QString& host);
     ~Client();
 
+    void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
     const QString& getHost() const { return mHost; }
     const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds);
@@ -46,6 +47,7 @@ private:
 
     QUrl buildUrl(const QString& service) const;
     QUrl buildUrl(const QString& service, const Params& params) const;
+    void setUserAgent(QNetworkRequest& request) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
@@ -75,6 +77,7 @@ private:
 
     QString mHost; // first point of contact, e.g. bsky.social
     QString mPDS;
+    QString mUserAgent;
 
     // NOTE: changing back from static to a local member as static prevents the client
     // to be used in multiple threads. The Android issue seems to be solved. If it reappears
