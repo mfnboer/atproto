@@ -1,6 +1,7 @@
 next
 ====
 * Set User-Agent header
+* Take label setting "inform" to mean ignore
 
 3.5.1
 =====

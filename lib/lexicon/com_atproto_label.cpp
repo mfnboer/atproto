@@ -106,6 +106,7 @@ LabelValueDefinition::Setting LabelValueDefinition::stringToSetting(const QStrin
     static const std::unordered_map<QString, Setting> mapping = {
         { "ignore", Setting::IGNORE },
         { "show", Setting::IGNORE },
+        { "inform", Setting::IGNORE },
         { "warn", Setting::WARN },
         { "hide", Setting::HIDE }
     };
