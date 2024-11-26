@@ -1,5 +1,5 @@
-next
-====
+3.5.2
+=====
 * Set User-Agent header
 * Take label setting "inform" to mean ignore
 
