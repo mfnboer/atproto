@@ -8,6 +8,18 @@
 
 namespace ATProto::AppBskyFeed {
 
+QJsonObject ViewerState::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "repost", mRepost);
+    XJsonObject::insertOptionalJsonValue(json, "like", mLike);
+    XJsonObject::insertOptionalJsonValue(json, "threadMuted", mThreadMuted, false);
+    XJsonObject::insertOptionalJsonValue(json, "replyDisabled", mReplyDisabled, false);
+    XJsonObject::insertOptionalJsonValue(json, "embeddingDisabled", mEmbeddingDisabled,false);
+    XJsonObject::insertOptionalJsonValue(json, "pinned", mPinned, false);
+    return json;
+}
+
 ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
 {
     auto viewerState = std::make_shared<ViewerState>();
@@ -174,6 +186,16 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
     return threadgate;
 }
 
+QJsonObject ThreadgateView::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "uri", mUri);
+    XJsonObject::insertOptionalJsonValue(json, "cid", mCid);
+    XJsonObject::insertOptionalJsonObject<Threadgate>(json, "record", mRecord);
+    XJsonObject::insertOptionalArray<AppBskyGraph::ListViewBasic>(json, "lists", mLists);
+    return json;
+}
+
 ThreadgateView::SharedPtr ThreadgateView::fromJson(const QJsonObject& json)
 {
     auto threadgateView = std::make_shared<ThreadgateView>();
@@ -219,7 +241,7 @@ QJsonObject Record::Post::toJson() const
     QJsonObject json;
     json.insert("$type", "app.bsky.feed.post");
     json.insert("text", mText);
-    json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
+    XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "facets", mFacets);
     XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);
     XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Embed>(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
@@ -228,6 +250,7 @@ QJsonObject Record::Post::toJson() const
         json.insert("langs", XJsonObject::toJsonArray(mLanguages));
 
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonValue(json, "bridgyOriginalText", mBridgyOriginalText);
     return json;
 }
 
@@ -244,6 +267,27 @@ Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     post->mBridgyOriginalText = xjson.getOptionalString("bridgyOriginalText");
     return post;
+}
+
+QJsonObject PostView::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "author", mAuthor);
+    json.insert("record", XJsonObject::variantToJsonObject(mRecord));
+    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::EmbedView>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonValue(json, "replyCount", mReplyCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "repostCount", mRepostCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "quoteCount", mQuoteCount, 0);
+    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonObject<ViewerState>(json, "viewer", mViewer);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ThreadgateView>(json, "threadgate", mThreadgate);
+
+    return json;
 }
 
 PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
@@ -281,6 +325,13 @@ void getPostViewList(PostViewList& list, const QJsonObject& json)
     list = xjson.getRequiredVector<PostView>("posts");
 }
 
+QJsonObject ReplyElement::toJson() const
+{
+    QJsonObject json;
+    json.insert("post", XJsonObject::variantToJsonObject(mPost));
+    return json;
+}
+
 ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
 {
     auto element = std::make_shared<ReplyElement>();
@@ -309,6 +360,15 @@ ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
     return element;
 }
 
+QJsonObject ReplyRef::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonObject<ReplyElement>(json, "root", mRoot);
+    XJsonObject::insertOptionalJsonObject<ReplyElement>(json, "parent", mParent);
+    XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "grandparentAuthor", mGrandparentAuthor);
+    return json;
+}
+
 ReplyRef::SharedPtr ReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_shared<ReplyRef>();
@@ -317,6 +377,16 @@ ReplyRef::SharedPtr ReplyRef::fromJson(const QJsonObject& json)
     replyRef->mParent = xjson.getRequiredObject<ReplyElement>("parent");
     replyRef->mGrandparentAuthor = xjson.getOptionalObject<AppBskyActor::ProfileViewBasic>("grandparentAuthor");
     return replyRef;
+}
+
+
+QJsonObject ReasonRepost::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("by", mBy->toJson());
+    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    return json;
 }
 
 ReasonRepost::SharedPtr ReasonRepost::fromJson(const QJsonObject& json)
@@ -328,10 +398,27 @@ ReasonRepost::SharedPtr ReasonRepost::fromJson(const QJsonObject& json)
     return reason;
 }
 
+QJsonObject ReasonPin::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    return json;
+}
+
 ReasonPin::SharedPtr ReasonPin::fromJson(const QJsonObject&)
 {
     auto reason = std::make_shared<ReasonPin>();
     return reason;
+}
+
+QJsonObject FeedViewPost::toJson() const
+{
+    QJsonObject json;
+    json.insert("post", mPost->toJson());
+    XJsonObject::insertOptionalJsonObject<ReplyRef>(json, "reply", mReply);
+    XJsonObject::insertOptionalVariant(json, "reason", mReason);
+    XJsonObject::insertOptionalJsonValue(json, "feedContext", mFeedContext);
+    return json;
 }
 
 FeedViewPost::SharedPtr FeedViewPost::fromJson(const QJsonObject& json)
@@ -387,6 +474,14 @@ OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonDocument& json)
     return outputFeed;
 }
 
+QJsonObject NotFoundPost::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    return json;
+}
+
 NotFoundPost::SharedPtr NotFoundPost::fromJson(const QJsonObject& json)
 {
     auto notFound = std::make_shared<NotFoundPost>();
@@ -395,12 +490,28 @@ NotFoundPost::SharedPtr NotFoundPost::fromJson(const QJsonObject& json)
     return notFound;
 }
 
+QJsonObject BlockedAuthor::toJson() const
+{
+    QJsonObject json;
+    json.insert("did", mDid);
+    return json;
+}
+
 BlockedAuthor::SharedPtr BlockedAuthor::fromJson(const QJsonObject& json)
 {
     auto blockedAuthor = std::make_shared<BlockedAuthor>();
     const XJsonObject xjson(json);
     blockedAuthor->mDid = xjson.getRequiredString("did");
     return blockedAuthor;
+}
+
+QJsonObject BlockedPost::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    json.insert("author", mAuthor->toJson());
+    return json;
 }
 
 BlockedPost::SharedPtr BlockedPost::fromJson(const QJsonObject& json)
@@ -425,10 +536,10 @@ ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
 PostElementType stringToPostElementType(const QString& str)
 {
     static const std::unordered_map<QString, PostElementType> mapping = {
-        { "app.bsky.feed.defs#postView", PostElementType::POST_VIEW },
+        { PostView::TYPE, PostElementType::POST_VIEW },
         { "app.bsky.feed.defs#threadViewPost", PostElementType::THREAD_VIEW_POST },
-        { "app.bsky.feed.defs#notFoundPost", PostElementType::NOT_FOUND_POST },
-        { "app.bsky.feed.defs#blockedPost", PostElementType::BLOCKED_POST }
+        { NotFoundPost::TYPE, PostElementType::NOT_FOUND_POST },
+        { BlockedPost::TYPE, PostElementType::BLOCKED_POST }
     };
 
     const auto it = mapping.find(str);
@@ -553,6 +664,13 @@ SearchPostsOutput::SharedPtr SearchPostsOutput::fromJson(const QJsonObject& json
     return output;
 }
 
+QJsonObject GeneratorViewerState::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "like", mLike);
+    return json;
+}
+
 GeneratorViewerState::SharedPtr GeneratorViewerState::fromJson(const QJsonObject& json)
 {
     auto viewerState = std::make_shared<GeneratorViewerState>();
@@ -571,7 +689,11 @@ QJsonObject GeneratorView::toJson() const
     json.insert("creator", mCreator->toJson());
     json.insert("displayName", mDisplayName);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "descriptionFacets", mDescriptionFacets);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "acceptsInteractions", mAcceptsInteractions, false);
+    XJsonObject::insertOptionalJsonObject<GeneratorViewerState>(json, "viewer", mViewer);
     json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
     return json;
 }

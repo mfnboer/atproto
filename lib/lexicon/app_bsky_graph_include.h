@@ -14,6 +14,8 @@ struct ListViewerState
     bool mMuted = false;
     std::optional<QString> mBlocked; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ListViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -38,6 +40,8 @@ struct ListViewBasic
     ComATProtoLabel::LabelList mLabels;
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ListViewBasic>;
     static SharedPtr fromJson(const QJsonObject& json);

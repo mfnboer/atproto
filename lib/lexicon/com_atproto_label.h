@@ -18,6 +18,8 @@ struct Label
     QDateTime mCreatedAt;
     std::optional<QDateTime> mExpires;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<Label>;
     static SharedPtr fromJson(const QJsonObject& json);
 };

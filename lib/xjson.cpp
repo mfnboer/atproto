@@ -22,6 +22,14 @@ void XJsonObject::insertOptionalArray(QJsonObject& json, const QString& key, con
         json.insert(key, toJsonArray(list));
 }
 
+void XJsonObject::insertOptionalDateTime(QJsonObject& json, const QString& key, const std::optional<QDateTime>& value)
+{
+    if (!value)
+        json.remove(key);
+    else
+        json.insert(key, value->toString(Qt::ISODateWithMs));
+}
+
 XJsonObject::XJsonObject(const QJsonObject& obj) :
     mObject(obj)
 {
@@ -159,6 +167,14 @@ std::optional<QDateTime> XJsonObject::getOptionalDateTime(const QString& key) co
         return getRequiredDateTime(key);
 
     return {};
+}
+
+QDateTime XJsonObject::getOptionalDateTime(const QString& key, QDateTime dflt) const
+{
+    if (mObject.contains(key))
+        return getRequiredDateTime(key);
+
+    return dflt;
 }
 
 QUrl XJsonObject::getOptionalUrl(const QString& key) const

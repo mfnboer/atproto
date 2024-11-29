@@ -5,6 +5,21 @@
 
 namespace ATProto::ComATProtoLabel {
 
+QJsonObject Label::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue<int>(json, "ver", mVersion);
+    json.insert("src", mSrc);
+    json.insert("uri", mUri);
+    XJsonObject::insertOptionalJsonValue(json, "cid", mCid);
+    json.insert("val", mVal);
+    XJsonObject::insertOptionalJsonValue(json, "neg", mNeg, false);
+    json.insert("cts", mCreatedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalDateTime(json, "exp", mExpires);
+
+    return json;
+}
+
 Label::SharedPtr Label::fromJson(const QJsonObject& json)
 {
     auto label = std::make_shared<Label>();

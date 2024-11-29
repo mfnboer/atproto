@@ -11,6 +11,8 @@ struct LabelerViewerState
 {
     std::optional<QString> mLike;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<LabelerViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -36,7 +38,7 @@ struct LabelerView
     QDateTime mIndexedAt;
     ComATProtoLabel::LabelList mLabels;
 
-    QJsonObject toJson() const; // partial serialization
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<LabelerView>;
     static SharedPtr fromJson(const QJsonObject& json);

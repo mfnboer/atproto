@@ -113,6 +113,15 @@ QString listPurposeToString(ListPurpose purpose)
     return {};
 }
 
+QJsonObject ListViewerState::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "muted", mMuted, false);
+    XJsonObject::insertOptionalJsonValue(json, "blocked", mBlocked);
+
+    return json;
+}
+
 ListViewerState::SharedPtr ListViewerState::fromJson(const QJsonObject& json)
 {
     auto viewerState = std::make_shared<ListViewerState>();
@@ -120,6 +129,21 @@ ListViewerState::SharedPtr ListViewerState::fromJson(const QJsonObject& json)
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
     viewerState->mBlocked = xjson.getOptionalString("blocked");
     return viewerState;
+}
+
+QJsonObject ListViewBasic::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("name", mName);
+    json.insert("purpose", mRawPurpose);
+    XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ListViewerState>(json, "viewer", mViewer);
+    XJsonObject::insertOptionalDateTime(json, "indexedAt", mIndexedAt);
+
+    return json;
 }
 
 ListViewBasic::SharedPtr ListViewBasic::fromJson(const QJsonObject& json)
@@ -149,6 +173,10 @@ QJsonObject ListView::toJson() const
     json.insert("purpose", listPurposeToString(mPurpose));
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "descriptionFacets", mDescriptionFacets);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ListViewerState>(json, "viewer", mViewer);
+    XJsonObject::insertOptionalDateTime(json, "indexedAt", mIndexedAt);
     return json;
 }
 
@@ -274,12 +302,32 @@ GetListsOutput::SharedPtr GetListsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
+QJsonObject StarterPackFeedItem::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    return json;
+}
+
 StarterPackFeedItem::SharedPtr StarterPackFeedItem::fromJson(const QJsonObject& json)
 {
     auto feedItem = std::make_shared<StarterPackFeedItem>();
     XJsonObject xjson(json);
     feedItem->mUri = xjson.getRequiredString("uri");
     return feedItem;
+}
+
+QJsonObject StarterPack::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("name", mName);
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "descriptionFacets", mDescriptionFacets);
+    json.insert("list", mList);
+    XJsonObject::insertOptionalArray<StarterPackFeedItem>(json, "feeds", mFeeds);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
 }
 
 StarterPack::SharedPtr StarterPack::fromJson(const QJsonObject& json)
@@ -293,6 +341,22 @@ StarterPack::SharedPtr StarterPack::fromJson(const QJsonObject& json)
     starterPack->mFeeds = xjson.getOptionalVector<StarterPackFeedItem>("feeds");
     starterPack->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return starterPack;
+}
+
+QJsonObject StarterPackViewBasic::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("record", XJsonObject::variantToJsonObject(mRecord));
+    json.insert("creator", mCreator->toJson());
+    XJsonObject::insertOptionalJsonValue(json, "listItemCount", mListItemCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "joinedWeekCount", mJoinedWeekCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "joinedAllTimeCount", mJoinedAllTimeCount, 0);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    return json;
 }
 
 StarterPackViewBasic::SharedPtr StarterPackViewBasic::fromJson(const QJsonObject& json)
