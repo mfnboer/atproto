@@ -17,6 +17,8 @@ struct GeneratorViewerState
 {
     std::optional<QString> mLike; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<GeneratorViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -37,7 +39,7 @@ struct GeneratorView {
     GeneratorViewerState::SharedPtr mViewer; // optional
     QDateTime mIndexedAt;
 
-    QJsonObject toJson() const; // partial serialization
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<GeneratorView>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -128,6 +130,8 @@ struct ImagesViewImage
     AspectRatio::SharedPtr mAspectRatio; // optional
     QJsonObject mJson;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ImagesViewImage>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -138,8 +142,11 @@ struct ImagesView
 {
     ImagesViewImageList mImages; // max length 4
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ImagesView>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.images#view";
 };
 
 // app.bsky.embed.video#caption
@@ -183,6 +190,8 @@ struct VideoView
     AspectRatio::SharedPtr mAspectRatio; // optional
     QJsonObject mJson;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<VideoView>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.embed.video#view";
@@ -221,6 +230,8 @@ struct ExternalViewExternal
     QString mDescription;
     std::optional<QString> mThumb;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ExternalViewExternal>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -230,8 +241,11 @@ struct ExternalView
 {
     ExternalViewExternal::SharedPtr mExternal; // required
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ExternalView>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.external#view";
 };
 
 // app.bsky.embed.record
@@ -252,6 +266,8 @@ struct RecordViewNotFound
 {
     QString mUri; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<RecordViewNotFound>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.embed.record#viewNotFound";
@@ -262,6 +278,8 @@ struct RecordViewBlocked
 {
     QString mUri; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<RecordViewBlocked>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.embed.record#viewBlocked";
@@ -271,6 +289,8 @@ struct RecordViewBlocked
 struct RecordViewDetached
 {
     QString mUri; // at-uri
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<RecordViewDetached>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -292,8 +312,11 @@ struct RecordView
 
     QString mUnsupportedType; // not part of the spec
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<RecordView>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record#view";
 };
 
 enum class EmbedType
@@ -320,6 +343,7 @@ struct RecordWithMedia
 
     using SharedPtr = std::shared_ptr<RecordWithMedia>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.recordWithMedia";
 };
 
 using EmbedUnion = std::variant<Images::SharedPtr,
@@ -360,8 +384,11 @@ struct RecordWithMediaView
     EmbedViewType mMediaType;
     QString mRawMediaType;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<RecordWithMediaView>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.recordWithMedia#view";
 };
 
 using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
@@ -375,6 +402,8 @@ struct EmbedView
     EmbedViewUnion mEmbed;
     EmbedViewType mType;
     QString mRawType;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<EmbedView>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -439,6 +468,8 @@ struct RecordViewRecord
     ComATProtoLabel::LabelList mLabels;
     EmbedViewList mEmbeds;
     QDateTime mIndexedAt;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<RecordViewRecord>;
     static SharedPtr fromJson(const QJsonObject& json);

@@ -1,3 +1,7 @@
+next
+====
+* Json serialization
+
 3.5.2
 =====
 * Set User-Agent header

@@ -98,7 +98,7 @@ struct ListView
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 
-    QJsonObject toJson() const; // partial serialization
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ListView>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -190,6 +190,8 @@ struct StarterPackFeedItem
 {
     QString mUri; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<StarterPackFeedItem>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -204,6 +206,8 @@ struct StarterPack
     QString mList; // at-uri
     StarterPackFeedItemList mFeeds;
     QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StarterPack>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -222,6 +226,8 @@ struct StarterPackViewBasic
     int mJoinedAllTimeCount = 0;
     ComATProtoLabel::LabelList mLabels;
     QDateTime mIndexedAt;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StarterPackViewBasic>;
     static SharedPtr fromJson(const QJsonObject& json);

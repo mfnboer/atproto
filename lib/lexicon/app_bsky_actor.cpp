@@ -41,6 +41,15 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
     return it->second;
 }
 
+QJsonObject KnownFollowers::toJson() const
+{
+    QJsonObject json;
+    json.insert("count", mCount);
+    json.insert("followers", XJsonObject::toJsonArray<ProfileViewBasic>(mFollowers));
+
+    return json;
+}
+
 KnownFollowers::SharedPtr KnownFollowers::fromJson(const QJsonObject& json)
 {
     auto knownFollowers = std::make_shared<KnownFollowers>();
@@ -48,6 +57,21 @@ KnownFollowers::SharedPtr KnownFollowers::fromJson(const QJsonObject& json)
     knownFollowers->mCount = xjson.getRequiredInt("count");
     knownFollowers->mFollowers = xjson.getRequiredVector<ProfileViewBasic>("followers");
     return knownFollowers;
+}
+
+QJsonObject ViewerState::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "muted", mMuted, false);
+    XJsonObject::insertOptionalJsonValue(json, "blockedBy", mBlockedBy, false);
+    XJsonObject::insertOptionalJsonValue(json, "blocking", mBlocking);
+    XJsonObject::insertOptionalJsonValue(json, "following", mFollowing);
+    XJsonObject::insertOptionalJsonValue(json, "followedBy", mFollowedBy);
+    XJsonObject::insertOptionalJsonObject<AppBskyGraph::ListViewBasic>(json, "mutedByList", mMutedByList);
+    XJsonObject::insertOptionalJsonObject<AppBskyGraph::ListViewBasic>(json, "blockingByList", mBlockingByList);
+    XJsonObject::insertOptionalJsonObject<KnownFollowers>(json, "knownFollowers", mKnownFollowers);
+
+    return json;
 }
 
 ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
@@ -65,6 +89,14 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+QJsonObject ProfileAssociatedChat::toJson() const
+{
+    QJsonObject json;
+    json.insert("allowIncoming", allowIncomingTypeToString(mAllowIncoming));
+
+    return json;
+}
+
 ProfileAssociatedChat::SharedPtr ProfileAssociatedChat::fromJson(const QJsonObject& json)
 {
     auto associated = std::make_shared<ProfileAssociatedChat>();
@@ -72,6 +104,18 @@ ProfileAssociatedChat::SharedPtr ProfileAssociatedChat::fromJson(const QJsonObje
     const auto allowIncoming = xjson.getRequiredString("allowIncoming");
     associated->mAllowIncoming = stringToAllowIncomingType(allowIncoming);
     return associated;
+}
+
+QJsonObject ProfileAssociated::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue<int>(json, "lists", mLists, 0);
+    XJsonObject::insertOptionalJsonValue<int>(json, "feedgens", mFeeds, 0);
+    XJsonObject::insertOptionalJsonValue<int>(json, "starterPacks", mStarterPacks, 0);
+    XJsonObject::insertOptionalJsonValue<bool>(json, "labeler", mLabeler, false);
+    XJsonObject::insertOptionalJsonObject<ProfileAssociatedChat>(json, "chat", mChat);
+
+    return json;
 }
 
 ProfileAssociated::SharedPtr ProfileAssociated::fromJson(const QJsonObject& json)
@@ -94,6 +138,9 @@ QJsonObject ProfileViewBasic::toJson() const
     json.insert("handle", mHandle);
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonObject<ProfileAssociated>(json, "associated", mAssociated);
+    XJsonObject::insertOptionalJsonObject<ViewerState>(json, "viewer", mViewer);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     return json;
 }
 

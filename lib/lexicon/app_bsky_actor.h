@@ -20,6 +20,8 @@ struct KnownFollowers
     int mCount = 0;
     std::vector<std::shared_ptr<ProfileViewBasic>> mFollowers;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<KnownFollowers>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -35,6 +37,8 @@ struct ViewerState
     AppBskyGraph::ListViewBasic::SharedPtr mMutedByList;
     AppBskyGraph::ListViewBasic::SharedPtr mBlockingByList;
     KnownFollowers::SharedPtr mKnownFollowers;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -54,6 +58,8 @@ struct ProfileAssociatedChat
 {
     AppBskyActor::AllowIncomingType mAllowIncoming = AllowIncomingType::FOLLOWING;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ProfileAssociatedChat>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -66,6 +72,8 @@ struct ProfileAssociated
     int mStarterPacks = 0;
     bool mLabeler = false;
     ProfileAssociatedChat::SharedPtr mChat; // optional
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ProfileAssociated>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -82,7 +90,7 @@ struct ProfileViewBasic
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
 
-    QJsonObject toJson() const; // partial serialization
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ProfileViewBasic>;
     static SharedPtr fromJson(const QJsonObject& json);

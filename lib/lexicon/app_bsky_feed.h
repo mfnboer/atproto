@@ -20,6 +20,8 @@ struct ViewerState
     bool mEmbeddingDisabled = false;
     bool mPinned = false;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ViewerState>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -91,6 +93,8 @@ struct ThreadgateView
     QString mRawRecordType;
     AppBskyGraph::ListViewBasicList mLists;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ThreadgateView>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -114,8 +118,11 @@ struct PostView
     ComATProtoLabel::LabelList mLabels;
     ThreadgateView::SharedPtr mThreadgate; // optional
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<PostView>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#postView";
 };
 
 using PostViewList = std::vector<PostView::SharedPtr>;
@@ -126,8 +133,11 @@ struct NotFoundPost
 {
     QString mUri; // at-uri
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<NotFoundPost>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#notFoundPost";
 };
 
 // app.bsky.feed.defs#blockedAuthor
@@ -136,8 +146,11 @@ struct BlockedAuthor
     QString mDid;
     // NOT IMPLEMENTED viewer
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<BlockedAuthor>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "";
 };
 
 // app.bsky.feed.defs#blockedPost
@@ -146,8 +159,11 @@ struct BlockedPost
     QString mUri; // at-uri
     BlockedAuthor::SharedPtr mAuthor; // required
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<BlockedPost>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#blockedPost";
 };
 
 enum class PostElementType
@@ -166,6 +182,8 @@ struct ReplyElement
     QString mUnsupportedType;
     std::variant<PostView::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ReplyElement>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -177,6 +195,8 @@ struct ReplyRef
     ReplyElement::SharedPtr mParent; // required
     AppBskyActor::ProfileViewBasic::SharedPtr mGrandparentAuthor; // optional
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ReplyRef>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
@@ -187,6 +207,8 @@ struct ReasonRepost
     AppBskyActor::ProfileViewBasic::SharedPtr mBy;
     QDateTime mIndexedAt;
 
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ReasonRepost>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.feed.defs#reasonRepost";
@@ -195,6 +217,8 @@ struct ReasonRepost
 // app.bsky.feed.defs#reasonPin
 struct ReasonPin
 {
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<ReasonPin>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.feed.defs#reasonPin";
@@ -207,6 +231,8 @@ struct FeedViewPost
     ReplyRef::SharedPtr mReply;
     std::optional<std::variant<ReasonRepost::SharedPtr, ReasonPin::SharedPtr>> mReason;
     std::optional<QString> mFeedContext;
+
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<FeedViewPost>;
     static SharedPtr fromJson(const QJsonObject& json);

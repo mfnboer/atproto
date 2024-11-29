@@ -42,8 +42,19 @@ public:
     template<class VariantType>
     static void insertOptionalVariantArray(QJsonObject& json, const QString& key, const std::vector<VariantType>& list);
 
+    template<class VariantType>
+    static QJsonObject variantToJsonObject(const VariantType& variant);
+
+    template<class VariantType>
+    static void insertOptionalVariant(QJsonObject& json, const QString& key, const std::optional<VariantType>& value);
+
     template<class Type>
     static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const std::optional<Type>& value);
+
+    template<class Type>
+    static void insertOptionalJsonValue(QJsonObject& json, const QString& key, const Type& value, const Type& dflt);
+
+    static void insertOptionalDateTime(QJsonObject& json, const QString& key, const std::optional<QDateTime>& value);
 
     template<class Type>
     static void insertOptionalJsonObject(QJsonObject& json, const QString& key, const typename Type::SharedPtr& value);
@@ -66,6 +77,7 @@ public:
     qint64 getOptionalInt64(const QString& key, qint64 dflt) const;
     bool getOptionalBool(const QString& key, bool dflt) const;
     std::optional<QDateTime> getOptionalDateTime(const QString& key) const;
+    QDateTime getOptionalDateTime(const QString& key, QDateTime dflt) const;
     QUrl getOptionalUrl(const QString& key) const;
     std::optional<QJsonObject> getOptionalJsonObject(const QString& key) const;
     std::optional<QJsonArray> getOptionalArray(const QString& key) const;
@@ -133,6 +145,15 @@ void XJsonObject::insertOptionalJsonValue(QJsonObject& json, const QString& key,
         json.insert(key, *value);
     else
         json.remove(key);
+}
+
+template<class Type>
+void XJsonObject::insertOptionalJsonValue(QJsonObject& json, const QString& key, const Type& value, const Type& dflt)
+{
+    if (value == dflt)
+        json.remove(key);
+    else
+        json.insert(key, value);
 }
 
 template<class Type>
@@ -315,6 +336,21 @@ void XJsonObject::insertOptionalVariantArray(QJsonObject& json, const QString& k
         json.remove(key);
     else
         json.insert(key, toVariantJsonArray(list));
+}
+
+template<class VariantType>
+QJsonObject XJsonObject::variantToJsonObject(const VariantType& variant)
+{
+    return std::visit([](auto&& x){ return x->toJson(); }, variant);
+}
+
+template<class VariantType>
+void XJsonObject::insertOptionalVariant(QJsonObject& json, const QString& key, const std::optional<VariantType>& value)
+{
+    if (!value)
+        json.remove(key);
+    else
+        json.insert(key, variantToJsonObject(*value));
 }
 
 }

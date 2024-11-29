@@ -5,6 +5,13 @@
 
 namespace ATProto::AppBskyLabeler {
 
+QJsonObject LabelerViewerState::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "like", mLike);
+    return json;
+}
+
 LabelerViewerState::SharedPtr LabelerViewerState::fromJson(const QJsonObject& json)
 {
     auto state = std::make_shared<LabelerViewerState>();
@@ -29,6 +36,10 @@ QJsonObject LabelerView::toJson() const
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     json.insert("creator", mCreator->toJson());
+    XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
+    XJsonObject::insertOptionalJsonObject<LabelerViewerState>(json, "viewer", mViewer);
+    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     return json;
 }
 
