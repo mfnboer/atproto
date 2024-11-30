@@ -327,9 +327,7 @@ void getPostViewList(PostViewList& list, const QJsonObject& json)
 
 QJsonObject ReplyElement::toJson() const
 {
-    QJsonObject json;
-    json.insert("post", XJsonObject::variantToJsonObject(mPost));
-    return json;
+    return XJsonObject::variantToJsonObject(mPost);
 }
 
 ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
@@ -363,8 +361,8 @@ ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
 QJsonObject ReplyRef::toJson() const
 {
     QJsonObject json;
-    XJsonObject::insertOptionalJsonObject<ReplyElement>(json, "root", mRoot);
-    XJsonObject::insertOptionalJsonObject<ReplyElement>(json, "parent", mParent);
+    json.insert("root", mRoot->toJson());
+    json.insert("parent", mParent->toJson());
     XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "grandparentAuthor", mGrandparentAuthor);
     return json;
 }
