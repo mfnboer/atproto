@@ -571,7 +571,7 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
 
     mXrpc->get("app.bsky.feed.getTimeline", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getTimeline:" << reply;
+            qDebug() << "getTimeline succeeded";
             try {
                 auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
