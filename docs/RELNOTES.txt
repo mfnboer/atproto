@@ -1,6 +1,7 @@
 next
 ====
 * Json serialization
+* Add AcceptLabelers header to chat requests
 
 3.5.2
 =====
