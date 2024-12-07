@@ -1813,6 +1813,7 @@ void Client::getConvo(const QString& convoId,
     Xrpc::Client::Params params{{"convoId", convoId}};
 
     Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getConvo", params, httpHeaders,
@@ -1842,6 +1843,7 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
         params.append({"members", member});
 
     Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getConvoForMembers", params, httpHeaders,
@@ -1946,6 +1948,7 @@ void Client::listConvos(std::optional<int> limit, const std::optional<QString>& 
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.listConvos", params, httpHeaders,
