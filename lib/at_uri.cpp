@@ -78,6 +78,21 @@ ATUri ATUri::fromHttpsListUri(const QString& uri)
     return fromHttpsUri(uri, reHandleHttps, reDidHttps, COLLECTION_GRAPH_LIST);
 }
 
+ATUri ATUri::fromHttpsStarterPackUri(const QString& uri)
+{
+    static const QRegularExpression reHandleHttps(
+        QString(R"(^https://bsky.app/starter-pack/(?<authority>%1)/(?<rkey>%2)$)").arg(
+            ATRegex::HANDLE.pattern(),
+            ATRegex::RKEY.pattern()));
+
+    static const QRegularExpression reDidHttps(
+        QString(R"(^https://bsky.app/starter-pack/(?<authority>%1)/(?<rkey>%2)$)").arg(
+            ATRegex::DID.pattern(),
+            ATRegex::RKEY.pattern()));
+
+    return fromHttpsUri(uri, reHandleHttps, reDidHttps, COLLECTION_GRAPH_STARTERPACK);
+}
+
 ATUri ATUri::createAtUri(const QString& uri, const QObject& presence, const ErrorCb& errorCb)
 {
     auto atUri = ATUri(uri);
@@ -129,6 +144,8 @@ QString ATUri::toHttpsUri() const
         return QString("https://bsky.app/profile/%1/feed/%2").arg(mAuthority, mRkey);
     if (mCollection == COLLECTION_GRAPH_LIST)
         return QString("https://bsky.app/profile/%1/lists/%2").arg(mAuthority, mRkey);
+    if (mCollection == COLLECTION_GRAPH_STARTERPACK)
+        return QString("https://bsky.app/starter-pack/%1/%2").arg(mAuthority, mRkey);
     if (mCollection == COLLECTION_ACTOR_PROFILE)
         return QString("https://bsky.app/profile/%1").arg(mAuthority);
 
