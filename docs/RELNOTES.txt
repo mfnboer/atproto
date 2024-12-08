@@ -1,5 +1,5 @@
-next
-====
+3.5.3
+=====
 * Json serialization
 * Add AcceptLabelers header to chat requests
 
