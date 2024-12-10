@@ -1,3 +1,7 @@
+next
+====
+* Add opened to convoView
+
 3.5.3
 =====
 * Json serialization

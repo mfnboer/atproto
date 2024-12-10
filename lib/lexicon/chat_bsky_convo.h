@@ -81,6 +81,7 @@ struct ConvoView
     ChatBskyActor::ProfileViewBasicList mMembers;
     std::optional<std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>> mLastMessage;
     bool mMuted = false;
+    bool mOpened = false;
     int mUnreadCount = 0;
 
     using SharedPtr = std::shared_ptr<ConvoView>;
