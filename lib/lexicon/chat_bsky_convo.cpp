@@ -87,6 +87,7 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
     view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
     view->mMuted = xjson.getOptionalBool("muted", false);
+    view->mOpened = xjson.getOptionalBool("opened", false);
     view->mUnreadCount = xjson.getRequiredInt("unreadCount");
     return view;
 }
