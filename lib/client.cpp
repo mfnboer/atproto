@@ -1298,6 +1298,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 
 void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
                                const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
+                               const std::vector<AppBskyNotification::NotificationReason> reasons,
                                const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                                bool updateSeen)
 {
@@ -1306,6 +1307,14 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalDateTimeParam(params, "seenAt", seenAt);
     addOptionalBoolParam(params, "priority", priority);
+
+    for (const auto reason : reasons)
+    {
+        const auto reasonString = AppBskyNotification::notificationReasonToString(reason);
+
+        if (!reasonString.isEmpty())
+            params.append({"reasons", reasonString});
+    }
 
     const auto now = QDateTime::currentDateTimeUtc();
 

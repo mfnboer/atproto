@@ -14,7 +14,8 @@ NotificationReason stringToNotificationReason(const QString& str)
         { "follow", NotificationReason::FOLLOW },
         { "mention", NotificationReason::MENTION },
         { "reply", NotificationReason::REPLY },
-        { "quote", NotificationReason::QUOTE }
+        { "quote", NotificationReason::QUOTE },
+        { "starterpack-joined", NotificationReason::STARTERPACK_JOINED }
     };
 
     const auto it = mapping.find(str);
@@ -22,6 +23,26 @@ NotificationReason stringToNotificationReason(const QString& str)
         return it->second;
 
     return NotificationReason::UNKNOWN;
+}
+
+QString notificationReasonToString(NotificationReason reason)
+{
+    static const std::unordered_map<NotificationReason, QString> mapping = {
+        { NotificationReason::LIKE, "like" },
+        { NotificationReason::REPOST, "repost" },
+        { NotificationReason::FOLLOW, "follow" },
+        { NotificationReason::MENTION, "mention" },
+        { NotificationReason::REPLY, "reply" },
+        { NotificationReason::QUOTE, "quote" },
+        { NotificationReason::STARTERPACK_JOINED, "starterpack-joined" }
+    };
+
+    const auto it = mapping.find(reason);
+    Q_ASSERT(it != mapping.end());
+    if (it != mapping.end())
+        return it->second;
+
+    return {};
 }
 
 Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
@@ -53,6 +74,9 @@ Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
         case NotificationReason::REPLY:
         case NotificationReason::QUOTE:
             notification->mRecord = AppBskyFeed::Record::Post::fromJson(recordJson);
+            break;
+        case ATProto::AppBskyNotification::NotificationReason::STARTERPACK_JOINED:
+            notification->mRecord = AppBskyGraph::StarterPack::fromJson(recordJson);
             break;
         case NotificationReason::UNKNOWN:
             qWarning() << "Unknow notification reason:" << notification->mRawReason;
