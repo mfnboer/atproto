@@ -551,6 +551,7 @@ public:
      */
     void listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
                            const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
+                           const std::vector<AppBskyNotification::NotificationReason> reasons,
                            const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                            bool updateSeen = false);
 

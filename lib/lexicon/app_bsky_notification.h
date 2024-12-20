@@ -17,10 +17,12 @@ enum class NotificationReason
     MENTION,
     REPLY,
     QUOTE,
+    STARTERPACK_JOINED,
     UNKNOWN
 };
 
 NotificationReason stringToNotificationReason(const QString& str);
+QString notificationReasonToString(NotificationReason reason);
 
 // app.bsky.notification#notification
 struct Notification
@@ -34,7 +36,8 @@ struct Notification
     std::variant<AppBskyFeed::Record::Post::SharedPtr,
                  AppBskyFeed::Like::SharedPtr,
                  AppBskyFeed::Repost::SharedPtr,
-                 AppBskyGraph::Follow::SharedPtr> mRecord;
+                 AppBskyGraph::Follow::SharedPtr,
+                 AppBskyGraph::StarterPack::SharedPtr> mRecord;
     QString mRawRecordType;
     bool mIsRead;
     QDateTime mIndexedAt;

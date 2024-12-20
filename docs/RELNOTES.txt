@@ -1,3 +1,8 @@
+next
+====
+* Add reasons to listNotifications
+* Add starterpack-joined reason to notification
+
 3.5.4
 =====
 * Add opened to convoView
