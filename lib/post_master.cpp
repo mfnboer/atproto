@@ -610,7 +610,8 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
         recordWithMedia->mRecord->mRecord = std::move(ref);
         recordWithMedia->mMediaType = AppBskyEmbed::EmbedType::VIDEO;
         recordWithMedia->mMedia = std::make_shared<AppBskyEmbed::Video>();
-        embed = std::get<AppBskyEmbed::Video::SharedPtr>(post.mEmbed->mEmbed).get();
+
+        embed = std::get<AppBskyEmbed::Video::SharedPtr>(recordWithMedia->mMedia).get();
     }
 
     Q_ASSERT(embed);

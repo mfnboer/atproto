@@ -1,3 +1,7 @@
+next
+====
+* Bug fix
+
 3.5.5
 =====
 * Add reasons to listNotifications
