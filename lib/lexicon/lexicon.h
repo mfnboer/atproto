@@ -45,6 +45,8 @@ public:
     SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
     SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));
     SHARED_CONST(QString, INVALID_TOKEN, QStringLiteral("InvalidToken"));
+    SHARED_CONST(QString, NOT_FOUND, QStringLiteral("NotFound"));
+    SHARED_CONST(QString, RECORD_NOT_FOUND, QStringLiteral("RecordNotFound"));
 
     // Internal stack error
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
