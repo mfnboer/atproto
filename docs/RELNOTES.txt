@@ -1,3 +1,7 @@
+next
+====
+* Trending topics
+
 3.5.6
 =====
 * Bug fix

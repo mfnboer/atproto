@@ -14,4 +14,24 @@ GetPopularFeedGeneratorsOutput::SharedPtr GetPopularFeedGeneratorsOutput::fromJs
     return output;
 }
 
+TrendingTopic::SharedPtr TrendingTopic::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<TrendingTopic>();
+    const XJsonObject xjson(json);
+    output->mTopic = xjson.getRequiredString("topic");
+    output->mDisplayName = xjson.getOptionalString("displayName");
+    output->mDescription = xjson.getOptionalString("description");
+    output->mLink = xjson.getRequiredString("link");
+    return output;
+}
+
+GetTrendingTopicsOutput::SharedPtr GetTrendingTopicsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetTrendingTopicsOutput>();
+    const XJsonObject xjson(json);
+    output->mTopics = xjson.getRequiredVector<TrendingTopic>("topics");
+    output->mSuggested = xjson.getRequiredVector<TrendingTopic>("suggested");
+    return output;
+}
+
 }
