@@ -496,7 +496,7 @@ void Client::getServices(const std::vector<QString>& dids, bool detailed,
 
     mXrpc->get("app.bsky.labeler.getServices", params, {},
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getServices:" << reply;
+            qDebug() << "getServices: success";
             try {
                 auto output = AppBskyLabeler::GetServicesOutput::fromJson(reply.object());
                 if (successCb)
@@ -1778,6 +1778,29 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
             qDebug() << "getPopularFeedGenerators:" << reply;
             try {
                 auto output = AppBskyUnspecced::GetPopularFeedGeneratorsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
+                       const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params;
+    addOptionalStringParam(params, "viewer", viewer);
+    addOptionalIntParam(params, "limit", limit, 1, 25);
+
+    mXrpc->get("app.bsky.unspecced.getTrendingTopics", params, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getTrendingTopics:" << reply;
+            try {
+                auto output = AppBskyUnspecced::GetTrendingTopicsOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));

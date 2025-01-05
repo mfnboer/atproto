@@ -74,6 +74,7 @@ public:
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::SharedPtr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
+    using GetTrendingTopicsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendingTopicsOutput::SharedPtr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
@@ -755,6 +756,16 @@ public:
     void getPopularFeedGenerators(const std::optional<QString>& q, std::optional<int> limit,
                                   const std::optional<QString>& cursor,
                                   const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getTrendingTopics
+     * @param viewer DID of the account making the request (not included for public/unauthenticated queries). Used to boost followed accounts in ranking.
+     * @param limit min=1 default=10 max=25
+     * @param successCb
+     * @param errorCb
+     */
+    void getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
+                           const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // chat.bsky.convo
 
