@@ -598,7 +598,7 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
 
     mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getFeed:" << reply;
+            qDebug() << "getFeed: ok";
             try {
                 auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
