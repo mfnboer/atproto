@@ -271,6 +271,15 @@ enum class MutedWordTarget
 MutedWordTarget stringToMutedWordTarget(const QString& str);
 QString mutedWordTargetToString(MutedWordTarget target);
 
+enum class ActorTarget
+{
+    ALL,
+    EXCLUDE_FOLLOWING,
+    UNKNOWN
+};
+ActorTarget stringToActorTarget(const QString& str);
+QString actorTargetToString(ActorTarget target);
+
 // app.bsky.actor.defs#mutedWord
 struct MutedWord
 {
@@ -282,6 +291,9 @@ struct MutedWord
 
     QString mValue;
     std::vector<Target> mTargets;
+    ActorTarget mActorTarget = ActorTarget::ALL;
+    QString mRawActorTarget = QStringLiteral("all");
+    std::optional<QDateTime> mExpiresAt;
     QJsonObject mJson;
 
     QJsonObject toJson() const;
