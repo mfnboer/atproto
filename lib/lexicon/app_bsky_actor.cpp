@@ -409,6 +409,36 @@ QString mutedWordTargetToString(MutedWordTarget target)
     return {};
 }
 
+ActorTarget stringToActorTarget(const QString& str)
+{
+    static const std::unordered_map<QString, ActorTarget> mapping = {
+        { "all", ActorTarget::ALL },
+        { "exclude-following", ActorTarget::EXCLUDE_FOLLOWING }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown actor target:" << str;
+    return ActorTarget::UNKNOWN;
+}
+
+QString actorTargetToString(ActorTarget target)
+{
+    static const std::unordered_map<ActorTarget, QString> mapping = {
+        { ActorTarget::ALL, "all" },
+        { ActorTarget::EXCLUDE_FOLLOWING, "exclude-following" }
+    };
+
+    const auto it = mapping.find(target);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown actor target:" << (int)target;
+    return {};
+}
+
 QJsonObject MutedWord::toJson() const
 {
     QJsonObject json(mJson);
@@ -422,6 +452,15 @@ QJsonObject MutedWord::toJson() const
     }
 
     json.insert("targets", XJsonObject::toJsonArray(targets));
+
+    if (mActorTarget != ActorTarget::ALL)
+    {
+        const auto actorTgtString = actorTargetToString(mActorTarget);
+        json.insert("actorTarget", !actorTgtString.isEmpty() ? actorTgtString : mRawActorTarget);
+    }
+
+    XJsonObject::insertOptionalDateTime(json, "expiresAt", mExpiresAt);
+
     return json;
 }
 
@@ -439,6 +478,10 @@ MutedWord::SharedPtr MutedWord::fromJson(const QJsonObject& json)
         target.mRawTarget = targetString;
         mutedWord->mTargets.push_back(target);
     }
+
+    mutedWord->mRawActorTarget = xjson.getOptionalString("actorTarget", mutedWord->mRawActorTarget);
+    mutedWord->mActorTarget = stringToActorTarget(mutedWord->mRawActorTarget);
+    mutedWord->mExpiresAt = xjson.getOptionalDateTime("expiresAt");
 
     mutedWord->mJson = json;
     return mutedWord;
