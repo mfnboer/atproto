@@ -450,7 +450,7 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
 
     mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getSuggestions:" << reply;
+            qDebug() << "getSuggestions: ok";
             try {
                 auto ouput = AppBskyActor::GetSuggestionsOutput::fromJson(reply.object());
                 if (successCb)
@@ -1985,7 +1985,7 @@ void Client::listConvos(std::optional<int> limit, const std::optional<QString>& 
 
     mXrpc->get("chat.bsky.convo.listConvos", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "List convos:" << reply;
+            qDebug() << "List convos: ok";
             try {
                 auto output = ChatBskyConvo::ConvoListOutput::fromJson(reply.object());
 
