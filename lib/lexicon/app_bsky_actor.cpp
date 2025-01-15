@@ -458,9 +458,12 @@ QJsonObject MutedWord::toJson() const
         const auto actorTgtString = actorTargetToString(mActorTarget);
         json.insert("actorTarget", !actorTgtString.isEmpty() ? actorTgtString : mRawActorTarget);
     }
+    else
+    {
+        json.remove("actorTarget");
+    }
 
     XJsonObject::insertOptionalDateTime(json, "expiresAt", mExpiresAt);
-
     return json;
 }
 
