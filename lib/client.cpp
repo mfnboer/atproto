@@ -524,7 +524,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
 
     mXrpc->get("app.bsky.feed.getAuthorFeed", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getAuthorFeed:" << reply;
+            qDebug() << "getAuthorFeed: ok";
             try {
                 auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
                 if (successCb)
