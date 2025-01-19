@@ -1,5 +1,5 @@
-next
-====
+3.6.1
+=====
 * Add ExpiresAt and ActorTarget to muted words
 
 3.6
