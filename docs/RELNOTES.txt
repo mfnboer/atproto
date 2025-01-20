@@ -1,3 +1,7 @@
+next
+====
+* Generator content mode
+
 3.6.1
 =====
 * Add ExpiresAt and ActorTarget to muted words
