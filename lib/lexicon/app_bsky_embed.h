@@ -23,6 +23,16 @@ struct GeneratorViewerState
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+enum class ContentMode
+{
+    UNSPECIFIED,
+    VIDEO,
+    UNKNOWN
+};
+ContentMode stringToContentMode(const QString& str);
+QString contentModeToString(ContentMode mode, const QString& unknown);
+
+
 // app.bsky.feed.defs#generatorView
 struct GeneratorView {
     QString mUri;
@@ -37,6 +47,8 @@ struct GeneratorView {
     bool mAcceptsInteractions = false;
     ComATProtoLabel::LabelList mLabels;
     GeneratorViewerState::SharedPtr mViewer; // optional
+    std::optional<ContentMode> mContentMode;
+    std::optional<QString> mRawContentMode;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;

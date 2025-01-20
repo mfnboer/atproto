@@ -677,6 +677,36 @@ GeneratorViewerState::SharedPtr GeneratorViewerState::fromJson(const QJsonObject
     return viewerState;
 }
 
+ContentMode stringToContentMode(const QString& str)
+{
+    static const std::unordered_map<QString, ContentMode> mapping = {
+        { "app.bsky.feed.defs#contentModeUnspecified", ContentMode::UNSPECIFIED },
+        { "app.bsky.feed.defs#contentModeVideo", ContentMode::VIDEO }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown content mode:" << str;
+    return ContentMode::UNKNOWN;
+}
+
+QString contentModeToString(ContentMode mode, const QString& unknown)
+{
+    static const std::unordered_map<ContentMode, QString> mapping = {
+        { ContentMode::UNSPECIFIED, "app.bsky.feed.defs#contentModeUnspecified" },
+        { ContentMode::VIDEO, "app.bsky.feed.defs#contentModeVideo" }
+    };
+
+    const auto it = mapping.find(mode);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown content mode:" << (int)mode;
+    return unknown;
+}
+
 QJsonObject GeneratorView::toJson() const
 {
     QJsonObject json;
@@ -692,6 +722,12 @@ QJsonObject GeneratorView::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "acceptsInteractions", mAcceptsInteractions, false);
     XJsonObject::insertOptionalJsonObject<GeneratorViewerState>(json, "viewer", mViewer);
+
+    if (mContentMode)
+        json.insert("contentMode", contentModeToString(*mContentMode, mRawContentMode.value_or("app.bsky.feed.defs#contentModeUnspecified")));
+    else
+        json.remove("contentMode");
+
     json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
     return json;
 }
@@ -712,6 +748,11 @@ GeneratorView::SharedPtr GeneratorView::fromJson(const QJsonObject& json)
     view->mAcceptsInteractions = xjson.getOptionalBool("acceptsInteractions", false);
     ComATProtoLabel::getLabels(view->mLabels, json);
     view->mViewer = xjson.getOptionalObject<GeneratorViewerState>("viewer");
+    view->mRawContentMode = xjson.getOptionalString("contentMode");
+
+    if (view->mRawContentMode)
+        view->mContentMode = stringToContentMode(*view->mRawContentMode);
+
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return view;
 }
