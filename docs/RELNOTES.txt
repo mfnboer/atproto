@@ -1,6 +1,7 @@
 next
 ====
 * Generator content mode
+* Post with video filter
 
 3.6.1
 =====
