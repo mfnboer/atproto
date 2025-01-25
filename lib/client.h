@@ -239,7 +239,7 @@ public:
      * @param user user handle or did
      * @param limit min=1 max=100 default=50
      * @param cursor
-     * @param filter "posts_with_replies", "posts_no_replies", "posts_with_media", "posts_and_author_threads" default="posts_with_replies"
+     * @param filter "posts_with_replies", "posts_no_replies", "posts_with_media", "posts_and_author_threads", "posts_width_video" default="posts_with_replies"
      * @paran includePins default = false
      * @param successCb
      * @param errorCb

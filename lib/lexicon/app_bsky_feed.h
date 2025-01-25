@@ -356,6 +356,7 @@ public:
     SHARED_CONST(QString, POSTS_NO_REPLIES, QStringLiteral("posts_no_replies"));
     SHARED_CONST(QString, POSTS_WITH_MEDIA, QStringLiteral("posts_with_media"));
     SHARED_CONST(QString, POSTS_AND_AUTHOR_THREADS, QStringLiteral("posts_and_author_threads"));
+    SHARED_CONST(QString, POSTS_WITH_VIDEO, QStringLiteral("posts_with_video"));
 };
 
 // app.bsky.feed.getRepostedBy/Ouput
