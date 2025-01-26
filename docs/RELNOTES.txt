@@ -1,7 +1,8 @@
-next
-====
+3.6.2
+=====
 * Generator content mode
 * Post with video filter
+* Bug fix
 
 3.6.1
 =====

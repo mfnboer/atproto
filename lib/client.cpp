@@ -2178,7 +2178,7 @@ void Client::setAcceptLabelersHeaderValue()
 void Client::addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const
 {
     if (!mAcceptLabelersHeaderValue.isEmpty())
-        httpHeaders.push_back({QStringLiteral("atproto-accept-labelers"), mAcceptLabelersHeaderValue});
+        httpHeaders.push_back({"atproto-accept-labelers", mAcceptLabelersHeaderValue});
 }
 
 void Client::addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const
