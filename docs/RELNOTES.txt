@@ -1,3 +1,7 @@
+next
+====
+* Logging
+
 3.6.2
 =====
 * Generator content mode
