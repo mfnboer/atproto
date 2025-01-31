@@ -1,6 +1,7 @@
 next
 ====
 * Logging
+* Check for list not found
 
 3.6.2
 =====
