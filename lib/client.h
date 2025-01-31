@@ -100,7 +100,7 @@ public:
     static constexpr int MAX_IDS_GET_PROFILES = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
-    static bool isListNotFoundError(const QString& error, const QString& msg);
+    static bool isListNotFoundError(const QString& error);
 
     explicit Client(Xrpc::Client::Ptr&& xrpc);
 

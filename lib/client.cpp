@@ -59,10 +59,11 @@ static void addOptionalBoolParam(Xrpc::Client::Params& params, const QString& na
 }
 
 // TODO: is there a better way to identify errors?
-bool Client::isListNotFoundError(const QString& error, const QString& msg)
+bool Client::isListNotFoundError(const QString& error)
 {
-    return error == ATProtoErrorMsg::INVALID_REQUEST &&
-           msg.startsWith(QStringLiteral("List not found"));
+    // Currently INVALID_REQUEST is returned when a list does not exist. But I have
+    // seen errors getting changed before. Test for NOT_FOUND as a precaution.
+    return error == ATProtoErrorMsg::INVALID_REQUEST || error == ATProtoErrorMsg::NOT_FOUND;
 }
 
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
