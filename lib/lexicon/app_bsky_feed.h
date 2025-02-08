@@ -71,6 +71,7 @@ struct Threadgate
     QString mPost; // at-uri
     bool mAllowNobody = false;
     bool mAllowMention = false;
+    bool mAllowFollower = false;
     bool mAllowFollowing = false;
     std::vector<ThreadgateListRule::SharedPtr> mAllowList;
     std::unordered_set<QString> mHiddenReplies; // at-uri list
