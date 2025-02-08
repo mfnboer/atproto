@@ -4,6 +4,26 @@
 
 namespace ATProto {
 
+InvalidJsonException::InvalidJsonException(const QString& msg) :
+    mMsg(msg)
+{
+}
+
+const QString& InvalidJsonException::msg() const
+{
+    return mMsg;
+}
+
+void InvalidJsonException::raise() const
+{
+    throw *this;
+}
+
+InvalidJsonException *InvalidJsonException::clone() const
+{
+    return new InvalidJsonException(*this);
+}
+
 QJsonArray XJsonObject::toJsonArray(const std::vector<QString>& list)
 {
     QJsonArray jsonArray;

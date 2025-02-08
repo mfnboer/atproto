@@ -10,14 +10,20 @@
 namespace ATProto
 {
 
+// NOTE: I used to have the complete implementation of this class in the header
+// file. It compiled on Linux and Android and worked fine on Linux.
+// On Android this somehow lead to two different classes!
+// The exception thrown could not be caught with catch (ATProto::InvalidJsonException&)
+// The typeid of the exception caught as ATProto::InvalidJsonException but it was
+// a different type???
 class InvalidJsonException : public QException
 {
 public:
-    explicit InvalidJsonException(const QString& msg) : mMsg(msg) {}
+    explicit InvalidJsonException(const QString& msg);
 
-    const QString& msg() const { return mMsg; }
-    void raise() const override { throw *this; }
-    InvalidJsonException *clone() const override { return new InvalidJsonException(*this); }
+    const QString& msg() const;
+    void raise() const override;
+    InvalidJsonException *clone() const override;
 
 private:
     QString mMsg;

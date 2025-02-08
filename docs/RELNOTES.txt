@@ -1,6 +1,7 @@
 next
 ====
 * Threadgate followerRule
+* Fix catching InvalidJsonException on Android
 
 3.6.3
 =====
