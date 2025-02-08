@@ -1,3 +1,7 @@
+next
+====
+* Threadgate followerRule
+
 3.6.3
 =====
 * Logging

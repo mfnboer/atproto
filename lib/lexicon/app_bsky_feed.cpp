@@ -113,6 +113,13 @@ QJsonObject Threadgate::toJson() const
         allowArray.append(rule);
     }
 
+    if (mAllowFollower)
+    {
+        QJsonObject rule;
+        rule.insert("$type", "app.bsky.feed.threadgate#followerRule");
+        allowArray.append(rule);
+    }
+
     if (mAllowFollowing)
     {
         QJsonObject rule;
@@ -158,6 +165,10 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
             if (type == "app.bsky.feed.threadgate#mentionRule")
             {
                 threadgate->mAllowMention = true;
+            }
+            else if (type == "app.bsky.feed.threadgate#followerRule")
+            {
+                threadgate->mAllowFollower = true;
             }
             else if (type == "app.bsky.feed.threadgate#followingRule")
             {

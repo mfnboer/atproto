@@ -41,7 +41,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
         });
 }
 
-void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
+void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allowFollower, bool allowFollowing, const QStringList& allowLists,
                                bool allowNobody, const QStringList& hiddenReplies,
                                const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -49,7 +49,7 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     if (!atUri.isValid())
         return;
 
-    auto threadgate = createThreadgate(uri, allowMention, allowFollowing, allowLists, allowNobody, hiddenReplies);
+    auto threadgate = createThreadgate(uri, allowMention, allowFollower, allowFollowing, allowLists, allowNobody, hiddenReplies);
     QJsonObject threadgateJson = threadgate->toJson();
     qDebug() << "Add threadgate:" << threadgateJson;
     const QString& repo = mClient.getSession()->mDid;
@@ -133,13 +133,14 @@ void PostMaster::continueDetachEmbedding(const QString& uri, const QString& embe
         });
 }
 
-AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& uri, bool allowMention,
+AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& uri, bool allowMention, bool allowFollower,
         bool allowFollowing, const QStringList& allowLists, bool allowNobody, const QStringList& hiddenReplies)
 {
     auto threadgate = std::make_shared<AppBskyFeed::Threadgate>();
     threadgate->mPost = uri;
     threadgate->mAllowNobody = allowNobody;
     threadgate->mAllowMention = allowMention;
+    threadgate->mAllowFollower = allowFollower;
     threadgate->mAllowFollowing = allowFollowing;
     threadgate->mHiddenReplies.insert(hiddenReplies.begin(), hiddenReplies.end());
     threadgate->mCreatedAt = QDateTime::currentDateTimeUtc();

@@ -33,7 +33,7 @@ public:
 
     void post(const ATProto::AppBskyFeed::Record::Post& post,
               const PostSuccessCb& successCb, const ErrorCb& errorCb);
-    void addThreadgate(const QString& uri, bool allowMention, bool allowFollowing, const QStringList& allowLists,
+    void addThreadgate(const QString& uri, bool allowMention, bool allowFollower, bool allowFollowing, const QStringList& allowLists,
                        bool allowNobody, const QStringList& hiddenReplies,
                        const ThreadgateSuccessCb& successCb, const ErrorCb& errorCb);
     void addPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris,
@@ -68,7 +68,7 @@ public:
 
     void getPostgate(const QString& postUri, const PostgateCb& successCb, const ErrorCb& errorCb);
 
-    static AppBskyFeed::Threadgate::SharedPtr createThreadgate(const QString& uri, bool allowMention,
+    static AppBskyFeed::Threadgate::SharedPtr createThreadgate(const QString& uri, bool allowMention, bool allowFollower,
             bool allowFollowing, const QStringList& allowLists, bool allowNobody, const QStringList& hiddenReplies);
 
     static AppBskyFeed::Postgate::SharedPtr createPostgate(const QString& uri, bool disableEmbedding, const QStringList& detachedEmbeddingUris);
