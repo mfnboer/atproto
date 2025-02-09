@@ -46,6 +46,31 @@ PostgateDisableRule::SharedPtr PostgateDisableRule::fromJson(const QJsonObject&)
     return rule;
 }
 
+void PostgateEmbeddingRules::insertDisableEmbedding(QJsonObject& json, const QString& field, bool disableEmbedding)
+{
+    std::vector<RuleType> rules;
+
+    if (disableEmbedding)
+        rules.push_back(std::make_shared<PostgateDisableRule>());
+
+    XJsonObject::insertOptionalVariantArray(json, field, rules);
+}
+
+bool PostgateEmbeddingRules::getDisableEmbedding(const QJsonObject& json, const QString& field)
+{
+    XJsonObject xjson(json);
+
+    std::vector<RuleType> rules = xjson.getOptionalVariantList<PostgateDisableRule>(field);
+
+    for (const auto& rule : rules)
+    {
+        if (std::holds_alternative<PostgateDisableRule::SharedPtr>(rule))
+            return true;
+    }
+
+    return false;
+}
+
 QJsonObject Postgate::toJson() const
 {
     QJsonObject json;
@@ -53,13 +78,8 @@ QJsonObject Postgate::toJson() const
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
     json.insert("post", mPost);
     XJsonObject::insertOptionalArray(json, "detachedEmbeddingUris", mDetachedEmbeddingUris);
+    PostgateEmbeddingRules::insertDisableEmbedding(json, "embeddingRules", mDisableEmbedding);
 
-    std::vector<RuleType> rules;
-
-    if (mDisableEmbedding)
-        rules.push_back(std::make_unique<PostgateDisableRule>());
-
-    XJsonObject::insertOptionalVariantArray(json, "embeddingRules", rules);
     return json;
 }
 
@@ -70,15 +90,7 @@ Postgate::SharedPtr Postgate::fromJson(const QJsonObject& json)
     postgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     postgate->mPost = xjson.getRequiredString("post");
     postgate->mDetachedEmbeddingUris = xjson.getOptionalStringVector("detachedEmbeddingUris");
-
-    std::vector<RuleType> rules = xjson.getOptionalVariantList<PostgateDisableRule>("embeddingRules");
-
-    for (const auto& rule : rules)
-    {
-        if (std::holds_alternative<PostgateDisableRule::SharedPtr>(rule))
-            postgate->mDisableEmbedding = true;
-    }
-
+    postgate->mDisableEmbedding = PostgateEmbeddingRules::getDisableEmbedding(json, "embeddingRules");
     return postgate;
 }
 
@@ -98,12 +110,8 @@ ThreadgateListRule::SharedPtr ThreadgateListRule::fromJson(const QJsonObject& js
     return rule;
 }
 
-QJsonObject Threadgate::toJson() const
+QJsonArray ThreadgateRules::toJson() const
 {
-    QJsonObject json;
-    json.insert("$type", TYPE);
-    json.insert("post", mPost);
-
     QJsonArray allowArray;
 
     if (mAllowMention)
@@ -130,7 +138,61 @@ QJsonObject Threadgate::toJson() const
     for (const auto& listRule : mAllowList)
         allowArray.append(listRule->toJson());
 
-    if (!allowArray.isEmpty() || mAllowNobody)
+    return allowArray;
+}
+
+ThreadgateRules::SharedPtr ThreadgateRules::fromJson(const QJsonArray& allowArray)
+{
+    auto threadgateRules = std::make_shared<ThreadgateRules>();
+
+    for (const auto& allowElem : allowArray)
+    {
+        if (!allowElem.isObject())
+        {
+            qWarning() << "PROTO ERROR invalid threadgate allow element: not an object";
+            qInfo() << allowArray;
+            throw InvalidJsonException("PROTO ERROR invalid threadgate element: allow");
+        }
+
+        auto allowJson = allowElem.toObject();
+        XJsonObject allowXJson(allowJson);
+        QString type = allowXJson.getRequiredString("$type");
+
+        if (type == "app.bsky.feed.threadgate#mentionRule")
+        {
+            threadgateRules->mAllowMention = true;
+        }
+        else if (type == "app.bsky.feed.threadgate#followerRule")
+        {
+            threadgateRules->mAllowFollower = true;
+        }
+        else if (type == "app.bsky.feed.threadgate#followingRule")
+        {
+            threadgateRules->mAllowFollowing = true;
+        }
+        else if (type == "app.bsky.feed.threadgate#listRule")
+        {
+            auto listRule = ThreadgateListRule::fromJson(allowJson);
+            threadgateRules->mAllowList.push_back(std::move(listRule));
+        }
+        else
+        {
+            qWarning() << "Unknown threadgate rule type:" << type;
+        }
+    }
+
+    return threadgateRules;
+}
+
+QJsonObject Threadgate::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("post", mPost);
+
+    QJsonArray allowArray = mRules.toJson();
+
+    if (!allowArray.isEmpty() || mRules.mAllowNobody)
         json.insert("allow", allowArray);
 
     std::vector<QString> replies(mHiddenReplies.begin(), mHiddenReplies.end());
@@ -149,41 +211,8 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
 
     if (allowArray)
     {
-        for (const auto& allowElem : *allowArray)
-        {
-            if (!allowElem.isObject())
-            {
-                qWarning() << "PROTO ERROR invalid threadgate allow element: not an object";
-                qInfo() << json;
-                throw InvalidJsonException("PROTO ERROR invalid threadgate element: allow");
-            }
-
-            auto allowJson = allowElem.toObject();
-            XJsonObject allowXJson(allowJson);
-            QString type = allowXJson.getRequiredString("$type");
-
-            if (type == "app.bsky.feed.threadgate#mentionRule")
-            {
-                threadgate->mAllowMention = true;
-            }
-            else if (type == "app.bsky.feed.threadgate#followerRule")
-            {
-                threadgate->mAllowFollower = true;
-            }
-            else if (type == "app.bsky.feed.threadgate#followingRule")
-            {
-                threadgate->mAllowFollowing = true;
-            }
-            else if (type == "app.bsky.feed.threadgate#listRule")
-            {
-                auto listRule = ThreadgateListRule::fromJson(allowJson);
-                threadgate->mAllowList.push_back(std::move(listRule));
-            }
-            else
-            {
-                qWarning() << "Unknown threadgate rule type:" << type;
-            }
-        }
+        const auto rules = ThreadgateRules::fromJson(*allowArray);
+        threadgate->mRules = *rules;
     }
 
     const auto replies = xjson.getOptionalStringVector("hiddenReplies");
@@ -191,7 +220,7 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
 
     // Initially the hidden replies did not exist and an empty threadgate was interpreted
     // as nobody.
-    threadgate->mAllowNobody = (allowArray && allowArray->isEmpty()) || (!allowArray && threadgate->mHiddenReplies.empty());
+    threadgate->mRules.mAllowNobody = (allowArray && allowArray->isEmpty()) || (!allowArray && threadgate->mHiddenReplies.empty());
 
     threadgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return threadgate;

@@ -16,6 +16,7 @@ public:
     using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
     using MutedWordsPref = AppBskyActor::MutedWordsPref;
     using LabelersPref = AppBskyActor::LabelersPref;
+    using PostInteractionSettingsPref = AppBskyActor::PostInteractionSettingsPref;
 
     UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
@@ -44,6 +45,9 @@ public:
     std::unordered_set<QString> getLabelerDids() const;
     size_t numLabelers() const { return mLabelersPref.mLabelers.size(); }
 
+    const PostInteractionSettingsPref& getPostInteractionSettingsPref() const { return mPostInteractionSettingsPref; }
+    void setPostInteractionSettingsPref(const PostInteractionSettingsPref& pref) { mPostInteractionSettingsPref = pref; }
+
     AppBskyActor::PreferenceList toPreferenceList() const;
 
 private:
@@ -60,6 +64,7 @@ private:
     AppBskyActor::ThreadViewPref mThreadViewPref;
     AppBskyActor::MutedWordsPref mMutedWordsPref;
     AppBskyActor::LabelersPref mLabelersPref;
+    AppBskyActor::PostInteractionSettingsPref mPostInteractionSettingsPref;
     std::vector<AppBskyActor::UnknownPref> mUnknownPrefs;
 };
 

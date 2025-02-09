@@ -1,6 +1,7 @@
 next
 ====
 * Threadgate followerRule
+* Post interaction settings preference
 * Fix catching InvalidJsonException on Android
 
 3.6.3

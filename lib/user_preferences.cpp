@@ -70,6 +70,12 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             mLabelersPref = *labelers;
             break;
         }
+        case AppBskyActor::PreferenceType::POST_INTERACTION_SETTINGS:
+        {
+            const auto& postInteractionSettings = std::get<AppBskyActor::PostInteractionSettingsPref::SharedPtr>(pref->mItem);
+            mPostInteractionSettingsPref = *postInteractionSettings;
+            break;
+        }
         case AppBskyActor::PreferenceType::UNKNOWN:
             const auto& unknowPref = std::get<AppBskyActor::UnknownPref::SharedPtr>(pref->mItem);
             mUnknownPrefs.push_back(*unknowPref);
@@ -155,6 +161,12 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
     pref = std::make_shared<AppBskyActor::Preference>();
     pref->mItem = std::move(labelers);
     pref->mType = AppBskyActor::PreferenceType::LABELERS;
+    preferences.push_back(std::move(pref));
+
+    auto postInteractionSettings = std::make_shared<AppBskyActor::PostInteractionSettingsPref>(mPostInteractionSettingsPref);
+    pref = std::make_shared<AppBskyActor::Preference>();
+    pref->mItem = std::move(postInteractionSettings);
+    pref->mType = AppBskyActor::PreferenceType::POST_INTERACTION_SETTINGS;
     preferences.push_back(std::move(pref));
 
     for (const auto& unknown : mUnknownPrefs)
