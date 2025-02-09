@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "app_bsky_feed_include.h"
 #include "app_bsky_graph_include.h"
 #include "com_atproto_label.h"
 #include "com_atproto_repo.h"
@@ -348,6 +349,18 @@ struct LabelersPref
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+struct PostInteractionSettingsPref
+{
+    AppBskyFeed::ThreadgateRules mRules;
+    bool mDisableEmbedding = false;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<PostInteractionSettingsPref>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // Future preferences will be unknown. We store the json object, such that
 // we can send it back unmodified for preference updates.
 struct UnknownPref
@@ -370,6 +383,7 @@ enum class PreferenceType
     THREAD_VIEW,
     MUTED_WORDS,
     LABELERS,
+    POST_INTERACTION_SETTINGS,
     UNKNOWN
 };
 PreferenceType stringToPreferenceType(const QString& str);
@@ -382,6 +396,7 @@ using PreferenceItem = std::variant<AdultContentPref::SharedPtr,
                                     ThreadViewPref::SharedPtr,
                                     MutedWordsPref::SharedPtr,
                                     LabelersPref::SharedPtr,
+                                    PostInteractionSettingsPref::SharedPtr,
                                     UnknownPref::SharedPtr>;
 
 struct Preference

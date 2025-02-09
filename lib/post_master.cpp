@@ -138,10 +138,10 @@ AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& u
 {
     auto threadgate = std::make_shared<AppBskyFeed::Threadgate>();
     threadgate->mPost = uri;
-    threadgate->mAllowNobody = allowNobody;
-    threadgate->mAllowMention = allowMention;
-    threadgate->mAllowFollower = allowFollower;
-    threadgate->mAllowFollowing = allowFollowing;
+    threadgate->mRules.mAllowNobody = allowNobody;
+    threadgate->mRules.mAllowMention = allowMention;
+    threadgate->mRules.mAllowFollower = allowFollower;
+    threadgate->mRules.mAllowFollowing = allowFollowing;
     threadgate->mHiddenReplies.insert(hiddenReplies.begin(), hiddenReplies.end());
     threadgate->mCreatedAt = QDateTime::currentDateTimeUtc();
 
@@ -149,7 +149,7 @@ AppBskyFeed::Threadgate::SharedPtr PostMaster::createThreadgate(const QString& u
     {
         auto listRule = std::make_shared<AppBskyFeed::ThreadgateListRule>();
         listRule->mList = listUri;
-        threadgate->mAllowList.push_back(std::move(listRule));
+        threadgate->mRules.mAllowList.push_back(std::move(listRule));
     }
 
     return threadgate;

@@ -3,6 +3,7 @@
 #pragma once
 #include "app_bsky_actor.h"
 #include "app_bsky_embed.h"
+#include "app_bsky_feed_include.h"
 #include "app_bsky_graph.h"
 #include "com_atproto_label.h"
 #include "lexicon.h"
@@ -26,21 +27,9 @@ struct ViewerState
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.feed.postgate#disableRule
-struct PostgateDisableRule
-{
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<PostgateDisableRule>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "app.bsky.feed.postgate#disableRule";
-};
-
 // app.bsky.feed.postgate
 struct Postgate
 {
-    using RuleType = std::variant<PostgateDisableRule::SharedPtr>;
-
     QDateTime mCreatedAt;
     QString mPost; // at-uri
     std::vector<QString> mDetachedEmbeddingUris;
@@ -53,27 +42,11 @@ struct Postgate
     static constexpr char const* TYPE = "app.bsky.feed.postgate";
 };
 
-// app.bsky.feed.threadgate#listRule
-struct ThreadgateListRule
-{
-    QString mList; // at-uri
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<ThreadgateListRule>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "app.bsky.feed.threadgate#listRule";
-};
-
 // app.bsky.feed.threadgate
 struct Threadgate
 {
     QString mPost; // at-uri
-    bool mAllowNobody = false;
-    bool mAllowMention = false;
-    bool mAllowFollower = false;
-    bool mAllowFollowing = false;
-    std::vector<ThreadgateListRule::SharedPtr> mAllowList;
+    ThreadgateRules mRules;
     std::unordered_set<QString> mHiddenReplies; // at-uri list
     QDateTime mCreatedAt;
 

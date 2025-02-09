@@ -560,6 +560,38 @@ LabelersPref::SharedPtr LabelersPref::fromJson(const QJsonObject& json)
     return pref;
 }
 
+QJsonObject PostInteractionSettingsPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", "app.bsky.actor.defs#postInteractionSettingsPref");
+
+    QJsonArray allowArray = mRules.toJson();
+
+    if (!allowArray.isEmpty() || mRules.mAllowNobody)
+        json.insert("threadgateAllowRules", allowArray);
+
+    AppBskyFeed::PostgateEmbeddingRules::insertDisableEmbedding(json, "postgateEmbeddingRules", mDisableEmbedding);
+    return json;
+}
+
+PostInteractionSettingsPref::SharedPtr PostInteractionSettingsPref::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<PostInteractionSettingsPref>();
+    const XJsonObject xjson(json);
+    const auto allowArray = xjson.getOptionalArray("threadgateAllowRules");
+
+    if (allowArray)
+    {
+        const auto rules = AppBskyFeed::ThreadgateRules::fromJson(*allowArray);
+        pref->mRules = *rules;
+        pref->mRules.mAllowNobody = allowArray->empty();
+    }
+
+    pref->mDisableEmbedding = AppBskyFeed::PostgateEmbeddingRules::getDisableEmbedding(json, "postgateEmbeddingRules");
+    pref->mJson = json;
+    return pref;
+}
+
 UnknownPref::SharedPtr UnknownPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_shared<UnknownPref>();
@@ -577,7 +609,8 @@ PreferenceType stringToPreferenceType(const QString& str)
         { "app.bsky.actor.defs#feedViewPref", PreferenceType::FEED_VIEW },
         { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW },
         { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS },
-        { "app.bsky.actor.defs#labelersPref", PreferenceType::LABELERS }
+        { "app.bsky.actor.defs#labelersPref", PreferenceType::LABELERS },
+        { "app.bsky.actor.defs#postInteractionSettingsPref", PreferenceType::POST_INTERACTION_SETTINGS }
     };
 
     const auto it = mapping.find(str);
@@ -619,6 +652,9 @@ Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
         break;
     case PreferenceType::LABELERS:
         pref->mItem = LabelersPref::fromJson(json);
+        break;
+    case PreferenceType::POST_INTERACTION_SETTINGS:
+        pref->mItem = PostInteractionSettingsPref::fromJson(json);
         break;
     case PreferenceType::UNKNOWN:
         pref->mItem = UnknownPref::fromJson(json);
