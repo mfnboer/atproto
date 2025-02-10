@@ -4,6 +4,7 @@ next
 * Post interaction settings preference
 * Fix catching InvalidJsonException on Android
 * Function to batch add users to a list
+* Reduce request timeout from 15s to 10s
 
 3.6.3
 =====

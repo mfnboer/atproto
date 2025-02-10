@@ -17,7 +17,7 @@ Client::Client(const QString& host) :
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
     mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(15000);
+    mNetwork.setTransferTimeout(10000);
 }
 
 Client::~Client()
