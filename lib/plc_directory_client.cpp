@@ -12,7 +12,7 @@ PlcDirectoryClient::PlcDirectoryClient(const QString host) :
     mFirstAppearanceCache(100)
 {
     mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(15000);
+    mNetwork.setTransferTimeout(10000);
 }
 
 void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb)
