@@ -3,6 +3,7 @@ next
 * Threadgate followerRule
 * Post interaction settings preference
 * Fix catching InvalidJsonException on Android
+* Function to batch add users to a list
 
 3.6.3
 =====

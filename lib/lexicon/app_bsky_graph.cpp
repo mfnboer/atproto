@@ -265,7 +265,7 @@ ListBlock::SharedPtr ListBlock::fromJson(const QJsonObject& json)
 QJsonObject ListItem::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.graph.listitem");
+    json.insert("$type", TYPE);
     json.insert("subject", mSubject);
     json.insert("list", mList);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));

@@ -162,6 +162,7 @@ struct ListItem
 
     using SharedPtr = std::shared_ptr<ListItem>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.listitem";
 };
 
 // app.bsky.graph.getList#output
