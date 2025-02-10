@@ -206,7 +206,7 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
 
     const auto recordJson = record.toJson();
     const QString& repo = mClient.getSession()->mDid;
-    const QString collection = recordJson["$type"].toString();
+    const QString collection = AppBskyGraph::ListItem::TYPE;
 
     mClient.createRecord(repo, collection, {}, recordJson, true,
         [successCb](auto strongRef){
@@ -214,6 +214,45 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
                 successCb(strongRef->mUri, strongRef->mCid);
         },
         [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList& dids,
+                         const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    ATProto::ComATProtoRepo::ApplyWritesList writes;
+    writes.reserve(dids.size());
+
+    for (const auto& did : dids)
+    {
+        AppBskyGraph::ListItem record;
+        record.mSubject = did;
+        record.mList = listUri;
+        record.mCreatedAt = QDateTime::currentDateTimeUtc();
+        auto create = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesCreate>();
+        create->mCollection = AppBskyGraph::ListItem::TYPE;
+        create->mValue = record.toJson();
+        writes.push_back(std::move(create));
+    }
+
+    const QString& repo = mClient.getSession()->mDid;
+
+    mClient.applyWrites(repo, writes, false,
+        [successCb, presence=getPresence()] {
+            if (!presence)
+                return;
+
+            if (successCb)
+                successCb();
+        },
+        [errorCb, presence=getPresence()](const QString& error, const QString& msg) {
+            if (!presence)
+                return;
+
+            qDebug() << "Failed to create records:" << error << "-" << msg;
+
             if (errorCb)
                 errorCb(error, msg);
         });

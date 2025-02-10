@@ -42,6 +42,9 @@ public:
     void addUserToList(const QString& listUri, const QString& did,
                        const AddListUserSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void batchAddUsersToList(const QString& listUri, const QStringList& dids,
+                             const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(AppBskyGraph::List::SharedPtr list, const QString& rkey, const QString& description,
