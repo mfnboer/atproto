@@ -14,11 +14,13 @@ class PlcDirectoryClient : public QObject
 public:
     using ErrorCb = std::function<void(int errorCode, const QString& errorMsg)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
+    using PdsSuccessCb = std::function<void(const QString& pds)>;
     using AuditLogSuccessCb = std::function<void(PlcAuditLog::SharedPtr)>;
     using FirstAppearanceSuccessCb = std::function<void(QDateTime)>;
 
     explicit PlcDirectoryClient(const QString host = "plc.directory");
 
+    void getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb);
     void getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb);
     void getFirstAppearance(const QString& did, const FirstAppearanceSuccessCb& successCb, const ErrorCb& errorCb);
 

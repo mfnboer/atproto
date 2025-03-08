@@ -11,6 +11,8 @@ public:
     static const QRegularExpression HANDLE;
     static const QRegularExpression RKEY;
     static const QRegularExpression DID;
+
+    static bool isValidDid(const QString& did);
 };
 
 }

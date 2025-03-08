@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Michel de Boer
 // License: GPLv3
 #include "plc_directory_client.h"
+#include "lexicon.h"
 #include <QJsonObject>
 
 namespace ATProto {
@@ -15,11 +16,49 @@ PlcDirectoryClient::PlcDirectoryClient(const QString host) :
     mNetwork.setTransferTimeout(10000);
 }
 
+void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Request request;
+    QUrl url(QString("https://%1/%2").arg(mHost, did));
+    request.mPlcRequest = QNetworkRequest(url);
+
+    sendRequest(request,
+    [this, did, successCb, errorCb](const QJsonDocument& reply) {
+        qDebug() << "getPds:" << reply;
+        try {
+            auto didDoc = DidDocument::fromJson(reply.object());
+
+            if (!didDoc->mATProtoPDS)
+            {
+                qWarning() << "Cannot resolve PDS for:" << did;
+
+                if (errorCb)
+                    errorCb(404, "Cannot resolve PDS");
+
+                return;
+            }
+
+            qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS;
+
+            if (successCb)
+                successCb(*didDoc->mATProtoPDS);
+        } catch (InvalidJsonException& e) {
+            invalidJsonError(e, errorCb);
+        }
+    },
+    [errorCb](int errorCode, const QString& errorMsg) {
+        qWarning() << errorCode << "-" << errorMsg;
+        if (errorCb)
+            errorCb(errorCode, errorMsg);
+    });
+}
+
 void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Request request;
     QUrl url(QString("https://%1/%2/log/audit").arg(mHost, did));
     request.mPlcRequest = QNetworkRequest(url);
+
     sendRequest(request,
         [this, successCb, errorCb](const QJsonDocument& reply) {
             qDebug() << "getAuditLog:" << reply;
