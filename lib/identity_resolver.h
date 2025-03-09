@@ -1,7 +1,6 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #pragma once
-#include <QDnsLookup>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 
@@ -19,12 +18,16 @@ public:
 
 private:
     QString getDnsLookupName(const QString& handle) const;
+    QUrl getDohUrl(const QString& handle) const;
     void handleDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
     QUrl getHttpUrl(const QString& handle) const;
     void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
     void handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    std::unique_ptr<QDnsLookup> mDns;
+    // QDnsLookup not supported on Android
+    // std::unique_ptr<QDnsLookup> mDns;
+
     QNetworkAccessManager mNetwork;
 };
 

@@ -2,8 +2,16 @@
 // License: GPLv3
 #include "identity_resolver.h"
 #include "at_regex.h"
+#include "xjson.h"
+#include <QJsonDocument>
+#include <QJsonObject>
 
 namespace ATProto {
+
+// DNS over HTTP
+// Alternative: https://cloudflare-dns.com/dns-query
+// Cloudflare JSON values seems to have extra quotes
+constexpr char const* DOH = "https://dns.google/resolve";
 
 IdentityResolver::IdentityResolver()
 {
@@ -11,13 +19,26 @@ IdentityResolver::IdentityResolver()
     mNetwork.setTransferTimeout(10000);
 }
 
+// QDnsLookup is not supported on Android
+// void IdentityResolver::resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+// {
+//     qDebug() << "Resolve handle:" << handle;
+//     const QString lookupName = getDnsLookupName(handle);
+//     mDns = std::make_unique<QDnsLookup>(QDnsLookup::TXT, lookupName);
+//     connect(mDns.get(), &QDnsLookup::finished, this, [this, handle, successCb, errorCb]{ handleDnsResult(handle, successCb, errorCb); });
+//     mDns->lookup();
+// }
+
 void IdentityResolver::resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Resolve handle:" << handle;
-    const QString lookupName = getDnsLookupName(handle);
-    mDns = std::make_unique<QDnsLookup>(QDnsLookup::TXT, lookupName);
-    connect(mDns.get(), &QDnsLookup::finished, this, [this, handle, successCb, errorCb]{ handleDnsResult(handle, successCb, errorCb); });
-    mDns->lookup();
+    qDebug() << "Resolve handle via DOH:" << handle;
+    QUrl url = getDohUrl(handle);
+    QNetworkRequest request(url);
+    QNetworkReply* reply = mNetwork.get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb]{
+        handleDohResponse(reply, handle, successCb, errorCb);
+    });
 }
 
 QString IdentityResolver::getDnsLookupName(const QString& handle) const
@@ -25,78 +46,187 @@ QString IdentityResolver::getDnsLookupName(const QString& handle) const
     return QString("_atproto.%1").arg(handle);
 }
 
-void IdentityResolver::handleDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+QUrl IdentityResolver::getDohUrl(const QString& handle) const
 {
-    if (!mDns)
+    const QString name = getDnsLookupName(handle);
+    return QUrl(QString("%1?name=%2&type=TXT").arg(DOH, name));
+}
+
+// void IdentityResolver::handleDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+// {
+//     if (!mDns)
+//     {
+//         qWarning() << "No pending DNS lookup:" << handle;
+//         return;
+//     }
+
+//     const QString lookupName = getDnsLookupName(handle);
+
+//     if (mDns->error() != QDnsLookup::NoError)
+//     {
+//         qWarning() << "DNS lookup failed:" << mDns->errorString();
+//         mDns.reset();
+//         httpGetDid(handle, successCb, errorCb);
+//         return;
+//     }
+
+//     qDebug() << "DNS lookup succeeded:" << handle;
+//     QString did;
+//     const auto records = mDns->textRecords();
+
+//     for (const auto& txt : records)
+//     {
+//         if (txt.name() != lookupName)
+//         {
+//             qWarning() << "TXT name mismatch:" << txt.name() << "lookup:" << lookupName;
+//             continue;
+//         }
+
+//         const auto values = txt.values();
+
+//         for (const auto& value : values)
+//         {
+//             if (!value.startsWith("did="))
+//             {
+//                 qDebug() << "Skip value:" << value;
+//                 continue;
+//             }
+
+//             const QString didValue = value.sliced(4);
+
+//             if (did.isEmpty())
+//             {
+//                 did = didValue;
+//                 qDebug() << "Handle:" << handle << "resolved to DID:" << did;
+//             }
+//             else if (did != didValue)
+//             {
+//                 qWarning() << "Found multipe DIDs:" << did << didValue;
+
+//                 if (errorCb)
+//                     errorCb("Multiple DIDs");
+
+//                 mDns.reset();
+//                 return;
+//             }
+//         }
+//     }
+
+//     if (did.isEmpty())
+//     {
+//         qWarning() << "DID not found:" << handle;
+//         mDns.reset();
+//         httpGetDid(handle, successCb, errorCb);
+//         return;
+//     }
+
+//     if (successCb)
+//         successCb(did);
+
+//     mDns.reset();
+// }
+
+void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (reply->error() != QNetworkReply::NoError)
     {
-        qWarning() << "No pending DNS lookup:" << handle;
+        const QString& error = reply->errorString();
+        qWarning() << "DOH resolution failed:" << handle << "error:" << error;
+
+        if (errorCb)
+            errorCb(error);
+
         return;
     }
 
-    const QString lookupName = getDnsLookupName(handle);
+    qDebug() << "DOH lookup succeeded:" << handle;
+    const auto data = reply->readAll();
+    const auto jsonDoc = QJsonDocument::fromJson(data);
 
-    if (mDns->error() != QDnsLookup::NoError)
+    if (jsonDoc.isNull() || !jsonDoc.isObject())
     {
-        qWarning() << "DNS lookup failed:" << mDns->errorString();
-        mDns.reset();
+        qWarning() << "Invalid JSON:" << data;
+
+        if (errorCb)
+            errorCb("Invalid response from DOH");
+
+        return;
+    }
+
+    const auto json = jsonDoc.object();
+    const XJsonObject xjson(json);
+    const auto answerArray = xjson.getOptionalArray("Answer");
+
+    if (!answerArray || answerArray->empty())
+    {
+        qDebug() << "No TXT record for:" << handle;
         httpGetDid(handle, successCb, errorCb);
         return;
     }
 
-    qDebug() << "DNS lookup succeeded:" << handle;
+    const QString lookupName = getDnsLookupName(handle);
+    const QString lookupFQDN = lookupName + '.';
     QString did;
-    const auto records = mDns->textRecords();
 
-    for (const auto& txt : records)
+    for (const auto& answer : *answerArray)
     {
-        if (txt.name() != lookupName)
+        const auto jsonRecord = answer.toObject();
+        const XJsonObject xjsonRecord(jsonRecord);
+        const auto name = xjsonRecord.getOptionalString("name");
+
+        if (!name)
         {
-            qWarning() << "TXT name mismatch:" << txt.name() << "lookup:" << lookupName;
+            qWarning() << "Name missing, handle:" << handle;
             continue;
         }
 
-        const auto values = txt.values();
-
-        for (const auto& value : values)
+        if (*name != lookupName && *name != lookupFQDN)
         {
-            if (!value.startsWith("did="))
-            {
-                qDebug() << "Skip value:" << value;
-                continue;
-            }
+            qWarning() << "Unexpected name:" << *name << "handle:" << handle;
+            continue;
+        }
 
-            const QString didValue = value.sliced(4);
+        const auto value = xjsonRecord.getOptionalString("data");
 
-            if (did.isEmpty())
-            {
-                did = didValue;
-                qDebug() << "Handle:" << handle << "resolved to DID:" << did;
-            }
-            else if (did != didValue)
-            {
-                qWarning() << "Found multipe DIDs:" << did << didValue;
+        if (!value)
+        {
+            qWarning() << "Value missing, handle:" << handle;
+            continue;
+        }
 
-                if (errorCb)
-                    errorCb("Multiple DIDs");
+        if (!value->startsWith("did="))
+        {
+            qDebug() << "Skip value:" << *value;
+            continue;
+        }
 
-                mDns.reset();
-                return;
-            }
+        const QString didValue = value->sliced(4);
+
+        if (did.isEmpty())
+        {
+            did = didValue;
+            qDebug() << "Handle:" << handle << "resolved to DID:" << did;
+        }
+        else if (did != didValue)
+        {
+            qWarning() << "Found multipe DIDs:" << did << didValue;
+
+            if (errorCb)
+                errorCb("Multiple DIDs");
+
+            return;
         }
     }
 
     if (did.isEmpty())
     {
         qWarning() << "DID not found:" << handle;
-        mDns.reset();
         httpGetDid(handle, successCb, errorCb);
         return;
     }
 
     if (successCb)
         successCb(did);
-
-    mDns.reset();
 }
 
 QUrl IdentityResolver::getHttpUrl(const QString& handle) const
