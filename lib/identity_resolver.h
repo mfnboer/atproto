@@ -19,7 +19,7 @@ public:
 private:
     QString getDnsLookupName(const QString& handle) const;
     QUrl getDohUrl(const QString& handle) const;
-    void handleDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
+    //void handleDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
     void handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
     QUrl getHttpUrl(const QString& handle) const;
     void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
