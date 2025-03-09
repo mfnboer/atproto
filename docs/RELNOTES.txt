@@ -1,7 +1,7 @@
 next
 ====
 * Handle to DID resolution via DNS and HTTP
-* DID to PDA resoltion via plc.directory
+* DID to PDS resolution via plc.directory
 
 3.7
 ===
