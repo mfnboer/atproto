@@ -4,7 +4,6 @@
 #include <QDnsLookup>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
-QNetworkAccessManager mNetwork;
 
 namespace ATProto {
 

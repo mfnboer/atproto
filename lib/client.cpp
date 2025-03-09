@@ -126,6 +126,38 @@ void Client::createSession(const QString& user, const QString& pwd,
                            const std::optional<QString>& authFactorToken,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    if (user.startsWith("did:"))
+    {
+        qDebug() << "User is did:" << user;
+
+        mXrpc->setPDSFromDid(user,
+            [this, user, pwd, authFactorToken, successCb, errorCb]{
+                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+            },
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb("PdsNotFound", error);
+            });
+    }
+    else
+    {
+        qDebug() << "User is handle:" << user;
+
+        mXrpc->setPDSFromHandle(user,
+            [this, user, pwd, authFactorToken, successCb, errorCb]{
+                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+            },
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb("PdsNotFound", error);
+            });
+    }
+}
+
+void Client::createSessionContinue(const QString& user, const QString& pwd,
+                                   const std::optional<QString>& authFactorToken,
+                                   const SuccessCb& successCb, const ErrorCb& errorCb)
+{
     mSession = nullptr;
     QJsonObject root;
     root.insert("identifier", user);
@@ -171,6 +203,19 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 
 void Client::resumeSession(const ComATProtoServer::Session& session,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->setPDSFromDid(session.mDid,
+        [this, session, successCb, errorCb]{
+            resumeSessionContinue(session, successCb, errorCb);
+        },
+        [errorCb](const QString& error){
+            if (errorCb)
+                errorCb("PdsNotFound", error);
+        });
+}
+
+void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
+    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.server.getSession", {}, {},
         [this, session, successCb, errorCb](const QJsonDocument& reply){
@@ -1490,6 +1535,19 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
 
 void Client::getBlob(const QString& did, const QString& cid,
                      const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->setPDSFromDid(did,
+        [this, did, cid, successCb, errorCb]{
+            getBlobContinue(did, cid, successCb, errorCb);
+        },
+        [errorCb](const QString& error){
+            if (errorCb)
+                errorCb("PdsNotFound", error);
+        });
+}
+
+void Client::getBlobContinue(const QString& did, const QString& cid,
+                             const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params{{"did", did}, {"cid", cid}};
 

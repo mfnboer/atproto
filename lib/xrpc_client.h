@@ -1,6 +1,9 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "identity_resolver.h"
+#include "plc_directory_client.h"
+#include "presence.h"
 #include "lexicon/com_atproto_server.h"
 #include <QJsonDocument>
 #include <QNetworkAccessManager>
@@ -8,24 +11,27 @@
 
 namespace Xrpc {
 
-class Client : public QObject
+class Client : public QObject, public ATProto::Presence
 {
 public:
     using Ptr = std::unique_ptr<Client>;
     using ErrorCb = std::function<void(const QString& err, const QJsonDocument& json)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
     using SuccessBytesCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
+    using SetPdsSuccessCb = std::function<void()>;
+    using SetPdsErrorCb = std::function<void(const QString& error)>;
     using Params = QList<QPair<QString, QString>>;
     using DataType = std::variant<QByteArray, QIODevice*>;
 
-    explicit Client(const QString& host);
+    Client();
     ~Client();
 
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
-    const QString& getHost() const { return mHost; }
     const QString& getPDS() const { return mPDS; }
-    void setPDS(const QString& pds);
+    void setPDS(const QString& pds, const QString& did);
     void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
+    void setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
+    void setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
 
     void post(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
               const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt = {});
@@ -77,6 +83,7 @@ private:
 
     QString mHost; // first point of contact, e.g. bsky.social
     QString mPDS;
+    QString mDid; // PDS is set for this DID
     QString mUserAgent;
 
     // NOTE: changing back from static to a local member as static prevents the client
@@ -86,6 +93,9 @@ private:
     // this object. It looks like Android still wants to send a signal to it after
     // a network failure. Not sure: the logs do not give enough info on that.
     QNetworkAccessManager mNetwork;
+
+    ATProto::PlcDirectoryClient mPlcDirectoryClient;
+    ATProto::IdentityResolver mIdentityResolver;
 };
 
 }
