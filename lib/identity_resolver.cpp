@@ -10,7 +10,7 @@ namespace ATProto {
 
 // DNS over HTTP
 // Alternative: https://cloudflare-dns.com/dns-query
-// Cloudflare JSON values seems to have extra quotes
+// Cloudflare JSON values seems to have extra quotes and needs "accept: application/dns-json"
 constexpr char const* DOH = "https://dns.google/resolve";
 
 IdentityResolver::IdentityResolver()
@@ -155,6 +155,28 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
 
     const auto json = jsonDoc.object();
     const XJsonObject xjson(json);
+    const auto error = xjson.getOptionalString("error");
+
+    if (error)
+    {
+        qWarning() << "DOH error:" << handle << "error:" << *error;
+
+        if (errorCb)
+            errorCb(*error);
+
+        return;
+    }
+
+    const auto status = xjson.getOptionalInt("Status");
+
+    if (status != 0)
+    {
+        qWarning() << "DNS error:" << handle << "status:" << *status;
+
+        if (errorCb)
+            errorCb(QString("DNS status: %1").arg(*status));
+    }
+
     const auto answerArray = xjson.getOptionalArray("Answer");
 
     if (!answerArray || answerArray->empty())
