@@ -9,9 +9,7 @@ namespace Xrpc {
 
 constexpr int MAX_RESEND = 4;
 
-Client::Client(const QString& host) :
-    mHost(host),
-    mPDS("https://" + host)
+Client::Client()
 {
     qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
@@ -25,14 +23,15 @@ Client::~Client()
     qDebug() << "Destroy client";
 }
 
-void Client::setPDS(const QString& pds)
+void Client::setPDS(const QString& pds, const QString& did)
 {
     if (pds.startsWith("http"))
         mPDS = pds;
     else
         mPDS = "https://" + pds;
 
-    qDebug() << "PDS:" << mPDS;
+    mDid = did;
+    qDebug() << "PDS:" << mPDS << "DID:" << did;
 }
 
 void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session)
@@ -40,9 +39,57 @@ void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session
     const auto pds = session.getPDS();
 
     if (pds)
-        setPDS(*pds);
+        setPDS(*pds, session.mDid);
     else
-        setPDS("https://" + mHost);
+        qDebug() << "No PDS in session, handle:" << session.mHandle << "did:" << session.mDid;
+}
+
+void Client::setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb)
+{
+    qDebug() << "Set PDS from DID:" << did;
+
+    if (!mPDS.isEmpty() && mDid == did)
+    {
+        qDebug() << "PDS already set:" << mPDS << "DID:" << did;
+        QTimer::singleShot(0, this, [successCb]{ successCb(); });
+        return;
+    }
+
+    mPlcDirectoryClient.getPds(did,
+        [this, presence=getPresence(), did, successCb](const QString& pds){
+            if (!presence)
+                return;
+
+            setPDS(pds, did);
+
+            if (successCb)
+                successCb();
+        },
+        [did, errorCb](int, const QString& error){
+            qWarning() << "Failed to set PDS:" << did << error;
+
+            if (errorCb)
+                errorCb(error);
+        });
+}
+
+void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb)
+{
+    qDebug() << "Set PDS from handle:" << handle;
+
+    mIdentityResolver.resolveHandle(handle,
+        [this, presence=getPresence(), successCb, errorCb](const QString& did){
+            if (!presence)
+                return;
+
+            setPDSFromDid(did, successCb, errorCb);
+        },
+        [handle, errorCb](const QString& error){
+            qWarning() << "Failed to set PDS:" << handle << error;
+
+            if (errorCb)
+                errorCb(error);
+        });
 }
 
 void Client::post(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
@@ -128,9 +175,14 @@ QUrl Client::buildUrl(const QString& service) const
     Q_ASSERT(!service.isEmpty());
 
     if (service.startsWith("app.bsky.video."))
+    {
         return QUrl("https://video.bsky.app/xrpc/" + service);
+    }
     else
+    {
+        Q_ASSERT(!mPDS.isEmpty());
         return QUrl(mPDS + "/xrpc/" + service);
+    }
 }
 
 QUrl Client::buildUrl(const QString& service, const Params& params) const

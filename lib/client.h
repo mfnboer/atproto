@@ -104,7 +104,7 @@ public:
 
     explicit Client(Xrpc::Client::Ptr&& xrpc);
 
-    const QString& getHost() const { return mXrpc->getHost(); }
+    const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::SharedPtr session) { mSession = std::move(session); }
     void clearSession() { mSession = nullptr; }
@@ -122,6 +122,8 @@ public:
      * @param authFactorToken 2FA token
      * @param successCb
      * @param errorCb
+     *
+     * PDS will be resolved from the user
      */
     void createSession(const QString& user, const QString& pwd,
                        const std::optional<QString>& authFactorToken,
@@ -139,6 +141,8 @@ public:
      * @param session
      * @param successCb
      * @param errorCb
+     *
+     * PDS will be resolved from the user
      */
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -695,6 +699,8 @@ public:
      * @param cid
      * @param successCb
      * @param errorCb
+     *
+     * PDS will be resolved from the did
      */
     void getBlob(const QString& did, const QString& cid,
                  const GetBlobSuccessCb& successCb, const ErrorCb& errorCb);
@@ -889,6 +895,14 @@ private:
     void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
     void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
     void addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
+
+    void createSessionContinue(const QString& user, const QString& pwd,
+                               const std::optional<QString>& authFactorToken,
+                               const SuccessCb& successCb, const ErrorCb& errorCb);
+    void resumeSessionContinue(const ComATProtoServer::Session& session,
+                               const SuccessCb& successCb, const ErrorCb& errorCb);
+    void getBlobContinue(const QString& did, const QString& cid,
+                         const GetBlobSuccessCb& successCb, const ErrorCb& errorCb);
 
     Xrpc::Client::Ptr mXrpc;
     ComATProtoServer::Session::SharedPtr mSession;

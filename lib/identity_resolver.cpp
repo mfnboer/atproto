@@ -69,8 +69,8 @@ void IdentityResolver::handleDnsResult(const QString& handle, const SuccessCb& s
 
             if (did.isEmpty())
             {
-                qDebug() << "Handle:" << handle << "resolved to DID:" << did;
                 did = didValue;
+                qDebug() << "Handle:" << handle << "resolved to DID:" << did;
             }
             else if (did != didValue)
             {
