@@ -69,7 +69,7 @@ void Client::setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb,
             qWarning() << "Failed to set PDS:" << did << error;
 
             if (errorCb)
-                errorCb(error);
+                errorCb(QString("Could not get PDS: %1").arg(did));
         });
 }
 
@@ -88,7 +88,7 @@ void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& succ
             qWarning() << "Failed to set PDS:" << handle << error;
 
             if (errorCb)
-                errorCb(error);
+                errorCb(QString("Could not resolve handle: %1").arg(error));
         });
 }
 
