@@ -1511,7 +1511,38 @@ void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const Vid
                 invalidJsonError(e, errorCb);
             }
         },
-        failure(errorCb),
+        [this, successCb, errorCb](const QString& err, const QJsonDocument& reply){
+            try {
+                auto jobStatus = AppBskyVideo::JobStatus::fromJson(reply.object());
+
+                // If the video is already uploaded, we get an error. The error gives
+                // this job id, but not the blob. We can get the blob by getting the
+                // job status for the job id.
+                if (jobStatus->mState == AppBskyVideo::JobStatusState::JOB_STATE_COMPLETED &&
+                    jobStatus->mError == ATProtoErrorMsg::ALREADY_EXISTS)
+                {
+                    qDebug() << "Video already exists:" << jobStatus->mJobId;
+
+                    getVideoJobStatus(jobStatus->mJobId,
+                        [successCb](const auto& jobStatusOutput){
+                            if (successCb)
+                                successCb(jobStatusOutput->mJobStatus);
+                        },
+                        [errorCb](const QString& error, const QString& message){
+                            qWarning() << error << " - " << message;
+                            if (errorCb)
+                                errorCb(error, message);
+                        });
+                }
+                else
+                {
+                    requestFailed(err, reply, errorCb);
+                }
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+                requestFailed(err, reply, errorCb);
+            }
+        },
         serviceAuthToken);
 }
 
