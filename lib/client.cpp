@@ -857,7 +857,7 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
 
     mXrpc->get("app.bsky.feed.searchPosts", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "searchPosts:" << reply;
+            qDebug() << "searchPosts: ok";
             try {
                 auto output = AppBskyFeed::SearchPostsOutput::fromJson(reply.object());
 
