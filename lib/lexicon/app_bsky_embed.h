@@ -179,7 +179,7 @@ using VideoCaptionList = std::vector<VideoCaption::SharedPtr>;
 // app.bsky.embed.video
 struct Video
 {
-    Blob::SharedPtr mVideo; // max 50,000,000 bytes mime: video/mp4
+    Blob::SharedPtr mVideo; // mime: video/mp4
     VideoCaptionList mCaptions;
     std::optional<QString> mAlt; // max 1000 graphemes, 10,000 bytes
     AspectRatio::SharedPtr mAspectRatio; // optional
@@ -188,7 +188,7 @@ struct Video
 
     using SharedPtr = std::shared_ptr<Video>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr int MAX_BYTES = 50'000'000;
+    static constexpr int MAX_BYTES = 100'000'000;
     static constexpr char const* TYPE = "app.bsky.embed.video";
 };
 
