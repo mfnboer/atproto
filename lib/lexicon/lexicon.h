@@ -63,6 +63,31 @@ struct ATProtoError
     static SharedPtr fromJson(const QJsonDocument& json);
 };
 
+template <typename EnumType>
+EnumType stringToEnum(const QString& str, const std::unordered_map<QString, EnumType>& mapping, EnumType unknownValue)
+{
+    const auto it = mapping.find(str);
+
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Uknown value:" << str << "for type:" << typeid(EnumType).name();
+    return unknownValue;
+}
+
+template <typename EnumType>
+QString enumToString(EnumType value, const std::unordered_map<EnumType, QString>& mapping, const QString& unknown = "")
+{
+    const auto it = mapping.find(value);
+    Q_ASSERT(it != mapping.end() || !unknown.isEmpty());
+
+    if (it != mapping.end())
+        return it->second;
+
+    qWarning() << "Cannot convert value to string:" << int(value) << "for type:" << typeid(EnumType).name();
+    return unknown;
+}
+
 struct Blob {
     QString mRefLink; // may not be present in old-style blobs, instead cid is present
     QString mMimeType;

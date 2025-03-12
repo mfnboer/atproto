@@ -78,6 +78,26 @@ DeletedMessageView::SharedPtr DeletedMessageView::fromJson(const QJsonObject& js
     return view;
 }
 
+ConvoStatus stringToConvoStatus(const QString& str)
+{
+    static const std::unordered_map<QString, ConvoStatus> mapping = {
+        { "request", ConvoStatus::REQUEST },
+        { "accepted", ConvoStatus::ACCEPTED }
+    };
+
+    return stringToEnum(str, mapping, ConvoStatus::UNKNOWN);
+}
+
+QString convoStatusToString(ConvoStatus status)
+{
+    static const std::unordered_map<ConvoStatus, QString> mapping = {
+        { ConvoStatus::REQUEST, "request" },
+        { ConvoStatus::ACCEPTED, "accepted" }
+    };
+
+    return enumToString(status, mapping);
+}
+
 ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -87,7 +107,11 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
     view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
     view->mMuted = xjson.getOptionalBool("muted", false);
-    view->mOpened = xjson.getOptionalBool("opened", false);
+    view->mRawStatus = xjson.getOptionalString("status");
+
+    if (view->mRawStatus)
+        view->mStatus = stringToConvoStatus(*view->mRawStatus);
+
     view->mUnreadCount = xjson.getRequiredInt("unreadCount");
     return view;
 }
@@ -101,6 +125,15 @@ LogBeginConvo::SharedPtr LogBeginConvo::fromJson(const QJsonObject& json)
     return logBeginConvo;
 }
 
+LogAcceptConvo::SharedPtr LogAcceptConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logAcceptConvo = std::make_shared<LogAcceptConvo>();
+    logAcceptConvo->mConvoId = xjson.getRequiredString("convoId");
+    logAcceptConvo->mRev = xjson.getRequiredString("rev");
+    return logAcceptConvo;
+}
+
 LogLeaveConvo::SharedPtr LogLeaveConvo::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -108,6 +141,15 @@ LogLeaveConvo::SharedPtr LogLeaveConvo::fromJson(const QJsonObject& json)
     logLeaveConvo->mConvoId = xjson.getRequiredString("convoId");
     logLeaveConvo->mRev = xjson.getRequiredString("rev");
     return logLeaveConvo;
+}
+
+LogMuteConvo::SharedPtr LogMuteConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto logMuteConvo = std::make_shared<LogMuteConvo>();
+    logMuteConvo->mConvoId = xjson.getRequiredString("convoId");
+    logMuteConvo->mRev = xjson.getRequiredString("rev");
+    return logMuteConvo;
 }
 
 LogCreateMessage::SharedPtr LogCreateMessage::fromJson(const QJsonObject& json)
@@ -130,11 +172,38 @@ LogDeleteMessage::SharedPtr LogDeleteMessage::fromJson(const QJsonObject& json)
     return logDeleteMessage;
 }
 
-ConvoOuput::SharedPtr ConvoOuput::fromJson(const QJsonObject& json)
+LogReadMessage::SharedPtr LogReadMessage::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto output = std::make_shared<ConvoOuput>();
+    auto logReadMessage = std::make_shared<LogReadMessage>();
+    logReadMessage->mConvoId = xjson.getRequiredString("convoId");
+    logReadMessage->mRev = xjson.getRequiredString("rev");
+    logReadMessage->mMessage = xjson.getRequiredVariant<MessageView, DeletedMessageView>("message");
+    return logReadMessage;
+}
+
+AcceptConvoOutput::SharedPtr AcceptConvoOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<AcceptConvoOutput>();
+    output->mRev = xjson.getOptionalString("rev");
+    return output;
+}
+
+ConvoOutput::SharedPtr ConvoOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<ConvoOutput>();
     output->mConvo = xjson.getRequiredObject<ConvoView>("convo");
+    return output;
+}
+
+ConvoAvailabilityOuput::SharedPtr ConvoAvailabilityOuput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<ConvoAvailabilityOuput>();
+    output->mCanChat = xjson.getRequiredBool("canChat");
+    output->mConvo = xjson.getOptionalObject<ConvoView>("convo");
     return output;
 }
 
@@ -170,6 +239,14 @@ LeaveConvoOutput::SharedPtr LeaveConvoOutput::fromJson(const QJsonObject& json)
     auto output = std::make_shared<LeaveConvoOutput>();
     output->mConvoId = xjson.getRequiredString("convoId");
     output->mRev = xjson.getRequiredString("rev");
+    return output;
+}
+
+UpdateAllReadOutput::SharedPtr UpdateAllReadOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<UpdateAllReadOutput>();
+    output->mUpdateCount = xjson.getRequiredInt("updateCount");
     return output;
 }
 
