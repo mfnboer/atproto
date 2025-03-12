@@ -1933,15 +1933,15 @@ void Client::getTrendingTopics(const std::optional<QString>& viewer, std::option
 }
 
 void Client::acceptConvo(const QString& convoId,
-                      const AcceptConvoSuccessCb& successCb, const ErrorCb& errorCb)
+                         const AcceptConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    Xrpc::Client::Params params{{"convoId", convoId}};
+    QJsonObject json;
+    json.insert("convoId", convoId);
 
     Xrpc::Client::Params httpHeaders;
-    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
-    mXrpc->get("chat.bsky.convo.acceptConvo", params, httpHeaders,
+    mXrpc->post("chat.bsky.convo.acceptConvo", QJsonDocument(json), httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "acceptConvo:" << reply;
             try {
@@ -2157,10 +2157,10 @@ void Client::listConvos(std::optional<int> limit, bool onlyUnread,
     addOptionalStringParam(params, "cursor", cursor);
 
     if (onlyUnread)
-        params.append(QPair{"readState", "unread"});
+        params.append(QPair<QString, QString>{"readState", "unread"});
 
     if (status)
-        params.append(QPair{"status", ChatBskyConvo::convoStatusToString(*status)});
+        params.append(QPair<QString, QString>{"status", ChatBskyConvo::convoStatusToString(*status)});
 
     Xrpc::Client::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
