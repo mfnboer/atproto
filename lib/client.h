@@ -83,12 +83,15 @@ public:
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
 
     using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
-    using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOuput::SharedPtr)>;
+    using AcceptConvoSuccessCb = std::function<void(ChatBskyConvo::AcceptConvoOutput::SharedPtr)>;
+    using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOutput::SharedPtr)>;
+    using ConvoAvailabilitySuccessCb = std::function<void(ChatBskyConvo::ConvoAvailabilityOuput::SharedPtr)>;
     using ConvoListSuccessCb = std::function<void(ChatBskyConvo::ConvoListOutput::SharedPtr)>;
     using ConvoLogSuccessCb = std::function<void(ChatBskyConvo::LogOutput::SharedPtr)>;
     using GetMessagesSuccessCb = std::function<void(ChatBskyConvo::GetMessagesOutput::SharedPtr)>;
     using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::SharedPtr)>;
     using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::SharedPtr)>;
+    using UpdateAllReadSuccessCb = std::function<void(ChatBskyConvo::UpdateAllReadOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
@@ -776,6 +779,15 @@ public:
     // chat.bsky.convo
 
     /**
+     * @brief acceptConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void acceptConvo(const QString& convoId,
+                     const AcceptConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief deleteMessageForSelf
      * @param convoId
      * @param messageId
@@ -802,6 +814,15 @@ public:
      */
     void getConvoForMembers(const std::vector<QString>& members,
                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getConvoAvailability Get whether the requester and the other members can chat. If an existing convo is found for these members, it is returned.
+     * @param members list of DID's (min=1 max=10)
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvoAvailability(const std::vector<QString>& members,
+                              const ConvoAvailabilitySuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getConvoLog
@@ -836,11 +857,15 @@ public:
     /**
      * @brief listConvos
      * @param limit min=1, max=100, default=50
+     * @param onlyUnread
+     * @param status
      * @param cursor
      * @param successCb
      * @param errorCb
      */
-    void listConvos(std::optional<int> limit, const std::optional<QString>& cursor,
+    void listConvos(std::optional<int> limit, bool onlyUnread,
+                    std::optional<ChatBskyConvo::ConvoStatus> status,
+                    const std::optional<QString>& cursor,
                     const ConvoListSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -880,6 +905,15 @@ public:
      */
     void updateRead(const QString& convoId, const std::optional<QString>& messageId,
                     const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief updateAllRead
+     * @param status
+     * @param successCb
+     * @param errorCb
+     */
+    void updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
+                       const UpdateAllReadSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;

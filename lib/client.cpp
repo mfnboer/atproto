@@ -1902,6 +1902,31 @@ void Client::getTrendingTopics(const std::optional<QString>& viewer, std::option
         authToken());
 }
 
+void Client::acceptConvo(const QString& convoId,
+                      const AcceptConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::Client::Params params{{"convoId", convoId}};
+
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.acceptConvo", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "acceptConvo:" << reply;
+            try {
+                auto output = ChatBskyConvo::AcceptConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::deleteMessageForSelf(const QString& convoId, const QString& messageId,
                           const DeleteMessageSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -1942,7 +1967,7 @@ void Client::getConvo(const QString& convoId,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvo:" << reply;
             try {
-                auto output = ChatBskyConvo::ConvoOuput::fromJson(reply.object());
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));
@@ -1972,7 +1997,7 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getConvo:" << reply;
             try {
-                auto output = ChatBskyConvo::ConvoOuput::fromJson(reply.object());
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));
@@ -1982,6 +2007,36 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
         },
         failure(errorCb),
         authToken());
+}
+
+void Client::getConvoAvailability(const std::vector<QString>& members,
+                                  const ConvoAvailabilitySuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(members.size() > 0);
+    Q_ASSERT(members.size() <= MAX_CONVO_MEMBERS);
+    Xrpc::Client::Params params;
+
+    for (const auto& member : members)
+        params.append({"members", member});
+
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->get("chat.bsky.convo.getConvoAvailability", params, httpHeaders,
+               [this, successCb, errorCb](const QJsonDocument& reply){
+                   qDebug() << "getConvo:" << reply;
+                   try {
+                       auto output = ChatBskyConvo::ConvoAvailabilityOuput::fromJson(reply.object());
+
+                       if (successCb)
+                           successCb(std::move(output));
+                   } catch (InvalidJsonException& e) {
+                       invalidJsonError(e, errorCb);
+                   }
+               },
+               failure(errorCb),
+               authToken());
 }
 
 void Client::getConvoLog(const std::optional<QString>& cursor,
@@ -2062,12 +2117,20 @@ void Client::leaveConvo(const QString& convoId,
         authToken());
 }
 
-void Client::listConvos(std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::listConvos(std::optional<int> limit, bool onlyUnread,
+                        std::optional<ChatBskyConvo::ConvoStatus> status,
+                        const std::optional<QString>& cursor,
                         const ConvoListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::Client::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+
+    if (onlyUnread)
+        params.append(QPair{"readState", "unread"});
+
+    if (status)
+        params.append(QPair{"status", ChatBskyConvo::convoStatusToString(*status)});
 
     Xrpc::Client::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -2102,7 +2165,7 @@ void Client::muteConvo(const QString& convoId,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Mute convo:" << reply;
             try {
-                auto output = ChatBskyConvo::ConvoOuput::fromJson(reply.object());
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));
@@ -2154,7 +2217,7 @@ void Client::unmuteConvo(const QString& convoId,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Unmute convo:" << reply;
             try {
-                auto output = ChatBskyConvo::ConvoOuput::fromJson(reply.object());
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));
@@ -2180,7 +2243,34 @@ void Client::updateRead(const QString& convoId, const std::optional<QString>& me
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "Update read:" << reply;
             try {
-                auto output = ChatBskyConvo::ConvoOuput::fromJson(reply.object());
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
+                           const UpdateAllReadSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+
+    if (status)
+        json.insert("status", ChatBskyConvo::convoStatusToString(*status));
+
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.updateAllRead", QJsonDocument(json), httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Update all read:" << reply;
+            try {
+                auto output = ChatBskyConvo::UpdateAllReadOutput::fromJson(reply.object());
 
                 if (successCb)
                     successCb(std::move(output));

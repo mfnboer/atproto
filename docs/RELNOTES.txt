@@ -3,6 +3,8 @@ next
 * Handle to DID resolution via DNS and HTTP
 * DID to PDS resolution via plc.directory
 * Get video blob when upload fails with "already_exists"
+* Support convo status
+* Chat proto updated
 
 3.7
 ===

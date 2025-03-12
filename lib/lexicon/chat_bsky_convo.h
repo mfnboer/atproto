@@ -73,6 +73,16 @@ struct DeletedMessageView
     static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
+enum class ConvoStatus
+{
+    REQUEST,
+    ACCEPTED,
+    UNKNOWN
+};
+
+ConvoStatus stringToConvoStatus(const QString& str);
+QString convoStatusToString(ConvoStatus status);
+
 // chat.bsky.convo.defs#convoView
 struct ConvoView
 {
@@ -81,7 +91,8 @@ struct ConvoView
     ChatBskyActor::ProfileViewBasicList mMembers;
     std::optional<std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>> mLastMessage;
     bool mMuted = false;
-    bool mOpened = false;
+    std::optional<QString> mRawStatus;
+    std::optional<ConvoStatus> mStatus;
     int mUnreadCount = 0;
 
     using SharedPtr = std::shared_ptr<ConvoView>;
@@ -101,6 +112,17 @@ struct LogBeginConvo
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logBeginConvo";
 };
 
+// chat.bsky.convo.defs#logAcceptConvo
+struct LogAcceptConvo
+{
+    QString mRev;
+    QString mConvoId;
+
+    using SharedPtr = std::shared_ptr<LogAcceptConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logAcceptConvo";
+};
+
 // chat.bsky.convo.defs#logLeaveConvo
 struct LogLeaveConvo
 {
@@ -110,6 +132,17 @@ struct LogLeaveConvo
     using SharedPtr = std::shared_ptr<LogLeaveConvo>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logLeaveConvo";
+};
+
+// chat.bsky.convo.defs#logMuteConvo
+struct LogMuteConvo
+{
+    QString mRev;
+    QString mConvoId;
+
+    using SharedPtr = std::shared_ptr<LogMuteConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logMuteConvo";
 };
 
 // chat.bsky.convo.defs#logCreateMessage
@@ -140,11 +173,42 @@ struct LogDeleteMessage
     static constexpr char const* TYPE = "chat.bsky.convo.defs#logDeleteMessage";
 };
 
-struct ConvoOuput
+// chat.bsky.convo.defs#logReadMessage
+struct LogReadMessage
+{
+    QString mRev;
+    QString mConvoId;
+
+    // null variant for unknown type
+    std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr> mMessage; // required
+
+    using SharedPtr = std::shared_ptr<LogReadMessage>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#logReadMessage";
+};
+
+struct AcceptConvoOutput
+{
+    std::optional<QString> mRev;
+
+    using SharedPtr = std::shared_ptr<AcceptConvoOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct ConvoOutput
 {
     ConvoView::SharedPtr mConvo; // required
 
-    using SharedPtr = std::shared_ptr<ConvoOuput>;
+    using SharedPtr = std::shared_ptr<ConvoOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct ConvoAvailabilityOuput
+{
+    bool mCanChat;
+    ConvoView::SharedPtr mConvo; // optional
+
+    using SharedPtr = std::shared_ptr<ConvoAvailabilityOuput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
@@ -185,6 +249,14 @@ struct LeaveConvoOutput
     QString mRev;
 
     using SharedPtr = std::shared_ptr<LeaveConvoOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct UpdateAllReadOutput
+{
+    int mUpdateCount;
+
+    using SharedPtr = std::shared_ptr<UpdateAllReadOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
