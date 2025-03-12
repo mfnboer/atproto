@@ -5,6 +5,7 @@ next
 * Get video blob when upload fails with "already_exists"
 * Support convo status
 * Chat proto updated
+* Fix accept-labelers
 
 3.7
 ===

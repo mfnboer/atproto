@@ -900,7 +900,10 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getRepostedBy", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getRepostedBy", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getRepostedBy:" << reply;
             try {
@@ -940,7 +943,10 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getFollows", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getFollows", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFollows:" << reply;
             try {
@@ -962,7 +968,10 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getFollowers", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getFollowers", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFollowers:" << reply;
             try {
@@ -984,7 +993,10 @@ void Client::getKnownFollowers(const QString& actor, std::optional<int> limit, c
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getKnownFollowers", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getKnownFollowers", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getKnownFollowers:" << reply;
             try {
@@ -1006,7 +1018,10 @@ void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& c
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getBlocks", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getBlocks", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getBlocks:" << reply;
             try {
@@ -1028,7 +1043,10 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getMutes", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getMutes", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getMutes:" << reply;
             try {
@@ -1114,7 +1132,10 @@ void Client::getList(const QString& listUri, std::optional<int> limit, const std
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getList", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getList", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getList:" << reply;
             try {
@@ -1136,7 +1157,10 @@ void Client::getLists(const QString& actor, std::optional<int> limit, const std:
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getLists", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getLists", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getLists:" << reply;
             try {
@@ -1158,7 +1182,10 @@ void Client::getListBlocks(std::optional<int> limit, const std::optional<QString
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getListBlocks", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getListBlocks", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListBlocks:" << reply;
             try {
@@ -1180,7 +1207,10 @@ void Client::getListMutes(std::optional<int> limit, const std::optional<QString>
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.graph.getListMutes", params, {},
+    Xrpc::Client::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getListMutes", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListMutes:" << reply;
             try {
