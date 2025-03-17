@@ -9,13 +9,17 @@ namespace Xrpc {
 
 constexpr int MAX_RESEND = 4;
 
-Client::Client()
+Client::Client(const QString& host)
 {
-    qDebug() << "Device supports OpenSSL: " << QSslSocket::supportsSsl();
+    qDebug() << "Host:" << host;
+    qDebug() << "Device supports OpenSSL:" << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
     mNetwork.setAutoDeleteReplies(true);
     mNetwork.setTransferTimeout(10000);
+
+    if (!host.isEmpty())
+        setPDS(host, "");
 }
 
 Client::~Client()
@@ -93,15 +97,18 @@ void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& succ
 
             qWarning() << "Failed resolve handle:" << handle << "error:" << error;
 
-            // TODO: This ugly fallback helps in cases where DNS over HTTP is blocked.
-            // Ideally we should use native DNS, but TXT queries are not supported on Android.
-            // The true PDS will be retrieved later from createSession
-            const QString host = "bsky.social";
-            qInfo() << "Set PDS for now to:" << host;
-            setPDS(host, "");
+            if (!mPDS.isEmpty())
+            {
+                qDebug() << "Initial point of contact:" << mPDS;
 
-            if (successCb)
-                successCb();
+                if (successCb)
+                    successCb();
+            }
+            else
+            {
+                if (errorCb)
+                    errorCb(error);
+            }
         });
 }
 

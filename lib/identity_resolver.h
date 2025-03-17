@@ -28,8 +28,8 @@ private:
     void handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     QUrl getHttpUrl(const QString& handle) const;
-    void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError = {});
+    void handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError);
 
     // QDnsLookup TXT queries not supported on Android
     std::unique_ptr<QDnsLookup> mDns;

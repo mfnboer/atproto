@@ -1,3 +1,7 @@
+next
+====
+* Fallback host when handle resolution via DNS fails
+
 4.0
 ===
 * Handle to DID resolution via DNS and HTTP
