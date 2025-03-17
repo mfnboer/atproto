@@ -51,8 +51,11 @@ void Client::setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb,
     if (!mPDS.isEmpty() && mDid == did)
     {
         qDebug() << "PDS already set:" << mPDS << "DID:" << did;
-        QTimer::singleShot(0, this, [successCb]{ successCb(); });
-        return;
+        QTimer::singleShot(0, this, [successCb]{
+            if (successCb)
+                successCb();
+
+            return; });
     }
 
     mPlcDirectoryClient.getPds(did,
@@ -84,11 +87,21 @@ void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& succ
 
             setPDSFromDid(did, successCb, errorCb);
         },
-        [handle, errorCb](const QString& error){
-            qWarning() << "Failed to set PDS:" << handle << error;
+        [this, presence=getPresence(), handle, successCb, errorCb](const QString& error){
+            if (!presence)
+                return;
 
-            if (errorCb)
-                errorCb(QString("Could not resolve handle: %1").arg(error));
+            qWarning() << "Failed resolve handle:" << handle << "error:" << error;
+
+            // TODO: This ugly fallback helps in cases where DNS over HTTP is blocked.
+            // Ideally we should use native DNS, but TXT queries are not supported on Android.
+            // The true PDS will be retrieved later from createSession
+            const QString host = "bsky.social";
+            qInfo() << "Set PDS for now to:" << host;
+            setPDS(host, "");
+
+            if (successCb)
+                successCb();
         });
 }
 
