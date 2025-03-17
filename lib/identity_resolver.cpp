@@ -141,7 +141,8 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
     {
         const QString& error = reply->errorString();
         qWarning() << "DOH resolution failed:" << handle << "error:" << error;
-        httpGetDid(handle, successCb, errorCb);
+        const QString dohError = QString(DOH) + ": " + error;
+        httpGetDid(handle, successCb, errorCb, dohError);
         return;
     }
 
@@ -262,19 +263,19 @@ QUrl IdentityResolver::getHttpUrl(const QString& handle) const
     return QUrl(QString("https://%1/.well-known/atproto-did").arg(handle));
 }
 
-void IdentityResolver::httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+void IdentityResolver::httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError)
 {
     qDebug() << "Get DID via HTTP:" << handle;
     QUrl url = getHttpUrl(handle);
     QNetworkRequest request(url);
     QNetworkReply* reply = mNetwork.get(request);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb]{
-        handleHttpResponse(reply, handle, successCb, errorCb);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb, dnsError]{
+        handleHttpResponse(reply, handle, successCb, errorCb, dnsError);
     });
 }
 
-void IdentityResolver::handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+void IdentityResolver::handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError)
 {
     if (reply->error() != QNetworkReply::NoError)
     {
@@ -282,7 +283,12 @@ void IdentityResolver::handleHttpResponse(QNetworkReply* reply, const QString& h
         qWarning() << "HTTP resolution failed:" << handle << "error:" << error;
 
         if (errorCb)
-            errorCb(error);
+        {
+            if (!dnsError.isEmpty())
+                errorCb(dnsError);
+            else
+                errorCb(error);
+        }
 
         return;
     }
@@ -295,7 +301,7 @@ void IdentityResolver::handleHttpResponse(QNetworkReply* reply, const QString& h
         qWarning() << "Invalid DID returned:" << did;
 
         if (errorCb)
-            errorCb("Invalid DID");
+            errorCb("Invalid DID: " + did);
     }
 
     qDebug() << "HTTP resolution succeeded:" << handle << did;

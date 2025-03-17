@@ -23,7 +23,10 @@ public:
     using Params = QList<QPair<QString, QString>>;
     using DataType = std::variant<QByteArray, QIODevice*>;
 
-    Client();
+    // Host can be set as first point of contact for a new account.
+    // If handle to DID resolution via DNS fails, then createSession will be sent to host.
+    explicit Client(const QString& host = {});
+
     ~Client();
 
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
@@ -81,7 +84,6 @@ private:
 
     bool mustResend(QNetworkReply::NetworkError error) const;
 
-    QString mHost; // first point of contact, e.g. bsky.social
     QString mPDS;
     QString mDid; // PDS is set for this DID
     QString mUserAgent;
