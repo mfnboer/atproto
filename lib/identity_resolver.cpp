@@ -8,10 +8,8 @@
 
 namespace ATProto {
 
-// DNS over HTTP
-// Alternative: https://cloudflare-dns.com/dns-query
-// Cloudflare JSON values seems to have extra quotes and needs "accept: application/dns-json"
-constexpr char const* DOH = "https://dns.google/resolve";
+constexpr char const* DOH_PRIMARY = "https://dns.google/resolve";
+constexpr char const* DOH_SECONDARY = "https://cloudflare-dns.com/dns-query";
 
 IdentityResolver::IdentityResolver()
 {
@@ -22,7 +20,7 @@ IdentityResolver::IdentityResolver()
 void IdentityResolver::resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
 #ifdef Q_OS_ANDROID
-    resolveHandleDoh(handle, successCb, errorCb);
+    resolveHandleDoh(DOH_PRIMARY, handle, successCb, errorCb);
 #else
     resolveHandleQDns(handle, successCb, errorCb);
 #endif
@@ -38,15 +36,16 @@ void IdentityResolver::resolveHandleQDns(const QString& handle, const SuccessCb&
     mDns->lookup();
 }
 
-void IdentityResolver::resolveHandleDoh(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+void IdentityResolver::resolveHandleDoh(const QString& dohUrl, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Resolve handle via DOH:" << handle;
-    QUrl url = getDohUrl(handle);
+    qDebug() << "Resolve handle via DOH:" << dohUrl << "handle:" << handle;
+    QUrl url = getDohUrl(dohUrl, handle);
     QNetworkRequest request(url);
+    request.setRawHeader("Accept", "application/dns-json"); // Without this Cloudflare will not respond
     QNetworkReply* reply = mNetwork.get(request);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb]{
-        handleDohResponse(reply, handle, successCb, errorCb);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, dohUrl, handle, successCb, errorCb]{
+        handleDohResponse(reply, dohUrl, handle, successCb, errorCb);
     });
 }
 
@@ -55,10 +54,10 @@ QString IdentityResolver::getDnsLookupName(const QString& handle) const
     return QString("_atproto.%1").arg(handle);
 }
 
-QUrl IdentityResolver::getDohUrl(const QString& handle) const
+QUrl IdentityResolver::getDohUrl(const QString& dohUrl, const QString& handle) const
 {
     const QString name = getDnsLookupName(handle);
-    return QUrl(QString("%1?name=%2&type=TXT").arg(DOH, name));
+    return QUrl(QString("%1?name=%2&type=TXT").arg(dohUrl, name));
 }
 
 void IdentityResolver::handleQDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -135,14 +134,19 @@ void IdentityResolver::handleQDnsResult(const QString& handle, const SuccessCb& 
     mDns.reset();
 }
 
-void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& dohUrl, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     if (reply->error() != QNetworkReply::NoError)
     {
         const QString& error = reply->errorString();
-        qWarning() << "DOH resolution failed:" << handle << "error:" << error;
-        const QString dohError = QString(DOH) + ": " + error;
-        httpGetDid(handle, successCb, errorCb, dohError);
+        qWarning() << "DOH resolution failed:" << dohUrl << "handle:" << handle << "error:" << error;
+        const QString dohError = dohUrl + ": " + error;
+
+        if (dohUrl == DOH_PRIMARY)
+            resolveHandleDoh(DOH_SECONDARY, handle, successCb, errorCb);
+        else
+            httpGetDid(handle, successCb, errorCb, dohError);
+
         return;
     }
 
@@ -155,7 +159,7 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
         qWarning() << "Invalid JSON:" << data;
 
         if (errorCb)
-            errorCb(QString("Invalid response from: ") + DOH);
+            errorCb("Invalid response from: " + dohUrl);
 
         return;
     }
@@ -166,10 +170,12 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
 
     if (error)
     {
-        qWarning() << "DOH error:" << handle << "error:" << *error;
+        qWarning() << "DOH error:" << dohUrl << "handle:" << handle << "error:" << *error;
 
-        if (errorCb)
-            errorCb(QString("Error from: ") + DOH + " " + *error);
+        if (dohUrl == DOH_PRIMARY)
+            resolveHandleDoh(DOH_SECONDARY, handle, successCb, errorCb);
+        else
+            httpGetDid(handle, successCb, errorCb, *error);
 
         return;
     }
@@ -178,17 +184,22 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
 
     if (status != 0)
     {
-        qWarning() << "DNS error:" << handle << "status:" << *status;
+        const QString dnsError = QString("DNS status: %1 from: %2").arg(*status).arg(dohUrl);
+        qWarning() << dnsError << "handle:" << handle;
 
-        if (errorCb)
-            errorCb(QString("DNS status: %1 from: %2").arg(*status).arg(DOH));
+        if (dohUrl == DOH_PRIMARY)
+            resolveHandleDoh(DOH_SECONDARY, handle, successCb, errorCb);
+        else
+            httpGetDid(handle, successCb, errorCb, dnsError);
+
+        return;
     }
 
     const auto answerArray = xjson.getOptionalArray("Answer");
 
     if (!answerArray || answerArray->empty())
     {
-        qDebug() << "No TXT record for:" << handle;
+        qWarning() << "No TXT record:" << dohUrl << "handle:" << handle;
         httpGetDid(handle, successCb, errorCb);
         return;
     }
@@ -215,7 +226,11 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
             continue;
         }
 
-        const auto value = xjsonRecord.getOptionalString("data");
+        auto value = xjsonRecord.getOptionalString("data");
+
+        // Cloudflare gives quoted values
+        if (value->startsWith('"') && value->endsWith('"'))
+            value = value->sliced(1, value->size() - 2);
 
         if (!value)
         {
@@ -241,7 +256,7 @@ void IdentityResolver::handleDohResponse(QNetworkReply* reply, const QString& ha
             qWarning() << "Found multipe DIDs:" << did << didValue;
 
             if (errorCb)
-                errorCb(QString("Multiple DIDs: ") + DOH);
+                errorCb("Multiple DIDs: " + dohUrl);
 
             return;
         }
