@@ -19,13 +19,13 @@ public:
 
 private:
     QString getDnsLookupName(const QString& handle) const;
-    QUrl getDohUrl(const QString& handle) const;
+    QUrl getDohUrl(const QString& dohUrl, const QString& handle) const;
 
     void resolveHandleQDns(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
     void handleQDnsResult(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    void resolveHandleDoh(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void handleDohResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void resolveHandleDoh(const QString& dohUrl, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void handleDohResponse(QNetworkReply* reply, const QString& dohUrl, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     QUrl getHttpUrl(const QString& handle) const;
     void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError = {});
