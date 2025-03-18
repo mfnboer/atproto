@@ -1,6 +1,7 @@
 next
 ====
 * Fallback host when handle resolution via DNS fails
+* Add Cloudflare as secondary DOH
 
 4.0
 ===
