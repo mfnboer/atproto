@@ -8,12 +8,14 @@ namespace ATProto {
 
 constexpr int MAX_RESEND = 4;
 
-PlcDirectoryClient::PlcDirectoryClient(const QString host) :
+PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QString host, QObject* parent) :
+    QObject(parent),
+    mNetwork(network),
     mHost(host),
     mFirstAppearanceCache(100)
 {
-    mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(10000);
+    Q_ASSERT(mNetwork);
+    Q_ASSERT(mNetwork->autoDeleteReplies());
 }
 
 void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb)
@@ -119,7 +121,7 @@ void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppea
 void PlcDirectoryClient::sendRequest(const Request& request, const SuccessJsonCb& successCb, const ErrorCb& errorCb)
 {
     QNetworkReply* reply;
-    reply = mNetwork.get(request.mPlcRequest);
+    reply = mNetwork->get(request.mPlcRequest);
 
     // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
     // The latter call is not guaranteed however. We must only call errorCb once!
