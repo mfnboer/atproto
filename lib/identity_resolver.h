@@ -14,7 +14,7 @@ public:
     using ErrorCb = std::function<void(const QString& error)>;
     using SuccessCb = std::function<void(const QString& did)>;
 
-    IdentityResolver();
+    explicit IdentityResolver(QNetworkAccessManager* network);
     void resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
@@ -34,7 +34,7 @@ private:
     // QDnsLookup TXT queries not supported on Android
     std::unique_ptr<QDnsLookup> mDns;
 
-    QNetworkAccessManager mNetwork;
+    QNetworkAccessManager* mNetwork;
 };
 
 }

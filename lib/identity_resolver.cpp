@@ -11,10 +11,11 @@ namespace ATProto {
 constexpr char const* DOH_PRIMARY = "https://dns.google/resolve";
 constexpr char const* DOH_SECONDARY = "https://cloudflare-dns.com/dns-query";
 
-IdentityResolver::IdentityResolver()
+IdentityResolver::IdentityResolver(QNetworkAccessManager* network) :
+    mNetwork(network)
 {
-    mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(10000);
+    Q_ASSERT(mNetwork);
+    Q_ASSERT(mNetwork->autoDeleteReplies());
 }
 
 void IdentityResolver::resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -42,7 +43,7 @@ void IdentityResolver::resolveHandleDoh(const QString& dohUrl, const QString& ha
     QUrl url = getDohUrl(dohUrl, handle);
     QNetworkRequest request(url);
     request.setRawHeader("Accept", "application/dns-json"); // Without this Cloudflare will not respond
-    QNetworkReply* reply = mNetwork.get(request);
+    QNetworkReply* reply = mNetwork->get(request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, dohUrl, handle, successCb, errorCb]{
         handleDohResponse(reply, dohUrl, handle, successCb, errorCb);
@@ -283,7 +284,7 @@ void IdentityResolver::httpGetDid(const QString& handle, const SuccessCb& succes
     qDebug() << "Get DID via HTTP:" << handle;
     QUrl url = getHttpUrl(handle);
     QNetworkRequest request(url);
-    QNetworkReply* reply = mNetwork.get(request);
+    QNetworkReply* reply = mNetwork->get(request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb, dnsError]{
         handleHttpResponse(reply, handle, successCb, errorCb, dnsError);

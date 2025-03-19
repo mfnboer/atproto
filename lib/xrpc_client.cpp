@@ -9,14 +9,17 @@ namespace Xrpc {
 
 constexpr int MAX_RESEND = 4;
 
-Client::Client(const QString& host)
+Client::Client(QNetworkAccessManager* network, const QString& host) :
+    mNetwork(network),
+    mPlcDirectoryClient(network),
+    mIdentityResolver(network)
 {
+    Q_ASSERT(mNetwork);
+    Q_ASSERT(mNetwork->autoDeleteReplies());
     qDebug() << "Host:" << host;
     qDebug() << "Device supports OpenSSL:" << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
-    mNetwork.setAutoDeleteReplies(true);
-    mNetwork.setTransferTimeout(10000);
 
     if (!host.isEmpty())
         setPDS(host, "");
@@ -354,17 +357,17 @@ void Client::sendRequest(const Request& request, const Callback& successCb, cons
         if (std::holds_alternative<QByteArray>(request.mData))
         {
             const auto& bytes = std::get<QByteArray>(request.mData);
-            reply = mNetwork.post(request.mXrpcRequest, bytes);
+            reply = mNetwork->post(request.mXrpcRequest, bytes);
         }
         else
         {
             auto* ioDevice = std::get<QIODevice*>(request.mData);
-            reply = mNetwork.post(request.mXrpcRequest, ioDevice);
+            reply = mNetwork->post(request.mXrpcRequest, ioDevice);
         }
     }
     else
     {
-        reply = mNetwork.get(request.mXrpcRequest);
+        reply = mNetwork->get(request.mXrpcRequest);
     }
 
     // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()

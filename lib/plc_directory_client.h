@@ -18,7 +18,9 @@ public:
     using AuditLogSuccessCb = std::function<void(PlcAuditLog::SharedPtr)>;
     using FirstAppearanceSuccessCb = std::function<void(QDateTime)>;
 
-    explicit PlcDirectoryClient(const QString host = "plc.directory");
+    static constexpr const char* PLC_DIRECTORY_HOST = "plc.directory";
+
+    explicit PlcDirectoryClient(QNetworkAccessManager* network, const QString host = PLC_DIRECTORY_HOST, QObject* parent = nullptr);
 
     void getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb);
     void getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb);
@@ -49,8 +51,8 @@ private:
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void invokeErrorCb(const QJsonDocument& jsonDoc, QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
 
+    QNetworkAccessManager* mNetwork;
     QString mHost;
-    QNetworkAccessManager mNetwork;
     QCache<QString, QDateTime> mFirstAppearanceCache; // did -> datetime
 };
 

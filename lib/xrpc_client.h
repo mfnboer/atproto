@@ -25,7 +25,7 @@ public:
 
     // Host can be set as first point of contact for a new account.
     // If handle to DID resolution via DNS fails, then createSession will be sent to host.
-    explicit Client(const QString& host = {});
+    explicit Client(QNetworkAccessManager* network, const QString& host = {});
 
     ~Client();
 
@@ -94,7 +94,7 @@ private:
     // Making this static as on Android it sometimes causes a crash when you destroy
     // this object. It looks like Android still wants to send a signal to it after
     // a network failure. Not sure: the logs do not give enough info on that.
-    QNetworkAccessManager mNetwork;
+    QNetworkAccessManager* mNetwork;
 
     ATProto::PlcDirectoryClient mPlcDirectoryClient;
     ATProto::IdentityResolver mIdentityResolver;
