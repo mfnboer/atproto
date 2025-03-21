@@ -173,10 +173,13 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
 
         switch (facet.mType) {
         case ParsedMatch::Type::LINK:
-            facet.mRef = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
+            if (facet.mRef.isEmpty())
+            {
+                facet.mRef = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
 
-            if (shortenLinks)
-                facet.mMatch = shortenWebLink(facet.mMatch);
+                if (shortenLinks)
+                    facet.mMatch = shortenWebLink(facet.mMatch);
+            }
 
             break;
         case ParsedMatch::Type::MENTION:
@@ -489,6 +492,38 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseFacets(const QStri
     }
 
     return facets;
+}
+
+void RichTextMaster::addEmbeddedLinksToFacets(
+        const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+        std::vector<RichTextMaster::ParsedMatch>& facets)
+{
+    removeFacetsOverlappingWithEmbeddedLinks(embeddedLinks, facets);
+    facets.insert(facets.end(), embeddedLinks.begin(), embeddedLinks.end());
+}
+
+static bool facetOverlaps(const RichTextMaster::ParsedMatch& facet, const std::vector<RichTextMaster::ParsedMatch>& otherFacets)
+{
+    for (const auto& other : otherFacets)
+    {
+        if (facet.mStartIndex < other.mEndIndex && facet.mEndIndex > other.mStartIndex)
+            return true;
+    }
+
+    return false;
+}
+
+void RichTextMaster::removeFacetsOverlappingWithEmbeddedLinks(
+        const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+        std::vector<RichTextMaster::ParsedMatch>& facets)
+{
+    for (auto it = facets.begin(); it != facets.end(); )
+    {
+        if (facetOverlaps(*it, embeddedLinks))
+            it = facets.erase(it);
+        else
+            ++it;
+    }
 }
 
 std::vector<QString> RichTextMaster::getFacetTags(AppBskyFeed::Record::Post& post)

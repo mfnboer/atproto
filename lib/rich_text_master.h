@@ -54,6 +54,12 @@ public:
     // If two facets overlap, then the one with the lowest start index is taken
     static std::vector<ParsedMatch> parseFacets(const QString& text);
 
+    static void addEmbeddedLinksToFacets(
+            const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+            std::vector<RichTextMaster::ParsedMatch>& facets);
+    static void removeFacetsOverlappingWithEmbeddedLinks(
+            const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+            std::vector<RichTextMaster::ParsedMatch>& facets);
     static std::vector<QString> getFacetTags(AppBskyFeed::Record::Post& post);
 
 private:
