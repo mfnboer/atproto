@@ -3,6 +3,7 @@
 #include "rich_text_master.h"
 #include "at_regex.h"
 #include "tlds.h"
+#include <ranges>
 
 namespace ATProto {
 
@@ -494,12 +495,23 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseFacets(const QStri
     return facets;
 }
 
-void RichTextMaster::addEmbeddedLinksToFacets(
+void RichTextMaster::insertEmbeddedLinksToFacets(
         const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
         std::vector<RichTextMaster::ParsedMatch>& facets)
 {
+    if (embeddedLinks.empty())
+        return;
+
     removeFacetsOverlappingWithEmbeddedLinks(embeddedLinks, facets);
-    facets.insert(facets.end(), embeddedLinks.begin(), embeddedLinks.end());
+
+    std::map<int, ParsedMatch> sortedMatches; // sorted on start index
+    addToSortedMatches(sortedMatches, facets);
+    addToSortedMatches(sortedMatches, embeddedLinks);
+
+    facets.clear();
+
+    for (const auto& f : sortedMatches | std::views::values)
+        facets.push_back(f);
 }
 
 static bool facetOverlaps(const RichTextMaster::ParsedMatch& facet, const std::vector<RichTextMaster::ParsedMatch>& otherFacets)

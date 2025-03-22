@@ -454,6 +454,7 @@ struct Post
 
     // Non-standard field added by bridgy-fed: https://github.com/snarfed/bridgy-fed/issues/1092
     std::optional<QString> mBridgyOriginalText;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
