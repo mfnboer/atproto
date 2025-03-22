@@ -278,7 +278,7 @@ PostReplyRef::SharedPtr PostReplyRef::fromJson(const QJsonObject& json)
 
 QJsonObject Record::Post::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", "app.bsky.feed.post");
     json.insert("text", mText);
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "facets", mFacets);
@@ -306,6 +306,7 @@ Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
     post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     post->mBridgyOriginalText = xjson.getOptionalString("bridgyOriginalText");
+    post->mJson = json;
     return post;
 }
 
