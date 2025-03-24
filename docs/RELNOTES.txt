@@ -1,5 +1,5 @@
-next
-====
+4.1
+===
 * Embedded links
 * User must inject QNetworkAccessManagement in client
 * Fallback host when handle resolution via DNS fails
