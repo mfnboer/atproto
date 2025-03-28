@@ -45,6 +45,23 @@ MessageInput::SharedPtr MessageInput::fromJson(const QJsonObject& json)
     return msg;
 }
 
+ReactionViewSender::SharedPtr ReactionViewSender::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto sender = std::make_shared<ReactionViewSender>();
+    sender->mDid = xjson.getRequiredString("did");
+    return sender;
+}
+
+ReactionView::SharedPtr ReactionView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_unique<ReactionView>();
+    view->mValue = xjson.getRequiredString("valye");
+    view->mSender = xjson.getRequiredObject<ReactionViewSender>("sender");
+    return view;
+}
+
 MessageViewSender::SharedPtr MessageViewSender::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -62,8 +79,18 @@ MessageView::SharedPtr MessageView::fromJson(const QJsonObject& json)
     view->mText = xjson.getRequiredString("text");
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     view->mEmbed = xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed");
+    view->mReactions = xjson.getOptionalVector<ReactionView>("reactions");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
+    return view;
+}
+
+MessageAndReactionView::SharedPtr MessageAndReactionView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<MessageAndReactionView>();
+    view->mMessageView = xjson.getRequiredObject<MessageView>("message");
+    view->mReactionView = xjson.getRequiredObject<ReactionView>("reaction");
     return view;
 }
 
@@ -105,7 +132,7 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
-    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
+    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView, MessageAndReactionView>("lastMessage");
     view->mMuted = xjson.getOptionalBool("muted", false);
     view->mRawStatus = xjson.getOptionalString("status");
 

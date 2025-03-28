@@ -36,6 +36,27 @@ struct MessageInput
     static constexpr char const* TYPE = "chat.bsky.convo.messageInput";
 };
 
+// chat.bsky.convo.defs#reactionViewSender
+struct ReactionViewSender
+{
+    QString mDid;
+
+    using SharedPtr = std::shared_ptr<ReactionViewSender>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// chat.bsky.convo.defs#reactionView
+struct ReactionView
+{
+    QString mValue;
+    ReactionViewSender::SharedPtr mSender; // required
+
+    using SharedPtr = std::shared_ptr<ReactionView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#reactionView";
+};
+
 // chat.bsky.convo.defs#messageViewSender
 struct MessageViewSender
 {
@@ -53,12 +74,23 @@ struct MessageView
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::FacetList mFacets;
     ATProto::AppBskyEmbed::RecordView::SharedPtr mEmbed; // optional
+    ReactionView::List mReactions;
     MessageViewSender::SharedPtr mSender; // required
     QDateTime mSentAt;
 
     using SharedPtr = std::shared_ptr<MessageView>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageView";
+};
+
+// chat.bsky.convo.defs#messageAndReactionView
+struct MessageAndReactionView {
+    MessageView::SharedPtr mMessageView; // required
+    ReactionView::SharedPtr mReactionView; // required
+
+    using SharedPtr = std::shared_ptr<MessageAndReactionView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#messageAndReactionView";
 };
 
 struct DeletedMessageView
@@ -86,10 +118,12 @@ QString convoStatusToString(ConvoStatus status);
 // chat.bsky.convo.defs#convoView
 struct ConvoView
 {
+    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, MessageAndReactionView::SharedPtr>;
+
     QString mId;
     QString mRev;
     ChatBskyActor::ProfileViewBasicList mMembers;
-    std::optional<std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>> mLastMessage;
+    std::optional<MessageType> mLastMessage;
     bool mMuted = false;
     std::optional<QString> mRawStatus;
     std::optional<ConvoStatus> mStatus;
