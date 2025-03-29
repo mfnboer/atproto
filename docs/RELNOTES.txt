@@ -1,6 +1,7 @@
 next
 ====
 * Add reactions to chat message
+* Embedded link improvements
 
 4.1
 ===

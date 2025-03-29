@@ -57,11 +57,12 @@ void ChatMaster::updateDeclaration(const QString& did, const ChatBskyActor::Decl
         });
 }
 
-void ChatMaster::createMessage(const QString& text, const MessageCreatedCb& cb)
+void ChatMaster::createMessage(const QString& text, const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks, const MessageCreatedCb& cb)
 {
     Q_ASSERT(cb);
     auto message = std::make_shared<ChatBskyConvo::MessageInput>();
     auto facets = RichTextMaster::parseFacets(text);
+    RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
 
     mRichTextMaster.resolveFacets(text, facets, 0, false,
         [message, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){

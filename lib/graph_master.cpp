@@ -51,7 +51,9 @@ void GraphMaster::undo(const QString& uri,
 }
 
 void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& name,
-                const QString& description, Blob::SharedPtr avatar, const QString& rKey,
+                const QString& description,
+                const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                Blob::SharedPtr avatar, const QString& rKey,
                 const CreateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     auto list = std::make_shared<AppBskyGraph::List>();
@@ -60,6 +62,7 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
     list->mAvatar = std::move(avatar);
     list->mCreatedAt = QDateTime::currentDateTimeUtc();
     auto facets = RichTextMaster::parseFacets(description);
+    RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
 
     mRichTextMaster.resolveFacets(description, facets, 0, true,
         [this, presence=getPresence(), list, rKey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
@@ -94,8 +97,9 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey
         });
 }
 
-void GraphMaster::updateList(const QString& listUri, const QString& name,
-                             const QString& description, Blob::SharedPtr avatar, bool updateAvatar,
+void GraphMaster::updateList(const QString& listUri, const QString& name, const QString& description,
+                             const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                             Blob::SharedPtr avatar, bool updateAvatar,
                              const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(listUri, mPresence, errorCb);
@@ -106,7 +110,7 @@ void GraphMaster::updateList(const QString& listUri, const QString& name,
         mRKeyBlobMap[atUri.getRkey()] = std::move(avatar);
 
     mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
-        [this, presence=getPresence(), atUri, name, description, updateAvatar, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
+        [this, presence=getPresence(), atUri, name, description, embeddedLinks, updateAvatar, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
             if (!presence)
                 return;
 
@@ -121,7 +125,7 @@ void GraphMaster::updateList(const QString& listUri, const QString& name,
                 }
 
                 if (list->mDescription.value_or("") != description)
-                    updateList(std::move(list), atUri.getRkey(), description, successCb, errorCb);
+                    updateList(std::move(list), atUri.getRkey(), description, embeddedLinks, successCb, errorCb);
                 else
                     updateList(*list, atUri.getRkey(), successCb, errorCb);
             } catch (InvalidJsonException& e) {
@@ -139,9 +143,11 @@ void GraphMaster::updateList(const QString& listUri, const QString& name,
 }
 
 void GraphMaster::updateList(AppBskyGraph::List::SharedPtr list, const QString& rkey, const QString& description,
+                             const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
                              const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     auto facets = RichTextMaster::parseFacets(description);
+    RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
     mRKeyListMap[rkey] = std::move(list);
 
     mRichTextMaster.resolveFacets(description, facets, 0, true,
