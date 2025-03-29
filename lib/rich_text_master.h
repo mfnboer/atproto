@@ -33,7 +33,8 @@ public:
     static QString getFormattedStarterPackDescription(const ATProto::AppBskyGraph::StarterPack& starterPack, const QString& linkColor);
     static QString getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor);
     static QString getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor);
-    static QString linkiFy(const QString& text, const QString& colorName);
+    static std::vector<ParsedMatch> getEmbeddedLinks(const QString& text, const AppBskyRichtext::FacetList& facets);
+    static QString linkiFy(const QString& text, const std::vector<ParsedMatch>& embeddedLinks, const QString& colorName);
     static QString normalizeText(const QString& text);
 
     explicit RichTextMaster(Client& client);
@@ -55,11 +56,11 @@ public:
     static std::vector<ParsedMatch> parseFacets(const QString& text);
 
     static void insertEmbeddedLinksToFacets(
-            const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
-            std::vector<RichTextMaster::ParsedMatch>& facets);
+            const std::vector<ParsedMatch>& embeddedLinks,
+            std::vector<ParsedMatch>& facets);
     static void removeFacetsOverlappingWithEmbeddedLinks(
-            const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
-            std::vector<RichTextMaster::ParsedMatch>& facets);
+            const std::vector<ParsedMatch>& embeddedLinks,
+            std::vector<ParsedMatch>& facets);
     static std::vector<QString> getFacetTags(AppBskyFeed::Record::Post& post);
 
 private:

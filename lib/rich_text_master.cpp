@@ -3,6 +3,7 @@
 #include "rich_text_master.h"
 #include "at_regex.h"
 #include "tlds.h"
+#include <QUrl>
 #include <ranges>
 
 namespace ATProto {
@@ -56,7 +57,7 @@ QString RichTextMaster::getFormattedFeedDescription(const ATProto::AppBskyFeed::
         return {};
 
     if (feed.mDescriptionFacets.empty())
-        return linkiFy(*feed.mDescription, linkColor);
+        return linkiFy(*feed.mDescription, {}, linkColor);
 
     return ATProto::AppBskyRichtext::applyFacets(*feed.mDescription, feed.mDescriptionFacets,
                                                  linkColor);
@@ -68,7 +69,7 @@ QString RichTextMaster::getFormattedListDescription(const ATProto::AppBskyGraph:
         return {};
 
     if (list.mDescriptionFacets.empty())
-        return linkiFy(*list.mDescription, linkColor);
+        return linkiFy(*list.mDescription, {}, linkColor);
 
     return ATProto::AppBskyRichtext::applyFacets(*list.mDescription, list.mDescriptionFacets,
                                                  linkColor);
@@ -80,7 +81,7 @@ QString RichTextMaster::getFormattedStarterPackDescription(const ATProto::AppBsk
         return {};
 
     if (starterPack.mDescriptionFacets.empty())
-        return linkiFy(*starterPack.mDescription, linkColor);
+        return linkiFy(*starterPack.mDescription, {}, linkColor);
 
     return ATProto::AppBskyRichtext::applyFacets(*starterPack.mDescription, starterPack.mDescriptionFacets,
                                                  linkColor);
@@ -93,7 +94,7 @@ QString RichTextMaster::getFormattedLabelerDescription(const ATProto::AppBskyLab
     if (!description || description->isEmpty())
         return {};
 
-    return linkiFy(*description, linkColor);
+    return linkiFy(*description, {}, linkColor);
 }
 
 QString RichTextMaster::getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor)
@@ -107,9 +108,61 @@ QString RichTextMaster::getFormattedMessageText(const ATProto::ChatBskyConvo::Me
         return ATProto::AppBskyRichtext::applyFacets(msg.mText, msg.mFacets, linkColor);
 }
 
-QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
+static int convertUtf8IndexToIndex(int utf8Index, const QByteArray& utf8Bytes)
 {
-    const auto facets = RichTextMaster::parseFacets(text);
+    const QString str(utf8Bytes.sliced(0, utf8Index));
+    return str.length();
+}
+
+std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const QString& text, const AppBskyRichtext::FacetList& facets)
+{
+    const auto& bytes = text.toUtf8();
+    std::vector<RichTextMaster::ParsedMatch> embeddedLinks;
+
+    for (const auto& facet : facets)
+    {
+        if (facet->mFeatures.size() == 1 && facet->mFeatures.front().mType == ParsedMatch::Type::LINK)
+        {
+            const int start = facet->mIndex.mByteStart;
+            const int end = facet->mIndex.mByteEnd;
+            const int sliceSize = end - start;
+
+            if (start < 0 || end > bytes.size() || sliceSize < 0)
+            {
+                qWarning() << "Invalid index in facet:" << QString(bytes);
+                continue;
+            }
+
+            const auto linkText = QString(bytes.sliced(start, sliceSize));
+
+            if (linkText.isEmpty())
+                continue;
+
+            const auto feature = std::get<AppBskyRichtext::FacetLink::SharedPtr>(facet->mFeatures.front().mFeature);
+            QUrl url(feature->mUri);
+            qDebug() << "Link:" << linkText << "uri:" << url;
+
+            if (linkText.contains(url.host()))
+                continue;
+
+            ParsedMatch link;
+            link.mMatch = linkText;
+            link.mRef = feature->mUri;
+            link.mType = ParsedMatch::Type::LINK;
+            link.mStartIndex = convertUtf8IndexToIndex(start, bytes);
+            link.mEndIndex = convertUtf8IndexToIndex(end, bytes);
+
+            embeddedLinks.push_back(link);
+        }
+    }
+
+    return embeddedLinks;
+}
+
+QString RichTextMaster::linkiFy(const QString& text, const std::vector<ParsedMatch>& embeddedLinks, const QString& colorName)
+{
+    auto facets = RichTextMaster::parseFacets(text);
+    insertEmbeddedLinksToFacets(embeddedLinks, facets);
     QString linkified = "<span style=\"white-space: pre-wrap\">";
 
     int pos = 0;
@@ -117,12 +170,25 @@ QString RichTextMaster::linkiFy(const QString& text, const QString& colorName)
     for (const auto& facet : facets)
     {
         if (facet.mType == ParsedMatch::Type::MENTION ||
-            facet.mType == ParsedMatch::Type::LINK)
+            facet.mType == ParsedMatch::Type::LINK ||
+            facet.mType == ParsedMatch::Type::TAG)
         {
             const auto before = text.sliced(pos, facet.mStartIndex - pos);
             linkified.append(toCleanedHtml(before));
-            const QString ref = facet.mType == ParsedMatch::Type::MENTION || facet.mMatch.startsWith("http") ?
-                                    facet.mMatch : "https://" + facet.mMatch;
+            QString ref;
+
+            if (facet.mType == ParsedMatch::Type::MENTION || facet.mType == ParsedMatch::Type::TAG)
+            {
+                ref = facet.mMatch;
+            }
+            else
+            {
+                if (!facet.mRef.isEmpty())
+                    ref = facet.mRef;
+                else
+                    ref = facet.mMatch.startsWith("http") ? facet.mMatch : "https://" + facet.mMatch;
+            }
+
             QString link = QString("<a href=\"%1\" style=\"color: %3; text-decoration: none\">%2</a>").arg(ref, facet.mMatch, colorName);
             linkified.append(link);
             pos = facet.mEndIndex;

@@ -22,7 +22,7 @@ public:
     void updateDeclaration(const QString& did, const ChatBskyActor::Declaration& declaration,
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    void createMessage(const QString& text, const MessageCreatedCb& cb);
+    void createMessage(const QString& text, const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks, const MessageCreatedCb& cb);
     static void addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid);
 
 private:

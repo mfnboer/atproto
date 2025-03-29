@@ -32,11 +32,14 @@ public:
               const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void createList(AppBskyGraph::ListPurpose purpose, const QString& name,
-                    const QString& description, Blob::SharedPtr avatar, const QString& rKey,
+                    const QString& description,
+                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                    Blob::SharedPtr avatar, const QString& rKey,
                     const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void updateList(const QString& listUri, const QString& name,
-                    const QString& description, Blob::SharedPtr avatar, bool updateAvatar,
+    void updateList(const QString& listUri, const QString& name, const QString& description,
+                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                    Blob::SharedPtr avatar, bool updateAvatar,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
 
     void addUserToList(const QString& listUri, const QString& did,
@@ -48,6 +51,7 @@ public:
 private:
     void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(AppBskyGraph::List::SharedPtr list, const QString& rkey, const QString& description,
+                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
