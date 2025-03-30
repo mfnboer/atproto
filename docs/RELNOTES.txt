@@ -1,5 +1,5 @@
-next
-====
+4.2
+===
 * Add reactions to chat message
 * Embedded link improvements
 
