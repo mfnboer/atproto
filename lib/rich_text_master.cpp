@@ -547,10 +547,7 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseFacets(const QStri
 
             // A (partial) mention may not be a partial mention but part of a link
             // A tag may not be a tag but part of a link
-            Q_ASSERT(match.mType == RichTextMaster::ParsedMatch::Type::PARTIAL_MENTION ||
-                     match.mType == RichTextMaster::ParsedMatch::Type::MENTION ||
-                     match.mType == RichTextMaster::ParsedMatch::Type::TAG);
-
+            // A link may not be a link but part of a tag, e.g. #example.com
             continue;
         }
 
