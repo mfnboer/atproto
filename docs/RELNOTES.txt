@@ -1,3 +1,7 @@
+next
+====
+* Allow underscore in hashtag
+
 4.2.1
 =====
 * Bug fixes
