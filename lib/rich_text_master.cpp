@@ -8,7 +8,7 @@
 
 namespace ATProto {
 
-static constexpr char const* RE_HASHTAG = R"(#[^[:punct:][:space:]]+)";
+static constexpr char const* RE_HASHTAG = R"(#(?:[^[:punct:][:space:]]|_)+)";
 
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
 
