@@ -2312,6 +2312,60 @@ void Client::updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
         authToken());
 }
 
+void Client::addReaction(const QString& convoId, const QString& messageId, const QString& value,
+                 const ReactionSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("messageId", messageId);
+    json.insert("value", value);
+
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.addReaction", QJsonDocument(json), httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Add reaction:" << reply;
+            try {
+                auto output = ChatBskyConvo::MessageOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::removeReaction(const QString& convoId, const QString& messageId, const QString& value,
+                 const ReactionSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("messageId", messageId);
+    json.insert("value", value);
+
+    Xrpc::Client::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+
+    mXrpc->post("chat.bsky.convo.removeReaction", QJsonDocument(json), httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Remove reaction:" << reply;
+            try {
+                auto output = ChatBskyConvo::MessageOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;

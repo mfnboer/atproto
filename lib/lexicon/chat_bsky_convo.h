@@ -50,6 +50,7 @@ struct ReactionView
 {
     QString mValue;
     ReactionViewSender::SharedPtr mSender; // required
+    QDateTime mCreatedAt;
 
     using SharedPtr = std::shared_ptr<ReactionView>;
     using List = std::vector<SharedPtr>;
@@ -118,12 +119,14 @@ QString convoStatusToString(ConvoStatus status);
 // chat.bsky.convo.defs#convoView
 struct ConvoView
 {
-    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, MessageAndReactionView::SharedPtr>;
+    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>;
+    using ReactionType = std::variant<MessageAndReactionView::SharedPtr>;
 
     QString mId;
     QString mRev;
     ChatBskyActor::ProfileViewBasicList mMembers;
     std::optional<MessageType> mLastMessage;
+    std::optional<ReactionType> mLastReaction;
     bool mMuted = false;
     std::optional<QString> mRawStatus;
     std::optional<ConvoStatus> mStatus;
@@ -291,6 +294,13 @@ struct UpdateAllReadOutput
     int mUpdateCount;
 
     using SharedPtr = std::shared_ptr<UpdateAllReadOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct MessageOutput {
+    MessageView::SharedPtr mMessage; // required
+
+    using SharedPtr = std::shared_ptr<MessageOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
