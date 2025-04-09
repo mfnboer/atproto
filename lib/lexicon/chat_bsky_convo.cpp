@@ -59,6 +59,7 @@ ReactionView::SharedPtr ReactionView::fromJson(const QJsonObject& json)
     auto view = std::make_unique<ReactionView>();
     view->mValue = xjson.getRequiredString("valye");
     view->mSender = xjson.getRequiredObject<ReactionViewSender>("sender");
+    view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return view;
 }
 
@@ -132,7 +133,8 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
-    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView, MessageAndReactionView>("lastMessage");
+    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
+    view->mLastReaction = xjson.getOptionalVariant<MessageAndReactionView>("lastReaction");
     view->mMuted = xjson.getOptionalBool("muted", false);
     view->mRawStatus = xjson.getOptionalString("status");
 
@@ -274,6 +276,14 @@ UpdateAllReadOutput::SharedPtr UpdateAllReadOutput::fromJson(const QJsonObject& 
     XJsonObject xjson(json);
     auto output = std::make_shared<UpdateAllReadOutput>();
     output->mUpdateCount = xjson.getRequiredInt("updateCount");
+    return output;
+}
+
+MessageOutput::SharedPtr MessageOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<MessageOutput>();
+    output->mMessage = xjson.getRequiredObject<MessageView>("message");
     return output;
 }
 

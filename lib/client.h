@@ -92,6 +92,7 @@ public:
     using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::SharedPtr)>;
     using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::SharedPtr)>;
     using UpdateAllReadSuccessCb = std::function<void(ChatBskyConvo::UpdateAllReadOutput::SharedPtr)>;
+    using ReactionSuccessCb = std::function<void(ChatBskyConvo::MessageOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
@@ -914,6 +915,19 @@ public:
      */
     void updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
                        const UpdateAllReadSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief addReaction
+     * @param convoId
+     * @param messageId
+     * @param value minLength=1 maxLength=32 minGraphemes=1 maxGraphemes=1
+     * @param successCb
+     * @param errorCb
+     */
+    void addReaction(const QString& convoId, const QString& messageId, const QString& value,
+                     const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
+    void removeReaction(const QString& convoId, const QString& messageId, const QString& value,
+                        const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     const QString& authToken() const;
