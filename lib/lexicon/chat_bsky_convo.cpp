@@ -57,7 +57,7 @@ ReactionView::SharedPtr ReactionView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto view = std::make_unique<ReactionView>();
-    view->mValue = xjson.getRequiredString("valye");
+    view->mValue = xjson.getRequiredString("value");
     view->mSender = xjson.getRequiredObject<ReactionViewSender>("sender");
     view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return view;
