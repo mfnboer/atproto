@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include <QJsonDocument>
+#include <QString>
 
 namespace ATProto::ComATProtoIdentity {
 

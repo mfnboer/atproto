@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include <QJsonDocument>
+#include <QString>
 #include <set>
 
 namespace ATProto::AppBskyRichtext {
