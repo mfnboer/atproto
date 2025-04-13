@@ -4,6 +4,10 @@
 
 namespace ATProto {
 
-ATProtoTest::ATProtoTest(QObject* parent) : QObject(parent) {}
+ATProtoTest::ATProtoTest(QObject* parent) : QObject(parent)
+{
+    mNetwork = new QNetworkAccessManager(this);
+    mNetwork->setAutoDeleteReplies(true);
+}
 
 }
