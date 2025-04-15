@@ -920,7 +920,7 @@ public:
      * @brief addReaction
      * @param convoId
      * @param messageId
-     * @param value minLength=1 maxLength=32 minGraphemes=1 maxGraphemes=1
+     * @param value minLength=1 maxLength=64 minGraphemes=1 maxGraphemes=1
      * @param successCb
      * @param errorCb
      */
