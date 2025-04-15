@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include <QJsonDocument>
+#include <QString>
 
 // Extra header to break cyclic dependencies
 
