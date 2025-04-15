@@ -1,7 +1,9 @@
 // Copyright (C) 2024 Michel de Boer
 // License: GPLv3
 #pragma once
+#include <QDateTime>
 #include <QJsonDocument>
+#include <QString>
 
 namespace ATProto {
 

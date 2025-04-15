@@ -19,9 +19,9 @@ class ATProtoTest : public QObject
 public:
     explicit ATProtoTest(QObject* parent = nullptr);
 
-    Q_INVOKABLE void login(const QString user, QString password, const QString host)
+    Q_INVOKABLE void login(const QString user, QString password, QString host)
     {
-        auto xrpc = std::make_unique<Xrpc::Client>(host);
+        auto xrpc = std::make_unique<Xrpc::Client>(mNetwork, host);
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
         mBsky->createSession(user, password, {},
             [this, user]{
@@ -53,7 +53,7 @@ private:
 
     void getAuthorFeed(const QString& author)
     {
-        mBsky->getAuthorFeed(author, 10, {},
+        mBsky->getAuthorFeed(author, 10, {}, {}, {},
             [this](auto feed) {
                 qDebug() << "*** AUTHOR FEED ***";
                 logFeed(feed->mFeed);
@@ -162,6 +162,7 @@ private:
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
+    QNetworkAccessManager* mNetwork;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
 };
