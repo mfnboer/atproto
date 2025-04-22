@@ -13,6 +13,47 @@ namespace ATProto::AppBskyActor {
 
 struct ProfileViewBasic;
 
+// app.bsky.actor.defs#verificationView
+struct VerificationView
+{
+    QString mIssuer; // DID
+    QString mUri; // at-uri of the verification record
+    bool mIsValid;
+    QDateTime mCreatedAt;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<VerificationView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+enum class VerifiedStatus
+{
+    VALID,
+    INVALID,
+    NONE,
+    UNKNOWN
+};
+
+VerifiedStatus stringToVerifiedStatus(const QString& str);
+QString verifiedStatusToString(VerifiedStatus status, const QString& unknown);
+
+// app.bsky.actor.defs#verificationState
+struct VerificationState
+{
+    VerificationView::List mVerifications;
+    QString mRawVerifiedStatus;
+    VerifiedStatus mVerifiedStatus;
+    QString mRawTrustedVerifierStatus;
+    VerifiedStatus mTrustedVerifierStatus;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<VerificationState>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#knownFollowers
 struct KnownFollowers
 {
@@ -90,6 +131,8 @@ struct ProfileViewBasic
     ProfileAssociated::SharedPtr mAssociated; // optional
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
+    std::optional<QDateTime> mCreatedAt;
+    VerificationState::SharedPtr mVerification; // optional
 
     QJsonObject toJson() const;
 
@@ -109,8 +152,10 @@ struct ProfileView
     ProfileAssociated::SharedPtr mAssociated; // optional
     std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
     std::optional<QDateTime> mIndexedAt;
+    std::optional<QDateTime> mCreatedAt;
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
+    VerificationState::SharedPtr mVerification; // optional
 
     QJsonObject toJson() const; // partial serialization
 
@@ -134,9 +179,11 @@ struct ProfileViewDetailed
     int mPostsCount = 0;
     ProfileAssociated::SharedPtr mAssociated; // optional
     std::optional<QDateTime> mIndexedAt;
+    std::optional<QDateTime> mCreatedAt;
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
     ComATProtoRepo::StrongRef::SharedPtr mPinnedPost; // optional
+    VerificationState::SharedPtr mVerification; // optional
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -337,6 +384,7 @@ struct LabelerPrefItem
     };
 };
 
+// app.bsky.actor.defs#labelersPref
 struct LabelersPref
 {
     // No unique ptrs as preferences will be copied in UserPreferences()
@@ -349,6 +397,7 @@ struct LabelersPref
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#postInteractionSettingsPref
 struct PostInteractionSettingsPref
 {
     AppBskyFeed::ThreadgateRules mRules;
@@ -359,6 +408,18 @@ struct PostInteractionSettingsPref
 
     using SharedPtr = std::shared_ptr<PostInteractionSettingsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#verificationPrefs
+struct VerificationPrefs {
+    bool mHideBadges = false;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<VerificationPrefs>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#verificationPrefs";
 };
 
 // Future preferences will be unknown. We store the json object, such that
@@ -384,6 +445,7 @@ enum class PreferenceType
     MUTED_WORDS,
     LABELERS,
     POST_INTERACTION_SETTINGS,
+    VERIFICATION,
     UNKNOWN
 };
 PreferenceType stringToPreferenceType(const QString& str);
@@ -397,6 +459,7 @@ using PreferenceItem = std::variant<AdultContentPref::SharedPtr,
                                     MutedWordsPref::SharedPtr,
                                     LabelersPref::SharedPtr,
                                     PostInteractionSettingsPref::SharedPtr,
+                                    VerificationPrefs::SharedPtr,
                                     UnknownPref::SharedPtr>;
 
 struct Preference

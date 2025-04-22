@@ -246,4 +246,19 @@ struct GetStarterPacksOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.verification
+struct Verification {
+    QString mSubject; // DID
+    QString mHandle;
+    QString mDisplayName;
+    QDateTime mCreatedAt;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Verification>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.verification";
+};
+
 }

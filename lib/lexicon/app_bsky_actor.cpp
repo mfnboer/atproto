@@ -41,6 +41,70 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
     return it->second;
 }
 
+VerifiedStatus stringToVerifiedStatus(const QString& str)
+{
+    static const std::unordered_map<QString, VerifiedStatus> mapping = {
+        { "valid", VerifiedStatus::VALID },
+        { "invalid", VerifiedStatus::INVALID },
+        { "none", VerifiedStatus::NONE }
+    };
+
+    return stringToEnum(str, mapping, VerifiedStatus::UNKNOWN);
+}
+
+QString verifiedStatusToString(VerifiedStatus status, const QString& unknown)
+{
+    static const std::unordered_map<VerifiedStatus, QString> mapping = {
+        { VerifiedStatus::VALID, "valid" },
+        { VerifiedStatus::INVALID, "invalid" },
+        { VerifiedStatus::NONE, "none" }
+    };
+
+    return enumToString(status, mapping, unknown);
+}
+
+QJsonObject VerificationView::toJson() const
+{
+    QJsonObject json;
+    json.insert("issuer", mIssuer);
+    json.insert("uri", mUri);
+    json.insert("isValid", mIsValid);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+VerificationView::SharedPtr VerificationView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_shared<VerificationView>();
+    XJsonObject xjson(json);
+    view->mIssuer = xjson.getRequiredString("issuer");
+    view->mUri = xjson.getRequiredString("uri");
+    view->mIsValid = xjson.getRequiredBool("isValid");
+    view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return view;
+}
+
+QJsonObject VerificationState::toJson() const
+{
+    QJsonObject json;
+    json.insert("verifications", XJsonObject::toJsonArray<VerificationView>(mVerifications));
+    json.insert("verifiedStatus", verifiedStatusToString(mVerifiedStatus, mRawVerifiedStatus));
+    json.insert("trustedVerifierStatus", verifiedStatusToString(mTrustedVerifierStatus, mRawTrustedVerifierStatus));
+    return json;
+}
+
+VerificationState::SharedPtr VerificationState::fromJson(const QJsonObject& json)
+{
+    auto verificationState = std::make_shared<VerificationState>();
+    XJsonObject xjson(json);
+    verificationState->mVerifications = xjson.getRequiredVector<VerificationView>("verifications");
+    verificationState->mRawVerifiedStatus = xjson.getRequiredString("verifiedStatus");
+    verificationState->mVerifiedStatus = stringToVerifiedStatus(verificationState->mRawVerifiedStatus);
+    verificationState->mRawTrustedVerifierStatus = xjson.getRequiredString("trustedVerifierStatus");
+    verificationState->mTrustedVerifierStatus = stringToVerifiedStatus(verificationState->mRawTrustedVerifierStatus);
+    return verificationState;
+}
+
 QJsonObject KnownFollowers::toJson() const
 {
     QJsonObject json;
@@ -141,6 +205,8 @@ QJsonObject ProfileViewBasic::toJson() const
     XJsonObject::insertOptionalJsonObject<ProfileAssociated>(json, "associated", mAssociated);
     XJsonObject::insertOptionalJsonObject<ViewerState>(json, "viewer", mViewer);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    XJsonObject::insertOptionalDateTime(json, "createdAt", mCreatedAt);
+    XJsonObject::insertOptionalJsonObject<VerificationState>(json, "verification", mVerification);
     return json;
 }
 
@@ -155,6 +221,8 @@ ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profileViewBasic->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profileViewBasic->mLabels, json);
+    profileViewBasic->mCreatedAt = root.getOptionalDateTime("createdAt");
+    profileViewBasic->mVerification = root.getOptionalObject<VerificationState>("verification");
     return profileViewBasic;
 }
 
@@ -180,8 +248,10 @@ ProfileView::SharedPtr ProfileView::fromJson(const QJsonObject& json)
     profile->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profile->mDescription = root.getOptionalString("description");
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
+    profile->mCreatedAt = root.getOptionalDateTime("createdAt");
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
+    profile->mVerification = root.getOptionalObject<VerificationState>("verification");
     return profile;
 }
 
@@ -200,9 +270,11 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mPostsCount = root.getOptionalInt("postsCount", 0);
     profile->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profile->mIndexedAt = root.getOptionalDateTime("indexedAt");
+    profile->mCreatedAt = root.getOptionalDateTime("createdAt");
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
     profile->mPinnedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
+    profile->mVerification = root.getOptionalObject<VerificationState>("verification");
     return profile;
 }
 
@@ -592,6 +664,22 @@ PostInteractionSettingsPref::SharedPtr PostInteractionSettingsPref::fromJson(con
     return pref;
 }
 
+QJsonObject VerificationPrefs::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("hideBadges", mHideBadges);
+    return json;
+}
+
+VerificationPrefs::SharedPtr VerificationPrefs::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<VerificationPrefs>();
+    const XJsonObject xjson(json);
+    pref->mHideBadges = xjson.getOptionalBool("hideBadges", false);
+    return pref;
+}
+
 UnknownPref::SharedPtr UnknownPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_shared<UnknownPref>();
@@ -610,7 +698,8 @@ PreferenceType stringToPreferenceType(const QString& str)
         { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW },
         { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS },
         { "app.bsky.actor.defs#labelersPref", PreferenceType::LABELERS },
-        { "app.bsky.actor.defs#postInteractionSettingsPref", PreferenceType::POST_INTERACTION_SETTINGS }
+        { "app.bsky.actor.defs#postInteractionSettingsPref", PreferenceType::POST_INTERACTION_SETTINGS },
+        { VerificationPrefs::TYPE, PreferenceType::VERIFICATION }
     };
 
     const auto it = mapping.find(str);
@@ -655,6 +744,9 @@ Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
         break;
     case PreferenceType::POST_INTERACTION_SETTINGS:
         pref->mItem = PostInteractionSettingsPref::fromJson(json);
+        break;
+    case PreferenceType::VERIFICATION:
+        pref->mItem = VerificationPrefs::fromJson(json);
         break;
     case PreferenceType::UNKNOWN:
         pref->mItem = UnknownPref::fromJson(json);
