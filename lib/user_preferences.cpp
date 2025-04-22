@@ -76,6 +76,12 @@ void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
             mPostInteractionSettingsPref = *postInteractionSettings;
             break;
         }
+        case AppBskyActor::PreferenceType::VERIFICATION:
+        {
+            const auto& verification = std::get<AppBskyActor::VerificationPrefs::SharedPtr>(pref->mItem);
+            mVerificationPrefs = *verification;
+            break;
+        }
         case AppBskyActor::PreferenceType::UNKNOWN:
             const auto& unknowPref = std::get<AppBskyActor::UnknownPref::SharedPtr>(pref->mItem);
             mUnknownPrefs.push_back(*unknowPref);
@@ -167,6 +173,12 @@ AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
     pref = std::make_shared<AppBskyActor::Preference>();
     pref->mItem = std::move(postInteractionSettings);
     pref->mType = AppBskyActor::PreferenceType::POST_INTERACTION_SETTINGS;
+    preferences.push_back(std::move(pref));
+
+    auto verification = std::make_shared<AppBskyActor::VerificationPrefs>(mVerificationPrefs);
+    pref = std::make_shared<AppBskyActor::Preference>();
+    pref->mItem = std::move(verification);
+    pref->mType = AppBskyActor::PreferenceType::VERIFICATION;
     preferences.push_back(std::move(pref));
 
     for (const auto& unknown : mUnknownPrefs)

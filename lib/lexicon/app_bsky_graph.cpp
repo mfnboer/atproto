@@ -410,4 +410,27 @@ GetStarterPackOutput::SharedPtr GetStarterPackOutput::fromJson(const QJsonObject
     return output;
 }
 
+QJsonObject Verification::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("subject", mSubject);
+    json.insert("handle", mHandle);
+    json.insert("displayName", mDisplayName);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Verification::SharedPtr Verification::fromJson(const QJsonObject& json)
+{
+    auto verification = std::make_shared<Verification>();
+    XJsonObject xjson(json);
+    verification->mJson = json;
+    verification->mSubject = xjson.getRequiredString("subject");
+    verification->mHandle = xjson.getRequiredString("handle");
+    verification->mDisplayName = xjson.getRequiredString("displayName");
+    verification->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return verification;
+}
+
 }

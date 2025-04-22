@@ -17,6 +17,7 @@ public:
     using MutedWordsPref = AppBskyActor::MutedWordsPref;
     using LabelersPref = AppBskyActor::LabelersPref;
     using PostInteractionSettingsPref = AppBskyActor::PostInteractionSettingsPref;
+    using VerificationPrefs = AppBskyActor::VerificationPrefs;
 
     UserPreferences() = default;
     explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
@@ -48,6 +49,9 @@ public:
     const PostInteractionSettingsPref& getPostInteractionSettingsPref() const { return mPostInteractionSettingsPref; }
     void setPostInteractionSettingsPref(const PostInteractionSettingsPref& pref) { mPostInteractionSettingsPref = pref; }
 
+    const VerificationPrefs& getVerificationPrefs() const { return mVerificationPrefs; }
+    void setVerificationPrefs(const AppBskyActor::VerificationPrefs& pref) { mVerificationPrefs = pref; }
+
     AppBskyActor::PreferenceList toPreferenceList() const;
 
 private:
@@ -65,6 +69,7 @@ private:
     AppBskyActor::MutedWordsPref mMutedWordsPref;
     AppBskyActor::LabelersPref mLabelersPref;
     AppBskyActor::PostInteractionSettingsPref mPostInteractionSettingsPref;
+    AppBskyActor::VerificationPrefs mVerificationPrefs;
     std::vector<AppBskyActor::UnknownPref> mUnknownPrefs;
 };
 
