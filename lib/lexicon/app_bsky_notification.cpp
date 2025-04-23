@@ -15,7 +15,9 @@ NotificationReason stringToNotificationReason(const QString& str)
         { "mention", NotificationReason::MENTION },
         { "reply", NotificationReason::REPLY },
         { "quote", NotificationReason::QUOTE },
-        { "starterpack-joined", NotificationReason::STARTERPACK_JOINED }
+        { "starterpack-joined", NotificationReason::STARTERPACK_JOINED },
+        { "verified", NotificationReason::VERIFIED },
+        { "unverified", NotificationReason::UNVERIFIED }
     };
 
     const auto it = mapping.find(str);
@@ -34,7 +36,9 @@ QString notificationReasonToString(NotificationReason reason)
         { NotificationReason::MENTION, "mention" },
         { NotificationReason::REPLY, "reply" },
         { NotificationReason::QUOTE, "quote" },
-        { NotificationReason::STARTERPACK_JOINED, "starterpack-joined" }
+        { NotificationReason::STARTERPACK_JOINED, "starterpack-joined" },
+        { NotificationReason::VERIFIED, "verified" },
+        { NotificationReason::UNVERIFIED, "unverified" },
     };
 
     const auto it = mapping.find(reason);
@@ -43,6 +47,11 @@ QString notificationReasonToString(NotificationReason reason)
         return it->second;
 
     return {};
+}
+
+RecordDeleted::SharedPtr RecordDeleted::fromJson(const QJsonObject&)
+{
+    return std::make_shared<RecordDeleted>();
 }
 
 Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
@@ -77,6 +86,16 @@ Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
             break;
         case ATProto::AppBskyNotification::NotificationReason::STARTERPACK_JOINED:
             notification->mRecord = AppBskyGraph::StarterPack::fromJson(recordJson);
+            break;
+        case NotificationReason::VERIFIED:
+            if (notification->mRawRecordType == AppBskyGraph::Verification::TYPE)
+                notification->mRecord = AppBskyGraph::Verification::fromJson(recordJson);
+            else
+                notification->mRecord = RecordDeleted::fromJson(recordJson);
+
+            break;
+        case NotificationReason::UNVERIFIED:
+            notification->mRecord = RecordDeleted::fromJson(recordJson);
             break;
         case NotificationReason::UNKNOWN:
             qWarning() << "Unknow notification reason:" << notification->mRawReason;
