@@ -9,6 +9,14 @@
 
 namespace ATProto::AppBskyNotification {
 
+// app.bsky.notification.defs#recordDeleted
+struct RecordDeleted
+{
+    using SharedPtr = std::shared_ptr<RecordDeleted>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.notification.defs#recordDeleted";
+};
+
 enum class NotificationReason
 {
     LIKE,
@@ -18,13 +26,15 @@ enum class NotificationReason
     REPLY,
     QUOTE,
     STARTERPACK_JOINED,
+    VERIFIED,
+    UNVERIFIED,
     UNKNOWN
 };
 
 NotificationReason stringToNotificationReason(const QString& str);
 QString notificationReasonToString(NotificationReason reason);
 
-// app.bsky.notification#notification
+// app.bsky.notification.listNotifications#notification
 struct Notification
 {
     QString mUri;
@@ -37,7 +47,9 @@ struct Notification
                  AppBskyFeed::Like::SharedPtr,
                  AppBskyFeed::Repost::SharedPtr,
                  AppBskyGraph::Follow::SharedPtr,
-                 AppBskyGraph::StarterPack::SharedPtr> mRecord;
+                 AppBskyGraph::StarterPack::SharedPtr,
+                 AppBskyGraph::Verification::SharedPtr,
+                 RecordDeleted::SharedPtr> mRecord;
     QString mRawRecordType;
     bool mIsRead;
     QDateTime mIndexedAt;
