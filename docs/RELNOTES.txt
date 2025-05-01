@@ -1,3 +1,7 @@
+next
+====
+* Fix feed interactions
+
 4.4
 ===
 * Verification
