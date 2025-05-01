@@ -922,11 +922,14 @@ void Client::sendInteractions(const AppBskyFeed::InteractionList& interactions, 
                               const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto jsonArray = XJsonObject::toJsonArray<AppBskyFeed::Interaction>(interactions);
+    QJsonObject jsonObj;
+    jsonObj.insert("interactions", jsonArray);
+    QJsonDocument json(jsonObj);
 
     Xrpc::Client::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, feedDid, SERVICE_KEY_BSKY_FEEDGEN);
 
-    mXrpc->post("app.bsky.feed.sendInteractions", QJsonDocument(jsonArray), httpHeaders,
+    mXrpc->post("app.bsky.feed.sendInteractions", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "sendInteractions:" << reply;
             if (successCb)

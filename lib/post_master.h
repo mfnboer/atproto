@@ -96,7 +96,15 @@ public:
     void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
                                 const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
 
+    void sendInteractionShowMoreLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                                         const SuccessCb& successCb, const ErrorCb& errorCb);
+    void sendInteractionShowLessLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                                         const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
+    void sendInteraction(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                         AppBskyFeed::Interaction::EventType event, const SuccessCb& successCb, const ErrorCb& errorCb);
+
     Client& mClient;
     RichTextMaster mRichTextMaster;
     QObject mPresence;

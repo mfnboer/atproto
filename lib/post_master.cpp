@@ -687,4 +687,44 @@ void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr pos
         });
 }
 
+void PostMaster::sendInteractionShowMoreLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    sendInteraction(postUri, feedDid, feedContext,
+                    AppBskyFeed::Interaction::EventType::RequestMore,
+                    successCb, errorCb);
+}
+
+void PostMaster::sendInteractionShowLessLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                                                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    sendInteraction(postUri, feedDid, feedContext,
+                    AppBskyFeed::Interaction::EventType::RequestLess,
+                    successCb, errorCb);
+}
+
+void PostMaster::sendInteraction(const QString& postUri, const QString& feedDid, const QString& feedContext,
+                     AppBskyFeed::Interaction::EventType event, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Send interaction, postUri:" << postUri << "feedDid:" << feedDid << "event:" << AppBskyFeed::Interaction::eventTypeToString(event);
+    auto interaction = std::make_shared<AppBskyFeed::Interaction>();
+    interaction->mEvent = event;
+    interaction->mItem = postUri;
+
+    if (!feedContext.isEmpty())
+        interaction->mFeedContext = feedContext;
+
+    mClient.sendInteractions({interaction}, feedDid,
+        [successCb]{
+            if (successCb)
+                    successCb();
+        },
+        [errorCb](const QString& err, const QString& msg){
+            qDebug() << err << " - " << msg;
+
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
 }
