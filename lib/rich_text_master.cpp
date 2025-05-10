@@ -159,6 +159,38 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const 
     return embeddedLinks;
 }
 
+std::vector<QString> RichTextMaster::getFacetLinks(const AppBskyFeed::Record::Post& post)
+{
+    const auto& bytes = post.mText.toUtf8();
+    std::vector<QString> links;
+
+    for (const auto& facet : post.mFacets)
+    {
+        if (facet->mFeatures.size() == 1 && facet->mFeatures.front().mType == ParsedMatch::Type::LINK)
+        {
+            const int start = facet->mIndex.mByteStart;
+            const int end = facet->mIndex.mByteEnd;
+            const int sliceSize = end - start;
+
+            if (start < 0 || end > bytes.size() || sliceSize < 0)
+            {
+                qWarning() << "Invalid index in facet:" << QString(bytes);
+                continue;
+            }
+
+            const auto linkText = QString(bytes.sliced(start, sliceSize));
+
+            if (linkText.isEmpty())
+                continue;
+
+            const auto feature = std::get<AppBskyRichtext::FacetLink::SharedPtr>(facet->mFeatures.front().mFeature);
+            links.push_back(feature->mUri);
+        }
+    }
+
+    return links;
+}
+
 QString RichTextMaster::linkiFy(const QString& text, const std::vector<ParsedMatch>& embeddedLinks, const QString& colorName)
 {
     auto facets = RichTextMaster::parseFacets(text);
@@ -601,7 +633,7 @@ void RichTextMaster::removeFacetsOverlappingWithEmbeddedLinks(
     }
 }
 
-std::vector<QString> RichTextMaster::getFacetTags(AppBskyFeed::Record::Post& post)
+std::vector<QString> RichTextMaster::getFacetTags(const AppBskyFeed::Record::Post& post)
 {
     std::vector<QString> tags;
 
