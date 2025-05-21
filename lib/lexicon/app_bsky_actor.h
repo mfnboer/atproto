@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "app_bsky_embed_include.h"
 #include "app_bsky_feed_include.h"
 #include "app_bsky_graph_include.h"
 #include "com_atproto_label.h"
@@ -86,6 +87,32 @@ struct ViewerState
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+enum class ActorStatus
+{
+    LIVE,
+    UNKNOWN
+};
+ActorStatus stringToActorStatus(const QString& str);
+QString actorStatusToString(ActorStatus status, const QString& unknown);
+
+// app.bsky.actor.defs#statusView
+struct StatusView
+{
+    using EmbedType = std::variant<AppBskyEmbed::ExternalView::SharedPtr>;
+
+    QString mRawStatus;
+    ActorStatus mStatus;
+    QJsonObject mRecord;
+    std::optional<EmbedType> mEmbed;
+    std::optional<QDateTime> mExpiresAt;
+    std::optional<bool> mIsActive;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<StatusView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // chat.bsky.actor.declaration enum
 enum class AllowIncomingType
 {
@@ -133,6 +160,7 @@ struct ProfileViewBasic
     ComATProtoLabel::LabelList mLabels;
     std::optional<QDateTime> mCreatedAt;
     VerificationState::SharedPtr mVerification; // optional
+    StatusView::SharedPtr mStatus; // optional
 
     QJsonObject toJson() const;
 
@@ -156,6 +184,7 @@ struct ProfileView
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::LabelList mLabels;
     VerificationState::SharedPtr mVerification; // optional
+    StatusView::SharedPtr mStatus; // optional
 
     QJsonObject toJson() const; // partial serialization
 
@@ -184,6 +213,7 @@ struct ProfileViewDetailed
     ComATProtoLabel::LabelList mLabels;
     ComATProtoRepo::StrongRef::SharedPtr mPinnedPost; // optional
     VerificationState::SharedPtr mVerification; // optional
+    StatusView::SharedPtr mStatus; // optional
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);

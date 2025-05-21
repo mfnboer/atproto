@@ -10,7 +10,7 @@
 namespace ATProto {
 
 // Variant types in the lexicon are like this variant<T:Ptr, U:Ptr, ...>
-// The default constructor construcst a variant with the first alternative set
+// The default constructor constructs a variant with the first alternative set
 // to its default value, i.e. nullptr
 template<typename Variant>
 bool isNullVariant(const Variant& variant)

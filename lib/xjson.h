@@ -81,6 +81,7 @@ public:
     int getOptionalInt(const QString& key, int dflt) const;
     std::optional<qint64> getOptionalInt64(const QString& key) const;
     qint64 getOptionalInt64(const QString& key, qint64 dflt) const;
+    std::optional<bool> getOptionalBool(const QString& key) const;
     bool getOptionalBool(const QString& key, bool dflt) const;
     std::optional<QDateTime> getOptionalDateTime(const QString& key) const;
     QDateTime getOptionalDateTime(const QString& key, QDateTime dflt) const;
