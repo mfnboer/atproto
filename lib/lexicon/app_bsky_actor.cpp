@@ -153,6 +153,48 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     return viewerState;
 }
 
+ActorStatus stringToActorStatus(const QString& str)
+{
+    static const std::unordered_map<QString, ActorStatus> mapping = {
+        { "app.bsky.actor.status#live", ActorStatus::LIVE }
+    };
+
+    return stringToEnum(str, mapping, ActorStatus::UNKNOWN);
+}
+
+QString actorStatusToString(ActorStatus status, const QString& unknown)
+{
+    static const std::unordered_map<ActorStatus, QString> mapping = {
+        { ActorStatus::LIVE, "live" }
+    };
+
+    return enumToString(status, mapping, unknown);
+}
+
+QJsonObject StatusView::toJson() const
+{
+    QJsonObject json;
+    json.insert("status", actorStatusToString(mStatus, mRawStatus));
+    json.insert("record", mRecord);
+    XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
+    XJsonObject::insertOptionalDateTime(json, "expiresAt", mExpiresAt);
+    XJsonObject::insertOptionalJsonValue(json, "isActive", mIsActive);
+    return json;
+}
+
+StatusView::SharedPtr StatusView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_shared<StatusView>();
+    XJsonObject xjson(json);
+    view->mRawStatus = xjson.getRequiredString("status");
+    view->mStatus = stringToActorStatus(view->mRawStatus);
+    view->mRecord = xjson.getRequiredJsonObject("record");
+    view->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::ExternalView>("embed");
+    view->mExpiresAt = xjson.getOptionalDateTime("expiresAt");
+    view->mIsActive = xjson.getOptionalBool("isActive");
+    return view;
+}
+
 QJsonObject ProfileAssociatedChat::toJson() const
 {
     QJsonObject json;
@@ -207,6 +249,7 @@ QJsonObject ProfileViewBasic::toJson() const
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalDateTime(json, "createdAt", mCreatedAt);
     XJsonObject::insertOptionalJsonObject<VerificationState>(json, "verification", mVerification);
+    XJsonObject::insertOptionalJsonObject<StatusView>(json, "status", mStatus);
     return json;
 }
 
@@ -223,6 +266,7 @@ ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
     ComATProtoLabel::getLabels(profileViewBasic->mLabels, json);
     profileViewBasic->mCreatedAt = root.getOptionalDateTime("createdAt");
     profileViewBasic->mVerification = root.getOptionalObject<VerificationState>("verification");
+    profileViewBasic->mStatus = root.getOptionalObject<StatusView>("status");
     return profileViewBasic;
 }
 
@@ -252,6 +296,7 @@ ProfileView::SharedPtr ProfileView::fromJson(const QJsonObject& json)
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
     profile->mVerification = root.getOptionalObject<VerificationState>("verification");
+    profile->mStatus = root.getOptionalObject<StatusView>("status");
     return profile;
 }
 
@@ -275,6 +320,7 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     ComATProtoLabel::getLabels(profile->mLabels, json);
     profile->mPinnedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
     profile->mVerification = root.getOptionalObject<VerificationState>("verification");
+    profile->mStatus = root.getOptionalObject<StatusView>("status");
     return profile;
 }
 

@@ -90,6 +90,7 @@ qt_add_qml_module(libatproto
         SOURCES lexicon/app_bsky_feed_include.h
         SOURCES identity_resolver.h
         SOURCES identity_resolver.cpp
+        SOURCES lexicon/app_bsky_embed_include.h
 )
 
 if (NOT ANDROID)
