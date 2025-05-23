@@ -51,6 +51,12 @@ public:
 
     // Internal stack error
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
+
+    static bool isRecordNotFound(const QString& error)
+    {
+        // Sometimes INVALID_REQUEST is returned when a record does not exist.
+        return error == RECORD_NOT_FOUND || error == INVALID_REQUEST;
+    }
 };
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.

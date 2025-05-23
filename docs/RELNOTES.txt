@@ -2,6 +2,7 @@ next
 ====
 * Utils for web links
 * Live status
+* Fix error handling
 
 4.4.1
 =====

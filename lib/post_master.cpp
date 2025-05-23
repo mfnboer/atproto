@@ -104,7 +104,7 @@ void PostMaster::detachEmbedding(const QString& uri, const QString& embeddingUri
             if (!presence)
                 return;
 
-            if (error == ATProtoErrorMsg::INVALID_REQUEST)
+            if (ATProto::ATProtoErrorMsg::isRecordNotFound(error))
                 continueDetachEmbedding(uri, embeddingUri, embeddingCid, {}, detach, successCb, errorCb);
             else if (errorCb)
                 errorCb(error, msg);
