@@ -156,7 +156,8 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
 ActorStatus stringToActorStatus(const QString& str)
 {
     static const std::unordered_map<QString, ActorStatus> mapping = {
-        { "app.bsky.actor.status#live", ActorStatus::LIVE }
+        { "app.bsky.actor.status#live", ActorStatus::LIVE },
+        { "live", ActorStatus::LIVE } // HACK: seems this is used as well??
     };
 
     return stringToEnum(str, mapping, ActorStatus::UNKNOWN);
@@ -165,7 +166,7 @@ ActorStatus stringToActorStatus(const QString& str)
 QString actorStatusToString(ActorStatus status, const QString& unknown)
 {
     static const std::unordered_map<ActorStatus, QString> mapping = {
-        { ActorStatus::LIVE, "live" }
+        { ActorStatus::LIVE, "app.bsky.actor.status#live" }
     };
 
     return enumToString(status, mapping, unknown);
