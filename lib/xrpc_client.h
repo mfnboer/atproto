@@ -35,30 +35,26 @@ public:
     void setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
 
     void post(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-              const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
+              const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
     void post(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
               const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-             const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
-    void get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-             const NetworkThread::SuccessBytesCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
+             const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
 
 signals:
     // Internal use
-    void sendRequestToNetwork(const NetworkThread::Request& request, const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb);
     void postDataToNetwork(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
                            const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void postJsonToNetwork(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-                           const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+                           const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void getToNetwork(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
                       const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void pdsChanged(const QString& pds);
     void userAgentChanged(const QString& userAgent);
 
 private:
-    template<typename Callback>
-    void getImpl(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                 const Callback& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+    template<typename CallbackType, typename ArgType>
+    void doCallback(ArgType arg, CallbackType cb);
 
     QString mPDS;
     QString mDid; // PDS is set for this DID

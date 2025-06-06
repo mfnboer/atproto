@@ -166,17 +166,13 @@ void Client::createSessionContinue(const QString& user, const QString& pwd,
     QJsonDocument json(root);
 
     mXrpc->post("com.atproto.server.createSession", json, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qInfo() << "Session created:" << reply;
-            try {
-                mSession = ComATProtoServer::Session::fromJson(reply);
-                mXrpc->setPDSFromSession(*mSession);
+        [this, successCb](ComATProtoServer::Session::SharedPtr session){
+            qInfo() << "Session created:" << session->mDid;
+            mSession = std::move(session);
+            mXrpc->setPDSFromSession(*mSession);
 
-                if (successCb)
-                    successCb();
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb();
         },
         failure(errorCb));
 }
@@ -218,35 +214,31 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
     const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.server.getSession", {}, {},
-        [this, session, successCb, errorCb](const QJsonDocument& reply){
-            qInfo() << "Got session:" << reply;
-            try {
-                auto resumed = ComATProtoServer::GetSessionOutput::fromJson(reply);
-                if (resumed->mDid == session.mDid)
-                {
-                    qInfo() << "Session resumed";
-                    mSession = std::make_shared<ComATProtoServer::Session>(session);
-                    mSession->mHandle = resumed->mHandle;
-                    mSession->mEmail = resumed->mEmail;
-                    mSession->mEmailConfirmed = resumed->mEmailConfirmed;
-                    mSession->mEmailAuthFactor = resumed->mEmailAuthFactor;
-                    mSession->mDidDoc = resumed->mDidDoc;
-                    mXrpc->setPDSFromSession(*mSession);
+        [this, session, successCb, errorCb](ComATProtoServer::GetSessionOutput::SharedPtr resumed){
+            qInfo() << "Got session:" << resumed->mDid;
 
-                    if (successCb)
-                        successCb();
-                }
-                else
-                {
-                    const auto msg = QString("Session did(%1) does not match resumed did(%2)").arg(
-                        session.mDid, resumed->mDid);
-                    qWarning() << msg;
+            if (resumed->mDid == session.mDid)
+            {
+                qInfo() << "Session resumed";
+                mSession = std::make_shared<ComATProtoServer::Session>(session);
+                mSession->mHandle = resumed->mHandle;
+                mSession->mEmail = resumed->mEmail;
+                mSession->mEmailConfirmed = resumed->mEmailConfirmed;
+                mSession->mEmailAuthFactor = resumed->mEmailAuthFactor;
+                mSession->mDidDoc = resumed->mDidDoc;
+                mXrpc->setPDSFromSession(*mSession);
 
-                    if (errorCb)
-                        errorCb(ERROR_INVALID_SESSION, msg);
-                }
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
+                if (successCb)
+                    successCb();
+            }
+            else
+            {
+                const auto msg = QString("Session did(%1) does not match resumed did(%2)").arg(
+                    session.mDid, resumed->mDid);
+                qWarning() << msg;
+
+                if (errorCb)
+                    errorCb(ERROR_INVALID_SESSION, msg);
             }
         },
         failure(errorCb),
@@ -256,33 +248,29 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
 void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.server.refreshSession", {}, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "Refresh session reply:" << reply;
-            try {
-                auto refreshed = ComATProtoServer::Session::fromJson(reply);
-                if (refreshed->mDid == mSession->mDid)
-                {
-                    qDebug() << "Session refreshed";
-                    mSession->mAccessJwt = refreshed->mAccessJwt;
-                    mSession->mRefreshJwt = refreshed->mRefreshJwt;
-                    mSession->mHandle = refreshed->mHandle;
-                    mSession->mDidDoc = refreshed->mDidDoc;
-                    mXrpc->setPDSFromSession(*mSession);
+        [this, successCb, errorCb](ComATProtoServer::Session::SharedPtr refreshed){
+            qDebug() << "Refresh session reply:" << refreshed->mDid;
 
-                    if (successCb)
-                        successCb();
-                }
-                else
-                {
-                    const auto msg = QString("Session did(%1) does not match refreshed did(%2)").arg(
-                        mSession->mDid, refreshed->mDid);
-                    qWarning() << msg;
+            if (refreshed->mDid == mSession->mDid)
+            {
+                qDebug() << "Session refreshed";
+                mSession->mAccessJwt = refreshed->mAccessJwt;
+                mSession->mRefreshJwt = refreshed->mRefreshJwt;
+                mSession->mHandle = refreshed->mHandle;
+                mSession->mDidDoc = refreshed->mDidDoc;
+                mXrpc->setPDSFromSession(*mSession);
 
-                    if (errorCb)
-                        errorCb(ERROR_INVALID_SESSION, msg);
-                }
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
+                if (successCb)
+                    successCb();
+            }
+            else
+            {
+                const auto msg = QString("Session did(%1) does not match refreshed did(%2)").arg(
+                    mSession->mDid, refreshed->mDid);
+                qWarning() << msg;
+
+                if (errorCb)
+                    errorCb(ERROR_INVALID_SESSION, msg);
             }
         },
         failure(errorCb),
@@ -319,16 +307,10 @@ void Client::getServiceAuth(const QString& aud, const std::optional<QDateTime>& 
     addOptionalStringParam(params, "lxm", lexiconMethod);
 
     mXrpc->get("com.atproto.server.getServiceAuth", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getServiceAuth reply:" << reply;
-            try {
-                auto output = ComATProtoServer::GetServiceAuthOutput::fromJson(reply.object());
-
-                if (successCb)
-                    successCb(output);
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](ComATProtoServer::GetServiceAuthOutput::SharedPtr output){
+            qDebug() << "getServiceAuth reply:" << output->mToken;
+            if (successCb)
+                successCb(output);
         },
         failure(errorCb),
         authToken());
@@ -572,7 +554,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getAuthorFeed: ok";
             try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {
@@ -594,7 +576,7 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getActorLikes:" << reply;
             try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {
@@ -616,15 +598,11 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getTimeline", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb, errorCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getTimeline succeeded";
-            try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -646,7 +624,7 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getFeed: ok";
             try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {
@@ -673,7 +651,7 @@ void Client::getListFeed(const QString& list, std::optional<int> limit, const st
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getListFeed: ok";
             try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply);
+                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
                 if (successCb)
                     successCb(std::move(feed));
             } catch (InvalidJsonException& e) {

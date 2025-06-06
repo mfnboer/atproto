@@ -35,30 +35,37 @@ Client::Client(const QString& host) :
 
     qDebug() << "Thread:" << QThread::currentThreadId();
 
-    connect(mNetworkThread.get(), &NetworkThread::requestSuccessJson, this,
-        [](QJsonDocument json, NetworkThread::SuccessJsonCb cb) {
-            const auto startTime = std::chrono::high_resolution_clock::now();
-            cb(std::move(json));
-            const auto endTime = std::chrono::high_resolution_clock::now();
-            qDebug() << "REPLY JSON DT:" << (endTime - startTime) / 1us;
-        });
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessJson, this, &Client::doCallback<NetworkThread::SuccessJsonCb, QJsonDocument>);
 
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessBytes, this,
         [](QByteArray bytes, NetworkThread::SuccessBytesCb cb, QString contentType) {
             const auto startTime = std::chrono::high_resolution_clock::now();
             cb(std::move(bytes), std::move(contentType));
             const auto endTime = std::chrono::high_resolution_clock::now();
-            qDebug() << "REPLY BYTES DT:" << (endTime - startTime) / 1us;
+            qDebug() << "REPLY BYTES DT:" << (endTime - startTime) / 1us << QThread::currentThreadId();
         });
+
+    // ComATPRoto
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessSession, this, &Client::doCallback<NetworkThread::SuccessSessionCb, ATProto::ComATProtoServer::Session::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetSessionOutput, this, &Client::doCallback<NetworkThread::SuccessGetSessionOutputCb, ATProto::ComATProtoServer::GetSessionOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetServiceAuthOutput, this, &Client::doCallback<NetworkThread::SuccessGetServiceAuthOutputCb, ATProto::ComATProtoServer::GetServiceAuthOutput::SharedPtr>);
+
+    // AppBskyFeed
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessOutputFeed, this, &Client::doCallback<NetworkThread::SuccessOutputFeedCb, ATProto::AppBskyFeed::OutputFeed::SharedPtr>);
 
     connect(mNetworkThread.get(), &NetworkThread::requestError, this,
         [](QString error, QJsonDocument json, NetworkThread::ErrorCb cb) {
             cb(std::move(error), std::move(json));
         });
 
+    connect(mNetworkThread.get(), &NetworkThread::requestInvalidJsonError, this,
+        [](QString error, NetworkThread::ErrorCb cb) {
+            auto json = QJsonDocument::fromJson("{}");
+            cb(std::move(error), std::move(json));
+        });
+
     mNetworkThread->start();
 
-    //connect(this, &Client::sendRequestToNetwork, mNetworkThread.get(), &NetworkThread::sendRequest, Qt::QueuedConnection);
     connect(this, &Client::postDataToNetwork, mNetworkThread.get(), &NetworkThread::postData, Qt::QueuedConnection);
     connect(this, &Client::postJsonToNetwork, mNetworkThread.get(), &NetworkThread::postJson, Qt::QueuedConnection);
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
@@ -72,6 +79,15 @@ Client::~Client()
     mNetworkThread->exit();
     mNetworkThread->wait(1000);
     qDebug() << "XRPC network thread stopped";
+}
+
+template<typename CallbackType, typename ArgType>
+void Client::doCallback(ArgType arg, CallbackType cb)
+{
+    const auto startTime = std::chrono::high_resolution_clock::now();
+    cb(std::move(arg));
+    const auto endTime = std::chrono::high_resolution_clock::now();
+    qDebug() << "REPLY DT:" << (endTime - startTime) / 1us << typeid(ArgType).name() << QThread::currentThreadId();
 }
 
 void Client::setUserAgent(const QString& userAgent)
@@ -166,10 +182,9 @@ void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& succ
 }
 
 void Client::post(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-                  const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
+                  const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
-    Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
     emit postJsonToNetwork(service, json, rawHeaders, successCb, errorCb, accessJwt);
 }
@@ -184,31 +199,11 @@ void Client::post(const QString& service, const NetworkThread::DataType& data, c
 }
 
 void Client::get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                 const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
-{
-    getImpl(service, params, rawHeaders, successCb, errorCb, accessJwt);
-}
-
-void Client::get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                 const NetworkThread::SuccessBytesCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
-{
-    getImpl(service, params, rawHeaders, successCb, errorCb, accessJwt);
-}
-
-template<typename Callback>
-void Client::getImpl(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                     const Callback& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
+                 const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
 {
     Q_ASSERT(!service.isEmpty());
-    Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
-
-    const auto startTime = std::chrono::high_resolution_clock::now();
-
     emit getToNetwork(service, params, rawHeaders, successCb, errorCb, accessJwt);
-
-    const auto endTime = std::chrono::high_resolution_clock::now();
-    qDebug() << "GET DT:" << (endTime - startTime) / 1us << service;
 }
 
 }
