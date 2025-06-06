@@ -934,15 +934,15 @@ private:
     const QString& refreshToken() const;
 
     // Create XRPC error callback from ATProto client callback
-    Xrpc::Client::ErrorCb failure(const ErrorCb& cb);
+    Xrpc::NetworkThread::ErrorCb failure(const ErrorCb& cb);
 
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
 
     void setAcceptLabelersHeaderValue();
-    void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
-    void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
-    void addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
+    void addAcceptLabelersHeader(Xrpc::NetworkThread::Params& httpHeaders) const;
+    void addAcceptLanguageHeader(Xrpc::NetworkThread::Params& httpHeaders, const QStringList& languages) const;
+    void addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
 
     void createSessionContinue(const QString& user, const QString& pwd,
                                const std::optional<QString>& authFactorToken,
