@@ -223,7 +223,7 @@ struct OutputFeed
     PostFeed mFeed;
 
     using SharedPtr = std::shared_ptr<OutputFeed>;
-    static SharedPtr fromJson(const QJsonDocument& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 struct ThreadElement;

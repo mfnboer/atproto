@@ -1,11 +1,13 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #include "xrpc_network_thread.h"
+#include "xjson.h"
 #include "lexicon/lexicon.h"
 #include <QSslSocket>
 
 namespace Xrpc {
 
+using namespace std::chrono_literals;
 constexpr int MAX_RESEND = 4;
 
 static bool isEmpty(const NetworkThread::DataType& data)
@@ -37,7 +39,7 @@ void NetworkThread::run()
 }
 
 void NetworkThread::postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
-              const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     Request request;
     request.mIsPost = true;
@@ -58,7 +60,7 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
 }
 
 void NetworkThread::postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
-              const SuccessJsonCb& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
     postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt);
@@ -126,7 +128,7 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
 
     if (errorCode == QNetworkReply::NoError)
     {
-        invokeCallback(std::move(successCb), std::move(data), contentType);
+        invokeCallback(std::move(successCb), errorCb, std::move(data), contentType);
     }
     else if (!*errorHandled)
     {
@@ -204,23 +206,74 @@ void NetworkThread::sslErrors(QNetworkReply* reply, const QList<QSslError>& erro
     }
 }
 
-void NetworkThread::invokeCallback(CallbackType successCb, QByteArray data, const QString& contentType)
+template<typename T, typename Enable = void>
+struct FromJson {};
+
+// ComATProtoServer
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSessionCb>>>
 {
-    if (std::holds_alternative<SuccessBytesCb>(successCb))
-    {
-        const auto& cb = std::get<SuccessBytesCb>(successCb);
-        emit requestSuccessBytes(std::move(data), std::move(cb), contentType);
-    }
-    else if (std::holds_alternative<SuccessJsonCb>(successCb))
-    {
-        const auto& cb = std::get<SuccessJsonCb>(successCb);
-        QJsonDocument json(QJsonDocument::fromJson(data));
-        emit requestSuccessJson(std::move(json), std::move(cb));
-    }
-    else
-    {
-        qWarning() << "Invalid callback type";
-    }
+    using ReplyType = ATProto::ComATProtoServer::Session;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSession;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetSessionOutputCb>>>
+{
+    using ReplyType = ATProto::ComATProtoServer::GetSessionOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetSessionOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetServiceAuthOutputCb>>>
+{
+    using ReplyType = ATProto::ComATProtoServer::GetServiceAuthOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetServiceAuthOutput;
+};
+
+
+// AppBskyFeed
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessOutputFeedCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::OutputFeed;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessOutputFeed;
+};
+
+void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType)
+{
+    std::visit(
+        [this, errorCb, data, contentType](auto&& cb){
+            using T = std::decay_t<decltype(cb)>;
+
+            if constexpr (std::is_same_v<T, SuccessBytesCb>)
+            {
+                emit requestSuccessBytes(std::move(data), std::move(cb), contentType);
+            }
+            else if constexpr (std::is_same_v<T, SuccessJsonCb>)
+            {
+                QJsonDocument json(QJsonDocument::fromJson(data));
+                emit requestSuccessJson(std::move(json), std::move(cb));
+            }
+            else
+            {
+                try {
+                    const auto startTime = std::chrono::high_resolution_clock::now();
+                    QJsonDocument json(QJsonDocument::fromJson(data));
+                    auto reply = FromJson<T>::ReplyType::fromJson(json.object());
+                    const auto endTime = std::chrono::high_resolution_clock::now();
+                    qDebug() << "REPLY DESERIALISATION DT:" << (endTime - startTime) / 1us << typeid(reply).name() << QThread::currentThreadId();
+                    emit (this->*FromJson<T>::sEmitFun)(std::move(reply), std::move(cb));
+                } catch (ATProto::InvalidJsonException& e) {
+                    qWarning() << e.msg();
+                    emit requestInvalidJsonError(e.msg(), errorCb);
+                }
+            }
+        },
+        successCb
+    );
 }
 
 bool NetworkThread::resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb)

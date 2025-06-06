@@ -503,13 +503,12 @@ static void getFeed(PostFeed& feed, const QJsonObject& json)
     }
 }
 
-OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonDocument& json)
+OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonObject& json)
 {
     auto outputFeed = std::make_shared<OutputFeed>();
-    const auto jsonObj = json.object();
-    XJsonObject xjson(jsonObj);
+    XJsonObject xjson(json);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
-    getFeed(outputFeed->mFeed, jsonObj);
+    getFeed(outputFeed->mFeed, json);
     return outputFeed;
 }
 
