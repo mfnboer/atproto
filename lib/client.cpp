@@ -320,15 +320,11 @@ void Client::resolveHandle(const QString& handle,
                    const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.identity.resolveHandle", {{"handle", handle}}, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "resolveHandle:" << reply;
-            try {
-                auto output = ComATProtoIdentity::ResolveHandleOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(output->mDid);
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](ComATProtoIdentity::ResolveHandleOutput::SharedPtr output){
+            qDebug() << "resolveHandle:" << output->mDid;
+
+            if (successCb)
+                successCb(output->mDid);
         },
         failure(errorCb),
         authToken());
@@ -340,20 +336,17 @@ void Client::getProfile(const QString& user, const GetProfileSuccessCb& successC
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}}, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getProfile:" << reply;
-            try {
-                auto profile = AppBskyActor::ProfileViewDetailed::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(profile));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyActor::ProfileViewDetailed::SharedPtr profile){
+            qDebug() << "getProfile:" << profile->mDid;
+
+            if (successCb)
+                successCb(std::move(profile));
         },
         failure(errorCb),
         authToken());
 }
 
+// TODO
 void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(users.size() > 0);
@@ -386,16 +379,11 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
 void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("app.bsky.actor.getPreferences", {}, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getPreferences:" << reply;
-            try {
-                auto prefs = AppBskyActor::GetPreferencesOutput::fromJson(reply.object());
+        [successCb](AppBskyActor::GetPreferencesOutput::SharedPtr prefs){
+            qDebug() << "getPreferences ok";
 
-                if (successCb)
-                    successCb(UserPreferences(prefs->mPreferences));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(UserPreferences(prefs->mPreferences));
         },
         failure(errorCb),
         authToken());
@@ -429,15 +417,11 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.actor.searchActors", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "searchActors:" << reply;
-            try {
-                auto ouput = AppBskyActor::SearchActorsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(ouput));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyActor::SearchActorsOutput::SharedPtr output){
+            qDebug() << "searchActors:" << output->mCursor;
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -450,15 +434,11 @@ void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
     addOptionalIntParam(params, "limit", limit, 1, 100);
 
     mXrpc->get("app.bsky.actor.searchActorsTypeahead", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "searchActorsTypeahead:" << reply;
-            try {
-                auto ouput = AppBskyActor::SearchActorsTypeaheadOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(ouput));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr output){
+            qDebug() << "searchActorsTypeahead:" << output->mActors.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -477,15 +457,10 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyActor::GetSuggestionsOutput::SharedPtr output){
             qDebug() << "getSuggestions: ok";
-            try {
-                auto ouput = AppBskyActor::GetSuggestionsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(ouput));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -500,15 +475,11 @@ void Client::getSuggestedFollows(const QString& user, const QStringList& acceptL
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getSuggestedFollowsByActor", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getSuggestedFOllows:" << reply;
-            try {
-                auto ouput = AppBskyActor::GetSuggestedFollowsByActor::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(ouput));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyActor::GetSuggestedFollowsByActor::SharedPtr output){
+            qDebug() << "getSuggestedFOllows:" << output->mSuggestions.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -523,15 +494,11 @@ void Client::getServices(const std::vector<QString>& dids, bool detailed,
         params.append({"dids", did});
 
     mXrpc->get("app.bsky.labeler.getServices", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyLabeler::GetServicesOutput::SharedPtr output){
             qDebug() << "getServices: success";
-            try {
-                auto output = AppBskyLabeler::GetServicesOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -551,15 +518,11 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getAuthorFeed", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getAuthorFeed: ok";
-            try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -573,15 +536,11 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
     addOptionalStringParam(params, "cursor", cursor);
 
     mXrpc->get("app.bsky.feed.getActorLikes", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getActorLikes:" << reply;
-            try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
+            qDebug() << "getActorLikes: ok";
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -621,15 +580,11 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getFeed: ok";
-            try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -648,15 +603,11 @@ void Client::getListFeed(const QString& list, std::optional<int> limit, const st
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getListFeed", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getListFeed: ok";
-            try {
-                auto feed = AppBskyFeed::OutputFeed::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -669,15 +620,11 @@ void Client::getFeedGenerator(const QString& feed,
     Xrpc::NetworkThread::Params params{{ "feed", feed }};
 
     mXrpc->get("app.bsky.feed.getFeedGenerator", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getFeedGenerator:" << reply;
-            try {
-                auto feed = AppBskyFeed::GetFeedGeneratorOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::GetFeedGeneratorOutput::SharedPtr feed){
+            qDebug() << "getFeedGenerator:" << feed->mView->mDisplayName;
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -696,15 +643,11 @@ void Client::getFeedGenerators(const std::vector<QString>& feeds,
     }
 
     mXrpc->get("app.bsky.feed.getFeedGenerators", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getFeedGenerators:" << reply;
-            try {
-                auto feed = AppBskyFeed::GetFeedGeneratorsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(feed));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr feed){
+            qDebug() << "getFeedGenerators: ok";
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
@@ -718,15 +661,11 @@ void Client::getActorFeeds(const QString& user, std::optional<int> limit, const 
     addOptionalStringParam(params, "cursor", cursor);
 
     mXrpc->get("app.bsky.feed.getActorFeeds", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getActorFeeds:" << reply;
-            try {
-                auto output = AppBskyFeed::GetActorFeedsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::GetActorFeedsOutput::SharedPtr output){
+            qDebug() << "getActorFeeds: ok";
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -743,20 +682,17 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getPostThread", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](AppBskyFeed::PostThread::SharedPtr thread){
             qDebug() << "getPostThread OK";
-            try {
-                auto thread = AppBskyFeed::PostThread::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(thread));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+
+            if (successCb)
+                successCb(std::move(thread));
         },
         failure(errorCb),
         authToken());
 }
 
+// TODO
 void Client::getPosts(const std::vector<QString>& uris,
                       const GetPostsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -799,19 +735,14 @@ void Client::getQuotes(const QString& uri, const std::optional<QString>& cid, st
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getQuotes", params, httpHeaders,
-               [this, successCb, errorCb](const QJsonDocument& reply){
-                   qDebug() << "getQuotes:" << reply;
-                   try {
-                       auto output = AppBskyFeed::GetQuotesOutput::fromJson(reply.object());
+        [successCb](AppBskyFeed::GetQuotesOutput::SharedPtr output){
+            qDebug() << "getQuotes: ok";
 
-                       if (successCb)
-                           successCb(std::move(output));
-                   } catch (InvalidJsonException& e) {
-                       invalidJsonError(e, errorCb);
-                   }
-               },
-               failure(errorCb),
-               authToken());
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
 }
 
 void Client::searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
@@ -857,15 +788,11 @@ void Client::getLikes(const QString& uri, std::optional<int> limit, const std::o
     addOptionalStringParam(params, "cursor", cursor);
 
     mXrpc->get("app.bsky.feed.getLikes", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getLikes:" << reply;
-            try {
-                auto likes = AppBskyFeed::GetLikesOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(likes));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::GetLikesOutput::SharedPtr likes){
+            qDebug() << "getLikes:" << likes->mLikes.size();
+
+            if (successCb)
+                successCb(std::move(likes));
         },
         failure(errorCb),
         authToken());
@@ -882,15 +809,11 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getRepostedBy", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getRepostedBy:" << reply;
-            try {
-                auto repostedBy = AppBskyFeed::GetRepostedByOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(repostedBy));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyFeed::GetRepostedByOutput::SharedPtr repostedBy){
+            qDebug() << "getRepostedBy:" << repostedBy->mRepostedBy.size();
+
+            if (successCb)
+                successCb(std::move(repostedBy));
         },
         failure(errorCb),
         authToken());
@@ -928,15 +851,11 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getFollows", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getFollows:" << reply;
-            try {
-                auto follows = AppBskyGraph::GetFollowsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(follows));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetFollowsOutput::SharedPtr follows){
+            qDebug() << "getFollows:" << follows->mFollows.size();
+
+            if (successCb)
+                successCb(std::move(follows));
         },
         failure(errorCb),
         authToken());
@@ -953,15 +872,11 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getFollowers", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getFollowers:" << reply;
-            try {
-                auto follows = AppBskyGraph::GetFollowersOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(follows));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetFollowersOutput::SharedPtr followers){
+            qDebug() << "getFollowers:" << followers->mFollowers.size();
+
+            if (successCb)
+                successCb(std::move(followers));
         },
         failure(errorCb),
         authToken());
@@ -978,15 +893,11 @@ void Client::getKnownFollowers(const QString& actor, std::optional<int> limit, c
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getKnownFollowers", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getKnownFollowers:" << reply;
-            try {
-                auto follows = AppBskyGraph::GetFollowersOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(follows));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetFollowersOutput::SharedPtr followers){
+            qDebug() << "getKnownFollowers:" << followers->mFollowers.size();
+
+            if (successCb)
+                successCb(std::move(followers));
         },
         failure(errorCb),
         authToken());
@@ -1003,15 +914,11 @@ void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& c
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getBlocks", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getBlocks:" << reply;
-            try {
-                auto blocks = AppBskyGraph::GetBlocksOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(blocks));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetBlocksOutput::SharedPtr blocks){
+            qDebug() << "getBlocks:" << blocks->mBlocks.size();
+
+            if (successCb)
+                successCb(std::move(blocks));
         },
         failure(errorCb),
         authToken());
@@ -1028,15 +935,11 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getMutes", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getMutes:" << reply;
-            try {
-                auto mutes = AppBskyGraph::GetMutesOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(mutes));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetMutesOutput::SharedPtr mutes){
+            qDebug() << "getMutes:" << mutes->mMutes.size();
+
+            if (successCb)
+                successCb(std::move(mutes));
         },
         failure(errorCb),
         authToken());
@@ -1082,7 +985,7 @@ void Client::muteThread(const QString& root, const SuccessCb& successCb, const E
 
     mXrpc->post("app.bsky.graph.muteThread", json, {},
         [successCb](const QJsonDocument& reply){
-            qDebug() << "muteActor:" << reply;
+            qDebug() << "muteThread:" << reply;
             if (successCb)
                 successCb();
         },
@@ -1098,7 +1001,7 @@ void Client::unmuteThread(const QString& root, const SuccessCb& successCb, const
 
     mXrpc->post("app.bsky.graph.unmuteThread", json, {},
         [successCb](const QJsonDocument& reply){
-            qDebug() << "muteActor:" << reply;
+            qDebug() << "unmuteThread:" << reply;
             if (successCb)
                 successCb();
         },
@@ -1117,15 +1020,11 @@ void Client::getList(const QString& listUri, std::optional<int> limit, const std
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getList", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getList:" << reply;
-            try {
-                auto output = AppBskyGraph::GetListOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetListOutput::SharedPtr output){
+            qDebug() << "getList:" << output->mList->mName;
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1142,15 +1041,11 @@ void Client::getLists(const QString& actor, std::optional<int> limit, const std:
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getLists", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getLists:" << reply;
-            try {
-                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
+            qDebug() << "getLists:" << output->mLists.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1167,15 +1062,11 @@ void Client::getListBlocks(std::optional<int> limit, const std::optional<QString
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getListBlocks", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getListBlocks:" << reply;
-            try {
-                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
+            qDebug() << "getListBlocks:" << output->mLists.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1192,15 +1083,11 @@ void Client::getListMutes(std::optional<int> limit, const std::optional<QString>
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getListMutes", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getListMutes:" << reply;
-            try {
-                auto output = AppBskyGraph::GetListsOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
+            qDebug() << "getListMutes:" << output->mLists.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1217,15 +1104,11 @@ void Client::getActorStarterPacks(const QString& actor, std::optional<int> limit
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getActorStarterPacks", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getActorStarterPacks:" << reply;
-            try {
-                auto output = AppBskyGraph::GetStarterPacksOutput::fromJson(reply.object());
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+        [successCb](AppBskyGraph::GetStarterPacksOutput::SharedPtr output){
+            qDebug() << "getActorStarterPacks:" << output->mStarterPacks.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1245,16 +1128,11 @@ void Client::getStarterPacks(const std::vector<QString>& uris,
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getStarterPacks", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getStarterPacks:" << reply;
-            try {
-                auto output = AppBskyGraph::GetStarterPacksOutput::fromJson(reply.object());
+        [successCb](AppBskyGraph::GetStarterPacksOutput::SharedPtr output){
+            qDebug() << "getStarterPacks:" << output->mStarterPacks.size();
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1266,16 +1144,11 @@ void Client::getStarterPack(const QString& starterPack, const GetStarterPackSucc
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.graph.getStarterPack", {{"starterPack", starterPack}}, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getStarterPack:" << reply;
-            try {
-                auto output = AppBskyGraph::GetStarterPackOutput::fromJson(reply.object());
+        [successCb](AppBskyGraph::GetStarterPackOutput::SharedPtr output){
+            qDebug() << "getStarterPack:" << output->mStarterPack->mUri;
 
-                if (successCb)
-                    successCb(std::move(output->mStarterPack));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output->mStarterPack));
         },
         failure(errorCb),
         authToken());
@@ -1376,19 +1249,14 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
     const auto now = QDateTime::currentDateTimeUtc();
 
     mXrpc->get("app.bsky.notification.listNotifications", params, {},
-        [this, now, successCb, errorCb, updateSeen](const QJsonDocument& reply){
-            try {
-                qDebug() << "List notifications:" << reply;
-                auto output = AppBskyNotification::ListNotificationsOutput::fromJson(reply.object());
+        [this, now, successCb, updateSeen](AppBskyNotification::ListNotificationsOutput::SharedPtr output){
+            qDebug() << "List notifications:" << output->mNotifications.size();
 
-                if (successCb)
-                    successCb(std::move(output));
+            if (successCb)
+                successCb(std::move(output));
 
-                if (updateSeen)
-                    updateNotificationSeen(now, {}, {});
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (updateSeen)
+                updateNotificationSeen(now, {}, {});
         },
         failure(errorCb),
         authToken());
@@ -1441,16 +1309,11 @@ void Client::getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputC
     Xrpc::NetworkThread::Params params{{"jobId", jobId}};
 
     mXrpc->get("app.bsky.video.getJobStatus", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            try {
-                qDebug() << "Get video job status:" << reply;
-                auto output = AppBskyVideo::JobStatusOutput::fromJson(reply.object());
+        [successCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
+            qDebug() << "Get video job status:" << output->mJobStatus->mRawState;
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -1471,16 +1334,11 @@ void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const
 void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("app.bsky.video.getUploadLimits", {}, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            try {
-                qDebug() << "Get video upload limits:" << reply;
-                auto output = AppBskyVideo::GetUploadLimitsOutput::fromJson(reply.object());
+        [successCb](AppBskyVideo::GetUploadLimitsOutput::SharedPtr output){
+            qDebug() << "Get video upload limits:" << output->mCanUpload;
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         serviceAuthToken);
@@ -2087,16 +1945,11 @@ void Client::getMessages(const QString& convoId, std::optional<int> limit,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getMessages", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getMessages:" << reply;
-            try {
-                auto output = ChatBskyConvo::GetMessagesOutput::fromJson(reply.object());
+        [successCb](ChatBskyConvo::GetMessagesOutput::SharedPtr output){
+            qDebug() << "getMessages:" << output->mMessages.size();
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -2148,16 +2001,11 @@ void Client::listConvos(std::optional<int> limit, bool onlyUnread,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.listConvos", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [successCb](ChatBskyConvo::ConvoListOutput::SharedPtr output){
             qDebug() << "List convos: ok";
-            try {
-                auto output = ChatBskyConvo::ConvoListOutput::fromJson(reply.object());
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
@@ -2251,16 +2099,11 @@ void Client::updateRead(const QString& convoId, const std::optional<QString>& me
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.updateRead", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "Update read:" << reply;
-            try {
-                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+        [successCb](ChatBskyConvo::ConvoOutput::SharedPtr output){
+            qDebug() << "Update read:" << output->mConvo->mId;
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());
