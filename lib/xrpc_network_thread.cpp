@@ -209,7 +209,7 @@ void NetworkThread::sslErrors(QNetworkReply* reply, const QList<QSslError>& erro
 template<typename T, typename Enable = void>
 struct FromJson {};
 
-// ComATProtoServer
+// com.atproto.server
 
 template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSessionCb>>>
@@ -233,13 +233,245 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 
-// AppBskyFeed
+// com.atproto.identity
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessResolveHandleOutputCb>>>
+{
+    using ReplyType = ATProto::ComATProtoIdentity::ResolveHandleOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessResolveHandleOutput;
+};
+
+
+// app.bsky.actor
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessProfileViewDetailedCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::ProfileViewDetailed;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessProfileViewDetailed;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetPreferencesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::GetPreferencesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetPreferencesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSearchActorsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::SearchActorsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSearchActorsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSearchActorsTypeaheadOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::SearchActorsTypeaheadOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSearchActorsTypeaheadOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetSuggestionsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::GetSuggestionsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetSuggestionsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetSuggestedFollowsByActorCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::GetSuggestedFollowsByActor;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetSuggestedFollowsByActor;
+};
+
+
+// app.bsky.labeler
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetServicesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyLabeler::GetServicesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetServicesOutput;
+};
+
+
+// app.bsky.feed
 
 template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessOutputFeedCb>>>
 {
     using ReplyType = ATProto::AppBskyFeed::OutputFeed;
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessOutputFeed;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetFeedGeneratorOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetFeedGeneratorOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetFeedGeneratorOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetFeedGeneratorsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetFeedGeneratorsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetFeedGeneratorsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetActorFeedsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetActorFeedsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetActorFeedsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessPostThreadCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::PostThread;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessPostThread;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetQuotesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetQuotesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetQuotesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSearchPostsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::SearchPostsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSearchPostsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetLikesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetLikesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetLikesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetRepostedByOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetRepostedByOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetRepostedByOutput;
+};
+
+
+// app.bsky.graph
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetFollowsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetFollowsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetFollowsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetFollowersOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetFollowersOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetFollowersOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetBlocksOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetBlocksOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetBlocksOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetMutesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetMutesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetMutesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetListOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetListOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetListOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetListsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetListsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetListsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetStarterPackOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetStarterPackOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetStarterPackOutput;
+};
+
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetStarterPacksOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetStarterPacksOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetStarterPacksOutput;
+};
+
+
+// app.bsky.notification
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessListNotificationsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyNotification::ListNotificationsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessListNotificationsOutput;
+};
+
+
+// app.bsky.video
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessJobStatusOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyVideo::JobStatusOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessJobStatusOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetUploadLimitsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyVideo::GetUploadLimitsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetUploadLimitsOutput;
+};
+
+
+// chat.bsky.convo
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetMessagesOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::GetMessagesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetMessagesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessConvoListOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::ConvoListOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessConvoListOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessConvoOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::ConvoOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessConvoOutput;
 };
 
 void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType)
