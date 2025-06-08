@@ -7,7 +7,7 @@ endif()
 
 add_compile_options(-Wall -Wextra -Werror)
 
-if (NOT ANDROID)
+if (NOT ANDROID AND NOT CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
     add_compile_options(-fsanitize=address)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fsanitize=address)
