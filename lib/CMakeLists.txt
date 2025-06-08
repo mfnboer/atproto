@@ -91,10 +91,14 @@ qt_add_qml_module(libatproto
         SOURCES identity_resolver.h
         SOURCES identity_resolver.cpp
         SOURCES lexicon/app_bsky_embed_include.h
-        SOURCES json_deserialization_thread.h
-        SOURCES json_deserialization_thread.cpp
+        SOURCES
+        SOURCES
         SOURCES xrpc_network_thread.h
         SOURCES xrpc_network_thread.cpp
+        SOURCES scoped_handle.h
+        SOURCES scoped_handle.cpp
+        SOURCES time_monitor.h
+        SOURCES time_monitor.cpp
 )
 
 if (NOT ANDROID)

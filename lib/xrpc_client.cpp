@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "xrpc_client.h"
+#include "time_monitor.h"
 
 namespace Xrpc {
 
@@ -39,10 +40,8 @@ Client::Client(const QString& host) :
 
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessBytes, this,
         [](QByteArray bytes, NetworkThread::SuccessBytesCb cb, QString contentType) {
-            const auto startTime = std::chrono::high_resolution_clock::now();
+            ATProto::TimeMonitor timeMon("REPLY BYTES DT");
             cb(std::move(bytes), std::move(contentType));
-            const auto endTime = std::chrono::high_resolution_clock::now();
-            qDebug() << "REPLY BYTES DT:" << (endTime - startTime) / 1us << QThread::currentThreadId();
         });
 
     // com.atproto.server
@@ -130,10 +129,8 @@ Client::~Client()
 template<typename CallbackType, typename ArgType>
 void Client::doCallback(ArgType arg, CallbackType cb)
 {
-    const auto startTime = std::chrono::high_resolution_clock::now();
+    ATProto::TimeMonitor timeMon("REPLY DT", typeid(ArgType).name());
     cb(std::move(arg));
-    const auto endTime = std::chrono::high_resolution_clock::now();
-    qDebug() << "REPLY DT:" << (endTime - startTime) / 1us << typeid(ArgType).name() << QThread::currentThreadId();
 }
 
 void Client::setUserAgent(const QString& userAgent)
