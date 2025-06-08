@@ -57,6 +57,13 @@ public:
         // Sometimes INVALID_REQUEST is returned when a record does not exist.
         return error == RECORD_NOT_FOUND || error == INVALID_REQUEST;
     }
+
+    static bool isListNotFound(const QString& error)
+    {
+        // Currently INVALID_REQUEST is returned when a list does not exist. But I have
+        // seen errors getting changed before. Test for NOT_FOUND as a precaution.
+        return error == INVALID_REQUEST || error == NOT_FOUND;
+    }
 };
 
 // HTTP API (XRPC): error responses must contain json body with error and message fields.

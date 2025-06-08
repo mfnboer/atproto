@@ -38,6 +38,7 @@ public:
 
     // app.bsky.actor
     using SuccessProfileViewDetailedCb = std::function<void(ATProto::AppBskyActor::ProfileViewDetailed::SharedPtr)>;
+    using SuccessGetProfilesOutputCb = std::function<void(ATProto::AppBskyActor::GetProfilesOutput::SharedPtr)>;
     using SuccessGetPreferencesOutputCb = std::function<void(ATProto::AppBskyActor::GetPreferencesOutput::SharedPtr)>;
     using SuccessSearchActorsOutputCb = std::function<void(ATProto::AppBskyActor::SearchActorsOutput::SharedPtr)>;
     using SuccessSearchActorsTypeaheadOutputCb = std::function<void(ATProto::AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
@@ -53,6 +54,7 @@ public:
     using SuccessGetFeedGeneratorsOutputCb = std::function<void(ATProto::AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr)>;
     using SuccessGetActorFeedsOutputCb = std::function<void(ATProto::AppBskyFeed::GetActorFeedsOutput::SharedPtr)>;
     using SuccessPostThreadCb = std::function<void(ATProto::AppBskyFeed::PostThread::SharedPtr)>;
+    using SuccessGetPostsOutputCb = std::function<void(ATProto::AppBskyFeed::GetPostsOutput::SharedPtr)>;
     using SuccessGetQuotesOutputCb = std::function<void(ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr)>;
     using SuccessSearchPostsOutputCb = std::function<void(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr)>;
     using SuccessGetLikesOutputCb = std::function<void(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr)>;
@@ -94,6 +96,7 @@ public:
 
         // app.bsky.actor
         SuccessProfileViewDetailedCb,
+        SuccessGetProfilesOutputCb,
         SuccessGetPreferencesOutputCb,
         SuccessSearchActorsOutputCb,
         SuccessSearchActorsTypeaheadOutputCb,
@@ -109,6 +112,7 @@ public:
         SuccessGetFeedGeneratorsOutputCb,
         SuccessGetActorFeedsOutputCb,
         SuccessPostThreadCb,
+        SuccessGetPostsOutputCb,
         SuccessGetQuotesOutputCb,
         SuccessSearchPostsOutputCb,
         SuccessGetLikesOutputCb,
@@ -170,6 +174,7 @@ signals:
 
     // app.bsky.actor
     void requestSuccessProfileViewDetailed(ATProto::AppBskyActor::ProfileViewDetailed::SharedPtr, SuccessProfileViewDetailedCb);
+    void requestSuccessGetProfilesOutput(ATProto::AppBskyActor::GetProfilesOutput::SharedPtr, SuccessGetProfilesOutputCb);
     void requestSuccessGetPreferencesOutput(ATProto::AppBskyActor::GetPreferencesOutput::SharedPtr, SuccessGetPreferencesOutputCb);
     void requestSuccessSearchActorsOutput(ATProto::AppBskyActor::SearchActorsOutput::SharedPtr, SuccessSearchActorsOutputCb);
     void requestSuccessSearchActorsTypeaheadOutput(ATProto::AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr, SuccessSearchActorsTypeaheadOutputCb);
@@ -185,6 +190,7 @@ signals:
     void requestSuccessGetFeedGeneratorsOutput(ATProto::AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr, SuccessGetFeedGeneratorsOutputCb);
     void requestSuccessGetActorFeedsOutput(ATProto::AppBskyFeed::GetActorFeedsOutput::SharedPtr, SuccessGetActorFeedsOutputCb);
     void requestSuccessPostThread(ATProto::AppBskyFeed::PostThread::SharedPtr, SuccessPostThreadCb);
+    void requestSuccessGetPostsOutput(ATProto::AppBskyFeed::GetPostsOutput::SharedPtr, SuccessGetPostsOutputCb);
     void requestSuccessGetQuotesOutput(ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr, SuccessGetQuotesOutputCb);
     void requestSuccessSearchPostsOutput(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr, SuccessSearchPostsOutputCb);
     void requestSuccessGetLikesOutput(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr, SuccessGetLikesOutputCb);

@@ -253,6 +253,13 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetProfilesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyActor::GetProfilesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetProfilesOutput;
+};
+
+template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetPreferencesOutputCb>>>
 {
     using ReplyType = ATProto::AppBskyActor::GetPreferencesOutput;
@@ -333,6 +340,13 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 {
     using ReplyType = ATProto::AppBskyFeed::PostThread;
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessPostThread;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetPostsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::GetPostsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetPostsOutput;
 };
 
 template<typename T>
@@ -492,11 +506,8 @@ void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorC
             else
             {
                 try {
-                    const auto startTime = std::chrono::high_resolution_clock::now();
                     QJsonDocument json(QJsonDocument::fromJson(data));
                     auto reply = FromJson<T>::ReplyType::fromJson(json.object());
-                    const auto endTime = std::chrono::high_resolution_clock::now();
-                    qDebug() << "REPLY DESERIALISATION DT:" << (endTime - startTime) / 1us << typeid(reply).name() << QThread::currentThreadId();
                     emit (this->*FromJson<T>::sEmitFun)(std::move(reply), std::move(cb));
                 } catch (ATProto::InvalidJsonException& e) {
                     qWarning() << e.msg();

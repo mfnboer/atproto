@@ -58,14 +58,6 @@ static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QStr
         params.append({name, boolValue(*value)});
 }
 
-// TODO: is there a better way to identify errors?
-bool Client::isListNotFoundError(const QString& error)
-{
-    // Currently INVALID_REQUEST is returned when a list does not exist. But I have
-    // seen errors getting changed before. Test for NOT_FOUND as a precaution.
-    return error == ATProtoErrorMsg::INVALID_REQUEST || error == ATProtoErrorMsg::NOT_FOUND;
-}
-
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
     mXrpc(std::move(xrpc))
 {}
@@ -346,7 +338,6 @@ void Client::getProfile(const QString& user, const GetProfileSuccessCb& successC
         authToken());
 }
 
-// TODO
 void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(users.size() > 0);
@@ -360,17 +351,11 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.actor.getProfiles", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getProfiles:" << reply;
-            try {
-                AppBskyActor::ProfileViewDetailedList profiles;
-                AppBskyActor::getProfileViewDetailedList(profiles, reply.object());
+        [successCb](AppBskyActor::GetProfilesOutput::SharedPtr output){
+            qDebug() << "getProfiles:" << output->mProfiles.size();
 
-                if (successCb)
-                    successCb(std::move(profiles));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output->mProfiles));
         },
         failure(errorCb),
         authToken());
@@ -692,7 +677,6 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
         authToken());
 }
 
-// TODO
 void Client::getPosts(const std::vector<QString>& uris,
                       const GetPostsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -707,17 +691,11 @@ void Client::getPosts(const std::vector<QString>& uris,
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.getPosts", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getPosts:" << reply;
-            try {
-                AppBskyFeed::PostViewList posts;
-                AppBskyFeed::getPostViewList(posts, reply.object());
+        [successCb](AppBskyFeed::GetPostsOutput::SharedPtr output){
+            qDebug() << "getPosts:" << output->mPosts.size();
 
-                if (successCb)
-                    successCb(std::move(posts));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output->mPosts));
         },
         failure(errorCb),
         authToken());

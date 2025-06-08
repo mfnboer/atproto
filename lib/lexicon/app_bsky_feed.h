@@ -95,12 +95,18 @@ struct PostView
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<PostView>;
+    using List = std::vector<PostView::SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.feed.defs#postView";
 };
 
-using PostViewList = std::vector<PostView::SharedPtr>;
-void getPostViewList(PostViewList& list, const QJsonObject& json);
+struct GetPostsOutput
+{
+    PostView::List mPosts;
+
+    using SharedPtr = std::shared_ptr<GetPostsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
 
 // app.bsky.feed.defs#notFoundPost
 struct NotFoundPost
@@ -350,7 +356,7 @@ struct SearchPostsOutput
 {
     std::optional<QString> mCursor;
     std::optional<int> mHitsTotal;
-    PostViewList mPosts;
+    PostView::List mPosts;
 
     using SharedPtr = std::shared_ptr<SearchPostsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -388,7 +394,7 @@ struct GetQuotesOutput
     QString mUri; // at-uri
     std::optional<QString> mCid;
     std::optional<QString> mCursor;
-    PostViewList mPosts;
+    PostView::List mPosts;
 
     using SharedPtr = std::shared_ptr<GetQuotesOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

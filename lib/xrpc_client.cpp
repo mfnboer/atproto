@@ -55,6 +55,7 @@ Client::Client(const QString& host) :
 
     // app.bsky.actor
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessProfileViewDetailed, this, &Client::doCallback<NetworkThread::SuccessProfileViewDetailedCb, ATProto::AppBskyActor::ProfileViewDetailed::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetProfilesOutput, this, &Client::doCallback<NetworkThread::SuccessGetProfilesOutputCb, ATProto::AppBskyActor::GetProfilesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetPreferencesOutput, this, &Client::doCallback<NetworkThread::SuccessGetPreferencesOutputCb, ATProto::AppBskyActor::GetPreferencesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessSearchActorsOutput, this, &Client::doCallback<NetworkThread::SuccessSearchActorsOutputCb, ATProto::AppBskyActor::SearchActorsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessSearchActorsTypeaheadOutput, this, &Client::doCallback<NetworkThread::SuccessSearchActorsTypeaheadOutputCb, ATProto::AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr>);
@@ -70,6 +71,7 @@ Client::Client(const QString& host) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetFeedGeneratorsOutput, this, &Client::doCallback<NetworkThread::SuccessGetFeedGeneratorsOutputCb, ATProto::AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetActorFeedsOutput, this, &Client::doCallback<NetworkThread::SuccessGetActorFeedsOutputCb, ATProto::AppBskyFeed::GetActorFeedsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessPostThread, this, &Client::doCallback<NetworkThread::SuccessPostThreadCb, ATProto::AppBskyFeed::PostThread::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetPostsOutput, this, &Client::doCallback<NetworkThread::SuccessGetPostsOutputCb, ATProto::AppBskyFeed::GetPostsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetQuotesOutput, this, &Client::doCallback<NetworkThread::SuccessGetQuotesOutputCb, ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessSearchPostsOutput, this, &Client::doCallback<NetworkThread::SuccessSearchPostsOutputCb, ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetLikesOutput, this, &Client::doCallback<NetworkThread::SuccessGetLikesOutputCb, ATProto::AppBskyFeed::GetLikesOutput::SharedPtr>);
