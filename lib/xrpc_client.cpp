@@ -40,7 +40,6 @@ Client::Client(const QString& host) :
 
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessBytes, this,
         [](QByteArray bytes, NetworkThread::SuccessBytesCb cb, QString contentType) {
-            ATProto::TimeMonitor timeMon("REPLY BYTES DT");
             cb(std::move(bytes), std::move(contentType));
         });
 
@@ -129,7 +128,6 @@ Client::~Client()
 template<typename CallbackType, typename ArgType>
 void Client::doCallback(ArgType arg, CallbackType cb)
 {
-    ATProto::TimeMonitor timeMon("REPLY DT", typeid(ArgType).name());
     cb(std::move(arg));
 }
 
