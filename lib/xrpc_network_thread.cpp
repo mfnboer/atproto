@@ -35,6 +35,7 @@ void NetworkThread::run()
     qDebug() << "XRPC network thread running:" << currentThreadId();
     mNetwork = new QNetworkAccessManager(this);
     mNetwork->setAutoDeleteReplies(true);
+    mNetwork->setTransferTimeout(10000);
     exec();
 }
 
