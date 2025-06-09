@@ -7,7 +7,7 @@ endif()
 
 add_compile_options(-Wall -Wextra -Werror)
 
-if (NOT ANDROID)
+if (NOT ANDROID AND NOT CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
     add_compile_options(-fsanitize=address)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fsanitize=address)
@@ -91,6 +91,14 @@ qt_add_qml_module(libatproto
         SOURCES identity_resolver.h
         SOURCES identity_resolver.cpp
         SOURCES lexicon/app_bsky_embed_include.h
+        SOURCES
+        SOURCES
+        SOURCES xrpc_network_thread.h
+        SOURCES xrpc_network_thread.cpp
+        SOURCES scoped_handle.h
+        SOURCES scoped_handle.cpp
+        SOURCES time_monitor.h
+        SOURCES time_monitor.cpp
 )
 
 if (NOT ANDROID)

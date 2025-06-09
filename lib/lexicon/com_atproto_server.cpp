@@ -5,10 +5,9 @@
 
 namespace ATProto::ComATProtoServer {
 
-Session::SharedPtr Session::fromJson(const QJsonDocument& json)
+Session::SharedPtr Session::fromJson(const QJsonObject& json)
 {
-    const auto jsonObj = json.object();
-    const XJsonObject xjson(jsonObj);
+    const XJsonObject xjson(json);
     auto session = std::make_shared<Session>();
     session->mHandle = xjson.getRequiredString("handle");
     session->mDid = xjson.getRequiredString("did");
@@ -27,10 +26,9 @@ std::optional<QString> Session::getPDS() const
     return mDidDoc ? mDidDoc->mATProtoPDS : std::nullopt;
 }
 
-GetSessionOutput::SharedPtr GetSessionOutput::fromJson(const QJsonDocument& json)
+GetSessionOutput::SharedPtr GetSessionOutput::fromJson(const QJsonObject& json)
 {
-    const auto jsonObj = json.object();
-    const XJsonObject xjson(jsonObj);
+    const XJsonObject xjson(json);
     auto session = std::make_shared<GetSessionOutput>();
     session->mHandle = xjson.getRequiredString("handle");
     session->mDid = xjson.getRequiredString("did");

@@ -216,11 +216,18 @@ struct ProfileViewDetailed
     StatusView::SharedPtr mStatus; // optional
 
     using SharedPtr = std::shared_ptr<ProfileViewDetailed>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using ProfileViewDetailedList = std::vector<ProfileViewDetailed::SharedPtr>;
-void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json);
+// app.bsky.actor.getProfiles#output
+struct GetProfilesOutput
+{
+    ProfileViewDetailed::List mProfiles;
+
+    using SharedPtr = std::shared_ptr<GetProfilesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
 
 // app.bsky.actor.profile
 struct Profile

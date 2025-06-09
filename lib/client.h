@@ -38,7 +38,7 @@ public:
     using SuccessCb = std::function<void()>;
     using ResolveHandleSuccessCb = std::function<void(QString)>;
     using GetProfileSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::SharedPtr)>;
-    using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailedList)>;
+    using GetProfilesSuccessCb = std::function<void(AppBskyActor::ProfileViewDetailed::List)>;
     using GetAuthorFeedSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
     using GetActorLikesSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
     using GetTimelineSuccessCb = std::function<void(AppBskyFeed::OutputFeed::SharedPtr)>;
@@ -47,7 +47,7 @@ public:
     using GetFeedGeneratorsSuccessCb = std::function<void(AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr)>;
     using GetActorFeedsSuccessCb = std::function<void(AppBskyFeed::GetActorFeedsOutput::SharedPtr)>;
     using GetPostThreadSuccessCb = std::function<void(AppBskyFeed::PostThread::SharedPtr)>;
-    using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostViewList)>;
+    using GetPostsSuccessCb = std::function<void(AppBskyFeed::PostView::List)>;
     using GetQuotesSuccessCb = std::function<void(AppBskyFeed::GetQuotesOutput::SharedPtr)>;
     using GetLikesSuccessCb = std::function<void(AppBskyFeed::GetLikesOutput::SharedPtr)>;
     using GetRepostedBySuccessCb = std::function<void(AppBskyFeed::GetRepostedByOutput::SharedPtr)>;
@@ -103,8 +103,6 @@ public:
     static constexpr int MAX_URIS_GET_STARTER_PACKS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
-
-    static bool isListNotFoundError(const QString& error);
 
     explicit Client(Xrpc::Client::Ptr&& xrpc);
 
@@ -934,15 +932,15 @@ private:
     const QString& refreshToken() const;
 
     // Create XRPC error callback from ATProto client callback
-    Xrpc::Client::ErrorCb failure(const ErrorCb& cb);
+    Xrpc::NetworkThread::ErrorCb failure(const ErrorCb& cb);
 
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
 
     void setAcceptLabelersHeaderValue();
-    void addAcceptLabelersHeader(Xrpc::Client::Params& httpHeaders) const;
-    void addAcceptLanguageHeader(Xrpc::Client::Params& httpHeaders, const QStringList& languages) const;
-    void addAtprotoProxyHeader(Xrpc::Client::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
+    void addAcceptLabelersHeader(Xrpc::NetworkThread::Params& httpHeaders) const;
+    void addAcceptLanguageHeader(Xrpc::NetworkThread::Params& httpHeaders, const QStringList& languages) const;
+    void addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
 
     void createSessionContinue(const QString& user, const QString& pwd,
                                const std::optional<QString>& authFactorToken,
