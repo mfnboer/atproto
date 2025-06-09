@@ -21,7 +21,7 @@ struct Session
     std::optional<QString> getPDS() const;
 
     using SharedPtr = std::shared_ptr<Session>;
-    static SharedPtr fromJson(const QJsonDocument& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.server.refreshSession#output
@@ -35,7 +35,7 @@ struct GetSessionOutput
     DidDocument::SharedPtr mDidDoc; // optional
 
     using SharedPtr = std::shared_ptr<GetSessionOutput>;
-    static SharedPtr fromJson(const QJsonDocument& json);
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 // com.atproto.server.defs#inviteCodeUse

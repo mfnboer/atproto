@@ -325,10 +325,12 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     return profile;
 }
 
-void getProfileViewDetailedList(ProfileViewDetailedList& list, const QJsonObject& json)
+GetProfilesOutput::SharedPtr GetProfilesOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    list = xjson.getRequiredVector<ProfileViewDetailed>("profiles");
+    auto output = std::make_shared<GetProfilesOutput>();
+    output->mProfiles = xjson.getRequiredVector<ProfileViewDetailed>("profiles");
+    return output;
 }
 
 QJsonObject Profile::toJson() const

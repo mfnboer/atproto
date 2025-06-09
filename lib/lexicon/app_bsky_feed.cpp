@@ -360,10 +360,12 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
     return postView;
 }
 
-void getPostViewList(PostViewList& list, const QJsonObject& json)
+GetPostsOutput::SharedPtr GetPostsOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    list = xjson.getRequiredVector<PostView>("posts");
+    auto output = std::make_shared<GetPostsOutput>();
+    output->mPosts = xjson.getRequiredVector<PostView>("posts");
+    return output;
 }
 
 QJsonObject ReplyElement::toJson() const
@@ -503,13 +505,12 @@ static void getFeed(PostFeed& feed, const QJsonObject& json)
     }
 }
 
-OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonDocument& json)
+OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonObject& json)
 {
     auto outputFeed = std::make_shared<OutputFeed>();
-    const auto jsonObj = json.object();
-    XJsonObject xjson(jsonObj);
+    XJsonObject xjson(json);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
-    getFeed(outputFeed->mFeed, jsonObj);
+    getFeed(outputFeed->mFeed, json);
     return outputFeed;
 }
 
@@ -699,7 +700,7 @@ SearchPostsOutput::SharedPtr SearchPostsOutput::fromJson(const QJsonObject& json
     const XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
-    getPostViewList(output->mPosts, json);
+    output->mPosts = xjson.getRequiredVector<PostView>("posts");
     return output;
 }
 
