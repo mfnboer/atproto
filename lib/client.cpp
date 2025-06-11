@@ -128,7 +128,7 @@ void Client::createSession(const QString& user, const QString& pwd,
             },
             [errorCb](const QString& error){
                 if (errorCb)
-                    errorCb("PdsNotFound", error);
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
             });
     }
     else
@@ -141,7 +141,7 @@ void Client::createSession(const QString& user, const QString& pwd,
             },
             [errorCb](const QString& error){
                 if (errorCb)
-                    errorCb("PdsNotFound", error);
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
             });
     }
 }
@@ -198,7 +198,7 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
         },
         [errorCb](const QString& error){
             if (errorCb)
-                errorCb("PdsNotFound", error);
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
         });
 }
 
@@ -1420,7 +1420,7 @@ void Client::getBlob(const QString& did, const QString& cid,
         },
         [errorCb](const QString& error){
             if (errorCb)
-                errorCb("PdsNotFound", error);
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
         });
 }
 
