@@ -23,7 +23,7 @@ public:
 
     // Host can be set as first point of contact for a new account.
     // If handle to DID resolution via DNS fails, then createSession will be sent to host.
-    explicit Client(const QString& host = {});
+    explicit Client(const QString& host = {}, int networkTransferTimeoutMs = 10000);
 
     ~Client();
 

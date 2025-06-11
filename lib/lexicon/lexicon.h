@@ -49,7 +49,8 @@ public:
     SHARED_CONST(QString, NOT_FOUND, QStringLiteral("NotFound"));
     SHARED_CONST(QString, RECORD_NOT_FOUND, QStringLiteral("RecordNotFound"));
 
-    // Internal stack error
+    // Internal stack errors
+    SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 
     static bool isRecordNotFound(const QString& error)

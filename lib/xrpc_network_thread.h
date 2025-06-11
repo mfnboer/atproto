@@ -149,7 +149,7 @@ public:
         int mResendCount = 0;
     };
 
-    NetworkThread(QObject* parent = nullptr);
+    NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
     void setPDS(const QString& pds) { mPDS = pds; }
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
@@ -250,6 +250,7 @@ private:
     };
 
     QNetworkAccessManager* mNetwork;
+    int mNetworkTransferTimeoutMs;
     QString mPDS;
     QString mUserAgent;
 };

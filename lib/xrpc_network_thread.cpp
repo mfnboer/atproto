@@ -25,8 +25,9 @@ static bool isEmpty(const NetworkThread::DataType& data)
 }
 
 
-NetworkThread::NetworkThread(QObject* parent) :
-    QThread(parent)
+NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
+    QThread(parent),
+    mNetworkTransferTimeoutMs(networkTransferTimeoutMs)
 {
 }
 
@@ -35,7 +36,7 @@ void NetworkThread::run()
     qDebug() << "XRPC network thread running:" << currentThreadId();
     mNetwork = new QNetworkAccessManager(this);
     mNetwork->setAutoDeleteReplies(true);
-    mNetwork->setTransferTimeout(10000);
+    mNetwork->setTransferTimeout(mNetworkTransferTimeoutMs);
     exec();
 }
 

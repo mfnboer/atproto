@@ -1,27 +1,27 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "xrpc_client.h"
-#include "time_monitor.h"
 
 namespace Xrpc {
 
 using namespace std::chrono_literals;
 
-static QNetworkAccessManager* makeNetwork(QObject* parent)
+static QNetworkAccessManager* makeNetwork(int networkTransferTimeoutMs, QObject* parent)
 {
     auto* network = new QNetworkAccessManager(parent);
     network->setAutoDeleteReplies(true);
-    network->setTransferTimeout(10000);
+    network->setTransferTimeout(networkTransferTimeoutMs);
     return network;
 }
 
-Client::Client(const QString& host) :
-    mNetwork(makeNetwork(this)),
+Client::Client(const QString& host, int networkTransferTimeoutMs) :
+    mNetwork(makeNetwork(networkTransferTimeoutMs, this)),
     mPlcDirectoryClient(mNetwork.get()),
     mIdentityResolver(mNetwork.get()),
-    mNetworkThread(new NetworkThread)
+    mNetworkThread(new NetworkThread(networkTransferTimeoutMs))
 {
     qDebug() << "Host:" << host;
+    qDebug() << "Network transfer timeout:" << networkTransferTimeoutMs;
     qDebug() << "Device supports OpenSSL:" << QSslSocket::supportsSsl();
     qDebug() << "OpenSSL lib:" << QSslSocket::sslLibraryVersionString();
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
