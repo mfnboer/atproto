@@ -633,6 +633,25 @@ void RichTextMaster::removeFacetsOverlappingWithEmbeddedLinks(
     }
 }
 
+QStringList RichTextMaster::getFacetMentionDids(const AppBskyFeed::Record::Post& post)
+{
+    QStringList dids;
+
+    for (const auto& facet : post.mFacets)
+    {
+        for (const auto& feature : facet->mFeatures)
+        {
+            if (feature.mType == ATProto::AppBskyRichtext::Facet::Feature::Type::MENTION)
+            {
+                const auto& facetMention = std::get<ATProto::AppBskyRichtext::FacetMention::SharedPtr>(feature.mFeature);
+                dids.push_back(facetMention->mDid);
+            }
+        }
+    }
+
+    return dids;
+}
+
 std::vector<QString> RichTextMaster::getFacetTags(const AppBskyFeed::Record::Post& post)
 {
     std::vector<QString> tags;

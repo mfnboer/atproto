@@ -61,6 +61,8 @@ public:
     static void removeFacetsOverlappingWithEmbeddedLinks(
             const std::vector<ParsedMatch>& embeddedLinks,
             std::vector<ParsedMatch>& facets);
+
+    static QStringList getFacetMentionDids(const AppBskyFeed::Record::Post& post);
     static std::vector<QString> getFacetTags(const AppBskyFeed::Record::Post& post);
     static std::vector<QString> getFacetLinks(const AppBskyFeed::Record::Post& post);
 

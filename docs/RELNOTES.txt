@@ -1,3 +1,7 @@
+next
+====
+* Get mentions from facets
+
 5.0
 ===
 * Move network processing to a separate thread
