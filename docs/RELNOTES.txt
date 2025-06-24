@@ -1,5 +1,5 @@
-next
-====
+5.0.1
+=====
 * Get mentions from facets
 
 5.0
