@@ -90,10 +90,10 @@ public:
     static void addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
                                   const QString& title, const QString& description, Blob::SharedPtr blob = nullptr);
 
-    static void addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText);
-    void addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
+    static void addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText);
+    void addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, int width, int height, const QString& altText,
                         const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
-    void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
+    void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, int width, int height, const QString& altText,
                                 const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
 
     void sendInteractionShowMoreLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,

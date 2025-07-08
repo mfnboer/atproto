@@ -591,7 +591,7 @@ void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QStrin
     embed->mExternal->mThumb = std::move(blob);
 }
 
-void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, const QString& altText)
+void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText)
 {
     // Post duplication
     AppBskyEmbed::Video* embed = nullptr;
@@ -624,9 +624,17 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
 
     if (!altText.isEmpty())
         embed->mAlt = altText;
+
+    if (width > 0 && height > 0)
+    {
+        embed->mAspectRatio = std::make_shared<AppBskyEmbed::AspectRatio>();
+        embed->mAspectRatio->mWidth = width;
+        embed->mAspectRatio->mHeight = height;
+    }
 }
 
-void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, const QString& altText,
+void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus,
+                                int width, int height, const QString& altText,
                                 const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
 {
     switch (jobStatus.mState)
@@ -635,7 +643,7 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const
     {
         if (jobStatus.mBlob)
         {
-            addVideoToPost(*post, jobStatus.mBlob, altText);
+            addVideoToPost(*post, jobStatus.mBlob, width, height, altText);
 
             if (successCb)
                 successCb();
@@ -663,21 +671,21 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const
             progressCb(status, jobStatus.mProgress);
         }
 
-        QTimer::singleShot(1500, &mPresence, [this, post, jobId=jobStatus.mJobId, altText, successCb, errorCb, progressCb]{
-            checkVideoUploadStatus(post, jobId, altText, successCb, errorCb, progressCb); });
+        QTimer::singleShot(1500, &mPresence, [this, post, jobId=jobStatus.mJobId, width, height, altText, successCb, errorCb, progressCb]{
+            checkVideoUploadStatus(post, jobId, width, height, altText, successCb, errorCb, progressCb); });
         break;
     }
 }
 
-void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, const QString& altText,
+void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, int width, int height, const QString& altText,
                                         const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
 {
     mClient.getVideoJobStatus(jobId,
-        [this, presence=getPresence(), post, altText, successCb, errorCb, progressCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
+        [this, presence=getPresence(), post, width, height, altText, successCb, errorCb, progressCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
             if (!presence)
                 return;
 
-            addVideoToPost(post, *output->mJobStatus, altText, successCb, errorCb, progressCb);
+            addVideoToPost(post, *output->mJobStatus, width, height, altText, successCb, errorCb, progressCb);
         },
         [errorCb](const QString& err, const QString& msg){
             qDebug() << err << " - " << msg;

@@ -1,3 +1,7 @@
+next
+====
+* Set aspect ratio in video embed
+
 5.0.1
 =====
 * Get mentions from facets
