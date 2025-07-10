@@ -72,6 +72,8 @@ public:
 
     // app.bsky.notification
     using SuccessListNotificationsOutputCb = std::function<void(ATProto::AppBskyNotification::ListNotificationsOutput::SharedPtr)>;
+    using SuccessGetNotificationPreferencesOutputCb = std::function<void(ATProto::AppBskyNotification::GetPreferencesOutput::SharedPtr)>;
+    using SuccessListActivitySubscriptionsOutputCb = std::function<void(ATProto::AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr)>;
 
     // app.bsky.video
     using SuccessJobStatusOutputCb = std::function<void(ATProto::AppBskyVideo::JobStatusOutput::SharedPtr)>;
@@ -130,6 +132,8 @@ public:
 
         // app.bsky.notification
         SuccessListNotificationsOutputCb,
+        SuccessGetNotificationPreferencesOutputCb,
+        SuccessListActivitySubscriptionsOutputCb,
 
         // app.bsky.video
         SuccessJobStatusOutputCb,
@@ -208,6 +212,8 @@ signals:
 
     // app.bsky.notification
     void requestSuccessListNotificationsOutput(ATProto::AppBskyNotification::ListNotificationsOutput::SharedPtr, SuccessListNotificationsOutputCb);
+    void requestSuccessGetNotificationPreferencesOutput(ATProto::AppBskyNotification::GetPreferencesOutput::SharedPtr, SuccessGetNotificationPreferencesOutputCb);
+    void requestSuccessListActivitySubscriptionsOutput(ATProto::AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr, SuccessListActivitySubscriptionsOutputCb);
 
     // app.bsky.video
     void requestSuccessJobStatusOutput(ATProto::AppBskyVideo::JobStatusOutput::SharedPtr, SuccessJobStatusOutputCb);

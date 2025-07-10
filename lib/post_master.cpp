@@ -181,6 +181,7 @@ QString PostMaster::createPostgateUri(const QString postUri)
 }
 
 void PostMaster::repost(const QString& uri, const QString& cid,
+            const QString& viaUri, const QString& viaCid,
             const RepostSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
@@ -193,11 +194,17 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     repost.mSubject->mCid = cid;
     repost.mCreatedAt = QDateTime::currentDateTimeUtc();
 
+    if (!viaUri.isEmpty())
+    {
+        repost.mVia = std::make_shared<ComATProtoRepo::StrongRef>();
+        repost.mVia->mUri = viaUri;
+        repost.mVia->mCid = viaCid;
+    }
+
     const auto repostJson = repost.toJson();
     const QString& repo = mClient.getSession()->mDid;
-    const QString collection = repostJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, repostJson, true,
+    mClient.createRecord(repo, AppBskyFeed::Repost::TYPE, {}, repostJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -209,6 +216,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
 }
 
 void PostMaster::like(const QString& uri, const QString& cid,
+          const QString& viaUri, const QString& viaCid,
           const LikeSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
@@ -221,11 +229,17 @@ void PostMaster::like(const QString& uri, const QString& cid,
     like.mSubject->mCid = cid;
     like.mCreatedAt = QDateTime::currentDateTimeUtc();
 
+    if (!viaUri.isEmpty())
+    {
+        like.mVia = std::make_shared<ComATProtoRepo::StrongRef>();
+        like.mVia->mUri = viaUri;
+        like.mVia->mCid = viaCid;
+    }
+
     const auto likeJson = like.toJson();
     const QString& repo = mClient.getSession()->mDid;
-    const QString collection = likeJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, likeJson, true,
+    mClient.createRecord(repo, AppBskyFeed::Like::TYPE, {}, likeJson, true,
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

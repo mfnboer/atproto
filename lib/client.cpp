@@ -1224,9 +1224,12 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
             params.append({"reasons", reasonString});
     }
 
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
     const auto now = QDateTime::currentDateTimeUtc();
 
-    mXrpc->get("app.bsky.notification.listNotifications", params, {},
+    mXrpc->get("app.bsky.notification.listNotifications", params, httpHeaders,
         [this, now, successCb, updateSeen](AppBskyNotification::ListNotificationsOutput::SharedPtr output){
             qDebug() << "List notifications:" << output->mNotifications.size();
 
@@ -1253,6 +1256,99 @@ void Client::putNotificationPreferences(bool priority,
             qDebug() << "Put notification preferences:" << reply;
             if (successCb)
                 successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getNotificationPreferences(const NotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->get("app.bsky.notification.getPreferences", {}, {},
+        [successCb](AppBskyNotification::GetPreferencesOutput::SharedPtr output){
+            qDebug() << "Get notification preferences:" << output->mPreferences->mJson;
+            if (successCb)
+                successCb(output);
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::putNotificationPreferencesV2(const AppBskyNotification::Preferences& prefs,
+                                  const NotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument json;
+    QJsonObject paramsJson;
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::ChatPreference>(paramsJson, "chat", prefs.mChat);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "follow", prefs.mFollow);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "like", prefs.mLike);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "likeViaRepost", prefs.mLikeViaRepost);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "mention", prefs.mMention);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "quote", prefs.mQuote);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "reply", prefs.mReply);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "repost", prefs.mRepost);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "repostViaRepost", prefs.mRepost);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "starterpackJoined", prefs.mStarterpackJoined);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "subscribedPost", prefs.mSubscribedPost);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "unverified", prefs.mUnverified);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "verified", prefs.mVerified);
+    json.setObject(paramsJson);
+
+    mXrpc->post("app.bsky.notification.putPreferencesV2", json, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Put preferences V2 succeeded:" << reply;
+
+            try {
+                auto ouput = AppBskyNotification::GetPreferencesOutput::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::listActivitySubscriptions(std::optional<int> limit, const std::optional<QString>& cursor,
+                                       const ListActivitySubscriptionsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.notification.listActivitySubscriptions", params, httpHeaders,
+        [successCb](AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr output){
+            qDebug() << "listActivitySubscriptions succeeded:" << output->mSubscriptions.size();
+            if (successCb)
+                successCb(output);
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::putActivitySubscription(const QString& subject, const AppBskyNotification::ActivitySubscription& subscription,
+                             const ActivitySubscriptionSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonDocument json;
+    QJsonObject paramsJson;
+    paramsJson.insert("subject", subject);
+    paramsJson.insert("activitySubscription", subscription.toJson());
+    json.setObject(paramsJson);
+
+    mXrpc->post("app.bsky.notification.putActivitySubscription", json, {},
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Put activity subscription succeeded:" << reply;
+
+            try {
+                auto ouput = AppBskyNotification::SubjectActivitySubscription::fromJson(reply.object());
+                if (successCb)
+                    successCb(std::move(ouput));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
         failure(errorCb),
         authToken());

@@ -69,6 +69,9 @@ public:
     using PutRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
     using UnreadCountSuccessCb = std::function<void(int)>;
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::SharedPtr)>;
+    using NotificationPreferencesSuccessCb = std::function<void(AppBskyNotification::GetPreferencesOutput::SharedPtr)>;
+    using ListActivitySubscriptionsSuccessCb = std::function<void(AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr)>;
+    using ActivitySubscriptionSuccessCb = std::function<void(AppBskyNotification::SubjectActivitySubscription::SharedPtr)>;
     using UserPrefsSuccessCb = std::function<void(UserPreferences)>;
     using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::SharedPtr)>;
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
@@ -564,6 +567,42 @@ public:
 
     void putNotificationPreferences(bool priority,
                                     const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief app.bsky.notification.getPreferences
+     * @param successCb
+     * @param errorCb
+     */
+    void getNotificationPreferences(const NotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief app.bsky.notification.putPreferencesV2
+     * @param prefs only preferences that are set are update, nullptrs are skipped
+     * @param successCb
+     * @param errorCb
+     */
+    void putNotificationPreferencesV2(const AppBskyNotification::Preferences& prefs,
+                                      const NotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief app.bsky.notification.listActivitySubscriptions
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void listActivitySubscriptions(std::optional<int> limit, const std::optional<QString>& cursor,
+                                   const ListActivitySubscriptionsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief app.bsky.notification.putActivitySubscription
+     * @param subject DID
+     * @param subscription
+     * @param successCb
+     * @param errorCb
+     */
+    void putActivitySubscription(const QString& subject, const AppBskyNotification::ActivitySubscription& subscription,
+                                 const ActivitySubscriptionSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief registerPushNotifications

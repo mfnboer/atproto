@@ -9,7 +9,7 @@
 
 namespace ATProto::AppBskyGraph {
 
-// app.bsky.graph.getFollows/output
+// app.bsky.graph.getFollows#output
 struct GetFollowsOutput
 {
     AppBskyActor::ProfileView::SharedPtr mSubject;
@@ -20,7 +20,7 @@ struct GetFollowsOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.graph.getFollowers/output
+// app.bsky.graph.getFollowers#output
 struct GetFollowersOutput
 {
     AppBskyActor::ProfileView::SharedPtr mSubject;
@@ -31,7 +31,7 @@ struct GetFollowersOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.graph.getBlocks/output
+// app.bsky.graph.getBlocks#output
 struct GetBlocksOutput
 {
     AppBskyActor::ProfileViewList mBlocks;
@@ -41,7 +41,7 @@ struct GetBlocksOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.graph.getMutes/output
+// app.bsky.graph.getMutes#output
 struct GetMutesOutput
 {
     AppBskyActor::ProfileViewList mMutes;

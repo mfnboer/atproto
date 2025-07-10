@@ -435,6 +435,8 @@ ReasonRepost::SharedPtr ReasonRepost::fromJson(const QJsonObject& json)
     auto reason = std::make_shared<ReasonRepost>();
     XJsonObject xjson(json);
     reason->mBy = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("by");
+    reason->mUri = xjson.getOptionalString("uri");
+    reason->mCid = xjson.getOptionalString("cid");
     reason->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return reason;
 }
@@ -629,9 +631,10 @@ PostThread::SharedPtr PostThread::fromJson(const QJsonObject& json)
 QJsonObject Like::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.feed.like");
+    json.insert("$type", TYPE);
     json.insert("subject", mSubject->toJson());
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
 
@@ -641,15 +644,17 @@ Like::SharedPtr Like::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     like->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     like->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    like->mVia = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("via");
     return like;
 }
 
 QJsonObject Repost::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.feed.repost");
+    json.insert("$type", TYPE);
     json.insert("subject", mSubject->toJson());
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
 
@@ -659,6 +664,7 @@ Repost::SharedPtr Repost::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     repost->mSubject = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("subject");
     repost->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    repost->mVia = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("via");
     return repost;
 }
 

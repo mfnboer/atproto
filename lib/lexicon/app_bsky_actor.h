@@ -123,6 +123,7 @@ enum class AllowIncomingType
 AllowIncomingType stringToAllowIncomingType(const QString& str);
 QString allowIncomingTypeToString(AllowIncomingType allowIncoming);
 
+// app.bsky.actor.defs#profileAssociatedChat
 struct ProfileAssociatedChat
 {
     AppBskyActor::AllowIncomingType mAllowIncoming = AllowIncomingType::FOLLOWING;
@@ -130,6 +131,27 @@ struct ProfileAssociatedChat
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ProfileAssociatedChat>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#profileAssociatedActivitySubscription
+enum class AllowSubscriptionsType
+{
+    FOLLOWERS,
+    MUTUALS,
+    NONE
+};
+
+AllowSubscriptionsType stringToAllowSubscriptionsType(const QString& str);
+QString allowSubscriptionsTypeToString(AllowSubscriptionsType allowSubscriptions);
+
+struct ProfileAssociatedActivitySubscription
+{
+    AllowSubscriptionsType mAllowSubscriptions = AllowSubscriptionsType::FOLLOWERS;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ProfileAssociatedActivitySubscription>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
@@ -141,6 +163,7 @@ struct ProfileAssociated
     int mStarterPacks = 0;
     bool mLabeler = false;
     ProfileAssociatedChat::SharedPtr mChat; // optional
+    ProfileAssociatedActivitySubscription::SharedPtr mActivitySubscription; // optional
 
     QJsonObject toJson() const;
 
