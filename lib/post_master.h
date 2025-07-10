@@ -49,8 +49,10 @@ public:
                                  const std::vector<QString>& currentDetachedEmbeddingUris, bool detach,
                                  const EmbeddingDetachedCb& successCb, const ErrorCb& errorCb);
     void repost(const QString& uri, const QString& cid,
+                const QString& viaUri, const QString& viaCid,
                 const RepostSuccessCb& successCb, const ErrorCb& errorCb);
     void like(const QString& uri, const QString& cid,
+              const QString& viaUri, const QString& viaCid,
               const LikeSuccessCb& successCb, const ErrorCb& errorCb);
     void undo(const QString& uri,
               const Client::SuccessCb& successCb, const ErrorCb& errorCb);

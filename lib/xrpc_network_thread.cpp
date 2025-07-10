@@ -449,6 +449,19 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessListNotificationsOutput;
 };
 
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetNotificationPreferencesOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyNotification::GetPreferencesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetNotificationPreferencesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessListActivitySubscriptionsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyNotification::ListActivitySubscriptionsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessListActivitySubscriptionsOutput;
+};
 
 // app.bsky.video
 

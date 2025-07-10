@@ -6,6 +6,220 @@
 
 namespace ATProto::AppBskyNotification {
 
+QJsonObject Declaration::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("allowSubscriptions", AppBskyActor::allowSubscriptionsTypeToString(mAllowSubscriptions));
+    return json;
+}
+
+Declaration::SharedPtr Declaration::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto declaration = std::make_shared<Declaration>();
+    declaration->mAllowSubscriptions = AppBskyActor::stringToAllowSubscriptionsType(xjson.getRequiredString("allowSubscriptions"));
+    declaration->mJson = json;
+    return declaration;
+}
+
+ChatPreference::IncludeType ChatPreference::stringToIncludeType(const QString& str)
+{
+    static const std::unordered_map<QString, IncludeType> mapping = {
+        { "all", IncludeType::ALL },
+        { "accepted", IncludeType::ACCEPTED }
+    };
+
+    return stringToEnum(str, mapping, IncludeType::UNKNOWN);
+}
+
+QString ChatPreference::includeTypeToString(IncludeType include, const QString& unknown)
+{
+    static const std::unordered_map<IncludeType, QString> mapping = {
+        { IncludeType::ALL, "all" },
+        { IncludeType::ACCEPTED, "accepted" }
+    };
+
+    return enumToString(include, mapping, unknown);
+}
+
+QJsonObject ChatPreference::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("include", includeTypeToString(mInclude, mRawInclude));
+    json.insert("push", mPush);
+    return json;
+}
+
+ChatPreference::SharedPtr ChatPreference::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<ChatPreference>();
+    XJsonObject xjson(json);
+    pref->mRawInclude = xjson.getRequiredString("include");
+    pref->mInclude = stringToIncludeType(pref->mRawInclude);
+    pref->mPush = xjson.getRequiredBool("push");
+    pref->mJson = json;
+    return pref;
+}
+
+FilterablePreference::IncludeType FilterablePreference::stringToIncludeType(const QString& str)
+{
+    static const std::unordered_map<QString, IncludeType> mapping = {
+        { "all", IncludeType::ALL },
+        { "follows", IncludeType::FOLLOWS }
+    };
+
+    return stringToEnum(str, mapping, IncludeType::UNKNOWN);
+}
+
+QString FilterablePreference::includeTypeToString(IncludeType include, const QString& unknown)
+{
+    static const std::unordered_map<IncludeType, QString> mapping = {
+        { IncludeType::ALL, "all" },
+        { IncludeType::FOLLOWS, "follows" }
+    };
+
+    return enumToString(include, mapping, unknown);
+}
+
+QJsonObject FilterablePreference::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("include", includeTypeToString(mInclude, mRawInclude));
+    json.insert("list", mList);
+    json.insert("push", mPush);
+    return json;
+}
+
+FilterablePreference::SharedPtr FilterablePreference::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<FilterablePreference>();
+    XJsonObject xjson(json);
+    pref->mRawInclude = xjson.getRequiredString("include");
+    pref->mInclude = stringToIncludeType(pref->mRawInclude);
+    pref->mList = xjson.getRequiredBool("list");
+    pref->mPush = xjson.getRequiredBool("push");
+    pref->mJson = json;
+    return pref;
+}
+
+QJsonObject Preference::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("list", mList);
+    json.insert("push", mPush);
+    return json;
+}
+
+Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<Preference>();
+    XJsonObject xjson(json);
+    pref->mList = xjson.getRequiredBool("list");
+    pref->mPush = xjson.getRequiredBool("push");
+    pref->mJson = json;
+    return pref;
+}
+
+QJsonObject Preferences::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("chat", mChat->toJson());
+    json.insert("follow", mFollow->toJson());
+    json.insert("like", mLike->toJson());
+    json.insert("likeViaRepost", mLikeViaRepost->toJson());
+    json.insert("mention", mMention->toJson());
+    json.insert("quote", mQuote->toJson());
+    json.insert("reply", mReply->toJson());
+    json.insert("repost", mRepost->toJson());
+    json.insert("repostViaRepost", mRepostViaRepost->toJson());
+    json.insert("starterpackJoined", mStarterpackJoined->toJson());
+    json.insert("subscribedPost", mSubscribedPost->toJson());
+    json.insert("unverified", mUnverified->toJson());
+    json.insert("verified", mVerified->toJson());
+    return json;
+}
+
+Preferences::SharedPtr Preferences::fromJson(const QJsonObject& json)
+{
+    auto prefs = std::make_shared<Preferences>();
+    XJsonObject xjson(json);
+    prefs->mChat = xjson.getRequiredObject<ChatPreference>("chat");
+    prefs->mFollow = xjson.getRequiredObject<FilterablePreference>("follow");
+    prefs->mLike = xjson.getRequiredObject<FilterablePreference>("like");
+    prefs->mLikeViaRepost = xjson.getRequiredObject<FilterablePreference>("likeViaRepost");
+    prefs->mMention = xjson.getRequiredObject<FilterablePreference>("mention");
+    prefs->mQuote = xjson.getRequiredObject<FilterablePreference>("quote");
+    prefs->mReply = xjson.getRequiredObject<FilterablePreference>("reply");
+    prefs->mRepost = xjson.getRequiredObject<FilterablePreference>("repost");
+    prefs->mRepostViaRepost = xjson.getRequiredObject<FilterablePreference>("repostViaRepost");
+    prefs->mStarterpackJoined = xjson.getRequiredObject<Preference>("starterpackJoined");
+    prefs->mSubscribedPost = xjson.getRequiredObject<Preference>("subscribedPost");
+    prefs->mUnverified = xjson.getRequiredObject<Preference>("unverified");
+    prefs->mVerified = xjson.getRequiredObject<Preference>("verified");
+    prefs->mJson = json;
+    return prefs;
+}
+
+GetPreferencesOutput::SharedPtr GetPreferencesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetPreferencesOutput>();
+    XJsonObject xjson(json);
+    output->mPreferences = xjson.getRequiredObject<Preferences>("preferences");
+    return output;
+}
+
+QJsonObject ActivitySubscription::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("post", mPost);
+    json.insert("reply", mReply);
+    return json;
+}
+
+ActivitySubscription::SharedPtr ActivitySubscription::fromJson(const QJsonObject& json)
+{
+    auto subscription = std::make_shared<ActivitySubscription>();
+    XJsonObject xjson(json);
+    subscription->mPost = xjson.getRequiredBool("post");
+    subscription->mReply = xjson.getRequiredBool("reply");
+    subscription->mJson = json;
+    return subscription;
+}
+
+QJsonObject SubjectActivitySubscription::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("subject", mSubject);
+    json.insert("activitySubscription", mActivitySubscription->toJson());
+    return json;
+}
+
+SubjectActivitySubscription::SharedPtr SubjectActivitySubscription::fromJson(const QJsonObject& json)
+{
+    auto subject = std::make_shared<SubjectActivitySubscription>();
+    XJsonObject xjson(json);
+    subject->mSubject = xjson.getRequiredString("subject");
+    subject->mActivitySubscription = xjson.getRequiredObject<ActivitySubscription>("activitySubscription");
+    subject->mJson = json;
+    return subject;
+}
+
+ListActivitySubscriptionsOutput::SharedPtr ListActivitySubscriptionsOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<ListActivitySubscriptionsOutput>();
+    output->mSubscriptions = xjson.getRequiredVector<AppBskyActor::ProfileView>("subscriptions");
+    output->mCursor = xjson.getOptionalString("cursor");
+    return output;
+}
+
 NotificationReason stringToNotificationReason(const QString& str)
 {
     static const std::unordered_map<QString, NotificationReason> mapping = {
@@ -17,7 +231,10 @@ NotificationReason stringToNotificationReason(const QString& str)
         { "quote", NotificationReason::QUOTE },
         { "starterpack-joined", NotificationReason::STARTERPACK_JOINED },
         { "verified", NotificationReason::VERIFIED },
-        { "unverified", NotificationReason::UNVERIFIED }
+        { "unverified", NotificationReason::UNVERIFIED },
+        { "like-via-repost", NotificationReason::LIKE_VIA_REPOST },
+        { "repost-via-repost", NotificationReason::REPOST_VIA_REPOST },
+        { "subscribed-post", NotificationReason::SUBSCRIBED_POST }
     };
 
     const auto it = mapping.find(str);
@@ -39,6 +256,9 @@ QString notificationReasonToString(NotificationReason reason)
         { NotificationReason::STARTERPACK_JOINED, "starterpack-joined" },
         { NotificationReason::VERIFIED, "verified" },
         { NotificationReason::UNVERIFIED, "unverified" },
+        { NotificationReason::LIKE_VIA_REPOST, "like-via-repost" },
+        { NotificationReason::REPOST_VIA_REPOST, "repost-via-repost" },
+        { NotificationReason::SUBSCRIBED_POST, "subscribed-post" }
     };
 
     const auto it = mapping.find(reason);
@@ -71,9 +291,11 @@ Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
         switch (notification->mReason)
         {
         case NotificationReason::LIKE:
+        case NotificationReason::LIKE_VIA_REPOST:
             notification->mRecord = AppBskyFeed::Like::fromJson(recordJson);
             break;
         case NotificationReason::REPOST:
+        case NotificationReason::REPOST_VIA_REPOST:
             notification->mRecord = AppBskyFeed::Repost::fromJson(recordJson);
             break;
         case NotificationReason::FOLLOW:
@@ -82,6 +304,7 @@ Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
         case NotificationReason::MENTION:
         case NotificationReason::REPLY:
         case NotificationReason::QUOTE:
+        case NotificationReason::SUBSCRIBED_POST:
             notification->mRecord = AppBskyFeed::Record::Post::fromJson(recordJson);
             break;
         case ATProto::AppBskyNotification::NotificationReason::STARTERPACK_JOINED:

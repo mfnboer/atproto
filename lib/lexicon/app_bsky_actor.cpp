@@ -41,6 +41,28 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming)
     return it->second;
 }
 
+AllowSubscriptionsType stringToAllowSubscriptionsType(const QString& str)
+{
+    static const std::unordered_map<QString, AllowSubscriptionsType> mapping = {
+        { "followers", AllowSubscriptionsType::FOLLOWERS },
+        { "mutuals", AllowSubscriptionsType::MUTUALS },
+        { "none", AllowSubscriptionsType::NONE }
+    };
+
+    return stringToEnum(str, mapping, AllowSubscriptionsType::NONE);
+}
+
+QString allowSubscriptionsTypeToString(AllowSubscriptionsType allowSubscriptions)
+{
+    static const std::unordered_map<AllowSubscriptionsType, QString> mapping = {
+        { AllowSubscriptionsType::FOLLOWERS, "followers" },
+        { AllowSubscriptionsType::MUTUALS, "mutuals" },
+        { AllowSubscriptionsType::NONE, "none" }
+    };
+
+    return enumToString(allowSubscriptions, mapping, "none");
+}
+
 VerifiedStatus stringToVerifiedStatus(const QString& str)
 {
     static const std::unordered_map<QString, VerifiedStatus> mapping = {
@@ -213,6 +235,23 @@ ProfileAssociatedChat::SharedPtr ProfileAssociatedChat::fromJson(const QJsonObje
     return associated;
 }
 
+QJsonObject ProfileAssociatedActivitySubscription::toJson() const
+{
+    QJsonObject json;
+    json.insert("allowSubscriptions", allowSubscriptionsTypeToString(mAllowSubscriptions));
+
+    return json;
+}
+
+ProfileAssociatedActivitySubscription::SharedPtr ProfileAssociatedActivitySubscription::fromJson(const QJsonObject& json)
+{
+    auto associated = std::make_shared<ProfileAssociatedActivitySubscription>();
+    XJsonObject xjson(json);
+    const auto allowSubscriptions = xjson.getRequiredString("allowSubscriptions");
+    associated->mAllowSubscriptions = stringToAllowSubscriptionsType(allowSubscriptions);
+    return associated;
+}
+
 QJsonObject ProfileAssociated::toJson() const
 {
     QJsonObject json;
@@ -221,6 +260,7 @@ QJsonObject ProfileAssociated::toJson() const
     XJsonObject::insertOptionalJsonValue<int>(json, "starterPacks", mStarterPacks, 0);
     XJsonObject::insertOptionalJsonValue<bool>(json, "labeler", mLabeler, false);
     XJsonObject::insertOptionalJsonObject<ProfileAssociatedChat>(json, "chat", mChat);
+    XJsonObject::insertOptionalJsonObject<ProfileAssociatedActivitySubscription>(json, "activitySubscription", mActivitySubscription);
 
     return json;
 }
@@ -234,6 +274,7 @@ ProfileAssociated::SharedPtr ProfileAssociated::fromJson(const QJsonObject& json
     associated->mStarterPacks = xjson.getOptionalInt("starterPacks", 0);
     associated->mLabeler = xjson.getOptionalBool("labeler", false);
     associated->mChat = xjson.getOptionalObject<ProfileAssociatedChat>("chat");
+    associated->mActivitySubscription = xjson.getOptionalObject<ProfileAssociatedActivitySubscription>("activitySubscription");
 
     return associated;
 }

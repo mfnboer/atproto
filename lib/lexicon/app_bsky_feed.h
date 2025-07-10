@@ -185,6 +185,8 @@ struct ReplyRef
 struct ReasonRepost
 {
     AppBskyActor::ProfileViewBasic::SharedPtr mBy;
+    std::optional<QString> mUri; // at-uri
+    std::optional<QString> mCid;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;
@@ -270,11 +272,13 @@ struct Like
 {
     ComATProtoRepo::StrongRef::SharedPtr mSubject;
     QDateTime mCreatedAt;
+    ComATProtoRepo::StrongRef::SharedPtr mVia; // optional
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Like>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.like";
 };
 
 // app.bsky.feed.repost
@@ -282,11 +286,13 @@ struct Repost
 {
     ComATProtoRepo::StrongRef::SharedPtr mSubject;
     QDateTime mCreatedAt;
+    ComATProtoRepo::StrongRef::SharedPtr mVia; // optional
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Repost>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.repost";
 };
 
 // app.bsky.feed.getLikes#like

@@ -1,6 +1,8 @@
 next
 ====
 * Set aspect ratio in video embed
+* Notification preferences
+* Via-field for like and repost
 
 5.0.1
 =====
