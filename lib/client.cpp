@@ -1286,7 +1286,7 @@ void Client::putNotificationPreferencesV2(const AppBskyNotification::Preferences
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "quote", prefs.mQuote);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "reply", prefs.mReply);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "repost", prefs.mRepost);
-    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "repostViaRepost", prefs.mRepost);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "repostViaRepost", prefs.mRepostViaRepost);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "starterpackJoined", prefs.mStarterpackJoined);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "subscribedPost", prefs.mSubscribedPost);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "unverified", prefs.mUnverified);
