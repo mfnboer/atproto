@@ -99,6 +99,8 @@ qt_add_qml_module(libatproto
         SOURCES scoped_handle.cpp
         SOURCES time_monitor.h
         SOURCES time_monitor.cpp
+        SOURCES notification_master.h
+        SOURCES notification_master.cpp
 )
 
 if (NOT ANDROID)
