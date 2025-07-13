@@ -4,6 +4,7 @@
 #include "app_bsky_embed_include.h"
 #include "app_bsky_feed_include.h"
 #include "app_bsky_graph_include.h"
+#include "app_bsky_notification_include.h"
 #include "com_atproto_label.h"
 #include "com_atproto_repo.h"
 #include "lexicon.h"
@@ -80,6 +81,7 @@ struct ViewerState
     AppBskyGraph::ListViewBasic::SharedPtr mMutedByList;
     AppBskyGraph::ListViewBasic::SharedPtr mBlockingByList;
     KnownFollowers::SharedPtr mKnownFollowers;
+    AppBskyNotification::ActivitySubscription::SharedPtr mActivitySubscription;
 
     QJsonObject toJson() const;
 

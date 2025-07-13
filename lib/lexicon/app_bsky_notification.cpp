@@ -197,7 +197,7 @@ QJsonObject SubjectActivitySubscription::toJson() const
     QJsonObject json{mJson};
     json.insert("$type", TYPE);
     json.insert("subject", mSubject);
-    json.insert("activitySubscription", mActivitySubscription->toJson());
+    XJsonObject::insertOptionalJsonObject<ActivitySubscription>(json, "activitySubscription", mActivitySubscription);
     return json;
 }
 
@@ -206,7 +206,7 @@ SubjectActivitySubscription::SharedPtr SubjectActivitySubscription::fromJson(con
     auto subject = std::make_shared<SubjectActivitySubscription>();
     XJsonObject xjson(json);
     subject->mSubject = xjson.getRequiredString("subject");
-    subject->mActivitySubscription = xjson.getRequiredObject<ActivitySubscription>("activitySubscription");
+    subject->mActivitySubscription = xjson.getOptionalObject<ActivitySubscription>("activitySubscription");
     subject->mJson = json;
     return subject;
 }

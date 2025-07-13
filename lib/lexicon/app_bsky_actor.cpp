@@ -156,6 +156,7 @@ QJsonObject ViewerState::toJson() const
     XJsonObject::insertOptionalJsonObject<AppBskyGraph::ListViewBasic>(json, "mutedByList", mMutedByList);
     XJsonObject::insertOptionalJsonObject<AppBskyGraph::ListViewBasic>(json, "blockingByList", mBlockingByList);
     XJsonObject::insertOptionalJsonObject<KnownFollowers>(json, "knownFollowers", mKnownFollowers);
+    XJsonObject::insertOptionalJsonObject<AppBskyNotification::ActivitySubscription>(json, "activitySubscription", mActivitySubscription);
 
     return json;
 }
@@ -172,6 +173,7 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mMutedByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("mutedByList");
     viewerState->mBlockingByList = xjson.getOptionalObject<AppBskyGraph::ListViewBasic>("blockingByList");
     viewerState->mKnownFollowers = xjson.getOptionalObject<KnownFollowers>("knownFollowers");
+    viewerState->mActivitySubscription = xjson.getOptionalObject<AppBskyNotification::ActivitySubscription>("activitySubscription");
     return viewerState;
 }
 

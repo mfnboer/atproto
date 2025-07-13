@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "app_bsky_notification_include.h"
 #include "app_bsky_actor.h"
 #include "app_bsky_feed.h"
 #include "app_bsky_graph.h"
@@ -129,25 +130,14 @@ struct GetPreferencesOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.notification.defs#activitySubscription
-struct ActivitySubscription
-{
-    bool mPost;
-    bool mReply;
-    QJsonObject mJson;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<ActivitySubscription>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "app.bsky.notification.defs#activitySubscription";
-};
-
 // app.bsky.notification.defs#subjectActivitySubscription
 struct SubjectActivitySubscription
 {
     QString mSubject; // DID
-    ActivitySubscription::SharedPtr mActivitySubscription;
+
+    // NOTE: it is required in the spec, but optional in the reponse from putActivitySubscription
+    ActivitySubscription::SharedPtr mActivitySubscription; // optional
+
     QJsonObject mJson;
 
     QJsonObject toJson() const;
