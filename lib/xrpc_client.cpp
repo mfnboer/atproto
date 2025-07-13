@@ -88,6 +88,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     // app.bsky.notification
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessListNotificationsOutput, this, &Client::doCallback<NetworkThread::SuccessListNotificationsOutputCb, ATProto::AppBskyNotification::ListNotificationsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetNotificationPreferencesOutput, this, &Client::doCallback<NetworkThread::SuccessGetNotificationPreferencesOutputCb, ATProto::AppBskyNotification::GetPreferencesOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessListActivitySubscriptionsOutput, this, &Client::doCallback<NetworkThread::SuccessListActivitySubscriptionsOutputCb, ATProto::AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr>);
 
     // app.bsky.video
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessJobStatusOutput, this, &Client::doCallback<NetworkThread::SuccessJobStatusOutputCb, ATProto::AppBskyVideo::JobStatusOutput::SharedPtr>);
