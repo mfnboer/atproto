@@ -101,6 +101,7 @@ qt_add_qml_module(libatproto
         SOURCES time_monitor.cpp
         SOURCES notification_master.h
         SOURCES notification_master.cpp
+        SOURCES lexicon/app_bsky_notification_include.h
 )
 
 if (NOT ANDROID)
