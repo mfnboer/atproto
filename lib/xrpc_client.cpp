@@ -184,11 +184,24 @@ void Client::setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb,
             if (successCb)
                 successCb();
         },
-        [did, errorCb](int, const QString& error){
-            qWarning() << "Failed to set PDS:" << did << error;
+        [this, did, presence=getPresence(), successCb, errorCb](int errorCode, const QString& error){
+            if (!presence)
+                return;
 
-            if (errorCb)
-                errorCb(QString("Could not get PDS: %1").arg(did));
+            qWarning() << "Failed to set PDS:" << did << errorCode << error;
+
+            if (!mPDS.isEmpty())
+            {
+                qDebug() << "Initial point of contact:" << mPDS;
+
+                if (successCb)
+                    successCb();
+            }
+            else
+            {
+                if (errorCb)
+                    errorCb(QString("Could not get PDS: %1 %2, DID: %3").arg(errorCode).arg(error, did));
+            }
         });
 }
 
