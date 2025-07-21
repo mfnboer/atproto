@@ -1,3 +1,7 @@
+5.1.1
+=====
+* Fallback to default host when PDS resolution fails.
+
 5.1
 ===
 * Set aspect ratio in video embed
