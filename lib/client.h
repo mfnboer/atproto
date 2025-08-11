@@ -57,6 +57,7 @@ public:
     using GetMutesSuccessCb = std::function<void(AppBskyGraph::GetMutesOutput::SharedPtr)>;
     using GetListSuccessCb = std::function<void(AppBskyGraph::GetListOutput::SharedPtr)>;
     using GetListsSuccessCb = std::function<void(AppBskyGraph::GetListsOutput::SharedPtr)>;
+    using GetListsWithMembershipSuccessCb = std::function<void(AppBskyGraph::GetListsWithMembershipOutput::SharedPtr)>;
     using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::SharedPtr)>;
     using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
@@ -474,13 +475,28 @@ public:
     /**
      * @brief getLists Get a list of lists that belong to an actor.
      * @param actor handle or did
+     * @param purposes when empty all lists will be retrieved
      * @param limit min=1 default=50 max=100
      * @param cursor
      * @param successCb
      * @param errorCb
      */
-    void getLists(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
-                 const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+    void getLists(const QString& actor, const std::vector<AppBskyGraph::ListPurpose>& purposes,
+                  std::optional<int> limit, const std::optional<QString>& cursor,
+                  const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getListsWithMembership Get a list of the current user
+     * @param actor get list where this actor is a member
+     * @param purposes when empty all lists will be retrieved
+     * @param limit limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getListsWithMembership(const QString& actor, const std::vector<AppBskyGraph::ListPurpose>& purposes,
+                                std::optional<int> limit, const std::optional<QString>& cursor,
+                                const GetListsWithMembershipSuccessCb& successCb, const ErrorCb& errorCb);
 
     void muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
     void unmuteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);

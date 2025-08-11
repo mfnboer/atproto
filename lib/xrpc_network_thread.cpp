@@ -425,6 +425,13 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetListsWithMembershipOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::GetListsWithMembershipOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetListsWithMembershipOutput;
+};
+
+template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetStarterPackOutputCb>>>
 {
     using ReplyType = ATProto::AppBskyGraph::GetStarterPackOutput;

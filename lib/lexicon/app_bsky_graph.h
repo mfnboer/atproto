@@ -186,6 +186,27 @@ struct GetListsOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.getListsWithMembership#listWithMembership
+struct ListWithMembership
+{
+    ListView::SharedPtr mList; // required
+    ListItemView::SharedPtr mListItem; // optional
+
+    using SharedPtr = std::shared_ptr<ListWithMembership>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.graph.getListsWithMembership#output
+struct GetListsWithMembershipOutput
+{
+    std::optional<QString> mCursor;
+    ListWithMembership::List mListsWithMembership;
+
+    using SharedPtr = std::shared_ptr<GetListsWithMembershipOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.graph.starterpack#feedItem
 struct StarterPackFeedItem
 {

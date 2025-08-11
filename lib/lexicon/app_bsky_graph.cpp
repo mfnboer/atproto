@@ -302,6 +302,24 @@ GetListsOutput::SharedPtr GetListsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
+ListWithMembership::SharedPtr ListWithMembership::fromJson(const QJsonObject& json)
+{
+    auto list = std::make_shared<ListWithMembership>();
+    XJsonObject xjson(json);
+    list->mList = xjson.getRequiredObject<ListView>("list");
+    list->mListItem = xjson.getOptionalObject<ListItemView>("listItem");
+    return list;
+}
+
+GetListsWithMembershipOutput::SharedPtr GetListsWithMembershipOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetListsWithMembershipOutput>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mListsWithMembership = xjson.getRequiredVector<ListWithMembership>("listsWithMembership");
+    return output;
+}
+
 QJsonObject StarterPackFeedItem::toJson() const
 {
     QJsonObject json;

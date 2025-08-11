@@ -67,6 +67,7 @@ public:
     using SuccessGetMutesOutputCb = std::function<void(ATProto::AppBskyGraph::GetMutesOutput::SharedPtr)>;
     using SuccessGetListOutputCb = std::function<void(ATProto::AppBskyGraph::GetListOutput::SharedPtr)>;
     using SuccessGetListsOutputCb = std::function<void(ATProto::AppBskyGraph::GetListsOutput::SharedPtr)>;
+    using SuccessGetListsWithMembershipOutputCb = std::function<void(ATProto::AppBskyGraph::GetListsWithMembershipOutput::SharedPtr)>;
     using SuccessGetStarterPackOutputCb = std::function<void(ATProto::AppBskyGraph::GetStarterPackOutput::SharedPtr)>;
     using SuccessGetStarterPacksOutputCb = std::function<void(ATProto::AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
 
@@ -127,6 +128,7 @@ public:
         SuccessGetMutesOutputCb,
         SuccessGetListOutputCb,
         SuccessGetListsOutputCb,
+        SuccessGetListsWithMembershipOutputCb,
         SuccessGetStarterPackOutputCb,
         SuccessGetStarterPacksOutputCb,
 
@@ -207,6 +209,7 @@ signals:
     void requestSuccessGetMutesOutput(ATProto::AppBskyGraph::GetMutesOutput::SharedPtr, SuccessGetMutesOutputCb);
     void requestSuccessGetListOutput(ATProto::AppBskyGraph::GetListOutput::SharedPtr, SuccessGetListOutputCb);
     void requestSuccessGetListsOutput(ATProto::AppBskyGraph::GetListsOutput::SharedPtr, SuccessGetListsOutputCb);
+    void requestSuccessGetListsWithMembershipOutput(ATProto::AppBskyGraph::GetListsWithMembershipOutput::SharedPtr, SuccessGetListsWithMembershipOutputCb);
     void requestSuccessGetStarterPackOutput(ATProto::AppBskyGraph::GetStarterPackOutput::SharedPtr, SuccessGetStarterPackOutputCb);
     void requestSuccessGetStarterPacksOutput(ATProto::AppBskyGraph::GetStarterPacksOutput::SharedPtr, SuccessGetStarterPacksOutputCb);
 
