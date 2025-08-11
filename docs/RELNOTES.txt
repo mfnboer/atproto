@@ -1,3 +1,7 @@
+next
+====
+* List API improvements
+
 5.1.1
 =====
 * Fallback to default host when PDS resolution fails.

@@ -82,6 +82,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetMutesOutput, this, &Client::doCallback<NetworkThread::SuccessGetMutesOutputCb, ATProto::AppBskyGraph::GetMutesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetListOutput, this, &Client::doCallback<NetworkThread::SuccessGetListOutputCb, ATProto::AppBskyGraph::GetListOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetListsOutput, this, &Client::doCallback<NetworkThread::SuccessGetListsOutputCb, ATProto::AppBskyGraph::GetListsOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetListsWithMembershipOutput, this, &Client::doCallback<NetworkThread::SuccessGetListsWithMembershipOutputCb, ATProto::AppBskyGraph::GetListsWithMembershipOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetStarterPackOutput, this, &Client::doCallback<NetworkThread::SuccessGetStarterPackOutputCb, ATProto::AppBskyGraph::GetStarterPackOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetStarterPacksOutput, this, &Client::doCallback<NetworkThread::SuccessGetStarterPacksOutputCb, ATProto::AppBskyGraph::GetStarterPacksOutput::SharedPtr>);
 

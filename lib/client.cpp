@@ -1008,12 +1008,16 @@ void Client::getList(const QString& listUri, std::optional<int> limit, const std
         authToken());
 }
 
-void Client::getLists(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::getLists(const QString& actor, const std::vector<AppBskyGraph::ListPurpose>& purposes,
+                      std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetListsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"actor", actor}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+
+    for (const auto& purpose : purposes)
+        params.append({"purposes", AppBskyGraph::listPurposeToString(purpose)});
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -1021,6 +1025,31 @@ void Client::getLists(const QString& actor, std::optional<int> limit, const std:
     mXrpc->get("app.bsky.graph.getLists", params, httpHeaders,
         [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
             qDebug() << "getLists:" << output->mLists.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getListsWithMembership(const QString& actor, const std::vector<AppBskyGraph::ListPurpose>& purposes,
+                            std::optional<int> limit, const std::optional<QString>& cursor,
+                            const GetListsWithMembershipSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    for (const auto& purpose : purposes)
+        params.append({"purposes", AppBskyGraph::listPurposeToString(purpose)});
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getListsWithMembership", params, httpHeaders,
+        [successCb](AppBskyGraph::GetListsWithMembershipOutput::SharedPtr output){
+            qDebug() << "getListsWithMembership:" << output->mListsWithMembership.size();
 
             if (successCb)
                 successCb(std::move(output));
