@@ -60,6 +60,7 @@ public:
     using GetListsWithMembershipSuccessCb = std::function<void(AppBskyGraph::GetListsWithMembershipOutput::SharedPtr)>;
     using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::SharedPtr)>;
     using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
+    using GetStarterPacksWithMembershipSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
     using GetServiceAuthSuccessCb = std::function<void(ComATProtoServer::GetServiceAuthOutput::SharedPtr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::SharedPtr)>;
@@ -486,8 +487,8 @@ public:
                   const GetListsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief getListsWithMembership Get a list of the current user
-     * @param actor get list where this actor is a member
+     * @brief getListsWithMembership Get lists of the current user
+     * @param actor get membership information for this user
      * @param purposes when empty all lists will be retrieved
      * @param limit limit min=1 default=50 max=100
      * @param cursor
@@ -532,6 +533,18 @@ public:
      */
     void getStarterPacks(const std::vector<QString>& uris,
                          const GetStarterPacksSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getStarterPacksWithMembership Get starter packs of the current user
+     * @param actor get membership information for this user
+     * @param limit limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getStarterpacksWithMembership(const QString& actor,
+                                std::optional<int> limit, const std::optional<QString>& cursor,
+                                const GetStarterPacksWithMembershipSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getStarterPack

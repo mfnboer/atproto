@@ -257,7 +257,7 @@ struct StarterPackViewBasic
 };
 using StarterPackViewBasicList = std::vector<StarterPackViewBasic::SharedPtr>;
 
-// app.bsky.graph.getStarterPacks/output
+// app.bsky.graph.getStarterPacks#output
 struct GetStarterPacksOutput
 {
     StarterPackViewBasicList mStarterPacks;

@@ -1145,6 +1145,28 @@ void Client::getStarterPacks(const std::vector<QString>& uris,
         authToken());
 }
 
+void Client::getStarterpacksWithMembership(const QString& actor,
+                                   std::optional<int> limit, const std::optional<QString>& cursor,
+                                   const GetStarterPacksWithMembershipSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"actor", actor}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.graph.getStarterpacksWithMembership", params, httpHeaders,
+        [successCb](AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr output){
+            qDebug() << "getStarterPacksWithMembership:" << output->mStarterPacksWithMembership.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getStarterPack(const QString& starterPack, const GetStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params httpHeaders;
