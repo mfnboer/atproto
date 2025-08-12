@@ -85,6 +85,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetListsWithMembershipOutput, this, &Client::doCallback<NetworkThread::SuccessGetListsWithMembershipOutputCb, ATProto::AppBskyGraph::GetListsWithMembershipOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetStarterPackOutput, this, &Client::doCallback<NetworkThread::SuccessGetStarterPackOutputCb, ATProto::AppBskyGraph::GetStarterPackOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetStarterPacksOutput, this, &Client::doCallback<NetworkThread::SuccessGetStarterPacksOutputCb, ATProto::AppBskyGraph::GetStarterPacksOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetStarterPacksWithMembershipOutput, this, &Client::doCallback<NetworkThread::SuccessGetStarterPacksWithMembershipOutputCb, ATProto::AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr>);
 
     // app.bsky.notification
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessListNotificationsOutput, this, &Client::doCallback<NetworkThread::SuccessListNotificationsOutputCb, ATProto::AppBskyNotification::ListNotificationsOutput::SharedPtr>);

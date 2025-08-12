@@ -428,6 +428,24 @@ GetStarterPackOutput::SharedPtr GetStarterPackOutput::fromJson(const QJsonObject
     return output;
 }
 
+StarterPackWithMembership::SharedPtr StarterPackWithMembership::fromJson(const QJsonObject& json)
+{
+    auto starterPack = std::make_shared<StarterPackWithMembership>();
+    XJsonObject xjson(json);
+    starterPack->mStarterPack = xjson.getRequiredObject<StarterPackView>("starterPack");
+    starterPack->mListItem = xjson.getOptionalObject<ListItemView>("listItem");
+    return starterPack;
+}
+
+GetStarterPacksWithMembershipOutput::SharedPtr GetStarterPacksWithMembershipOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetStarterPacksWithMembershipOutput>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mStarterPacksWithMembership = xjson.getRequiredVector<StarterPackWithMembership>("starterPacksWithMembership");
+    return output;
+}
+
 QJsonObject Verification::toJson() const
 {
     QJsonObject json(mJson);
