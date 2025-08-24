@@ -1,5 +1,5 @@
-next
-====
+5.2
+===
 * List API improvements
 
 5.1.1
