@@ -1,6 +1,7 @@
 next
 ====
 * Retry request on unknown error
+* getTrends
 
 5.2
 ===

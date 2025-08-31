@@ -80,6 +80,7 @@ public:
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::SharedPtr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
     using GetTrendingTopicsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendingTopicsOutput::SharedPtr)>;
+    using GetTrendsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendsOutput::SharedPtr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
@@ -842,6 +843,14 @@ public:
      */
     void getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
                            const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getTrends
+     * @param limit min=1 default=10 max=25
+     * @param successCb
+     * @param errorCb
+     */
+    void getTrends(std::optional<int> limit, const GetTrendsSuccessCb& successCb, const ErrorCb& errorCb);
 
     // chat.bsky.convo
 

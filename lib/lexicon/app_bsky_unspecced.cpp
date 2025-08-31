@@ -34,4 +34,40 @@ GetTrendingTopicsOutput::SharedPtr GetTrendingTopicsOutput::fromJson(const QJson
     return output;
 }
 
+TrendStatus stringToTrendStatus(const QString& str)
+{
+    static const std::unordered_map<QString, TrendStatus> mapping = {
+        { "hot", TrendStatus::HOT }
+    };
+
+    return stringToEnum(str, mapping, TrendStatus::UNKNOWN);
+}
+
+TrendView::SharedPtr TrendView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_shared<TrendView>();
+    const XJsonObject xjson(json);
+    view->mTopic = xjson.getRequiredString("topic");
+    view->mDisplayName = xjson.getRequiredString("displayName");
+    view->mLink = xjson.getRequiredString("link");
+    view->mStartedAt = xjson.getRequiredDateTime("startedAt");
+    view->mPostCount = xjson.getRequiredInt("postCount");
+    view->mRawStatus = xjson.getOptionalString("status");
+
+    if (view->mRawStatus)
+        view->mStatus = stringToTrendStatus(*view->mRawStatus);
+
+    view->mCategory = xjson.getOptionalString("category");
+    view->mActors = xjson.getRequiredVector<AppBskyActor::ProfileViewBasic>("actors");
+    return view;
+}
+
+GetTrendsOutput::SharedPtr GetTrendsOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetTrendsOutput>();
+    const XJsonObject xjson(json);
+    output->mTrends = xjson.getRequiredVector<TrendView>("trends");
+    return output;
+}
+
 }
