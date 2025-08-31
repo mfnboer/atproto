@@ -1,3 +1,7 @@
+next
+====
+* Retry request on unknown error
+
 5.2
 ===
 * List API improvements

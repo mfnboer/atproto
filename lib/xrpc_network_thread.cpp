@@ -566,6 +566,8 @@ bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
 {
     switch (error)
     {
+    case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
+        qWarning() << "Retry on unknown error";
     case QNetworkReply::ContentReSendError:
     case QNetworkReply::RemoteHostClosedError:
         return true;
