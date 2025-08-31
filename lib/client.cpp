@@ -1896,6 +1896,30 @@ void Client::getTrendingTopics(const std::optional<QString>& viewer, std::option
         authToken());
 }
 
+void Client::getTrends(std::optional<int> limit, const GetTrendsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 25);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.unspecced.getTrends", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getTrends:" << reply;
+            try {
+                auto output = AppBskyUnspecced::GetTrendsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::acceptConvo(const QString& convoId,
                          const AcceptConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {

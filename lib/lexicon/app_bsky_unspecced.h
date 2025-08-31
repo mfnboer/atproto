@@ -17,7 +17,8 @@ struct GetPopularFeedGeneratorsOutput
 };
 
 // app.bsky.unspecced.defs#trendingTopic
-struct TrendingTopic {
+struct TrendingTopic
+{
     QString mTopic;
     std::optional<QString> mDisplayName;
     std::optional<QString> mDescription;
@@ -35,6 +36,41 @@ struct GetTrendingTopicsOutput
     TrendingTopic::List mSuggested;
 
     using SharedPtr = std::shared_ptr<GetTrendingTopicsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+enum class TrendStatus
+{
+    HOT,
+    UNKNOWN
+};
+
+TrendStatus stringToTrendStatus(const QString& str);
+
+// app.bsky.unspecced.defs#trendView
+struct TrendView
+{
+    QString mTopic;
+    QString mDisplayName;
+    QString mLink;
+    QDateTime mStartedAt;
+    std::optional<QString> mRawStatus;
+    TrendStatus mStatus = TrendStatus::UNKNOWN;
+    std::optional<QString> mCategory;
+    int mPostCount;
+    AppBskyActor::ProfileViewBasicList mActors;
+
+    using SharedPtr = std::shared_ptr<TrendView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.unspecced.getTrends#output
+struct GetTrendsOutput
+{
+    TrendView::List mTrends;
+
+    using SharedPtr = std::shared_ptr<GetTrendsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
