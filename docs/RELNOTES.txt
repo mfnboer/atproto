@@ -1,5 +1,6 @@
 next
 ====
+* Workaround for HTTP GOAWAY
 * Retry request on unknown error
 * getTrends
 
