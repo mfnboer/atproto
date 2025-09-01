@@ -125,10 +125,16 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     Q_ASSERT(reply);
     const auto errorCode = reply->error();
     const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString().trimmed();
-    qDebug() << "Reply:" << errorCode << "content:" << contentType;
+    qDebug() << "Reply:" << errorCode << "content:" << contentType << "errorHandled:" << *errorHandled;
     auto data = reply->readAll();
 
-    if (errorCode == QNetworkReply::NoError)
+    // WORK AROUND:
+    // Since Qt6.9.2 we sometimes get an Unknown error like this:
+    // 09-01 19:24:47.661 10707 10801 W qt.network.http2: 19:24:47.662 warning unknown'0 stream 7 error: "Received GOAWAY"
+    // 09-01 19:24:47.662 10707 10801 W qt.network.http2: 19:24:47.662 warning unknown'0 stream 7 finished with error: ""
+    // 09-01 19:24:47.662 10707 10792 I default : 19:24:47.662 info unknown'0 Network error: QNetworkReply::NoError "Unknown error"
+    // 09-01 19:24:47.662 10707 10792 W default : 19:24:47.663 warning unknown'0 Retry on unknown error
+    if (errorCode == QNetworkReply::NoError && !*errorHandled)
     {
         invokeCallback(std::move(successCb), errorCb, std::move(data), contentType);
     }
