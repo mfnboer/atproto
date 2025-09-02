@@ -57,7 +57,7 @@ struct TrendView
     std::optional<QString> mRawStatus;
     TrendStatus mStatus = TrendStatus::UNKNOWN;
     std::optional<QString> mCategory;
-    int mPostCount;
+    int mPostCount = 0;
     AppBskyActor::ProfileViewBasicList mActors;
 
     using SharedPtr = std::shared_ptr<TrendView>;

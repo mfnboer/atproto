@@ -108,6 +108,7 @@ public:
     static constexpr int MAX_URIS_GET_POSTS = 25;
     static constexpr int MAX_URIS_GET_STARTER_PACKS = 25;
     static constexpr int MAX_IDS_GET_PROFILES = 25;
+    static constexpr int MAX_TRENDS = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
     explicit Client(Xrpc::Client::Ptr&& xrpc);
