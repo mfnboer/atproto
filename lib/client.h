@@ -5,6 +5,7 @@
 #include "xjson.h"
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
+#include "lexicon/app_bsky_bookmark.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_labeler.h"
@@ -87,6 +88,7 @@ public:
     using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
     using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
+    using GetBookmarksSuccessCb = std::function<void(AppBskyBookmark::GetBookmarksOutput::SharedPtr)>;
 
     using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
     using AcceptConvoSuccessCb = std::function<void(ChatBskyConvo::AcceptConvoOutput::SharedPtr)>;
@@ -234,6 +236,34 @@ public:
     void getSuggestions(std::optional<int> limit, const std::optional<QString>& cursor,
                         const QStringList& acceptLanguages,
                         const GetSuggestionsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.bookmark
+    /**
+     * @brief createBookmark
+     * @param mUri at-uri of app.bsky.feed.post
+     * @param mCid cid of app.bsky.feed.post
+     * @param successCb
+     * @param errorCb
+     */
+    void createBookmark(QString mUri, QString mCid, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief deleteBookmark
+     * @param mUri at-uri of app.bsky.feed.post
+     * @param successCb
+     * @param errorCb
+     */
+    void deleteBookmark(QString mUri, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getBookmarks
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getBookmarks(std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetBookmarksSuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.labeler
     /**

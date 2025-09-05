@@ -60,6 +60,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetSuggestionsOutput, this, &Client::doCallback<NetworkThread::SuccessGetSuggestionsOutputCb, ATProto::AppBskyActor::GetSuggestionsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetSuggestedFollowsByActor, this, &Client::doCallback<NetworkThread::SuccessGetSuggestedFollowsByActorCb, ATProto::AppBskyActor::GetSuggestedFollowsByActor::SharedPtr>);
 
+    // app.bsky.bookmark
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetBookmarksOutput, this, &Client::doCallback<NetworkThread::SuccessGetBookmarksOutputCb, ATProto::AppBskyBookmark::GetBookmarksOutput::SharedPtr>);
+
     // app.bsky.labeler
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetServicesOutput, this, &Client::doCallback<NetworkThread::SuccessGetServicesOutputCb, ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr>);
 

@@ -186,7 +186,7 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
                 successCb();
         },
         failure(errorCb),
-        refreshToken());
+        authToken());
 }
 
 void Client::resumeSession(const ComATProtoServer::Session& session,
@@ -444,6 +444,57 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
     mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
         [successCb](AppBskyActor::GetSuggestionsOutput::SharedPtr output){
             qDebug() << "getSuggestions: ok";
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::createBookmark(QString mUri, QString mCid, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+
+    mXrpc->post("app.bsky.bookmark.createBookmark", QJsonDocument(json), {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Created bookmark reply:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::deleteBookmark(QString mUri, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+
+    mXrpc->post("app.bsky.bookmark.deleteBookmark", QJsonDocument(json), {},
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Deleted bookmark reply:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getBookmarks(std::optional<int> limit, const std::optional<QString>& cursor,
+                  const GetBookmarksSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.bookmark.getBookmarks", params, httpHeaders,
+        [successCb](AppBskyBookmark::GetBookmarksOutput::SharedPtr output){
+            qDebug() << "getBookmarks: ok";
             if (successCb)
                 successCb(std::move(output));
         },

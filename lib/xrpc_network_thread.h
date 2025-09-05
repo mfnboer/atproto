@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "lexicon/app_bsky_actor.h"
+#include "lexicon/app_bsky_bookmark.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_labeler.h"
@@ -44,6 +45,9 @@ public:
     using SuccessSearchActorsTypeaheadOutputCb = std::function<void(ATProto::AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
     using SuccessGetSuggestionsOutputCb = std::function<void(ATProto::AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using SuccessGetSuggestedFollowsByActorCb = std::function<void(ATProto::AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
+
+    // app.bsky.bookmark
+    using SuccessGetBookmarksOutputCb = std::function<void(ATProto::AppBskyBookmark::GetBookmarksOutput::SharedPtr)>;
 
     // app.bsky.labeler
     using SuccessGetServicesOutputCb = std::function<void(ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr)>;
@@ -106,6 +110,9 @@ public:
         SuccessSearchActorsTypeaheadOutputCb,
         SuccessGetSuggestionsOutputCb,
         SuccessGetSuggestedFollowsByActorCb,
+
+        // app.bsky.bookmark
+        SuccessGetBookmarksOutputCb,
 
         // app.bsky.labeler
         SuccessGetServicesOutputCb,
@@ -188,6 +195,9 @@ signals:
     void requestSuccessSearchActorsTypeaheadOutput(ATProto::AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr, SuccessSearchActorsTypeaheadOutputCb);
     void requestSuccessGetSuggestionsOutput(ATProto::AppBskyActor::GetSuggestionsOutput::SharedPtr, SuccessGetSuggestionsOutputCb);
     void requestSuccessGetSuggestedFollowsByActor(ATProto::AppBskyActor::GetSuggestedFollowsByActor::SharedPtr, SuccessGetSuggestedFollowsByActorCb);
+
+    // app.bsky.bookmark
+    void requestSuccessGetBookmarksOutput(ATProto::AppBskyBookmark::GetBookmarksOutput::SharedPtr, SuccessGetBookmarksOutputCb);
 
     // app.bsky.labeler
     void requestSuccessGetServicesOutput(ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr, SuccessGetServicesOutputCb);
