@@ -1,8 +1,10 @@
 next
 ====
+* Bookmarks
 * Workaround for HTTP GOAWAY
 * Retry request on unknown error
 * getTrends
+* Bug fix: use authToken, not refreshToken, for deleteSession
 
 5.2
 ===

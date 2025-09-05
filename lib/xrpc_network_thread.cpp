@@ -303,6 +303,16 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 
+// app.bsky.bookmark
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetBookmarksOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyBookmark::GetBookmarksOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetBookmarksOutput;
+};
+
+
 // app.bsky.labeler
 
 template<typename T>
