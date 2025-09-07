@@ -20,6 +20,7 @@ GetBookmarksOutput::SharedPtr GetBookmarksOutput::fromJson(const QJsonObject& js
     auto output = std::make_shared<GetBookmarksOutput>();
     const XJsonObject xjson(json);
     output->mBookmarks = xjson.getRequiredVector<BookmarkView>("bookmarks");
+    output->mCursor = xjson.getOptionalString("cursor");
     return output;
 }
 

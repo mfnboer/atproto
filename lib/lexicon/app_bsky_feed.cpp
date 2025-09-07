@@ -13,6 +13,7 @@ QJsonObject ViewerState::toJson() const
     QJsonObject json;
     XJsonObject::insertOptionalJsonValue(json, "repost", mRepost);
     XJsonObject::insertOptionalJsonValue(json, "like", mLike);
+    XJsonObject::insertOptionalJsonValue(json, "bookmarked", mBookmarked, false);
     XJsonObject::insertOptionalJsonValue(json, "threadMuted", mThreadMuted, false);
     XJsonObject::insertOptionalJsonValue(json, "replyDisabled", mReplyDisabled, false);
     XJsonObject::insertOptionalJsonValue(json, "embeddingDisabled", mEmbeddingDisabled,false);
@@ -26,6 +27,7 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     viewerState->mRepost = xjson.getOptionalString("repost");
     viewerState->mLike = xjson.getOptionalString("like");
+    viewerState->mBookmarked = xjson.getOptionalBool("bookmarked", false);
     viewerState->mThreadMuted = xjson.getOptionalBool("threadMuted", false);
     viewerState->mReplyDisabled = xjson.getOptionalBool("replyDisabled", false);
     viewerState->mEmbeddingDisabled = xjson.getOptionalBool("embeddingDisabled", false);
@@ -319,6 +321,7 @@ QJsonObject PostView::toJson() const
     XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "author", mAuthor);
     json.insert("record", XJsonObject::variantToJsonObject(mRecord));
     XJsonObject::insertOptionalJsonObject<AppBskyEmbed::EmbedView>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonValue(json, "bookmarkCount", mBookmarkCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "replyCount", mReplyCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "repostCount", mRepostCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
@@ -349,6 +352,7 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
         qWarning() << QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(postView->mRawRecordType);
     
     postView->mEmbed = xjson.getOptionalObject<AppBskyEmbed::EmbedView>("embed");
+    postView->mBookmarkCount = xjson.getOptionalInt("bookmarkCount", 0);
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);
     postView->mLikeCount = xjson.getOptionalInt("likeCount", 0);

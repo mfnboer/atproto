@@ -25,6 +25,7 @@ struct BookmarkView
 struct GetBookmarksOutput
 {
     BookmarkView::List mBookmarks;
+    std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetBookmarksOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

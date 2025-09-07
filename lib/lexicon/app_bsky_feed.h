@@ -16,6 +16,7 @@ struct ViewerState
 {
     std::optional<QString> mRepost;
     std::optional<QString> mLike;
+    bool mBookmarked = false;
     bool mThreadMuted = false;
     bool mReplyDisabled = false;
     bool mEmbeddingDisabled = false;
@@ -83,6 +84,7 @@ struct PostView
     RecordType mRecordType;
     QString mRawRecordType;
     AppBskyEmbed::EmbedView::SharedPtr mEmbed; // optional
+    int mBookmarkCount = 0;
     int mReplyCount = 0;
     int mRepostCount = 0;
     int mLikeCount = 0;
