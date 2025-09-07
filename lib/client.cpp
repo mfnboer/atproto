@@ -494,7 +494,7 @@ void Client::getBookmarks(std::optional<int> limit, const std::optional<QString>
 
     mXrpc->get("app.bsky.bookmark.getBookmarks", params, httpHeaders,
         [successCb](AppBskyBookmark::GetBookmarksOutput::SharedPtr output){
-            qDebug() << "getBookmarks: ok";
+            qDebug() << "getBookmarks, cursor:" << output->mCursor.value_or("");
             if (successCb)
                 successCb(std::move(output));
         },
