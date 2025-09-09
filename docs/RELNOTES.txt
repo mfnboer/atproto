@@ -1,5 +1,5 @@
-next
-====
+5.3
+===
 * Bookmarks
 * Workaround for HTTP GOAWAY
 * Retry request on unknown error
