@@ -655,7 +655,10 @@ void Client::getFeedGenerator(const QString& feed,
     qDebug() << "Get feed generator:" << feed;
     Xrpc::NetworkThread::Params params{{ "feed", feed }};
 
-    mXrpc->get("app.bsky.feed.getFeedGenerator", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getFeedGenerator", params, httpHeaders,
         [successCb](AppBskyFeed::GetFeedGeneratorOutput::SharedPtr feed){
             qDebug() << "getFeedGenerator:" << feed->mView->mDisplayName;
 
@@ -672,13 +675,16 @@ void Client::getFeedGenerators(const std::vector<QString>& feeds,
     qDebug() << "Get feed generators";
     Xrpc::NetworkThread::Params params;
 
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
     for (const auto& f : feeds)
     {
         qDebug() << f;
         params.append({"feeds", f});
     }
 
-    mXrpc->get("app.bsky.feed.getFeedGenerators", params, {},
+    mXrpc->get("app.bsky.feed.getFeedGenerators", params, httpHeaders,
         [successCb](AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr feed){
             qDebug() << "getFeedGenerators: ok";
 
@@ -696,7 +702,10 @@ void Client::getActorFeeds(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getActorFeeds", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.feed.getActorFeeds", params, httpHeaders,
         [successCb](AppBskyFeed::GetActorFeedsOutput::SharedPtr output){
             qDebug() << "getActorFeeds: ok";
 
@@ -1908,7 +1917,10 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
             qDebug() << "getPopularFeedGenerators:" << reply;
             try {
@@ -1919,6 +1931,26 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getSuggestedFeeds(std::optional<int> limit,
+                       const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 25);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.unspecced.getSuggestedFeeds", params, httpHeaders,
+        [successCb](AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr feed){
+            qDebug() << "getSuggestedFeeds: ok";
+
+            if (successCb)
+                successCb(std::move(feed));
         },
         failure(errorCb),
         authToken());
