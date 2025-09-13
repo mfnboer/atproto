@@ -1,3 +1,7 @@
+next
+====
+* getSuggestedFeeds
+
 5.3
 ===
 * Bookmarks

@@ -866,6 +866,15 @@ public:
                                   const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief getSuggestedFeeds
+     * @param limit min=1 default=10 max=25
+     * @param successCb
+     * @param errorCb
+     */
+    void getSuggestedFeeds(std::optional<int> limit,
+                           const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief getTrendingTopics
      * @param viewer DID of the account making the request (not included for public/unauthenticated queries). Used to boost followed accounts in ranking.
      * @param limit min=1 default=10 max=25
