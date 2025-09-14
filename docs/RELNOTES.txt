@@ -1,6 +1,7 @@
 next
 ====
 * getSuggestedFeeds
+* getSuggestedStarterPacks
 
 5.3
 ===

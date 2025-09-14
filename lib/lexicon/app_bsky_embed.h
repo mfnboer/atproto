@@ -79,6 +79,7 @@ struct StarterPackView
     QDateTime mIndexedAt;
 
     using SharedPtr = std::shared_ptr<StarterPackView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

@@ -74,4 +74,12 @@ struct GetTrendsOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+struct GetSuggestedStarterPacksOutput
+{
+    AppBskyGraph::StarterPackView::List mStarterPacks;
+
+    using SharedPtr = std::shared_ptr<GetSuggestedStarterPacksOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
