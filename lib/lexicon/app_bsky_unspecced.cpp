@@ -70,4 +70,12 @@ GetTrendsOutput::SharedPtr GetTrendsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
+GetSuggestedStarterPacksOutput::SharedPtr GetSuggestedStarterPacksOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetSuggestedStarterPacksOutput>();
+    const XJsonObject xjson(json);
+    output->mStarterPacks = xjson.getRequiredVector<AppBskyGraph::StarterPackView>("starterPacks");
+    return output;
+}
+
 }

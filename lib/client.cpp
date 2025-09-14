@@ -1956,6 +1956,26 @@ void Client::getSuggestedFeeds(std::optional<int> limit,
         authToken());
 }
 
+void Client::getSuggestedStarterPacks(std::optional<int> limit,
+                              const GetSuggestedStarterPacksCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 25);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+
+    mXrpc->get("app.bsky.unspecced.getSuggestedStarterPacks", params, httpHeaders,
+        [successCb](AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr output){
+            qDebug() << "getSuggestedStarterPacks: ok";
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
                        const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -1988,16 +2008,11 @@ void Client::getTrends(std::optional<int> limit, const GetTrendsSuccessCb& succe
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.unspecced.getTrends", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "getTrends:" << reply;
-            try {
-                auto output = AppBskyUnspecced::GetTrendsOutput::fromJson(reply.object());
+        [successCb, errorCb](AppBskyUnspecced::GetTrendsOutput::SharedPtr output){
+            qDebug() << "getTrends:" << output->mTrends.size();
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());

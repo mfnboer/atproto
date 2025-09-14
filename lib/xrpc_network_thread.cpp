@@ -493,6 +493,22 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessListActivitySubscriptionsOutput;
 };
 
+// app.bsky.unspecced
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetSuggestedStarterPacksCb>>>
+{
+    using ReplyType = ATProto::AppBskyUnspecced::GetSuggestedStarterPacksOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetSuggestedStarterPacks;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetTrendsCb>>>
+{
+    using ReplyType = ATProto::AppBskyUnspecced::GetTrendsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetTrends;
+};
+
 // app.bsky.video
 
 template<typename T>

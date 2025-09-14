@@ -7,6 +7,7 @@
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_labeler.h"
 #include "lexicon/app_bsky_notification.h"
+#include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
 #include "lexicon/com_atproto_identity.h"
@@ -81,6 +82,10 @@ public:
     using SuccessGetNotificationPreferencesOutputCb = std::function<void(ATProto::AppBskyNotification::GetPreferencesOutput::SharedPtr)>;
     using SuccessListActivitySubscriptionsOutputCb = std::function<void(ATProto::AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr)>;
 
+    //app.bsky.unspecced
+    using SuccessGetSuggestedStarterPacksCb = std::function<void(ATProto::AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr)>;
+    using SuccessGetTrendsCb = std::function<void(ATProto::AppBskyUnspecced::GetTrendsOutput::SharedPtr)>;
+
     // app.bsky.video
     using SuccessJobStatusOutputCb = std::function<void(ATProto::AppBskyVideo::JobStatusOutput::SharedPtr)>;
     using SuccessGetUploadLimitsOutputCb = std::function<void(ATProto::AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
@@ -145,6 +150,10 @@ public:
         SuccessListNotificationsOutputCb,
         SuccessGetNotificationPreferencesOutputCb,
         SuccessListActivitySubscriptionsOutputCb,
+
+        // app.bsky.unspecced
+        SuccessGetSuggestedStarterPacksCb,
+        SuccessGetTrendsCb,
 
         // app.bsky.video
         SuccessJobStatusOutputCb,
@@ -225,6 +234,10 @@ signals:
     void requestSuccessGetStarterPackOutput(ATProto::AppBskyGraph::GetStarterPackOutput::SharedPtr, SuccessGetStarterPackOutputCb);
     void requestSuccessGetStarterPacksOutput(ATProto::AppBskyGraph::GetStarterPacksOutput::SharedPtr, SuccessGetStarterPacksOutputCb);
     void requestSuccessGetStarterPacksWithMembershipOutput(ATProto::AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr, SuccessGetStarterPacksWithMembershipOutputCb);
+
+    // app.bsky.unspecced
+    void requestSuccessGetSuggestedStarterPacks(ATProto::AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr, SuccessGetSuggestedStarterPacksCb);
+    void requestSuccessGetTrends(ATProto::AppBskyUnspecced::GetTrendsOutput::SharedPtr, SuccessGetTrendsCb);
 
     // app.bsky.notification
     void requestSuccessListNotificationsOutput(ATProto::AppBskyNotification::ListNotificationsOutput::SharedPtr, SuccessListNotificationsOutputCb);

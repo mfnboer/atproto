@@ -95,6 +95,10 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetNotificationPreferencesOutput, this, &Client::doCallback<NetworkThread::SuccessGetNotificationPreferencesOutputCb, ATProto::AppBskyNotification::GetPreferencesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessListActivitySubscriptionsOutput, this, &Client::doCallback<NetworkThread::SuccessListActivitySubscriptionsOutputCb, ATProto::AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr>);
 
+    // app.bsky.unspecced
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetSuggestedStarterPacks, this, &Client::doCallback<NetworkThread::SuccessGetSuggestedStarterPacksCb, ATProto::AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetTrends, this, &Client::doCallback<NetworkThread::SuccessGetTrendsCb, ATProto::AppBskyUnspecced::GetTrendsOutput::SharedPtr>);
+
     // app.bsky.video
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessJobStatusOutput, this, &Client::doCallback<NetworkThread::SuccessJobStatusOutputCb, ATProto::AppBskyVideo::JobStatusOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetUploadLimitsOutput, this, &Client::doCallback<NetworkThread::SuccessGetUploadLimitsOutputCb, ATProto::AppBskyVideo::GetUploadLimitsOutput::SharedPtr>);

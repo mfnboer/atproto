@@ -82,6 +82,7 @@ public:
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
     using GetTrendingTopicsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendingTopicsOutput::SharedPtr)>;
     using GetTrendsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendsOutput::SharedPtr)>;
+    using GetSuggestedStarterPacksCb = std::function<void(AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
@@ -873,6 +874,15 @@ public:
      */
     void getSuggestedFeeds(std::optional<int> limit,
                            const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getSuggestedStarterPacks
+     * @param limit min=1 default=10 max=25
+     * @param successCb
+     * @param errorCb
+     */
+    void getSuggestedStarterPacks(std::optional<int> limit,
+                                  const GetSuggestedStarterPacksCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTrendingTopics
