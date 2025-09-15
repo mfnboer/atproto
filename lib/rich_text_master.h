@@ -10,7 +10,7 @@ namespace ATProto {
 class RichTextMaster : public Presence
 {
 public:
-    using FacetsResolvedCb = std::function<void(const QString& text, AppBskyRichtext::FacetList facets)>;
+    using FacetsResolvedCb = std::function<void(const QString& text, AppBskyRichtext::Facet::List facets)>;
     using HtmlCleanupFun = std::function<QString(const QString&)>;
 
     struct ParsedMatch
@@ -33,7 +33,7 @@ public:
     static QString getFormattedStarterPackDescription(const ATProto::AppBskyGraph::StarterPack& starterPack, const QString& linkColor);
     static QString getFormattedLabelerDescription(const ATProto::AppBskyLabeler::LabelerView& labeler, const QString& linkColor);
     static QString getFormattedMessageText(const ATProto::ChatBskyConvo::MessageView& msg, const QString& linkColor);
-    static std::vector<ParsedMatch> getEmbeddedLinks(const QString& text, const AppBskyRichtext::FacetList& facets);
+    static std::vector<ParsedMatch> getEmbeddedLinks(const QString& text, const AppBskyRichtext::Facet::List& facets);
     static QString linkiFy(const QString& text, const std::vector<ParsedMatch>& embeddedLinks, const QString& colorName);
     static QString normalizeText(const QString& text);
 

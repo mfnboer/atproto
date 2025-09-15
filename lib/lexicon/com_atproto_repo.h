@@ -36,16 +36,15 @@ struct Record
     QJsonObject mValue;
 
     using SharedPtr = std::shared_ptr<Record>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using RecordList = std::vector<Record::SharedPtr>;
 
 // com.atproto.repo.listRecords#output
 struct ListRecordsOutput
 {
     std::optional<QString> mCursor;
-    RecordList mRecords;
+    Record::List mRecords;
 
     using SharedPtr = std::shared_ptr<ListRecordsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

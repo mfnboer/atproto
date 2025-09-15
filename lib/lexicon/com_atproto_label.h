@@ -21,11 +21,11 @@ struct Label
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Label>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using LabelList = std::vector<Label::SharedPtr>;
-void getLabels(LabelList& labels, const QJsonObject& json);
+void getLabels(Label::List& labels, const QJsonObject& json);
 
 // com.atproto.label.defs#selfLabel
 struct SelfLabel
@@ -36,15 +36,14 @@ struct SelfLabel
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<SelfLabel>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using SelfLabelList = std::vector<SelfLabel::SharedPtr>;
 
 // com.atproto.label.defs#selfLabels
 struct SelfLabels
 {
-    SelfLabelList mValues; // max 10
+    SelfLabel::List mValues; // max 10
     QJsonObject mJson;
 
     QJsonObject toJson() const;
@@ -106,8 +105,8 @@ struct LabelValueDefinition
     LabelValueDefinitionStringsList mLocales;
 
     using SharedPtr = std::shared_ptr<LabelValueDefinition>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using LabelValueDefinitionList = std::vector<LabelValueDefinition::SharedPtr>;
 
 }

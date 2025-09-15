@@ -9,7 +9,7 @@ namespace ATProto::AppBskyUnspecced {
 // app.bsky.unspecced.getPopularFeedGenerators#output
 struct GetPopularFeedGeneratorsOutput
 {
-    AppBskyFeed::GeneratorViewList mFeeds;
+    AppBskyFeed::GeneratorView::List mFeeds;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetPopularFeedGeneratorsOutput>;
@@ -58,7 +58,7 @@ struct TrendView
     TrendStatus mStatus = TrendStatus::UNKNOWN;
     std::optional<QString> mCategory;
     int mPostCount = 0;
-    AppBskyActor::ProfileViewBasicList mActors;
+    AppBskyActor::ProfileViewBasic::List mActors;
 
     using SharedPtr = std::shared_ptr<TrendView>;
     using List = std::vector<SharedPtr>;

@@ -37,13 +37,14 @@ struct ListViewBasic
     ListPurpose mPurpose;
     QString mRawPurpose;
     std::optional<QString> mAvatar;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ListViewBasic>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

@@ -485,7 +485,7 @@ void PostMaster::createPost(const QString& text, const QString& language,
     RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
 
     mRichTextMaster.resolveFacets(text, facets, 0, true,
-        [post, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+        [post, cb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
             post->mText = richText;
             post->mFacets = std::move(resolvedFacets);
             cb(post);

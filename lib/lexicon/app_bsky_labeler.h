@@ -21,7 +21,7 @@ struct LabelerViewerState
 struct LabelerPolicies
 {
     std::vector<QString> mLabelValues; // com.atproto.label.defs#labelValue
-    ComATProtoLabel::LabelValueDefinitionList mLabelValueDefinitions;
+    ComATProtoLabel::LabelValueDefinition::List mLabelValueDefinitions;
 
     using SharedPtr = std::shared_ptr<LabelerPolicies>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -36,7 +36,7 @@ struct LabelerView
     int mLikeCount = 0;
     LabelerViewerState::SharedPtr mViewer; // optional
     QDateTime mIndexedAt;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
 
     QJsonObject toJson() const;
 
@@ -55,7 +55,7 @@ struct LabelerViewDetailed
     int mLikeCount = 0;
     LabelerViewerState::SharedPtr mViewer; // optional
     QDateTime mIndexedAt;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
 
     using SharedPtr = std::shared_ptr<LabelerViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -76,14 +76,14 @@ struct GetServicesOutputView
     QString mRawViewType;
 
     using SharedPtr = std::shared_ptr<GetServicesOutputView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using GetServicesOutputViewList = std::vector<GetServicesOutputView::SharedPtr>;
 
 // app.bsky.labeler.getServices#output
 struct GetServicesOutput
 {
-    GetServicesOutputViewList mViews;
+    GetServicesOutputView::List mViews;
 
     using SharedPtr = std::shared_ptr<GetServicesOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

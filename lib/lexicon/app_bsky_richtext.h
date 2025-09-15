@@ -77,9 +77,9 @@ struct Facet
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Facet>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using FacetList = std::vector<Facet::SharedPtr>;
 
 /**
  * @brief applyFacets Replace the links in the text by HTML href anchors
@@ -88,6 +88,6 @@ using FacetList = std::vector<Facet::SharedPtr>;
  * @param linkColor If provided a style element to set the color will be added to the href anchor
  * @return HTML version of the text with links in it
  */
-QString applyFacets(const QString& text, const FacetList& facets, const QString& linkColor = "", const std::set<QString>& emphasizeHashtags = {});
+QString applyFacets(const QString& text, const Facet::List& facets, const QString& linkColor = "", const std::set<QString>& emphasizeHashtags = {});
 
 }

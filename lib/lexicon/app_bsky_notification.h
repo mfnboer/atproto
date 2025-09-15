@@ -150,7 +150,7 @@ struct SubjectActivitySubscription
 // app.bsky.notification.listActivitySubscriptions#output
 struct ListActivitySubscriptionsOutput
 {
-    AppBskyActor::ProfileViewList mSubscriptions;
+    AppBskyActor::ProfileView::List mSubscriptions;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<ListActivitySubscriptionsOutput>;
@@ -196,19 +196,18 @@ struct Notification
     QString mRawRecordType;
     bool mIsRead;
     QDateTime mIndexedAt;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
 
     using SharedPtr = std::shared_ptr<Notification>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using NotificationList = std::vector<Notification::SharedPtr>;
 
 // app.bsky.notification.listNotifications#Output
 struct ListNotificationsOutput
 {
     std::optional<QString> mCursor;
-    NotificationList mNotifications;
+    Notification::List mNotifications;
     bool mPriority = false;
     std::optional<QDateTime> mSeenAt;
 

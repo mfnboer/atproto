@@ -334,7 +334,7 @@ Notification::SharedPtr Notification::fromJson(const QJsonObject& json)
     return notification;
 }
 
-static void getNotificationList(NotificationList& list, const QJsonObject& json)
+static void getNotificationList(Notification::List& list, const QJsonObject& json)
 {
     XJsonObject xjson(json);
 

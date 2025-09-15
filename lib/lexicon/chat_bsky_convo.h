@@ -26,7 +26,7 @@ struct MessageRef
 struct MessageInput
 {
     QString mText; // max 1000 graphemes, 10000 bytes
-    AppBskyRichtext::FacetList mFacets;
+    AppBskyRichtext::Facet::List mFacets;
     ATProto::AppBskyEmbed::Record::SharedPtr mEmbed; // optional
 
     QJsonObject toJson() const;
@@ -73,7 +73,7 @@ struct MessageView
     QString mId;
     QString mRev;
     QString mText; // max 1000 graphemes, 10000 bytes
-    AppBskyRichtext::FacetList mFacets;
+    AppBskyRichtext::Facet::List mFacets;
     ATProto::AppBskyEmbed::RecordView::SharedPtr mEmbed; // optional
     ReactionView::List mReactions;
     MessageViewSender::SharedPtr mSender; // required
@@ -124,7 +124,7 @@ struct ConvoView
 
     QString mId;
     QString mRev;
-    ChatBskyActor::ProfileViewBasicList mMembers;
+    ChatBskyActor::ProfileViewBasic::List mMembers;
     std::optional<MessageType> mLastMessage;
     std::optional<ReactionType> mLastReaction;
     bool mMuted = false;
@@ -133,10 +133,9 @@ struct ConvoView
     int mUnreadCount = 0;
 
     using SharedPtr = std::shared_ptr<ConvoView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ConvoViewList = std::vector<ConvoView::SharedPtr>;
 
 // chat.bsky.convo.defs#logBeginConvo
 struct LogBeginConvo
@@ -252,7 +251,7 @@ struct ConvoAvailabilityOuput
 struct ConvoListOutput
 {
     std::optional<QString> mCursor;
-    ConvoViewList mConvos;
+    ConvoView::List mConvos;
 
     using SharedPtr = std::shared_ptr<ConvoListOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

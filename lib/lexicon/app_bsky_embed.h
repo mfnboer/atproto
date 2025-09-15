@@ -42,11 +42,11 @@ struct GeneratorView {
     AppBskyActor::ProfileView::SharedPtr mCreator; // required
     QString mDisplayName;
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
-    AppBskyRichtext::FacetList mDescriptionFacets;
+    AppBskyRichtext::Facet::List mDescriptionFacets;
     std::optional<QString> mAvatar;
     int mLikeCount = 0;
     bool mAcceptsInteractions = false;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     GeneratorViewerState::SharedPtr mViewer; // optional
     std::optional<ContentMode> mContentMode;
     std::optional<QString> mRawContentMode;
@@ -55,9 +55,9 @@ struct GeneratorView {
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<GeneratorView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using GeneratorViewList = std::vector<GeneratorView::SharedPtr>;
 
 }
 
@@ -71,11 +71,11 @@ struct StarterPackView
     std::variant<StarterPack::SharedPtr> mRecord;
     AppBskyActor::ProfileViewBasic::SharedPtr mCreator;
     ListViewBasic::SharedPtr mList; // optional
-    ListItemViewList mListItemsSample;
-    AppBskyFeed::GeneratorViewList mFeeds;
+    ListItemView::List mListItemsSample;
+    AppBskyFeed::GeneratorView::List mFeeds;
     int mJoinedWeekCount = 0;
     int mJoinedAllTimeCount = 0;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     QDateTime mIndexedAt;
 
     using SharedPtr = std::shared_ptr<StarterPackView>;
@@ -139,15 +139,15 @@ struct Image
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Image>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr int MAX_BYTES = 1'000'000;
 };
-using ImageList = std::vector<Image::SharedPtr>;
 
 // app.bsky.embed.images
 struct Images
 {
-    ImageList mImages; // max 4
+    Image::List mImages; // max 4
 
     QJsonObject toJson() const;
 
@@ -168,14 +168,14 @@ struct ImagesViewImage
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ImagesViewImage>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using ImagesViewImageList = std::vector<ImagesViewImage::SharedPtr>;
 
 // app.bsky.embed.images#view
 struct ImagesView
 {
-    ImagesViewImageList mImages; // max length 4
+    ImagesViewImage::List mImages; // max length 4
 
     QJsonObject toJson() const;
 
@@ -193,17 +193,17 @@ struct VideoCaption
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<VideoCaption>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr int MAX_BYTES = 20'000;
     static constexpr char const* TYPE = "app.bsky.embed.video#caption";
 };
-using VideoCaptionList = std::vector<VideoCaption::SharedPtr>;
 
 // app.bsky.embed.video
 struct Video
 {
     Blob::SharedPtr mVideo; // mime: video/mp4
-    VideoCaptionList mCaptions;
+    VideoCaption::List mCaptions;
     std::optional<QString> mAlt; // max 1000 graphemes, 10,000 bytes
     AspectRatio::SharedPtr mAspectRatio; // optional
 
@@ -415,9 +415,9 @@ struct EmbedView
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<EmbedView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using EmbedViewList = std::vector<EmbedView::SharedPtr>;
 
 }
 
@@ -442,7 +442,7 @@ namespace Record {
 struct Post
 {
     QString mText; // max 300 graphemes, 3000 bytes
-    AppBskyRichtext::FacetList mFacets;
+    AppBskyRichtext::Facet::List mFacets;
     PostReplyRef::SharedPtr mReply; // optional
     ATProto::AppBskyEmbed::Embed::SharedPtr mEmbed; // optional
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
@@ -475,8 +475,8 @@ struct RecordViewRecord
                  AppBskyLabeler::LabelerView::SharedPtr> mValue;
     RecordType mValueType;
     QString mRawValueType;
-    ComATProtoLabel::LabelList mLabels;
-    EmbedViewList mEmbeds;
+    ComATProtoLabel::Label::List mLabels;
+    EmbedView::List mEmbeds;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;

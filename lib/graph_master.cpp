@@ -65,7 +65,7 @@ void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& n
     RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
 
     mRichTextMaster.resolveFacets(description, facets, 0, true,
-        [this, presence=getPresence(), list, rKey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+        [this, presence=getPresence(), list, rKey, successCb, errorCb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
             if (!presence)
                 return;
 
@@ -151,7 +151,7 @@ void GraphMaster::updateList(AppBskyGraph::List::SharedPtr list, const QString& 
     mRKeyListMap[rkey] = std::move(list);
 
     mRichTextMaster.resolveFacets(description, facets, 0, true,
-        [this, presence=getPresence(), rkey, successCb, errorCb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+        [this, presence=getPresence(), rkey, successCb, errorCb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
             if (!presence)
                 return;
 

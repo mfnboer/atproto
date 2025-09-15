@@ -65,7 +65,7 @@ void ChatMaster::createMessage(const QString& text, const std::vector<RichTextMa
     RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
 
     mRichTextMaster.resolveFacets(text, facets, 0, false,
-        [message, cb](const QString& richText, AppBskyRichtext::FacetList resolvedFacets){
+        [message, cb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
             message->mText = richText;
             message->mFacets = std::move(resolvedFacets);
             cb(message);

@@ -182,7 +182,7 @@ struct ProfileViewBasic
     std::optional<QString> mAvatar; // URL
     ProfileAssociated::SharedPtr mAssociated; // optional
     ViewerState::SharedPtr mViewer; // optional
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     std::optional<QDateTime> mCreatedAt;
     VerificationState::SharedPtr mVerification; // optional
     StatusView::SharedPtr mStatus; // optional
@@ -190,10 +190,9 @@ struct ProfileViewBasic
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ProfileViewBasic>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ProfileViewBasicList = std::vector<ProfileViewBasic::SharedPtr>;
 
 // app.bsky.actor.defs#profileView
 struct ProfileView
@@ -207,17 +206,16 @@ struct ProfileView
     std::optional<QDateTime> mIndexedAt;
     std::optional<QDateTime> mCreatedAt;
     ViewerState::SharedPtr mViewer; // optional
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     VerificationState::SharedPtr mVerification; // optional
     StatusView::SharedPtr mStatus; // optional
 
     QJsonObject toJson() const; // partial serialization
 
     using SharedPtr = std::shared_ptr<ProfileView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ProfileViewList = std::vector<ProfileView::SharedPtr>;
 
 // app.bsky.actor.defs#profileViewDetailed
 struct ProfileViewDetailed
@@ -235,7 +233,7 @@ struct ProfileViewDetailed
     std::optional<QDateTime> mIndexedAt;
     std::optional<QDateTime> mCreatedAt;
     ViewerState::SharedPtr mViewer; // optional
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     ComATProtoRepo::StrongRef::SharedPtr mPinnedPost; // optional
     VerificationState::SharedPtr mVerification; // optional
     StatusView::SharedPtr mStatus; // optional
@@ -531,15 +529,14 @@ struct Preference
     QString mRawType;  
 
     using SharedPtr = std::shared_ptr<Preference>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using PreferenceList = std::vector<Preference::SharedPtr>;
 
 // app.bsky.actor.getPreferences#output
 struct GetPreferencesOutput
 {
-    PreferenceList mPreferences;
+    Preference::List mPreferences;
 
     QJsonObject toJson() const;
 
@@ -551,7 +548,7 @@ struct GetPreferencesOutput
 struct SearchActorsOutput
 {
     std::optional<QString> mCursor;
-    ProfileViewList mActors;
+    ProfileView::List mActors;
 
     using SharedPtr = std::shared_ptr<SearchActorsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -560,7 +557,7 @@ struct SearchActorsOutput
 // app.bsky.actor.searchActorsTypeahead#output
 struct SearchActorsTypeaheadOutput
 {
-    ProfileViewBasicList mActors;
+    ProfileViewBasic::List mActors;
 
     using SharedPtr = std::shared_ptr<SearchActorsTypeaheadOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -570,7 +567,7 @@ struct SearchActorsTypeaheadOutput
 struct GetSuggestionsOutput
 {
     std::optional<QString> mCursor;
-    ProfileViewList mActors;
+    ProfileView::List mActors;
 
     using SharedPtr = std::shared_ptr<GetSuggestionsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -578,7 +575,7 @@ struct GetSuggestionsOutput
 
 struct GetSuggestedFollowsByActor
 {
-    ProfileViewList mSuggestions;
+    ProfileView::List mSuggestions;
 
     using SharedPtr = std::shared_ptr<GetSuggestedFollowsByActor>;
     static SharedPtr fromJson(const QJsonObject& json);
