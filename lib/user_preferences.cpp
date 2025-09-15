@@ -4,12 +4,12 @@
 
 namespace ATProto {
 
-UserPreferences::UserPreferences(const AppBskyActor::PreferenceList& preferences)
+UserPreferences::UserPreferences(const AppBskyActor::Preference::List& preferences)
 {
     setPrefs(preferences);
 }
 
-void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
+void UserPreferences::setPrefs(const AppBskyActor::Preference::List& preferences)
 {
     for (const auto& pref : preferences)
     {
@@ -100,10 +100,10 @@ std::unordered_set<QString> UserPreferences::getLabelerDids() const
     return dids;
 }
 
-AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
+AppBskyActor::Preference::List UserPreferences::toPreferenceList() const
 {
     AppBskyActor::Preference::SharedPtr pref;
-    AppBskyActor::PreferenceList preferences;
+    AppBskyActor::Preference::List preferences;
 
     auto adultContentPref = std::make_shared<AppBskyActor::AdultContentPref>();
     adultContentPref->mEnabled = mAdultContent;

@@ -66,7 +66,7 @@ struct ThreadgateView
     std::optional<QString> mCid;
     Threadgate::SharedPtr mRecord; // Can be nullptr when other record types get spec'd
     QString mRawRecordType;
-    AppBskyGraph::ListViewBasicList mLists;
+    AppBskyGraph::ListViewBasic::List mLists;
 
     QJsonObject toJson() const;
 
@@ -91,7 +91,7 @@ struct PostView
     int mQuoteCount = 0;
     QDateTime mIndexedAt;
     ViewerState::SharedPtr mViewer;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     ThreadgateView::SharedPtr mThreadgate; // optional
 
     QJsonObject toJson() const;
@@ -219,10 +219,11 @@ struct FeedViewPost
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<FeedViewPost>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-using PostFeed = std::vector<FeedViewPost::SharedPtr>;
+using PostFeed = FeedViewPost::List;
 
 // app.bsky.feed.getAuthorFeed#output
 // app.bsky.feed.getTimeline#ouput
@@ -352,7 +353,7 @@ struct GetRepostedByOutput
 {
     QString mUri;
     std::optional<QString> mCid;
-    AppBskyActor::ProfileViewList mRepostedBy;
+    AppBskyActor::ProfileView::List mRepostedBy;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetRepostedByOutput>;
@@ -382,7 +383,7 @@ struct GetFeedGeneratorOutput
 
 struct GetFeedGeneratorsOutput
 {
-    GeneratorViewList mFeeds;
+    GeneratorView::List mFeeds;
 
     using SharedPtr = std::shared_ptr<GetFeedGeneratorsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -390,7 +391,7 @@ struct GetFeedGeneratorsOutput
 
 struct GetActorFeedsOutput
 {
-    GeneratorViewList mFeeds;
+    GeneratorView::List mFeeds;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetActorFeedsOutput>;
@@ -425,8 +426,7 @@ struct Interaction
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<Interaction>;
+    using List = std::vector<SharedPtr>;
 };
-
-using InteractionList = std::vector<Interaction::SharedPtr>;
 
 }

@@ -449,7 +449,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void sendInteractions(const AppBskyFeed::InteractionList& interactions, const QString& feedDid,
+    void sendInteractions(const AppBskyFeed::Interaction::List& interactions, const QString& feedDid,
                           const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.graph

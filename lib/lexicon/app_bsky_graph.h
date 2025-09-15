@@ -13,7 +13,7 @@ namespace ATProto::AppBskyGraph {
 struct GetFollowsOutput
 {
     AppBskyActor::ProfileView::SharedPtr mSubject;
-    AppBskyActor::ProfileViewList mFollows;
+    AppBskyActor::ProfileView::List mFollows;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetFollowsOutput>;
@@ -24,7 +24,7 @@ struct GetFollowsOutput
 struct GetFollowersOutput
 {
     AppBskyActor::ProfileView::SharedPtr mSubject;
-    AppBskyActor::ProfileViewList mFollowers;
+    AppBskyActor::ProfileView::List mFollowers;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetFollowersOutput>;
@@ -34,7 +34,7 @@ struct GetFollowersOutput
 // app.bsky.graph.getBlocks#output
 struct GetBlocksOutput
 {
-    AppBskyActor::ProfileViewList mBlocks;
+    AppBskyActor::ProfileView::List mBlocks;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetBlocksOutput>;
@@ -44,7 +44,7 @@ struct GetBlocksOutput
 // app.bsky.graph.getMutes#output
 struct GetMutesOutput
 {
-    AppBskyActor::ProfileViewList mMutes;
+    AppBskyActor::ProfileView::List mMutes;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetMutesOutput>;
@@ -80,8 +80,6 @@ struct Block
 ListPurpose stringToListPurpose(const QString& str);
 QString listPurposeToString(ListPurpose purpose);
 
-using ListViewBasicList = std::vector<ListViewBasic::SharedPtr>;
-
 // app.bsky.graph.defs#listView
 struct ListView
 {
@@ -92,19 +90,18 @@ struct ListView
     ListPurpose mPurpose;
     QString mRawPurpose;
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
-    AppBskyRichtext::FacetList mDescriptionFacets;
+    AppBskyRichtext::Facet::List mDescriptionFacets;
     std::optional<QString> mAvatar;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ListView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ListViewList = std::vector<ListView::SharedPtr>;
 
 // app.bsky.graph.defs#listItemView
 struct ListItemView
@@ -113,10 +110,9 @@ struct ListItemView
     AppBskyActor::ProfileView::SharedPtr mSubject; // required
 
     using SharedPtr = std::shared_ptr<ListItemView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ListItemViewList = std::vector<ListItemView::SharedPtr>;
 
 // app.bsky.graph.list
 struct List
@@ -125,7 +121,7 @@ struct List
     QString mRawPurpose;
     QString mName;
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
-    AppBskyRichtext::FacetList mDescriptionFacets;
+    AppBskyRichtext::Facet::List mDescriptionFacets;
     Blob::SharedPtr mAvatar; // optional
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     QDateTime mCreatedAt;
@@ -170,7 +166,7 @@ struct GetListOutput
 {
     std::optional<QString> mCursor;
     ListView::SharedPtr mList; // required
-    ListItemViewList mItems;
+    ListItemView::List mItems;
 
     using SharedPtr = std::shared_ptr<GetListOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -180,7 +176,7 @@ struct GetListOutput
 struct GetListsOutput
 {
     std::optional<QString> mCursor;
-    ListViewList mLists;
+    ListView::List mLists;
 
     using SharedPtr = std::shared_ptr<GetListsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -215,18 +211,18 @@ struct StarterPackFeedItem
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StarterPackFeedItem>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using StarterPackFeedItemList = std::vector<StarterPackFeedItem::SharedPtr>;
 
 // app.bsky.graph.starterpack
 struct StarterPack
 {
     QString mName; // max_graphemes=50 max_bytes=500 min_bytes=1
     std::optional<QString> mDescription; // max_graphemes=300 max_bytes=3000
-    AppBskyRichtext::FacetList mDescriptionFacets;
+    AppBskyRichtext::Facet::List mDescriptionFacets;
     QString mList; // at-uri
-    StarterPackFeedItemList mFeeds;
+    StarterPackFeedItem::List mFeeds;
     QDateTime mCreatedAt;
 
     QJsonObject toJson() const;
@@ -246,21 +242,21 @@ struct StarterPackViewBasic
     int mListItemCount = 0;
     int mJoinedWeekCount = 0;
     int mJoinedAllTimeCount = 0;
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StarterPackViewBasic>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.graph.defs#starterPackViewBasic";
 };
-using StarterPackViewBasicList = std::vector<StarterPackViewBasic::SharedPtr>;
 
 // app.bsky.graph.getStarterPacks#output
 struct GetStarterPacksOutput
 {
-    StarterPackViewBasicList mStarterPacks;
+    StarterPackViewBasic::List mStarterPacks;
     std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetStarterPacksOutput>;

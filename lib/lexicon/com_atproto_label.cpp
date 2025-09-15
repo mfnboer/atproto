@@ -35,7 +35,7 @@ Label::SharedPtr Label::fromJson(const QJsonObject& json)
     return label;
 }
 
-void getLabels(LabelList& labels, const QJsonObject& json)
+void getLabels(Label::List& labels, const QJsonObject& json)
 {
     XJsonObject xjson(json);
     labels = xjson.getOptionalVector<Label>("labels");

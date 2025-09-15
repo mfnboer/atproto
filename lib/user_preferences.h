@@ -20,7 +20,7 @@ public:
     using VerificationPrefs = AppBskyActor::VerificationPrefs;
 
     UserPreferences() = default;
-    explicit UserPreferences(const AppBskyActor::PreferenceList& preferences);
+    explicit UserPreferences(const AppBskyActor::Preference::List& preferences);
 
     std::optional<QDateTime> getBirthDate() const { return mBirthDate; }
 
@@ -52,10 +52,10 @@ public:
     const VerificationPrefs& getVerificationPrefs() const { return mVerificationPrefs; }
     void setVerificationPrefs(const AppBskyActor::VerificationPrefs& pref) { mVerificationPrefs = pref; }
 
-    AppBskyActor::PreferenceList toPreferenceList() const;
+    AppBskyActor::Preference::List toPreferenceList() const;
 
 private:
-    void setPrefs(const AppBskyActor::PreferenceList& preferences);
+    void setPrefs(const AppBskyActor::Preference::List& preferences);
 
     std::optional<QDateTime> mBirthDate;
 

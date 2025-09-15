@@ -27,13 +27,12 @@ struct ProfileViewBasic
     std::optional<QString> mAvatar; // URL
     AppBskyActor::ProfileAssociated::SharedPtr mAssociated; // optional
     AppBskyActor::ViewerState::SharedPtr mViewer; // optional
-    ComATProtoLabel::LabelList mLabels;
+    ComATProtoLabel::Label::List mLabels;
     bool mChatDisabled = false;
 
     using SharedPtr = std::shared_ptr<ProfileViewBasic>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-
-using ProfileViewBasicList = std::vector<ProfileViewBasic::SharedPtr>;
 
 }

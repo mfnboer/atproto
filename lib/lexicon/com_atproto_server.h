@@ -45,9 +45,9 @@ struct InviteCodeUse
     QDateTime mUsedAt;
 
     using SharedPtr = std::shared_ptr<InviteCodeUse>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using InviteCodeUseList = std::vector<InviteCodeUse::SharedPtr>;
 
 // com.atproto.server.defs#inviteCode
 struct InviteCode
@@ -58,17 +58,17 @@ struct InviteCode
     QString mForAccount;
     QString mCreatedBy;
     QDateTime mCreatedAt;
-    InviteCodeUseList mUses;
+    InviteCodeUse::List mUses;
 
     using SharedPtr = std::shared_ptr<InviteCode>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
-using InviteCodeList = std::vector<InviteCode::SharedPtr>;
 
 // com.atproto.server.getAccountInviteCodes#ouput
 struct GetAccountInviteCodesOutput
 {
-    InviteCodeList mCodes;
+    InviteCode::List mCodes;
 
     using SharedPtr = std::shared_ptr<GetAccountInviteCodesOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

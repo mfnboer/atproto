@@ -114,7 +114,7 @@ static int convertUtf8IndexToIndex(int utf8Index, const QByteArray& utf8Bytes)
     return str.length();
 }
 
-std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const QString& text, const AppBskyRichtext::FacetList& facets)
+std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const QString& text, const AppBskyRichtext::Facet::List& facets)
 {
     const auto& bytes = text.toUtf8();
     std::vector<RichTextMaster::ParsedMatch> embeddedLinks;
@@ -325,7 +325,7 @@ void RichTextMaster::addFacets(const QString& text, const std::vector<ParsedMatc
                const FacetsResolvedCb& cb)
 {
     int pos = 0;
-    AppBskyRichtext::FacetList resolvedFacets;
+    AppBskyRichtext::Facet::List resolvedFacets;
     QString shortenedText;
 
     for (const auto& f : facets)
