@@ -119,13 +119,14 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
             cb(std::move(error), std::move(json));
         });
 
-    mNetworkThread->start();
-
     connect(this, &Client::postDataToNetwork, mNetworkThread.get(), &NetworkThread::postData, Qt::QueuedConnection);
     connect(this, &Client::postJsonToNetwork, mNetworkThread.get(), &NetworkThread::postJson, Qt::QueuedConnection);
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
     connect(this, &Client::pdsChanged, mNetworkThread.get(), &NetworkThread::setPDS, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
+
+    qDebug() << "Start network thread";
+    mNetworkThread->start();
 }
 
 Client::~Client()
