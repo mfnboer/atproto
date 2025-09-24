@@ -165,25 +165,28 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
     auto errorMsg = reply->errorString();
     qInfo() << "Network error:" << errorCode << errorMsg;
 
-    if (errorCode == QNetworkReply::OperationCanceledError)
-    {
-        reply->disconnect();
-        emit requestError(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {}, errorCb);
-        return;
-    }
-
-    const auto data = reply->readAll();
-
     if (!*errorHandled)
     {
         *errorHandled = true;
 
+        if (errorCode == QNetworkReply::OperationCanceledError)
+            reply->disconnect();
+
         if (mustResend(errorCode))
         {
+            qDebug() << "Try resend on error:" << errorCode << errorMsg;
+
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
 
+        if (errorCode == QNetworkReply::OperationCanceledError)
+        {
+            emit requestError(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {}, errorCb);
+            return;
+        }
+
+        const auto data = reply->readAll();
         QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(std::move(errorMsg), std::move(json), errorCb);
     }
@@ -601,6 +604,7 @@ bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
     case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
         qWarning() << "Retry on unknown error";
     case QNetworkReply::ContentReSendError:
+    case QNetworkReply::OperationCanceledError: // Timeout
     case QNetworkReply::RemoteHostClosedError:
         return true;
     default:

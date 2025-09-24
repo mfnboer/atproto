@@ -1,3 +1,7 @@
+next
+====
+* Resend on network timeout
+
 5.4
 ===
 * getSuggestedFeeds
