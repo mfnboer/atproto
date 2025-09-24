@@ -177,25 +177,28 @@ void PlcDirectoryClient::networkError(const Request& request, QNetworkReply* rep
     const auto errorMsg = reply->errorString();
     qInfo() << "Network error:" << errorCode << errorMsg;
 
-    if (errorCode == QNetworkReply::OperationCanceledError)
-    {
-        reply->disconnect();
-        errorCb(errorCode, errorMsg);
-        return;
-    }
-
-    const auto data = reply->readAll();
-
     if (!*errorHandled)
     {
         *errorHandled = true;
 
+        if (errorCode == QNetworkReply::OperationCanceledError)
+            reply->disconnect();
+
         if (mustResend(errorCode))
         {
+            qDebug() << "Try resend on error:" << errorCode << errorMsg;
+
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
 
+        if (errorCode == QNetworkReply::OperationCanceledError)
+        {
+            errorCb(errorCode, errorMsg);
+            return;
+        }
+
+        const auto data = reply->readAll();
         const QJsonDocument json(QJsonDocument::fromJson(data));
         invokeErrorCb(json, reply, errorCode, errorCb);
     }
@@ -247,6 +250,7 @@ bool PlcDirectoryClient::mustResend(QNetworkReply::NetworkError error) const
     case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
         qWarning() << "Retry PLC on unknown error";
     case QNetworkReply::ContentReSendError:
+    case QNetworkReply::OperationCanceledError: // Timeout
     case QNetworkReply::RemoteHostClosedError:
         return true;
     default:
