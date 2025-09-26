@@ -40,7 +40,8 @@ QString RichTextMaster::plainToHtml(const QString& text)
     return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
 }
 
-QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor, const std::set<QString>& emphasizeHashtags)
+QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor,
+                                             const std::set<QString>& emphasizeHashtags)
 {
     if (post.mText.isEmpty())
         return {};
