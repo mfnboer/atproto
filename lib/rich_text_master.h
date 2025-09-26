@@ -27,7 +27,8 @@ public:
     static void setHtmlCleanup(const HtmlCleanupFun& cleanup);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);
-    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor, const std::set<QString>& emphasizeHashtags = {});
+    static QString getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor,
+                                        const std::set<QString>& emphasizeHashtags = {});
     static QString getFormattedFeedDescription(const ATProto::AppBskyFeed::GeneratorView& feed, const QString& linkColor);
     static QString getFormattedListDescription(const ATProto::AppBskyGraph::ListView& list, const QString& linkColor);
     static QString getFormattedStarterPackDescription(const ATProto::AppBskyGraph::StarterPack& starterPack, const QString& linkColor);
