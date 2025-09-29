@@ -179,6 +179,7 @@ struct ProfileViewBasic
     QString mDid;
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
+    std::optional<QString> mPronouns; // max 20 graphemes, 200 bytes
     std::optional<QString> mAvatar; // URL
     ProfileAssociated::SharedPtr mAssociated; // optional
     ViewerState::SharedPtr mViewer; // optional
@@ -200,6 +201,7 @@ struct ProfileView
     QString mDid;
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
+    std::optional<QString> mPronouns; // max 20 graphemes, 200 bytes
     std::optional<QString> mAvatar; // URL
     ProfileAssociated::SharedPtr mAssociated; // optional
     std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
@@ -223,6 +225,8 @@ struct ProfileViewDetailed
     QString mDid;
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
+    std::optional<QString> mPronouns; // max 20 graphemes, 200 bytes
+    std::optional<QString> mWebsite; // URL
     std::optional<QString> mAvatar; // URL
     std::optional<QString> mBanner; // URL
     std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
@@ -257,6 +261,8 @@ struct Profile
 {
     std::optional<QString> mDisplayName;
     std::optional<QString> mDescription;
+    std::optional<QString> mPronouns;
+    std::optional<QString> mWebsite;
     Blob::SharedPtr mAvatar; // optional
     Blob::SharedPtr mBanner; // optional
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional

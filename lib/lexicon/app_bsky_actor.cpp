@@ -287,6 +287,7 @@ QJsonObject ProfileViewBasic::toJson() const
     json.insert("did", mDid);
     json.insert("handle", mHandle);
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "pronouns", mPronouns);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<ProfileAssociated>(json, "associated", mAssociated);
     XJsonObject::insertOptionalJsonObject<ViewerState>(json, "viewer", mViewer);
@@ -304,6 +305,7 @@ ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mDid = root.getRequiredString("did");
     profileViewBasic->mHandle = root.getRequiredString("handle");
     profileViewBasic->mDisplayName = root.getOptionalString("displayName");
+    profileViewBasic->mPronouns = root.getOptionalString("pronouns");
     profileViewBasic->mAvatar = root.getOptionalString("avatar");
     profileViewBasic->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profileViewBasic->mViewer = root.getOptionalObject<ViewerState>("viewer");
@@ -320,6 +322,7 @@ QJsonObject ProfileView::toJson() const
     json.insert("did", mDid);
     json.insert("handle", mHandle);
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "pronouns", mPronouns);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     return json;
@@ -332,6 +335,7 @@ ProfileView::SharedPtr ProfileView::fromJson(const QJsonObject& json)
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
+    profile->mPronouns = root.getOptionalString("pronouns");
     profile->mAvatar = root.getOptionalString("avatar");
     profile->mAssociated = root.getOptionalObject<ProfileAssociated>("associated");
     profile->mDescription = root.getOptionalString("description");
@@ -351,6 +355,8 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mDid = root.getRequiredString("did");
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
+    profile->mPronouns = root.getOptionalString("pronouns");
+    profile->mWebsite = root.getOptionalString("website");
     profile->mAvatar = root.getOptionalString("avatar");
     profile->mBanner = root.getOptionalString("banner");
     profile->mDescription = root.getOptionalString("description");
@@ -381,6 +387,8 @@ QJsonObject Profile::toJson() const
     QJsonObject json(mJson);
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalJsonValue(json, "pronouns", mPronouns);
+    XJsonObject::insertOptionalJsonValue(json, "website", mWebsite);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
@@ -395,6 +403,8 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
     profile->mJson = json;
     profile->mDisplayName = xjson.getOptionalString("displayName");
     profile->mDescription = xjson.getOptionalString("description");
+    profile->mPronouns = xjson.getOptionalString("pronouns");
+    profile->mWebsite = xjson.getOptionalString("website");
     profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
     profile->mBanner = xjson.getOptionalObject<Blob>("banner");
     profile->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
