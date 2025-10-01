@@ -317,7 +317,7 @@ struct RecordView
                  AppBskyGraph::ListView::SharedPtr,
                  AppBskyGraph::StarterPackViewBasic::SharedPtr,
                  AppBskyLabeler::LabelerView::SharedPtr> mRecord;
-    RecordType mRecordType;
+    RecordType mRecordType = RecordType::UNKNOWN;
 
     QString mUnsupportedType; // not part of the spec
 
@@ -345,7 +345,7 @@ struct RecordWithMedia
 {
     Record::SharedPtr mRecord;
     std::variant<Images::SharedPtr, Video::SharedPtr, External::SharedPtr> mMedia;
-    EmbedType mMediaType;
+    EmbedType mMediaType = EmbedType::UNKNOWN;
     QString mRawMediaType;
 
     QJsonObject toJson() const;
@@ -390,7 +390,7 @@ struct RecordWithMediaView
 {
     RecordView::SharedPtr mRecord;
     std::variant<ImagesView::SharedPtr, VideoView::SharedPtr, ExternalView::SharedPtr> mMedia;
-    EmbedViewType mMediaType;
+    EmbedViewType mMediaType = EmbedViewType::UNKNOWN;
     QString mRawMediaType;
 
     QJsonObject toJson() const;
@@ -473,7 +473,7 @@ struct RecordViewRecord
                  AppBskyFeed::GeneratorView::SharedPtr,
                  AppBskyGraph::ListView::SharedPtr,
                  AppBskyLabeler::LabelerView::SharedPtr> mValue;
-    RecordType mValueType;
+    RecordType mValueType = RecordType::UNKNOWN;
     QString mRawValueType;
     ComATProtoLabel::Label::List mLabels;
     EmbedView::List mEmbeds;

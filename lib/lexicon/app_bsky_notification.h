@@ -45,7 +45,7 @@ struct ChatPreference
     static QString includeTypeToString(IncludeType include, const QString& unknown);
 
     QString mRawInclude;
-    IncludeType mInclude;
+    IncludeType mInclude = IncludeType::UNKNOWN;
     bool mPush;
     QJsonObject mJson;
 
@@ -70,7 +70,7 @@ struct FilterablePreference
     static QString includeTypeToString(IncludeType include, const QString& unknown);
 
     QString mRawInclude;
-    IncludeType mInclude;
+    IncludeType mInclude = IncludeType::UNKNOWN;
     bool mList;
     bool mPush;
     QJsonObject mJson;
@@ -183,7 +183,7 @@ struct Notification
     QString mUri;
     QString mCid;
     AppBskyActor::ProfileView::SharedPtr mAuthor;
-    NotificationReason mReason;
+    NotificationReason mReason = NotificationReason::UNKNOWN;
     QString mRawReason;
     std::optional<QString> mReasonSubject; // at-uri
     std::variant<AppBskyFeed::Record::Post::SharedPtr,

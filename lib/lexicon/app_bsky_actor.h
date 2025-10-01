@@ -46,9 +46,9 @@ struct VerificationState
 {
     VerificationView::List mVerifications;
     QString mRawVerifiedStatus;
-    VerifiedStatus mVerifiedStatus;
+    VerifiedStatus mVerifiedStatus = VerifiedStatus::UNKNOWN;
     QString mRawTrustedVerifierStatus;
-    VerifiedStatus mTrustedVerifierStatus;
+    VerifiedStatus mTrustedVerifierStatus = VerifiedStatus::UNKNOWN;
 
     QJsonObject toJson() const;
 
@@ -103,7 +103,7 @@ struct StatusView
     using EmbedType = std::variant<AppBskyEmbed::ExternalView::SharedPtr>;
 
     QString mRawStatus;
-    ActorStatus mStatus;
+    ActorStatus mStatus = ActorStatus::UNKNOWN;
     QJsonObject mRecord;
     std::optional<EmbedType> mEmbed;
     std::optional<QDateTime> mExpiresAt;
@@ -309,7 +309,7 @@ struct ContentLabelPref
 
     std::optional<QString> mLabelerDid; // not set means global label
     QString mLabel;
-    Visibility mVisibility;
+    Visibility mVisibility = Visibility::UNKNOWN;
     QString mRawVisibility;
     QJsonObject mJson;
 
@@ -399,7 +399,7 @@ struct MutedWord
 {
     struct Target
     {
-        MutedWordTarget mTarget;
+        MutedWordTarget mTarget = MutedWordTarget::UNKNOWN;
         QString mRawTarget;
     };
 
@@ -531,7 +531,7 @@ using PreferenceItem = std::variant<AdultContentPref::SharedPtr,
 struct Preference
 {
     PreferenceItem mItem;
-    PreferenceType mType;
+    PreferenceType mType = PreferenceType::UNKNOWN;
     QString mRawType;  
 
     using SharedPtr = std::shared_ptr<Preference>;

@@ -95,9 +95,9 @@ struct LabelValueDefinition
     static Setting stringToSetting(const QString &str);
 
     QString mIdentifier;
-    Severity mSeverity;
+    Severity mSeverity = Severity::UNKNOWN;
     QString mRawSeverity;
-    Blurs mBlurs;
+    Blurs mBlurs = Blurs::UNKNOWN;
     QString mRawBlurs;
     Setting mDefaultSetting = Setting::WARN;
     QString mRawDefaultSetting = QStringLiteral("warn");

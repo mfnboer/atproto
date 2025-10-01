@@ -72,7 +72,7 @@ struct GetServicesOutputView
     static ViewType stringToViewType(const QString& str);
 
     std::variant<LabelerView::SharedPtr, LabelerViewDetailed::SharedPtr> mView;
-    ViewType mViewType;
+    ViewType mViewType = ViewType::UNKNOWN;
     QString mRawViewType;
 
     using SharedPtr = std::shared_ptr<GetServicesOutputView>;

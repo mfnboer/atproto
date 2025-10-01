@@ -34,7 +34,7 @@ struct ListViewBasic
     QString mUri;
     QString mCid;
     QString mName;
-    ListPurpose mPurpose;
+    ListPurpose mPurpose = ListPurpose::UNKNOWN;
     QString mRawPurpose;
     std::optional<QString> mAvatar;
     ComATProtoLabel::Label::List mLabels;
