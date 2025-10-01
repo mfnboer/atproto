@@ -81,7 +81,7 @@ struct PostView
     QString mCid;
     AppBskyActor::ProfileViewBasic::SharedPtr mAuthor; // required
     std::variant<Record::Post::SharedPtr> mRecord;
-    RecordType mRecordType;
+    RecordType mRecordType = RecordType::UNKNOWN;
     QString mRawRecordType;
     AppBskyEmbed::EmbedView::SharedPtr mEmbed; // optional
     int mBookmarkCount = 0;
@@ -160,7 +160,7 @@ PostElementType stringToPostElementType(const QString& str);
 
 struct ReplyElement
 {
-    PostElementType mType;
+    PostElementType mType = PostElementType::UNKNOWN;
     QString mUnsupportedType;
     std::variant<PostView::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
 

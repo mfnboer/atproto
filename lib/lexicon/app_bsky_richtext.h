@@ -68,7 +68,7 @@ struct Facet
         static Type stringToType(const QString& str);
 
         std::variant<FacetMention::SharedPtr, FacetLink::SharedPtr, FacetTag::SharedPtr> mFeature;
-        Type mType;
+        Type mType = Type::UNKNOWN;
     };
 
     FacetByteSlice mIndex;

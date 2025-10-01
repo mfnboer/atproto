@@ -1,3 +1,7 @@
+next
+====
+* Initialize type fields to UNKNOWN
+
 5.6
 ===
 * Pronouns and website on profie
