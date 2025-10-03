@@ -8,7 +8,7 @@ namespace ATProto::ChatBskyActor {
 QJsonObject Declaration::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "chat.bsky.actor.declaration");
+    json.insert("$type", TYPE);
     json.insert("allowIncoming", AppBskyActor::allowIncomingTypeToString(mAllowIncoming));
     return json;
 }

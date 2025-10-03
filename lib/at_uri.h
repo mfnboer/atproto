@@ -1,6 +1,9 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "lexicon/app_bsky_embed.h"
+#include "lexicon/app_bsky_graph.h"
+#include "lexicon/chat_bsky_actor.h"
 #include <QObject>
 #include <QString>
 
@@ -13,11 +16,11 @@ public:
 
     static constexpr char const* BSKY_APP_URL = "https://bsky.app";
     static constexpr char const* COLLECTION_FEED_GENERATOR = "app.bsky.feed.generator";
-    static constexpr char const* COLLECTION_FEED_POST = "app.bsky.feed.post";
+    static constexpr char const* COLLECTION_FEED_POST = AppBskyFeed::Record::Post::TYPE;
     static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
-    static constexpr char const* COLLECTION_GRAPH_STARTERPACK = "app.bsky.graph.starterpack";
+    static constexpr char const* COLLECTION_GRAPH_STARTERPACK = AppBskyGraph::StarterPack::TYPE;
     static constexpr char const* COLLECTION_ACTOR_PROFILE = "app.bsky.actor.profile";
-    static constexpr char const* COLLECTION_CHAT_ACTOR_DECLARATION = "chat.bsky.actor.declaration";
+    static constexpr char const* COLLECTION_CHAT_ACTOR_DECLARATION = ChatBskyActor::Declaration::TYPE;
     
     static ATUri fromHttpsPostUri(const QString& uri);
     static ATUri fromHttpsFeedUri(const QString& uri);

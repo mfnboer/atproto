@@ -16,6 +16,7 @@ struct Declaration
 
     using SharedPtr = std::shared_ptr<Declaration>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.actor.declaration";
 };
 
 // chat.bsky.actor.defs#profileViewBasic
