@@ -281,7 +281,7 @@ PostReplyRef::SharedPtr PostReplyRef::fromJson(const QJsonObject& json)
 QJsonObject Record::Post::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.feed.post");
+    json.insert("$type", TYPE);
     json.insert("text", mText);
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "facets", mFacets);
     XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);

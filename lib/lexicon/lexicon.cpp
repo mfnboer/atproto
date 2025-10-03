@@ -80,7 +80,7 @@ RecordType stringToRecordType(const QString& str)
 QString recordTypeToString(RecordType recordType)
 {
     static const std::unordered_map<RecordType, QString> mapping = {
-        { RecordType::APP_BSKY_FEED_POST, "app.bsky.feed.post" },
+        { RecordType::APP_BSKY_FEED_POST, AppBskyFeed::Record::Post::TYPE },
         { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, "app.bsky.feed.defs#generatorView" },
         { RecordType::APP_BSKY_GRAPH_LIST_VIEW, "app.bsky.graph.defs#listView" },
         { RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC, AppBskyGraph::StarterPackViewBasic::TYPE },
