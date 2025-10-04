@@ -145,4 +145,6 @@ struct DidDocument {
 
 QString createAvatarThumbUrl(const QString& avatarUrl);
 
+void setOptionalString(std::optional<QString>& field, const QString& value);
+
 }

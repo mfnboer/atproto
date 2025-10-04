@@ -72,6 +72,7 @@ void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profil
 
 void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
                                   Blob::SharedPtr avatar, bool updateAvatar, Blob::SharedPtr banner, bool updateBanner,
+                                  const QString& pronouns, const QString& website,
                                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     if (updateAvatar)
@@ -81,13 +82,13 @@ void ProfileMaster::updateProfile(const QString& did, const QString& name, const
         mDidBannerBlobMap[did] = std::move(banner);
 
     getProfile(did,
-        [this, presence=getPresence(), did, name, description, updateAvatar, updateBanner, successCb, errorCb](auto&& profile)
+        [this, presence=getPresence(), did, name, description, updateAvatar, updateBanner, pronouns, website, successCb, errorCb](auto&& profile)
         {
             if (!presence)
                 return;
 
-            profile->mDisplayName = name;
-            profile->mDescription = description;
+            setOptionalString(profile->mDisplayName, name);
+            setOptionalString(profile->mDescription, description);
 
             if (updateAvatar)
             {
@@ -100,6 +101,9 @@ void ProfileMaster::updateProfile(const QString& did, const QString& name, const
                 profile->mBanner = std::move(mDidBannerBlobMap[did]);
                 mDidBannerBlobMap.erase(did);
             }
+
+            setOptionalString(profile->mPronouns, pronouns);
+            setOptionalString(profile->mWebsite, website);
 
             updateProfile(did, *profile, successCb, errorCb);
         },
