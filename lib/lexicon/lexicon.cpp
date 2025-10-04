@@ -133,4 +133,12 @@ QString createAvatarThumbUrl(const QString& avatarUrl)
     return url.replace("/img/avatar/plain/", "/img/avatar_thumbnail/plain/");
 }
 
+void setOptionalString(std::optional<QString>& field, const QString& value)
+{
+    if (value.isEmpty())
+        field = {};
+    else
+        field = value;
+}
+
 }

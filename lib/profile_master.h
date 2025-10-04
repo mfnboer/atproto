@@ -24,6 +24,7 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
     void updateProfile(const QString& did, const QString& name, const QString& description,
                        Blob::SharedPtr avatar, bool updateAvatar, Blob::SharedPtr banner, bool updatebanner,
+                       const QString& pronouns, const QString& website,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void addSelfLabel(const QString& did, const QString& label,
