@@ -51,6 +51,7 @@ public:
 
     // Internal stack errors
     SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
+    SHARED_CONST(QString, REFRESH_SESSION_FAILED, QStringLiteral("RefreshSessionFailed"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 
     static bool isRecordNotFound(const QString& error)

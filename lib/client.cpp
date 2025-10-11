@@ -11,6 +11,8 @@
 namespace ATProto
 {
 
+using namespace std::chrono_literals;
+
 #define SERVICE_KEY_ATPROTO_LABELER QStringLiteral("atproto_labeler")
 #define SERVICE_KEY_BSKY_CHAT QStringLiteral("bsky_chat")
 #define SERVICE_KEY_BSKY_FEEDGEN QStringLiteral("bsky_fg")
@@ -18,8 +20,10 @@ namespace ATProto
 #define SERVICE_DID_BSKY_CHAT QStringLiteral("did:web:api.bsky.chat")
 #define SERVICE_DID_BSKY_VIDEO QStringLiteral("did:web:video.bsky.app")
 
-constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
-constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
+static constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
+static constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
+
+static constexpr auto AUTO_REFRESH_INTERVAL = 299s;
 
 static QString boolValue(bool value)
 {
@@ -58,9 +62,12 @@ static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QStr
         params.append({name, boolValue(*value)});
 }
 
-Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc) :
+Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
+    QObject(parent),
     mXrpc(std::move(xrpc))
-{}
+{
+    connect(&mAutoRefreshTimer, &QTimer::timeout, this, [this]{ autoRefreshSession(); });
+}
 
 bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
 {
@@ -235,6 +242,74 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
         },
         failure(errorCb),
         session.mAccessJwt);
+}
+
+void Client::resumeAndRefreshSession(const ComATProtoServer::Session& session,
+                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
+}
+
+void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
+                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Resume session:" << session.mHandle << "did:" << session.mDid << "retry:" << retry;
+
+    resumeSession(session,
+        [this, retry, successCb, errorCb]{
+            qDebug() << "Session resumed:" << mSession->mHandle << "did:" << mSession->mDid << "retry:" << retry;
+
+            if (!retry)
+            {
+                refreshSession(
+                    [this, successCb]{
+                        qDebug() << "Session refreshed:" << mSession->mHandle << "did:" << mSession->mDid;
+
+                        if (successCb)
+                            successCb();
+                    },
+                    [this, errorCb](const QString& error, const QString& msg){
+                        qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                        clearSession();
+
+                        if (errorCb)
+                            errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_FAILED, msg);
+                    });
+            }
+            else
+            {
+                if (successCb)
+                    successCb();
+            }
+        },
+        [this, retry, session, successCb, errorCb](const QString& error, const QString& msg){
+            qDebug() << "Session could not be resumed:" << error << " - " << msg << "handle:" << session.mHandle << "did:" << session.mDid << "retry:" << retry;
+
+            if (!retry && error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
+            {
+                setSession(std::make_shared<ATProto::ComATProtoServer::Session>(session));
+                refreshSession(
+                    [this, successCb, errorCb]{
+                        qDebug() << "Session refreshed:" << mSession->mHandle << "did:" << mSession->mDid;
+                        resumeAndRefreshSessionContinue(true, *mSession, successCb, errorCb);
+                    },
+                    [this, errorCb](const QString& error, const QString& msg){
+                        qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                        clearSession();
+
+                        if (errorCb)
+                            errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_FAILED, msg);
+                    }
+                );
+            }
+            else
+            {
+                clearSession();
+
+                if (errorCb)
+                    errorCb(error, msg);
+            }
+        });
 }
 
 void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -2527,6 +2602,89 @@ void Client::addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, con
     const QString value = QString("%1#%2").arg(did, serviceKey);
     qDebug() << "Proxy:" << value;
     httpHeaders.push_back({"atproto-proxy", value});
+}
+
+void Client::startAutoRefresh(const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb)
+{
+    qDebug() << "Start auto refresh";
+
+    if (mSession)
+        qDebug() << "Session:" << mSession->mHandle << "did:" << mSession->mDid;
+
+    mAutoRefreshDoneCb = doneCb;
+    mAutoRefreshSessionExpiredCb = sessionExpiredCb;
+    mAutoRefreshTimer.start(AUTO_REFRESH_INTERVAL);
+}
+
+void Client::stopAutoRefresh()
+{
+    qDebug() << "Stop auto refresh";
+
+    if (mSession)
+        qDebug() << "Session:" << mSession->mHandle << "did:" << mSession->mDid;
+
+    mAutoRefreshTimer.stop();
+}
+
+void Client::autoRefreshSession(const std::function<void()>& cbDone)
+{
+    Q_ASSERT(mSession);
+
+    if (!mSession)
+    {
+        qWarning() << "No session to refresh";
+
+        if (cbDone)
+            cbDone();
+
+        stopAutoRefresh();
+
+        if (mAutoRefreshSessionExpiredCb)
+            mAutoRefreshSessionExpiredCb("Session lost");
+
+        return;
+    }
+
+    qDebug() << "Auto refresh session:" << mSession->mHandle << "did:" << mSession->mDid;
+
+    refreshSession(
+        [this, cbDone]{
+            qDebug() << "Session refreshed:" << mSession->mHandle << "did:" << mSession->mDid;
+
+            if (mAutoRefreshDoneCb)
+                mAutoRefreshDoneCb();
+
+            if (cbDone)
+                cbDone();
+        },
+        [this, cbDone](const QString& error, const QString& msg){
+            qDebug() << "Session refresh failed:" << error << " - " << msg << "handle:" << mSession->mHandle << "did:" << mSession->mDid;
+
+            if (error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
+            {
+                qWarning() << "Token expired, need to login again:" << mSession->mHandle << "did:" << mSession->mDid;
+
+                if (cbDone)
+                    cbDone();
+
+                stopAutoRefresh();
+
+                if (mAutoRefreshSessionExpiredCb)
+                    mAutoRefreshSessionExpiredCb(msg);
+            }
+            else
+            {
+                qDebug() << "Refresh failed, wait for the next interval to refresh:" << mSession->mHandle << "did:" << mSession->mDid;
+
+                // There is nothing we can do now. Signal that we are done.
+                // Session will expire later if token is not valid anymore.
+                if (mAutoRefreshDoneCb)
+                    mAutoRefreshDoneCb();
+
+                if (cbDone)
+                    cbDone();
+            }
+        });
 }
 
 }

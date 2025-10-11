@@ -1,6 +1,7 @@
 next
 ====
 * Update profile supports pronouns and website
+* Auto session refresh
 * Code cleanup
 
 5.6.1

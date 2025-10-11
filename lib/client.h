@@ -17,6 +17,7 @@
 #include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
 #include <QException>
+#include <QObject>
 
 namespace ATProto {
 
@@ -33,7 +34,7 @@ private:
     QString mMsg;
 };
 
-class Client
+class Client : public QObject
 {
 public:
     using SuccessCb = std::function<void()>;
@@ -105,6 +106,9 @@ public:
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
 
+    using AutoRefreshDoneCb = std::function<void()>;
+    using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
+
     using Ptr = std::unique_ptr<Client>;
 
     static constexpr int MAX_LABELERS = 20;
@@ -114,7 +118,7 @@ public:
     static constexpr int MAX_TRENDS = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
-    explicit Client(Xrpc::Client::Ptr&& xrpc);
+    explicit Client(Xrpc::Client::Ptr&& xrpc, QObject* parent = nullptr);
 
     const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
@@ -125,6 +129,10 @@ public:
     bool setLabelerDids(const std::unordered_set<QString>& dids);
     bool addLabelerDid(const QString& did);
     void removeLabelerDid(const QString& did);
+
+    void startAutoRefresh(const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb);
+    void stopAutoRefresh();
+    void autoRefreshSession(const std::function<void()>& cbDone = {});
 
     // com.atproto.server
     /**
@@ -158,6 +166,8 @@ public:
      */
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
+    void resumeAndRefreshSession(const ComATProtoServer::Session& session,
+                                 const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -1074,6 +1084,8 @@ private:
                                const SuccessCb& successCb, const ErrorCb& errorCb);
     void resumeSessionContinue(const ComATProtoServer::Session& session,
                                const SuccessCb& successCb, const ErrorCb& errorCb);
+    void resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
+                               const SuccessCb& successCb, const ErrorCb& errorCb);
     void getBlobContinue(const QString& did, const QString& cid,
                          const GetBlobSuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -1081,6 +1093,9 @@ private:
     ComATProtoServer::Session::SharedPtr mSession;
     std::unordered_set<QString> mLabelerDids;
     QString mAcceptLabelersHeaderValue;
+    QTimer mAutoRefreshTimer;
+    AutoRefreshDoneCb mAutoRefreshDoneCb;
+    AutoRefreshSessionExpiredCb mAutoRefreshSessionExpiredCb;
 };
 
 }
