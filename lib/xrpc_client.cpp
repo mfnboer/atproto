@@ -180,8 +180,9 @@ void Client::setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb,
         QTimer::singleShot(0, this, [successCb]{
             if (successCb)
                 successCb();
+        });
 
-            return; });
+        return;
     }
 
     mPlcDirectoryClient.getPds(did,

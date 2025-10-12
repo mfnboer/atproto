@@ -130,7 +130,7 @@ public:
     bool addLabelerDid(const QString& did);
     void removeLabelerDid(const QString& did);
 
-    void startAutoRefresh(const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb);
+    void startAutoRefresh(std::chrono::milliseconds initialDelay, const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb);
     void stopAutoRefresh();
     void autoRefreshSession(const std::function<void()>& cbDone = {});
 
@@ -1093,6 +1093,7 @@ private:
     ComATProtoServer::Session::SharedPtr mSession;
     std::unordered_set<QString> mLabelerDids;
     QString mAcceptLabelersHeaderValue;
+    QTimer mAutoRefreshIntialDelayTimer;
     QTimer mAutoRefreshTimer;
     AutoRefreshDoneCb mAutoRefreshDoneCb;
     AutoRefreshSessionExpiredCb mAutoRefreshSessionExpiredCb;
