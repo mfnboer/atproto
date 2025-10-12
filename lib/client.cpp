@@ -66,6 +66,8 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
     QObject(parent),
     mXrpc(std::move(xrpc))
 {
+    mAutoRefreshIntialDelayTimer.setSingleShot(true);
+    connect(&mAutoRefreshIntialDelayTimer, &QTimer::timeout, this, [this]{ mAutoRefreshTimer.start(AUTO_REFRESH_INTERVAL); });
     connect(&mAutoRefreshTimer, &QTimer::timeout, this, [this]{ autoRefreshSession(); });
 }
 
@@ -214,11 +216,11 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
 {
     mXrpc->get("com.atproto.server.getSession", {}, {},
         [this, session, successCb, errorCb](ComATProtoServer::GetSessionOutput::SharedPtr resumed){
-            qInfo() << "Got session:" << resumed->mDid;
+            qDebug() << "Got session:" << resumed->mDid;
 
             if (resumed->mDid == session.mDid)
             {
-                qInfo() << "Session resumed";
+                qDebug() << "Session resumed";
                 mSession = std::make_shared<ComATProtoServer::Session>(session);
                 mSession->mHandle = resumed->mHandle;
                 mSession->mEmail = resumed->mEmail;
@@ -2604,16 +2606,20 @@ void Client::addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, con
     httpHeaders.push_back({"atproto-proxy", value});
 }
 
-void Client::startAutoRefresh(const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb)
+void Client::startAutoRefresh(std::chrono::milliseconds initialDelay, const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb)
 {
-    qDebug() << "Start auto refresh";
+    qDebug() << "Start auto refresh, initial delay:" << initialDelay / 1ms << "ms";
 
     if (mSession)
         qDebug() << "Session:" << mSession->mHandle << "did:" << mSession->mDid;
 
     mAutoRefreshDoneCb = doneCb;
     mAutoRefreshSessionExpiredCb = sessionExpiredCb;
-    mAutoRefreshTimer.start(AUTO_REFRESH_INTERVAL);
+
+    if (initialDelay == 0ms)
+        mAutoRefreshTimer.start(AUTO_REFRESH_INTERVAL);
+    else
+        mAutoRefreshIntialDelayTimer.start(initialDelay);
 }
 
 void Client::stopAutoRefresh()
@@ -2623,6 +2629,7 @@ void Client::stopAutoRefresh()
     if (mSession)
         qDebug() << "Session:" << mSession->mHandle << "did:" << mSession->mDid;
 
+    mAutoRefreshIntialDelayTimer.stop();
     mAutoRefreshTimer.stop();
 }
 
