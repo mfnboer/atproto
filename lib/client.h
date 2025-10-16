@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "presence.h"
 #include "user_preferences.h"
 #include "xjson.h"
 #include "xrpc_client.h"
@@ -34,7 +35,7 @@ private:
     QString mMsg;
 };
 
-class Client : public QObject
+class Client : public QObject, public Presence
 {
 public:
     using SuccessCb = std::function<void()>;
@@ -110,6 +111,7 @@ public:
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
     using Ptr = std::unique_ptr<Client>;
+    using SharedPtr = std::shared_ptr<Client>;
 
     static constexpr int MAX_LABELERS = 20;
     static constexpr int MAX_URIS_GET_POSTS = 25;

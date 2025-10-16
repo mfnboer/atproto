@@ -25,34 +25,37 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
     request.mPlcRequest = QNetworkRequest(url);
 
     sendRequest(request,
-    [this, did, successCb, errorCb](const QJsonDocument& reply) {
-        qDebug() << "getPds:" << reply;
-        try {
-            auto didDoc = DidDocument::fromJson(reply.object());
-
-            if (!didDoc->mATProtoPDS)
-            {
-                qWarning() << "Cannot resolve PDS for:" << did;
-
-                if (errorCb)
-                    errorCb(404, "Cannot resolve PDS");
-
+        [this, presence=getPresence(), did, successCb, errorCb](const QJsonDocument& reply) {
+            if (!presence)
                 return;
+
+            qDebug() << "getPds:" << reply;
+            try {
+                auto didDoc = DidDocument::fromJson(reply.object());
+
+                if (!didDoc->mATProtoPDS)
+                {
+                    qWarning() << "Cannot resolve PDS for:" << did;
+
+                    if (errorCb)
+                        errorCb(404, "Cannot resolve PDS");
+
+                    return;
+                }
+
+                qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS;
+
+                if (successCb)
+                    successCb(*didDoc->mATProtoPDS);
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
             }
-
-            qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS;
-
-            if (successCb)
-                successCb(*didDoc->mATProtoPDS);
-        } catch (InvalidJsonException& e) {
-            invalidJsonError(e, errorCb);
-        }
-    },
-    [errorCb](int errorCode, const QString& errorMsg) {
-        qWarning() << errorCode << "-" << errorMsg;
-        if (errorCb)
-            errorCb(errorCode, errorMsg);
-    });
+        },
+        [errorCb](int errorCode, const QString& errorMsg) {
+            qWarning() << errorCode << "-" << errorMsg;
+            if (errorCb)
+                errorCb(errorCode, errorMsg);
+        });
 }
 
 void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb)
@@ -62,8 +65,12 @@ void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb
     request.mPlcRequest = QNetworkRequest(url);
 
     sendRequest(request,
-        [this, successCb, errorCb](const QJsonDocument& reply) {
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply) {
+            if (!presence)
+                return;
+
             qDebug() << "getAuditLog:" << reply;
+
             try {
                 auto auditLog = PlcAuditLog::fromJson(reply);
 
@@ -94,7 +101,10 @@ void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppea
     }
 
     getAuditLog(did,
-        [this, did, successCb, errorCb](PlcAuditLog::SharedPtr auditLog) {
+        [this, presence=getPresence(), did, successCb, errorCb](PlcAuditLog::SharedPtr auditLog) {
+            if (!presence)
+                return;
+
             if (auditLog->mEntries.empty())
             {
                 qWarning() << "Empty audit log";

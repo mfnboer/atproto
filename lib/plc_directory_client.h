@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "lexicon/plc_directory.h"
+#include "presence.h"
 #include "xjson.h"
 #include <QCache>
 #include <QNetworkAccessManager>
@@ -9,7 +10,7 @@
 
 namespace ATProto {
 
-class PlcDirectoryClient : public QObject
+class PlcDirectoryClient : public QObject, public Presence
 {
 public:
     using ErrorCb = std::function<void(int errorCode, const QString& errorMsg)>;
