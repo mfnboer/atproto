@@ -132,8 +132,9 @@ void Client::createSession(const QString& user, const QString& pwd,
         qDebug() << "User is did:" << user;
 
         mXrpc->setPDSFromDid(user,
-            [this, user, pwd, authFactorToken, successCb, errorCb]{
-                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
+                if (presence)
+                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
             },
             [errorCb](const QString& error){
                 if (errorCb)
@@ -145,8 +146,9 @@ void Client::createSession(const QString& user, const QString& pwd,
         qDebug() << "User is handle:" << user;
 
         mXrpc->setPDSFromHandle(user,
-            [this, user, pwd, authFactorToken, successCb, errorCb]{
-                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
+                if (presence)
+                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
             },
             [errorCb](const QString& error){
                 if (errorCb)
@@ -167,8 +169,11 @@ void Client::createSessionContinue(const QString& user, const QString& pwd,
     QJsonDocument json(root);
 
     mXrpc->post("com.atproto.server.createSession", json, {},
-        [this, successCb](ComATProtoServer::Session::SharedPtr session){
-            qInfo() << "Session created:" << session->mDid;
+        [this, presence=getPresence(), successCb](ComATProtoServer::Session::SharedPtr session){
+            if (!presence)
+                return;
+
+            qDebug() << "Session created:" << session->mDid;
             mSession = std::move(session);
             mXrpc->setPDSFromSession(*mSession);
 
@@ -187,7 +192,10 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
     }
 
     mXrpc->post("com.atproto.server.deleteSession", {}, {},
-        [this, successCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Delete session reply:" << reply;
             clearSession();
 
@@ -202,8 +210,9 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->setPDSFromDid(session.mDid,
-        [this, session, successCb, errorCb]{
-            resumeSessionContinue(session, successCb, errorCb);
+        [this, presence=getPresence(), session, successCb, errorCb]{
+            if (presence)
+                resumeSessionContinue(session, successCb, errorCb);
         },
         [errorCb](const QString& error){
             if (errorCb)
@@ -215,7 +224,10 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
     const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.server.getSession", {}, {},
-        [this, session, successCb, errorCb](ComATProtoServer::GetSessionOutput::SharedPtr resumed){
+        [this, presence=getPresence(), session, successCb, errorCb](ComATProtoServer::GetSessionOutput::SharedPtr resumed){
+            if (!presence)
+                return;
+
             qDebug() << "Got session:" << resumed->mDid;
 
             if (resumed->mDid == session.mDid)
@@ -258,7 +270,10 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
     qDebug() << "Resume session:" << session.mHandle << "did:" << session.mDid << "retry:" << retry;
 
     resumeSession(session,
-        [this, retry, successCb, errorCb]{
+        [this, presence=getPresence(), retry, successCb, errorCb]{
+            if (!presence)
+                return;
+
             qDebug() << "Session resumed:" << mSession->mHandle << "did:" << mSession->mDid << "retry:" << retry;
 
             if (!retry)
@@ -284,18 +299,27 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                     successCb();
             }
         },
-        [this, retry, session, successCb, errorCb](const QString& error, const QString& msg){
+        [this, presence=getPresence(), retry, session, successCb, errorCb](const QString& error, const QString& msg){
             qDebug() << "Session could not be resumed:" << error << " - " << msg << "handle:" << session.mHandle << "did:" << session.mDid << "retry:" << retry;
+
+            if (!presence)
+                return;
 
             if (!retry && error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
             {
                 setSession(std::make_shared<ATProto::ComATProtoServer::Session>(session));
                 refreshSession(
-                    [this, successCb, errorCb]{
+                    [this, presence, successCb, errorCb]{
+                        if (!presence)
+                            return;
+
                         qDebug() << "Session refreshed:" << mSession->mHandle << "did:" << mSession->mDid;
                         resumeAndRefreshSessionContinue(true, *mSession, successCb, errorCb);
                     },
-                    [this, errorCb](const QString& error, const QString& msg){
+                    [this, presence, errorCb](const QString& error, const QString& msg){
+                        if (!presence)
+                            return;
+
                         qDebug() << "Session could not be refreshed:" << error << " - " << msg;
                         clearSession();
 
@@ -317,7 +341,10 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
 void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.server.refreshSession", {}, {},
-        [this, successCb, errorCb](ComATProtoServer::Session::SharedPtr refreshed){
+        [this, presence=getPresence(), successCb, errorCb](ComATProtoServer::Session::SharedPtr refreshed){
+            if (!presence)
+                return;
+
             qDebug() << "Refresh session reply:" << refreshed->mDid;
 
             if (refreshed->mDid == mSession->mDid)
@@ -349,7 +376,10 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->get("com.atproto.server.getAccountInviteCodes", {}, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getAccountInviteCodes reply:" << reply;
             try {
                 auto output = ComATProtoServer::GetAccountInviteCodesOutput::fromJson(reply.object());
@@ -880,7 +910,10 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.feed.searchPosts", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "searchPosts: ok";
             try {
                 auto output = AppBskyFeed::SearchPostsOutput::fromJson(reply.object());
@@ -1360,7 +1393,10 @@ void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, 
     addOptionalBoolParam(params, "priority", priority);
 
     mXrpc->get("app.bsky.notification.getUnreadCount", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getUnreadCount:" << reply;
             try {
                 auto unreadCount = XJsonObject(reply.object()).getRequiredInt("count");
@@ -1418,7 +1454,10 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
     const auto now = QDateTime::currentDateTimeUtc();
 
     mXrpc->get("app.bsky.notification.listNotifications", params, httpHeaders,
-        [this, now, successCb, updateSeen](AppBskyNotification::ListNotificationsOutput::SharedPtr output){
+        [this, presence=getPresence(), now, successCb, updateSeen](AppBskyNotification::ListNotificationsOutput::SharedPtr output){
+            if (!presence)
+                return;
+
             qDebug() << "List notifications:" << output->mNotifications.size();
 
             if (successCb)
@@ -1482,7 +1521,10 @@ void Client::putNotificationPreferencesV2(const AppBskyNotification::Preferences
     json.setObject(paramsJson);
 
     mXrpc->post("app.bsky.notification.putPreferencesV2", json, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Put preferences V2 succeeded:" << reply;
 
             try {
@@ -1527,7 +1569,10 @@ void Client::putActivitySubscription(const QString& subject, const AppBskyNotifi
     json.setObject(paramsJson);
 
     mXrpc->post("app.bsky.notification.putActivitySubscription", json, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Put activity subscription succeeded:" << reply;
 
             try {
@@ -1613,8 +1658,9 @@ void Client::uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, cons
     QDateTime expiry = QDateTime::currentDateTimeUtc().addSecs(30 * 60);
 
     getServiceAuth(aud, expiry, "com.atproto.repo.uploadBlob",
-        [this, blob, successCb, errorCb](auto output){
-            uploadVideo(blob, output->mToken, successCb, errorCb);
+        [this, presence=getPresence(), blob, successCb, errorCb](auto output){
+            if (presence)
+                uploadVideo(blob, output->mToken, successCb, errorCb);
         },
         [errorCb](const QString& error, const QString& msg){
             if (errorCb)
@@ -1630,19 +1676,27 @@ void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const Vid
     qDebug() << "Service:" << service;
 
     mXrpc->post(service, blob, "video/mp4", {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Upload video:" << reply;
+
             try {
                 // According to the spec the reply should be an object with jobStatus field.
                 // But it seems we get a JobStatus itself...
                 auto ouput = AppBskyVideo::JobStatus::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(ouput));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
         },
-        [this, successCb, errorCb](const QString& err, const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QString& err, const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             try {
                 auto jobStatus = AppBskyVideo::JobStatus::fromJson(reply.object());
 
@@ -1681,10 +1735,15 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                         const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){\
+            if (!presence)
+                return;
+
             qDebug() << "Upload blob:" << reply;
+
             try {
                 auto ouput = ComATProtoRepo::UploadBlobOutput::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(ouput->mBlob));
             } catch (InvalidJsonException& e) {
@@ -1699,8 +1758,9 @@ void Client::getBlob(const QString& did, const QString& cid,
                      const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
     mXrpc->setPDSFromDid(did,
-        [this, did, cid, successCb, errorCb]{
-            getBlobContinue(did, cid, successCb, errorCb);
+        [this, presence=getPresence(), did, cid, successCb, errorCb]{
+            if (presence)
+                getBlobContinue(did, cid, successCb, errorCb);
         },
         [errorCb](const QString& error){
             if (errorCb)
@@ -1731,10 +1791,15 @@ void Client::getRecord(const QString& repo, const QString& collection,
     addOptionalStringParam(params, "cid", cid);
 
     mXrpc->get("com.atproto.repo.getRecord", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() <<"Got record:" << reply;
+
             try {
                 auto record = ComATProtoRepo::Record::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(record));
             } catch (InvalidJsonException& e) {
@@ -1754,10 +1819,15 @@ void Client::listRecords(const QString& repo, const QString& collection,
     addOptionalStringParam(params, "cursor", cursor);
 
     mXrpc->get("com.atproto.repo.listRecords", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() <<"Got records:" << reply;
+
             try {
                 auto record = ComATProtoRepo::ListRecordsOutput::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(record));
             } catch (InvalidJsonException& e) {
@@ -1786,10 +1856,15 @@ void Client::createRecord(const QString& repo, const QString& collection, const 
     qDebug() << "Create record:" << json;
 
     mXrpc->post("com.atproto.repo.createRecord", json, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Created record:" << reply;
+
             try {
                 auto recordRef = ComATProtoRepo::StrongRef::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(recordRef));
             } catch (InvalidJsonException& e) {
@@ -1816,10 +1891,15 @@ void Client::putRecord(const QString& repo, const QString& collection, const QSt
     qDebug() << "Put record:" << json;
 
     mXrpc->post("com.atproto.repo.putRecord", json, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Put record ok:" << reply;
+
             try {
                 auto recordRef = ComATProtoRepo::StrongRef::fromJson(reply.object());
+
                 if (successCb)
                     successCb(std::move(recordRef));
             } catch (InvalidJsonException& e) {
@@ -1998,8 +2078,12 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
     addAcceptLabelersHeader(httpHeaders);
 
     mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getPopularFeedGenerators:" << reply;
+
             try {
                 auto output = AppBskyUnspecced::GetPopularFeedGeneratorsOutput::fromJson(reply.object());
 
@@ -2061,8 +2145,12 @@ void Client::getTrendingTopics(const std::optional<QString>& viewer, std::option
     addOptionalIntParam(params, "limit", limit, 1, 25);
 
     mXrpc->get("app.bsky.unspecced.getTrendingTopics", params, {},
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getTrendingTopics:" << reply;
+
             try {
                 auto output = AppBskyUnspecced::GetTrendingTopicsOutput::fromJson(reply.object());
 
@@ -2105,8 +2193,12 @@ void Client::acceptConvo(const QString& convoId,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.acceptConvo", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "acceptConvo:" << reply;
+
             try {
                 auto output = ChatBskyConvo::AcceptConvoOutput::fromJson(reply.object());
 
@@ -2131,7 +2223,10 @@ void Client::deleteMessageForSelf(const QString& convoId, const QString& message
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.deleteMessageForSelf", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() <<"Delete message for self:" << reply;
 
             try {
@@ -2157,8 +2252,12 @@ void Client::getConvo(const QString& convoId,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getConvo", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getConvo:" << reply;
+
             try {
                 auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
@@ -2187,8 +2286,12 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getConvoForMembers", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getConvo:" << reply;
+
             try {
                 auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
@@ -2217,19 +2320,23 @@ void Client::getConvoAvailability(const std::vector<QString>& members,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getConvoAvailability", params, httpHeaders,
-               [this, successCb, errorCb](const QJsonDocument& reply){
-                   qDebug() << "getConvo:" << reply;
-                   try {
-                       auto output = ChatBskyConvo::ConvoAvailabilityOuput::fromJson(reply.object());
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
 
-                       if (successCb)
-                           successCb(std::move(output));
-                   } catch (InvalidJsonException& e) {
-                       invalidJsonError(e, errorCb);
-                   }
-               },
-               failure(errorCb),
-               authToken());
+            qDebug() << "getConvo:" << reply;
+
+            try {
+                auto output = ChatBskyConvo::ConvoAvailabilityOuput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
 }
 
 void Client::getConvoLog(const std::optional<QString>& cursor,
@@ -2242,8 +2349,12 @@ void Client::getConvoLog(const std::optional<QString>& cursor,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->get("chat.bsky.convo.getLog", params, httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "getConvoLog:" << reply;
+
             try {
                 auto output = ChatBskyConvo::LogOutput::fromJson(reply.object());
 
@@ -2289,7 +2400,10 @@ void Client::leaveConvo(const QString& convoId,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.leaveConvo", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() <<"Leave convo:" << reply;
 
             try {
@@ -2345,8 +2459,12 @@ void Client::muteConvo(const QString& convoId,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.muteConvo", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Mute convo:" << reply;
+
             try {
                 auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
@@ -2371,7 +2489,10 @@ void Client::sendMessage(const QString& convoId, const ChatBskyConvo::MessageInp
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.sendMessage", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() <<"Send message:" << reply;
 
             try {
@@ -2397,8 +2518,12 @@ void Client::unmuteConvo(const QString& convoId,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.unmuteConvo", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Unmute convo:" << reply;
+
             try {
                 auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
 
@@ -2445,8 +2570,12 @@ void Client::updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.updateAllRead", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Update all read:" << reply;
+
             try {
                 auto output = ChatBskyConvo::UpdateAllReadOutput::fromJson(reply.object());
 
@@ -2472,8 +2601,12 @@ void Client::addReaction(const QString& convoId, const QString& messageId, const
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.addReaction", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Add reaction:" << reply;
+
             try {
                 auto output = ChatBskyConvo::MessageOutput::fromJson(reply.object());
 
@@ -2499,8 +2632,12 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
     addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
 
     mXrpc->post("chat.bsky.convo.removeReaction", QJsonDocument(json), httpHeaders,
-        [this, successCb, errorCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Remove reaction:" << reply;
+
             try {
                 auto output = ChatBskyConvo::MessageOutput::fromJson(reply.object());
 
@@ -2528,8 +2665,9 @@ const QString& Client::refreshToken() const
 
 Xrpc::NetworkThread::ErrorCb Client::failure(const ErrorCb& cb)
 {
-    return [this, cb](const QString& err, const QJsonDocument& reply){
-            requestFailed(err, reply, cb);
+    return [this, presence=getPresence(), cb](const QString& err, const QJsonDocument& reply){
+            if (presence)
+                requestFailed(err, reply, cb);
         };
 }
 
@@ -2655,7 +2793,10 @@ void Client::autoRefreshSession(const std::function<void()>& cbDone)
     qDebug() << "Auto refresh session:" << mSession->mHandle << "did:" << mSession->mDid;
 
     refreshSession(
-        [this, cbDone]{
+        [this, presence=getPresence(), cbDone]{
+            if (!presence)
+                return;
+
             qDebug() << "Session refreshed:" << mSession->mHandle << "did:" << mSession->mDid;
 
             if (mAutoRefreshDoneCb)
@@ -2664,7 +2805,10 @@ void Client::autoRefreshSession(const std::function<void()>& cbDone)
             if (cbDone)
                 cbDone();
         },
-        [this, cbDone](const QString& error, const QString& msg){
+        [this, presence=getPresence(), cbDone](const QString& error, const QString& msg){
+            if (!presence)
+                return;
+
             qDebug() << "Session refresh failed:" << error << " - " << msg << "handle:" << mSession->mHandle << "did:" << mSession->mDid;
 
             if (error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
