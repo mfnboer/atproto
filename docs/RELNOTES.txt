@@ -1,5 +1,6 @@
 next
 ====
+* Add SavedFeedsPrefV2
 * Update profile supports pronouns and website
 * Auto session refresh
 * Code cleanup

@@ -415,7 +415,7 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
 QJsonObject AdultContentPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#adultContentPref");
+    json.insert("$type", TYPE);
     json.insert("enabled", mEnabled);
     return json;
 }
@@ -469,7 +469,7 @@ QString ContentLabelPref::visibilityToString(Visibility visibility, const QStrin
 QJsonObject ContentLabelPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#contentLabelPref");
+    json.insert("$type", TYPE);
     XJsonObject::insertOptionalJsonValue(json, "labelerDid", mLabelerDid);
     json.insert("label", mLabel);
     json.insert("visibility", visibilityToString(mVisibility, mRawVisibility));
@@ -491,7 +491,7 @@ ContentLabelPref::SharedPtr ContentLabelPref::fromJson(const QJsonObject& json)
 QJsonObject SavedFeedsPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#savedFeedsPref");
+    json.insert("$type", TYPE);
     json.insert("pinned", XJsonObject::toJsonArray(mPinned));
     json.insert("saved", XJsonObject::toJsonArray(mSaved));
     return json;
@@ -503,6 +503,68 @@ SavedFeedsPref::SharedPtr SavedFeedsPref::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     pref->mPinned = xjson.getRequiredStringVector("pinned");
     pref->mSaved = xjson.getRequiredStringVector("saved");
+    pref->mJson = json;
+    return pref;
+}
+
+SavedFeedType stringToSavedFeedType(const QString& str)
+{
+    static const std::unordered_map<QString, SavedFeedType> mapping = {
+        { "feed", SavedFeedType::FEED },
+        { "list", SavedFeedType::LIST },
+        { "timeline", SavedFeedType::TIMELINE }
+    };
+
+    return stringToEnum(str, mapping, SavedFeedType::UNKNOWN);
+}
+
+QString savedFeedTypeToString(SavedFeedType savedFeedType, const QString& unknown)
+{
+    static const std::unordered_map<SavedFeedType, QString> mapping = {
+        { SavedFeedType::FEED, "feed" },
+        { SavedFeedType::LIST, "list" },
+        { SavedFeedType::TIMELINE, "timeline" }
+    };
+
+    return enumToString(savedFeedType, mapping, unknown);
+}
+
+QJsonObject SavedFeed::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("id", mId);
+    json.insert("type", savedFeedTypeToString(mType, mRawType));
+    json.insert("value", mValue);
+    json.insert("pinned", mPinned);
+    return json;
+}
+
+SavedFeed::SharedPtr SavedFeed::fromJson(const QJsonObject& json)
+{
+    auto savedFeed = std::make_shared<SavedFeed>();
+    const XJsonObject xjson(json);
+    savedFeed->mId = xjson.getRequiredString("id");
+    savedFeed->mRawType = xjson.getRequiredString("type");
+    savedFeed->mType = stringToSavedFeedType(savedFeed->mRawType);
+    savedFeed->mValue = xjson.getRequiredString("value");
+    savedFeed->mPinned = xjson.getRequiredBool("pinned");
+    savedFeed->mJson = json;
+    return savedFeed;
+}
+
+QJsonObject SavedFeedsPrefV2::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("items", XJsonObject::toJsonArray<SavedFeed>(mItems));
+    return json;
+}
+
+SavedFeedsPrefV2::SharedPtr SavedFeedsPrefV2::fromJson(const QJsonObject& json)
+{
+    auto pref = std::make_shared<SavedFeedsPrefV2>();
+    const XJsonObject xjson(json);
+    pref->mItems = xjson.getRequiredVector<SavedFeed>("items");
     pref->mJson = json;
     return pref;
 }
@@ -519,7 +581,7 @@ PersonalDetailsPref::SharedPtr PersonalDetailsPref::fromJson(const QJsonObject& 
 QJsonObject FeedViewPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#feedViewPref");
+    json.insert("$type", TYPE);
     json.insert("feed", mFeed);
     json.insert("hideReplies", mHideReplies);
     json.insert("hideRepliesByUnfollowed", mHideRepliesByUnfollowed);
@@ -667,7 +729,7 @@ MutedWord::SharedPtr MutedWord::fromJson(const QJsonObject& json)
 QJsonObject MutedWordsPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#mutedWordsPref");
+    json.insert("$type", TYPE);
     QJsonArray jsonArray;
 
     for (const auto& item : mItems)
@@ -710,7 +772,7 @@ LabelerPrefItem::SharedPtr LabelerPrefItem::fromJson(const QJsonObject& json)
 QJsonObject LabelersPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#labelersPref");
+    json.insert("$type", TYPE);
 
     QJsonArray jsonArray;
 
@@ -737,7 +799,7 @@ LabelersPref::SharedPtr LabelersPref::fromJson(const QJsonObject& json)
 QJsonObject PostInteractionSettingsPref::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.actor.defs#postInteractionSettingsPref");
+    json.insert("$type", TYPE);
 
     QJsonArray allowArray = mRules.toJson();
 
@@ -792,15 +854,16 @@ UnknownPref::SharedPtr UnknownPref::fromJson(const QJsonObject& json)
 PreferenceType stringToPreferenceType(const QString& str)
 {
     static const std::unordered_map<QString, PreferenceType> mapping = {
-        { "app.bsky.actor.defs#adultContentPref", PreferenceType::ADULT_CONTENT },
-        { "app.bsky.actor.defs#contentLabelPref", PreferenceType::CONTENT_LABEL },
-        { "app.bsky.actor.defs#savedFeedsPref", PreferenceType::SAVED_FEEDS },
-        { "app.bsky.actor.defs#personalDetailsPref", PreferenceType::PERSONAL_DETAILS },
-        { "app.bsky.actor.defs#feedViewPref", PreferenceType::FEED_VIEW },
-        { "app.bsky.actor.defs#threadViewPref", PreferenceType::THREAD_VIEW },
-        { "app.bsky.actor.defs#mutedWordsPref", PreferenceType::MUTED_WORDS },
-        { "app.bsky.actor.defs#labelersPref", PreferenceType::LABELERS },
-        { "app.bsky.actor.defs#postInteractionSettingsPref", PreferenceType::POST_INTERACTION_SETTINGS },
+        { AdultContentPref::TYPE, PreferenceType::ADULT_CONTENT },
+        { ContentLabelPref::TYPE, PreferenceType::CONTENT_LABEL },
+        { SavedFeedsPref::TYPE, PreferenceType::SAVED_FEEDS },
+        { SavedFeedsPrefV2::TYPE, PreferenceType::SAVED_FEEDS_V2 },
+        { PersonalDetailsPref::TYPE, PreferenceType::PERSONAL_DETAILS },
+        { FeedViewPref::TYPE, PreferenceType::FEED_VIEW },
+        { ThreadViewPref::TYPE, PreferenceType::THREAD_VIEW },
+        { MutedWordsPref::TYPE, PreferenceType::MUTED_WORDS },
+        { LabelersPref::TYPE, PreferenceType::LABELERS },
+        { PostInteractionSettingsPref::TYPE, PreferenceType::POST_INTERACTION_SETTINGS },
         { VerificationPrefs::TYPE, PreferenceType::VERIFICATION }
     };
 
@@ -828,6 +891,9 @@ Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
         break;
     case PreferenceType::SAVED_FEEDS:
         pref->mItem = SavedFeedsPref::fromJson(json);
+        break;
+    case PreferenceType::SAVED_FEEDS_V2:
+        pref->mItem = SavedFeedsPrefV2::fromJson(json);
         break;
     case PreferenceType::PERSONAL_DETAILS:
         pref->mItem = PersonalDetailsPref::fromJson(json);

@@ -292,6 +292,7 @@ struct AdultContentPref
 
     using SharedPtr = std::shared_ptr<AdultContentPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#adultContentPref";
 };
 
 // app.bsky.actor.defs#contentLabelPref
@@ -318,6 +319,7 @@ struct ContentLabelPref
 
     using SharedPtr = std::shared_ptr<ContentLabelPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#contentLabelPref";
 };
 
 // app.bsky.actor.defs#savedFeedsPref
@@ -331,6 +333,47 @@ struct SavedFeedsPref
 
     using SharedPtr = std::shared_ptr<SavedFeedsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#savedFeedsPref";
+};
+
+enum class SavedFeedType
+{
+    FEED,
+    LIST,
+    TIMELINE,
+    UNKNOWN
+};
+SavedFeedType stringToSavedFeedType(const QString& str);
+QString savedFeedTypeToString(SavedFeedType savedFeedType, const QString& unknown);
+
+// app.bsky.actor.defs#savedFeed
+struct SavedFeed
+{
+    QString mId;
+    QString mRawType;
+    SavedFeedType mType = SavedFeedType::UNKNOWN;
+    QString mValue;
+    bool mPinned = false;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<SavedFeed>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.actor.defs#savedFeedsPrefV2
+struct SavedFeedsPrefV2
+{
+    SavedFeed::List mItems;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<SavedFeedsPrefV2>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#savedFeedsPrefV2";
 };
 
 // app.bsky.actor.defs#personalDetailsPref
@@ -343,6 +386,7 @@ struct PersonalDetailsPref
 
     using SharedPtr = std::shared_ptr<PersonalDetailsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#personalDetailsPref";
 };
 
 // app.bsky.actor.defs#feedViewPref
@@ -360,6 +404,7 @@ struct FeedViewPref
 
     using SharedPtr = std::shared_ptr<FeedViewPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#feedViewPref";
 };
 
 // app.bsky.actor.defs#threadViewPref
@@ -373,6 +418,7 @@ struct ThreadViewPref
 
     using SharedPtr = std::shared_ptr<ThreadViewPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#threadViewPref";
 };
 
 // app.bsky.actor.defs#mutedWordTarget
@@ -427,6 +473,7 @@ struct MutedWordsPref
 
     using SharedPtr = std::shared_ptr<MutedWordsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#mutedWordsPref";
 };
 
 // app.bsky.actor.defs#labelerPrefItem
@@ -461,6 +508,7 @@ struct LabelersPref
 
     using SharedPtr = std::shared_ptr<LabelersPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#labelersPref";
 };
 
 // app.bsky.actor.defs#postInteractionSettingsPref
@@ -474,6 +522,7 @@ struct PostInteractionSettingsPref
 
     using SharedPtr = std::shared_ptr<PostInteractionSettingsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.defs#postInteractionSettingsPref";
 };
 
 // app.bsky.actor.defs#verificationPrefs
@@ -505,6 +554,7 @@ enum class PreferenceType
     ADULT_CONTENT,
     CONTENT_LABEL,
     SAVED_FEEDS,
+    SAVED_FEEDS_V2,
     PERSONAL_DETAILS,
     FEED_VIEW,
     THREAD_VIEW,
@@ -519,6 +569,7 @@ PreferenceType stringToPreferenceType(const QString& str);
 using PreferenceItem = std::variant<AdultContentPref::SharedPtr,
                                     ContentLabelPref::SharedPtr,
                                     SavedFeedsPref::SharedPtr,
+                                    SavedFeedsPrefV2::SharedPtr,
                                     PersonalDetailsPref::SharedPtr,
                                     FeedViewPref::SharedPtr,
                                     ThreadViewPref::SharedPtr,
