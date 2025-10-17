@@ -14,6 +14,7 @@ public:
     using LabelVisibilityMap = std::unordered_map<QString, LabelVisibility>; // label -> visibility
     using ContentLabelPrefs = std::unordered_map<QString, LabelVisibilityMap>; // did -> label visibility
     using SavedFeedsPref = AppBskyActor::SavedFeedsPref;
+    using SavedFeedsPrefV2 = AppBskyActor::SavedFeedsPrefV2;
     using MutedWordsPref = AppBskyActor::MutedWordsPref;
     using LabelersPref = AppBskyActor::LabelersPref;
     using PostInteractionSettingsPref = AppBskyActor::PostInteractionSettingsPref;
@@ -37,6 +38,9 @@ public:
 
     const SavedFeedsPref& getSavedFeedsPref() const { return mSavedFeedsPref; }
     void setSavedFeedsPref(const SavedFeedsPref& pref) { mSavedFeedsPref = pref; }
+
+    const SavedFeedsPrefV2& getSavedFeedsPrefV2() const { return mSavedFeedsPrefV2; }
+    void setSavedFeedsPrefV2(const SavedFeedsPrefV2& pref) { mSavedFeedsPrefV2 = pref; }
 
     const MutedWordsPref& getMutedWordsPref() const { return mMutedWordsPref; }
     MutedWordsPref& getMutedWordsPref() { return mMutedWordsPref; }
@@ -63,6 +67,7 @@ private:
     ContentLabelPrefs mContentLabelPrefs;
 
     AppBskyActor::SavedFeedsPref mSavedFeedsPref;
+    AppBskyActor::SavedFeedsPrefV2 mSavedFeedsPrefV2;
     AppBskyActor::PersonalDetailsPref mPersonalDetailsPref;
     std::unordered_map<QString, FeedViewPref> mFeedViewPrefs;
     AppBskyActor::ThreadViewPref mThreadViewPref;

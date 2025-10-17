@@ -39,6 +39,12 @@ void UserPreferences::setPrefs(const AppBskyActor::Preference::List& preferences
             mSavedFeedsPref = *savedFeed;
             break;
         }
+        case ATProto::AppBskyActor::PreferenceType::SAVED_FEEDS_V2:
+        {
+            const auto& savedFeedsV2 = std::get<AppBskyActor::SavedFeedsPrefV2::SharedPtr>(pref->mItem);
+            mSavedFeedsPrefV2 = *savedFeedsV2;
+            break;
+        }
         case AppBskyActor::PreferenceType::PERSONAL_DETAILS:
         {
             const auto& personal = std::get<AppBskyActor::PersonalDetailsPref::SharedPtr>(pref->mItem);
@@ -130,10 +136,16 @@ AppBskyActor::Preference::List UserPreferences::toPreferenceList() const
         }
     }
 
-    auto savedFeedsPred = std::make_shared<AppBskyActor::SavedFeedsPref>(mSavedFeedsPref);
+    auto savedFeedsPref = std::make_shared<AppBskyActor::SavedFeedsPref>(mSavedFeedsPref);
     pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(savedFeedsPred);
+    pref->mItem = std::move(savedFeedsPref);
     pref->mType = AppBskyActor::PreferenceType::SAVED_FEEDS;
+    preferences.push_back(std::move(pref));
+
+    auto savedFeedsPrefV2 = std::make_shared<AppBskyActor::SavedFeedsPrefV2>(mSavedFeedsPrefV2);
+    pref = std::make_shared<AppBskyActor::Preference>();
+    pref->mItem = std::move(savedFeedsPrefV2);
+    pref->mType = AppBskyActor::PreferenceType::SAVED_FEEDS_V2;
     preferences.push_back(std::move(pref));
 
     auto personalDetails = std::make_shared<AppBskyActor::PersonalDetailsPref>(mPersonalDetailsPref);
