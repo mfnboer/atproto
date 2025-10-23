@@ -124,6 +124,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
     connect(this, &Client::pdsChanged, mNetworkThread.get(), &NetworkThread::setPDS, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
+    connect(this, &Client::videoHostChanged, mNetworkThread.get(), &NetworkThread::setVideoHost, Qt::QueuedConnection);
 
     qDebug() << "Start network thread";
     mNetworkThread->start();
@@ -146,6 +147,11 @@ void Client::doCallback(ArgType arg, CallbackType cb)
 void Client::setUserAgent(const QString& userAgent)
 {
     emit userAgentChanged(userAgent);
+}
+
+void Client::setVideoHost(const QString& host)
+{
+    emit videoHostChanged(host);
 }
 
 void Client::setPDS(const QString& pds, const QString& did)

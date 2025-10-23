@@ -1,5 +1,6 @@
 next
 ====
+* AppView, Chat and Video services configurable
 * Add SavedFeedsPrefV2
 * Update profile supports pronouns and website
 * Auto session refresh

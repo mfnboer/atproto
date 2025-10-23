@@ -30,6 +30,8 @@ public:
     void setUserAgent(const QString& userAgent);
     const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds, const QString& did);
+    void setVideoHost(const QString& host);
+
     void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
     void setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
     void setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
@@ -51,6 +53,7 @@ signals:
                       const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void pdsChanged(const QString& pds);
     void userAgentChanged(const QString& userAgent);
+    void videoHostChanged(const QString& host);
 
 private:
     template<typename CallbackType, typename ArgType>

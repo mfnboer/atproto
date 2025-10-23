@@ -174,8 +174,11 @@ public:
     };
 
     NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
+
     void setPDS(const QString& pds) { mPDS = pds; }
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
+    void setVideoHost(const QString& host) { mVideoHost = host; }
+
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
                   const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
     void postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
@@ -288,6 +291,7 @@ private:
     int mNetworkTransferTimeoutMs;
     QString mPDS;
     QString mUserAgent;
+    QString mVideoHost;
 };
 
 }

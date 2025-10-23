@@ -1,6 +1,7 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #include "xrpc_network_thread.h"
+#include "client.h"
 #include "xjson.h"
 #include "lexicon/lexicon.h"
 #include <QSslSocket>
@@ -8,6 +9,7 @@
 namespace Xrpc {
 
 using namespace std::chrono_literals;
+
 constexpr int MAX_RESEND = 4;
 
 static bool isEmpty(const NetworkThread::DataType& data)
@@ -27,7 +29,8 @@ static bool isEmpty(const NetworkThread::DataType& data)
 
 NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
     QThread(parent),
-    mNetworkTransferTimeoutMs(networkTransferTimeoutMs)
+    mNetworkTransferTimeoutMs(networkTransferTimeoutMs),
+    mVideoHost(ATProto::Client::SERVICE_VIDEO_HOST)
 {
 }
 
@@ -620,7 +623,7 @@ QUrl NetworkThread::buildUrl(const QString& service) const
 
     if (service.startsWith("app.bsky.video."))
     {
-        return QUrl("https://video.bsky.app/xrpc/" + service);
+        return QUrl(mVideoHost + "/xrpc/" + service);
     }
     else
     {
