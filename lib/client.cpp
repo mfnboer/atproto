@@ -68,17 +68,29 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
     connect(&mAutoRefreshTimer, &QTimer::timeout, this, [this]{ autoRefreshSession(); });
 }
 
-void Client::setServiceVideo(const QString& host, const QString& did)
+void Client::setServiceAppView(const QString& service)
 {
-    mServiceHostVideo = host;
-    mServiceDidVideo = did;
+    qDebug() << "Service app view:" << service;
+    mServiceAppView = service;
+}
 
+void Client::setServiceChat(const QString& service)
+{
+    qDebug() << "Service chat:" << service;
+    mServiceChat = service;
+}
+
+void Client::setServiceHostVideo(const QString& host)
+{
+    qDebug() << "Service video host:" << host;
+    mServiceHostVideo = host;
     mXrpc->setVideoHost(host);
 }
 
-void Client::resetServiceVideoToDefault()
+void Client::setServiceDidVideo(const QString& did)
 {
-    setServiceVideo(SERVICE_VIDEO_HOST, SERVICE_VIDEO_DID);
+    qDebug() << "Service video did:" << did;
+    mServiceDidVideo = did;
 }
 
 bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
@@ -131,6 +143,11 @@ void Client::updateTokens(const QString& accessJwt, const QString& refreshJwt)
     {
         qWarning() << "No session";
     }
+}
+
+QString Client::getSessionDid() const
+{
+    return mSession ? mSession->mDid : "";
 }
 
 void Client::createSession(const QString& user, const QString& pwd,

@@ -34,6 +34,12 @@ NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
 {
 }
 
+void NetworkThread::setVideoHost(const QString& host)
+{
+    qDebug() << "Video host:" << host;
+    mVideoHost = host;
+}
+
 void NetworkThread::run()
 {
     qDebug() << "XRPC network thread running:" << currentThreadId();

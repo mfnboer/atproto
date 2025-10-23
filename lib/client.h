@@ -128,23 +128,24 @@ public:
     explicit Client(Xrpc::Client::Ptr&& xrpc, QObject* parent = nullptr);
 
     const QString& getServiceAppView() const { return mServiceAppView; }
-    void setServiceAppView(const QString& service) { mServiceAppView = service; };
-    void resetServiceAppViewToDefault() {setServiceAppView(SERVICE_APP_VIEW); };
+    void setServiceAppView(const QString& service);
 
     const QString& getServiceChat() const { return mServiceChat; }
-    void setServiceChat(const QString& service) { mServiceChat = service; };
-    void resetServiceChatToDefault() { setServiceChat(SERVICE_CHAT); };
+    void setServiceChat(const QString& service);
 
     const QString& getServiceHostVideo() const { return mServiceHostVideo; }
+    void setServiceHostVideo(const QString& host);
+
     const QString& getServiceDidVideo() const { return mServiceDidVideo; }
-    void setServiceVideo(const QString& host, const QString& did);
-    void resetServiceVideoToDefault();
+    void setServiceDidVideo(const QString& did);
 
     const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::SharedPtr session) { mSession = std::move(session); }
     void clearSession() { mSession = nullptr; }
     void updateTokens(const QString& accessJwt, const QString& refreshJwt);
+
+    QString getSessionDid() const;
 
     bool setLabelerDids(const std::unordered_set<QString>& dids);
     bool addLabelerDid(const QString& did);

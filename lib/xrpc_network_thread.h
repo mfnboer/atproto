@@ -177,7 +177,7 @@ public:
 
     void setPDS(const QString& pds) { mPDS = pds; }
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
-    void setVideoHost(const QString& host) { mVideoHost = host; }
+    void setVideoHost(const QString& host);
 
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
                   const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
