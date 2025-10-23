@@ -120,7 +120,25 @@ public:
     static constexpr int MAX_TRENDS = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
+    static constexpr const char* SERVICE_APP_VIEW = "";
+    static constexpr const char* SERVICE_CHAT = "did:web:api.bsky.chat#bsky_chat";
+    static constexpr const char* SERVICE_VIDEO_DID = "did:web:video.bsky.app";
+    static constexpr const char* SERVICE_VIDEO_HOST = "https://video.bsky.app";
+
     explicit Client(Xrpc::Client::Ptr&& xrpc, QObject* parent = nullptr);
+
+    const QString& getServiceAppView() const { return mServiceAppView; }
+    void setServiceAppView(const QString& service) { mServiceAppView = service; };
+    void resetServiceAppViewToDefault() {setServiceAppView(SERVICE_APP_VIEW); };
+
+    const QString& getServiceChat() const { return mServiceChat; }
+    void setServiceChat(const QString& service) { mServiceChat = service; };
+    void resetServiceChatToDefault() { setServiceChat(SERVICE_CHAT); };
+
+    const QString& getServiceHostVideo() const { return mServiceHostVideo; }
+    const QString& getServiceDidVideo() const { return mServiceDidVideo; }
+    void setServiceVideo(const QString& host, const QString& did);
+    void resetServiceVideoToDefault();
 
     const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
@@ -1080,6 +1098,7 @@ private:
     void addAcceptLabelersHeader(Xrpc::NetworkThread::Params& httpHeaders) const;
     void addAcceptLanguageHeader(Xrpc::NetworkThread::Params& httpHeaders, const QStringList& languages) const;
     void addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& did, const QString& serviceKey) const;
+    void addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& value) const;
 
     void createSessionContinue(const QString& user, const QString& pwd,
                                const std::optional<QString>& authFactorToken,
@@ -1099,6 +1118,10 @@ private:
     QTimer mAutoRefreshTimer;
     AutoRefreshDoneCb mAutoRefreshDoneCb;
     AutoRefreshSessionExpiredCb mAutoRefreshSessionExpiredCb;
+    QString mServiceAppView{SERVICE_APP_VIEW};
+    QString mServiceChat{SERVICE_CHAT};
+    QString mServiceDidVideo{SERVICE_VIDEO_DID};
+    QString mServiceHostVideo{SERVICE_VIDEO_HOST};
 };
 
 }

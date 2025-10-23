@@ -14,11 +14,7 @@ namespace ATProto
 using namespace std::chrono_literals;
 
 #define SERVICE_KEY_ATPROTO_LABELER QStringLiteral("atproto_labeler")
-#define SERVICE_KEY_BSKY_CHAT QStringLiteral("bsky_chat")
 #define SERVICE_KEY_BSKY_FEEDGEN QStringLiteral("bsky_fg")
-
-#define SERVICE_DID_BSKY_CHAT QStringLiteral("did:web:api.bsky.chat")
-#define SERVICE_DID_BSKY_VIDEO QStringLiteral("did:web:video.bsky.app")
 
 static constexpr char const* ERROR_INVALID_JSON = "InvalidJson";
 static constexpr char const* ERROR_INVALID_SESSION = "InvalidSession";
@@ -67,8 +63,22 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
     mXrpc(std::move(xrpc))
 {
     mAutoRefreshIntialDelayTimer.setSingleShot(true);
+
     connect(&mAutoRefreshIntialDelayTimer, &QTimer::timeout, this, [this]{ mAutoRefreshTimer.start(AUTO_REFRESH_INTERVAL); });
     connect(&mAutoRefreshTimer, &QTimer::timeout, this, [this]{ autoRefreshSession(); });
+}
+
+void Client::setServiceVideo(const QString& host, const QString& did)
+{
+    mServiceHostVideo = host;
+    mServiceDidVideo = did;
+
+    mXrpc->setVideoHost(host);
+}
+
+void Client::resetServiceVideoToDefault()
+{
+    setServiceVideo(SERVICE_VIDEO_HOST, SERVICE_VIDEO_DID);
 }
 
 bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
@@ -433,6 +443,7 @@ void Client::getProfile(const QString& user, const GetProfileSuccessCb& successC
 {
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.actor.getProfile", {{"actor", user}}, httpHeaders,
         [successCb](AppBskyActor::ProfileViewDetailed::SharedPtr profile){
@@ -456,6 +467,7 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.actor.getProfiles", params, httpHeaders,
         [successCb](AppBskyActor::GetProfilesOutput::SharedPtr output){
@@ -470,7 +482,10 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
 
 void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.actor.getPreferences", {}, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.actor.getPreferences", {}, httpHeaders,
         [successCb](AppBskyActor::GetPreferencesOutput::SharedPtr prefs){
             qDebug() << "getPreferences ok";
 
@@ -488,7 +503,10 @@ void Client::putPreferences(const UserPreferences& userPrefs,
     prefs.mPreferences = userPrefs.toPreferenceList();
     auto json = prefs.toJson();
 
-    mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json), {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json), httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "putPreferences:" << reply;
             if (successCb)
@@ -507,6 +525,7 @@ void Client::searchActors(const QString& q, std::optional<int> limit, const std:
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.actor.searchActors", params, httpHeaders,
         [successCb](AppBskyActor::SearchActorsOutput::SharedPtr output){
@@ -525,7 +544,10 @@ void Client::searchActorsTypeahead(const QString& q, std::optional<int> limit,
     Xrpc::NetworkThread::Params params{{"q", q}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
 
-    mXrpc->get("app.bsky.actor.searchActorsTypeahead", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.actor.searchActorsTypeahead", params, httpHeaders,
         [successCb](AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr output){
             qDebug() << "searchActorsTypeahead:" << output->mActors.size();
 
@@ -547,6 +569,7 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLanguageHeader(httpHeaders, acceptLanguages);
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.actor.getSuggestions", params, httpHeaders,
         [successCb](AppBskyActor::GetSuggestionsOutput::SharedPtr output){
@@ -564,7 +587,10 @@ void Client::createBookmark(QString mUri, QString mCid, const SuccessCb& success
     json.insert("uri", mUri);
     json.insert("cid", mCid);
 
-    mXrpc->post("app.bsky.bookmark.createBookmark", QJsonDocument(json), {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.bookmark.createBookmark", QJsonDocument(json), httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "Created bookmark reply:" << reply;
             if (successCb)
@@ -579,7 +605,10 @@ void Client::deleteBookmark(QString mUri, const SuccessCb& successCb, const Erro
     QJsonObject json;
     json.insert("uri", mUri);
 
-    mXrpc->post("app.bsky.bookmark.deleteBookmark", QJsonDocument(json), {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.bookmark.deleteBookmark", QJsonDocument(json), httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "Deleted bookmark reply:" << reply;
             if (successCb)
@@ -598,6 +627,7 @@ void Client::getBookmarks(std::optional<int> limit, const std::optional<QString>
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.bookmark.getBookmarks", params, httpHeaders,
         [successCb](AppBskyBookmark::GetBookmarksOutput::SharedPtr output){
@@ -613,9 +643,11 @@ void Client::getSuggestedFollows(const QString& user, const QStringList& acceptL
                                  const GetSuggestedFollowsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"actor", user}};
+
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLanguageHeader(httpHeaders, acceptLanguages);
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getSuggestedFollowsByActor", params, httpHeaders,
         [successCb](AppBskyActor::GetSuggestedFollowsByActor::SharedPtr output){
@@ -633,10 +665,14 @@ void Client::getServices(const std::vector<QString>& dids, bool detailed,
 {
     Xrpc::NetworkThread::Params params{{"detailed", boolValue(detailed)}};
 
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
     for (const auto& did : dids)
         params.append({"dids", did});
 
-    mXrpc->get("app.bsky.labeler.getServices", params, {},
+    mXrpc->get("app.bsky.labeler.getServices", params, httpHeaders,
         [successCb](AppBskyLabeler::GetServicesOutput::SharedPtr output){
             qDebug() << "getServices: success";
 
@@ -659,6 +695,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getAuthorFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
@@ -678,7 +715,11 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getActorLikes", params, {},
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.feed.getActorLikes", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getActorLikes: ok";
 
@@ -698,6 +739,7 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getTimeline", params, httpHeaders,
         [successCb, errorCb](AppBskyFeed::OutputFeed::SharedPtr feed){
@@ -721,6 +763,7 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLanguageHeader(httpHeaders, acceptLanguages);
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
@@ -744,6 +787,7 @@ void Client::getListFeed(const QString& list, std::optional<int> limit, const st
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLanguageHeader(httpHeaders, acceptLanguages);
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getListFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
@@ -764,6 +808,7 @@ void Client::getFeedGenerator(const QString& feed,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getFeedGenerator", params, httpHeaders,
         [successCb](AppBskyFeed::GetFeedGeneratorOutput::SharedPtr feed){
@@ -784,6 +829,7 @@ void Client::getFeedGenerators(const std::vector<QString>& feeds,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     for (const auto& f : feeds)
     {
@@ -811,6 +857,7 @@ void Client::getActorFeeds(const QString& user, std::optional<int> limit, const 
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getActorFeeds", params, httpHeaders,
         [successCb](AppBskyFeed::GetActorFeedsOutput::SharedPtr output){
@@ -832,6 +879,7 @@ void Client::getPostThread(const QString& uri, std::optional<int> depth, std::op
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getPostThread", params, httpHeaders,
         [successCb](AppBskyFeed::PostThread::SharedPtr thread){
@@ -856,6 +904,7 @@ void Client::getPosts(const std::vector<QString>& uris,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getPosts", params, httpHeaders,
         [successCb](AppBskyFeed::GetPostsOutput::SharedPtr output){
@@ -878,6 +927,7 @@ void Client::getQuotes(const QString& uri, const std::optional<QString>& cid, st
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getQuotes", params, httpHeaders,
         [successCb](AppBskyFeed::GetQuotesOutput::SharedPtr output){
@@ -908,6 +958,7 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.searchPosts", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -935,7 +986,10 @@ void Client::getLikes(const QString& uri, std::optional<int> limit, const std::o
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
 
-    mXrpc->get("app.bsky.feed.getLikes", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.feed.getLikes", params, httpHeaders,
         [successCb](AppBskyFeed::GetLikesOutput::SharedPtr likes){
             qDebug() << "getLikes:" << likes->mLikes.size();
 
@@ -955,6 +1009,7 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getRepostedBy", params, httpHeaders,
         [successCb](AppBskyFeed::GetRepostedByOutput::SharedPtr repostedBy){
@@ -977,6 +1032,7 @@ void Client::sendInteractions(const AppBskyFeed::Interaction::List& interactions
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, feedDid, SERVICE_KEY_BSKY_FEEDGEN);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->post("app.bsky.feed.sendInteractions", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
@@ -997,6 +1053,7 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getFollows", params, httpHeaders,
         [successCb](AppBskyGraph::GetFollowsOutput::SharedPtr follows){
@@ -1018,6 +1075,7 @@ void Client::getFollowers(const QString& actor, std::optional<int> limit, const 
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getFollowers", params, httpHeaders,
         [successCb](AppBskyGraph::GetFollowersOutput::SharedPtr followers){
@@ -1039,6 +1097,7 @@ void Client::getKnownFollowers(const QString& actor, std::optional<int> limit, c
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getKnownFollowers", params, httpHeaders,
         [successCb](AppBskyGraph::GetFollowersOutput::SharedPtr followers){
@@ -1060,6 +1119,7 @@ void Client::getBlocks(std::optional<int> limit, const std::optional<QString>& c
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getBlocks", params, httpHeaders,
         [successCb](AppBskyGraph::GetBlocksOutput::SharedPtr blocks){
@@ -1081,6 +1141,7 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getMutes", params, httpHeaders,
         [successCb](AppBskyGraph::GetMutesOutput::SharedPtr mutes){
@@ -1099,7 +1160,10 @@ void Client::muteActor(const QString& actor, const SuccessCb& successCb, const E
     jsonObj.insert("actor", actor);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.muteActor", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.muteActor", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "muteActor:" << reply;
             if (successCb)
@@ -1115,7 +1179,10 @@ void Client::unmuteActor(const QString& actor, const SuccessCb& successCb, const
     jsonObj.insert("actor", actor);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.unmuteActor", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.unmuteActor", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "unmuteActor:" << reply;
             if (successCb)
@@ -1131,7 +1198,10 @@ void Client::muteThread(const QString& root, const SuccessCb& successCb, const E
     jsonObj.insert("root", root);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.muteThread", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.muteThread", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "muteThread:" << reply;
             if (successCb)
@@ -1147,7 +1217,10 @@ void Client::unmuteThread(const QString& root, const SuccessCb& successCb, const
     jsonObj.insert("root", root);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.unmuteThread", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.unmuteThread", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "unmuteThread:" << reply;
             if (successCb)
@@ -1166,6 +1239,7 @@ void Client::getList(const QString& listUri, std::optional<int> limit, const std
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getList", params, httpHeaders,
         [successCb](AppBskyGraph::GetListOutput::SharedPtr output){
@@ -1191,6 +1265,7 @@ void Client::getLists(const QString& actor, const std::vector<AppBskyGraph::List
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getLists", params, httpHeaders,
         [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
@@ -1216,6 +1291,7 @@ void Client::getListsWithMembership(const QString& actor, const std::vector<AppB
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getListsWithMembership", params, httpHeaders,
         [successCb](AppBskyGraph::GetListsWithMembershipOutput::SharedPtr output){
@@ -1237,6 +1313,7 @@ void Client::getListBlocks(std::optional<int> limit, const std::optional<QString
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getListBlocks", params, httpHeaders,
         [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
@@ -1258,6 +1335,7 @@ void Client::getListMutes(std::optional<int> limit, const std::optional<QString>
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getListMutes", params, httpHeaders,
         [successCb](AppBskyGraph::GetListsOutput::SharedPtr output){
@@ -1279,8 +1357,9 @@ void Client::getActorStarterPacks(const QString& actor, std::optional<int> limit
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
-    mXrpc->get("app.bsky.graph.getActorStarterPacks", params, {},
+    mXrpc->get("app.bsky.graph.getActorStarterPacks", params, httpHeaders,
         [successCb](AppBskyGraph::GetStarterPacksOutput::SharedPtr output){
             qDebug() << "getActorStarterPacks:" << output->mStarterPacks.size();
 
@@ -1303,6 +1382,7 @@ void Client::getStarterPacks(const std::vector<QString>& uris,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getStarterPacks", params, httpHeaders,
         [successCb](AppBskyGraph::GetStarterPacksOutput::SharedPtr output){
@@ -1325,6 +1405,7 @@ void Client::getStarterpacksWithMembership(const QString& actor,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getStarterpacksWithMembership", params, httpHeaders,
         [successCb](AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr output){
@@ -1341,6 +1422,7 @@ void Client::getStarterPack(const QString& starterPack, const GetStarterPackSucc
 {
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.graph.getStarterPack", {{"starterPack", starterPack}}, httpHeaders,
         [successCb](AppBskyGraph::GetStarterPackOutput::SharedPtr output){
@@ -1359,7 +1441,10 @@ void Client::muteActorList(const QString& listUri, const SuccessCb& successCb, c
     jsonObj.insert("list", listUri);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.muteActorList", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.muteActorList", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "muteActorList:" << reply;
             if (successCb)
@@ -1375,7 +1460,10 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
     jsonObj.insert("list", listUri);
     QJsonDocument json(jsonObj);
 
-    mXrpc->post("app.bsky.graph.unmuteActorList", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.graph.unmuteActorList", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "unmuteActorList:" << reply;
             if (successCb)
@@ -1392,7 +1480,10 @@ void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, 
     addOptionalDateTimeParam(params, "seenAt", seenAt);
     addOptionalBoolParam(params, "priority", priority);
 
-    mXrpc->get("app.bsky.notification.getUnreadCount", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.notification.getUnreadCount", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -1418,7 +1509,10 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
     paramsJson.insert("seenAt", dateTime.toString(Qt::ISODateWithMs));
     json.setObject(paramsJson);
 
-    mXrpc->post("app.bsky.notification.updateSeen", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.notification.updateSeen", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "Updated notification seen:" << reply;
             if (successCb)
@@ -1450,6 +1544,7 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     const auto now = QDateTime::currentDateTimeUtc();
 
@@ -1478,7 +1573,10 @@ void Client::putNotificationPreferences(bool priority,
     paramsJson.insert("priority", priority);
     json.setObject(paramsJson);
 
-    mXrpc->post("app.bsky.notification.putPreferences", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.notification.putPreferences", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "Put notification preferences:" << reply;
             if (successCb)
@@ -1490,7 +1588,10 @@ void Client::putNotificationPreferences(bool priority,
 
 void Client::getNotificationPreferences(const NotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.notification.getPreferences", {}, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.notification.getPreferences", {}, httpHeaders,
         [successCb](AppBskyNotification::GetPreferencesOutput::SharedPtr output){
             qDebug() << "Get notification preferences:" << output->mPreferences->mJson;
             if (successCb)
@@ -1520,7 +1621,10 @@ void Client::putNotificationPreferencesV2(const AppBskyNotification::Preferences
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::Preference>(paramsJson, "verified", prefs.mVerified);
     json.setObject(paramsJson);
 
-    mXrpc->post("app.bsky.notification.putPreferencesV2", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.notification.putPreferencesV2", json, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -1548,6 +1652,7 @@ void Client::listActivitySubscriptions(std::optional<int> limit, const std::opti
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.notification.listActivitySubscriptions", params, httpHeaders,
         [successCb](AppBskyNotification::ListActivitySubscriptionsOutput::SharedPtr output){
@@ -1568,7 +1673,10 @@ void Client::putActivitySubscription(const QString& subject, const AppBskyNotifi
     paramsJson.insert("activitySubscription", subscription.toJson());
     json.setObject(paramsJson);
 
-    mXrpc->post("app.bsky.notification.putActivitySubscription", json, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.notification.putActivitySubscription", json, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -1599,9 +1707,10 @@ void Client::registerPushNotifications(const QString& serviceDid, const QString&
     paramsJson.insert("appId", appId);
     json.setObject(paramsJson);
 
-    qDebug() << json;
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
-    mXrpc->post("app.bsky.notification.registerPush", json, {},
+    mXrpc->post("app.bsky.notification.registerPush", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "registerPush succeeded:" << reply;
             if (successCb)
@@ -1615,7 +1724,10 @@ void Client::getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputC
 {
     Xrpc::NetworkThread::Params params{{"jobId", jobId}};
 
-    mXrpc->get("app.bsky.video.getJobStatus", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.video.getJobStatus", params, httpHeaders,
         [successCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
             qDebug() << "Get video job status:" << output->mJobStatus->mRawState;
 
@@ -1628,7 +1740,7 @@ void Client::getVideoJobStatus(const QString& jobId, const VideoJobStatusOutputC
 
 void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
 {
-    getServiceAuth(SERVICE_DID_BSKY_VIDEO, {}, "app.bsky.video.getUploadLimits",
+    getServiceAuth(mServiceDidVideo, {}, "app.bsky.video.getUploadLimits",
         [this, successCb, errorCb](auto output){
             getVideoUploadLimits(output->mToken, successCb, errorCb);
         },
@@ -1640,7 +1752,10 @@ void Client::getVideoUploadLimits(const GetVideoUploadLimitsCb& successCb, const
 
 void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVideoUploadLimitsCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->get("app.bsky.video.getUploadLimits", {}, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.video.getUploadLimits", {}, httpHeaders,
         [successCb](AppBskyVideo::GetUploadLimitsOutput::SharedPtr output){
             qDebug() << "Get video upload limits:" << output->mCanUpload;
 
@@ -1675,7 +1790,10 @@ void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const Vid
     const QString service = QString("app.bsky.video.uploadVideo?did=%1&name=%2.mp4").arg(QUrl::toPercentEncoding(mSession->mDid), name);
     qDebug() << "Service:" << service;
 
-    mXrpc->post(service, blob, "video/mp4", {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post(service, blob, "video/mp4", httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -2076,6 +2194,7 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.unspecced.getPopularFeedGenerators", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2105,6 +2224,7 @@ void Client::getSuggestedFeeds(std::optional<int> limit,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.unspecced.getSuggestedFeeds", params, httpHeaders,
         [successCb](AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr feed){
@@ -2125,6 +2245,7 @@ void Client::getSuggestedStarterPacks(std::optional<int> limit,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.unspecced.getSuggestedStarterPacks", params, httpHeaders,
         [successCb](AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr output){
@@ -2144,7 +2265,10 @@ void Client::getTrendingTopics(const std::optional<QString>& viewer, std::option
     addOptionalStringParam(params, "viewer", viewer);
     addOptionalIntParam(params, "limit", limit, 1, 25);
 
-    mXrpc->get("app.bsky.unspecced.getTrendingTopics", params, {},
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.unspecced.getTrendingTopics", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -2171,6 +2295,7 @@ void Client::getTrends(std::optional<int> limit, const GetTrendsSuccessCb& succe
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.unspecced.getTrends", params, httpHeaders,
         [successCb, errorCb](AppBskyUnspecced::GetTrendsOutput::SharedPtr output){
@@ -2190,7 +2315,7 @@ void Client::acceptConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.acceptConvo", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2220,7 +2345,7 @@ void Client::deleteMessageForSelf(const QString& convoId, const QString& message
     json.insert("messageId", messageId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.deleteMessageForSelf", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2249,7 +2374,7 @@ void Client::getConvo(const QString& convoId,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.getConvo", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2283,7 +2408,7 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.getConvoForMembers", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2317,7 +2442,7 @@ void Client::getConvoAvailability(const std::vector<QString>& members,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.getConvoAvailability", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2346,7 +2471,7 @@ void Client::getConvoLog(const std::optional<QString>& cursor,
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.getLog", params, httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2377,7 +2502,7 @@ void Client::getMessages(const QString& convoId, std::optional<int> limit,
     addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.getMessages", params, httpHeaders,
         [successCb](ChatBskyConvo::GetMessagesOutput::SharedPtr output){
@@ -2397,7 +2522,7 @@ void Client::leaveConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.leaveConvo", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2436,7 +2561,7 @@ void Client::listConvos(std::optional<int> limit, bool onlyUnread,
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->get("chat.bsky.convo.listConvos", params, httpHeaders,
         [successCb](ChatBskyConvo::ConvoListOutput::SharedPtr output){
@@ -2456,7 +2581,7 @@ void Client::muteConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.muteConvo", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2486,7 +2611,7 @@ void Client::sendMessage(const QString& convoId, const ChatBskyConvo::MessageInp
     json.insert("message", message.toJson());
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.sendMessage", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2515,7 +2640,7 @@ void Client::unmuteConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.unmuteConvo", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2545,7 +2670,7 @@ void Client::updateRead(const QString& convoId, const std::optional<QString>& me
     XJsonObject::insertOptionalJsonValue(json, "messageId", messageId);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.updateRead", QJsonDocument(json), httpHeaders,
         [successCb](ChatBskyConvo::ConvoOutput::SharedPtr output){
@@ -2567,7 +2692,7 @@ void Client::updateAllRead(std::optional<ChatBskyConvo::ConvoStatus> status,
         json.insert("status", ChatBskyConvo::convoStatusToString(*status));
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.updateAllRead", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2598,7 +2723,7 @@ void Client::addReaction(const QString& convoId, const QString& messageId, const
     json.insert("value", value);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.addReaction", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2629,7 +2754,7 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
     json.insert("value", value);
 
     Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, SERVICE_DID_BSKY_CHAT, SERVICE_KEY_BSKY_CHAT);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.removeReaction", QJsonDocument(json), httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
@@ -2739,9 +2864,17 @@ void Client::addAcceptLanguageHeader(Xrpc::NetworkThread::Params& httpHeaders, c
 
 void Client::addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& did, const QString& serviceKey) const
 {
+    if (did.isEmpty() || serviceKey.isEmpty())
+        return;
+
     const QString value = QString("%1#%2").arg(did, serviceKey);
-    qDebug() << "Proxy:" << value;
-    httpHeaders.push_back({"atproto-proxy", value});
+    addAtprotoProxyHeader(httpHeaders, value);
+}
+
+void Client::addAtprotoProxyHeader(Xrpc::NetworkThread::Params& httpHeaders, const QString& value) const
+{
+    if (!value.isEmpty())
+        httpHeaders.push_back({"atproto-proxy", value});
 }
 
 void Client::startAutoRefresh(std::chrono::milliseconds initialDelay, const AutoRefreshDoneCb& doneCb, const AutoRefreshSessionExpiredCb& sessionExpiredCb)
