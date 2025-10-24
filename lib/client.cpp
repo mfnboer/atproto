@@ -70,26 +70,26 @@ Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
 
 void Client::setServiceAppView(const QString& service)
 {
-    qDebug() << "Service app view:" << service;
+    qDebug() << "Service app view:" << service << getSessionDid();
     mServiceAppView = service;
 }
 
 void Client::setServiceChat(const QString& service)
 {
-    qDebug() << "Service chat:" << service;
+    qDebug() << "Service chat:" << service << getSessionDid();;
     mServiceChat = service;
 }
 
 void Client::setServiceHostVideo(const QString& host)
 {
-    qDebug() << "Service video host:" << host;
+    qDebug() << "Service video host:" << host << getSessionDid();;
     mServiceHostVideo = host;
     mXrpc->setVideoHost(host);
 }
 
 void Client::setServiceDidVideo(const QString& did)
 {
-    qDebug() << "Service video did:" << did;
+    qDebug() << "Service video did:" << did << getSessionDid();;
     mServiceDidVideo = did;
 }
 

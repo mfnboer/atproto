@@ -13,6 +13,7 @@ public:
     static const QRegularExpression DID;
 
     static bool isValidDid(const QString& did);
+    static bool isValidAtprotoProxy(const QString& value);
 };
 
 }
