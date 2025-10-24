@@ -14,4 +14,14 @@ bool ATRegex::isValidDid(const QString& did)
     return match.hasMatch();
 }
 
+bool ATRegex::isValidAtprotoProxy(const QString& value)
+{
+    const auto parts = value.split('#');
+
+    if (parts.size() != 2)
+        return false;
+
+    return isValidDid(parts[0]);
+}
+
 }
