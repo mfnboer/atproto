@@ -850,8 +850,18 @@ GetQuotesOutput::SharedPtr GetQuotesOutput::fromJson(const QJsonObject& json)
 QString Interaction::eventTypeToString(EventType eventType)
 {
     static const std::unordered_map<EventType, QString> mapping = {
-        { EventType::RequestLess, "requestLess" },
-        { EventType::RequestMore, "requestMore" }
+        { EventType::RequestLess, "app.bsky.feed.defs#requestLess" },
+        { EventType::RequestMore, "app.bsky.feed.defs#requestMore" },
+        { EventType::ClickThroughItem, "app.bsky.feed.defs#clickthroughItem" },
+        { EventType::ClickThroughAuthor, "app.bsky.feed.defs#clickthroughAuthor" },
+        { EventType::ClickThroughReposter, "app.bsky.feed.defs#clickthroughReposter" },
+        { EventType::ClickThroughEmbed, "app.bsky.feed.defs#clickthroughEmbed" },
+        { EventType::InteractionSeen, "app.bsky.feed.defs#interactionSeen" },
+        { EventType::InteractionLike, "app.bsky.feed.defs#interactionLike" },
+        { EventType::InteractionRepost, "app.bsky.feed.defs#interactionRepost" },
+        { EventType::InteractionReply, "app.bsky.feed.defs#interactionReply" },
+        { EventType::InteractionQuote, "app.bsky.feed.defs#interactionQuote" },
+        { EventType::InteractionShare, "app.bsky.feed.defs#interactionShare" }
     };
 
     const auto it = mapping.find(eventType);

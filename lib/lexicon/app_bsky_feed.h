@@ -415,7 +415,17 @@ struct Interaction
     enum class EventType
     {
         RequestLess,
-        RequestMore
+        RequestMore,
+        ClickThroughItem,
+        ClickThroughAuthor,
+        ClickThroughReposter,
+        ClickThroughEmbed,
+        InteractionSeen,
+        InteractionLike,
+        InteractionRepost,
+        InteractionReply,
+        InteractionQuote,
+        InteractionShare
     };
     static QString eventTypeToString(EventType eventType);
 

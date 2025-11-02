@@ -1,3 +1,8 @@
+next
+====
+* Via field in follow-record
+* Interaction events
+
 5.7
 ===
 * AppView, Chat and Video services configurable

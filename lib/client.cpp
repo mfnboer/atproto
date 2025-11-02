@@ -1049,7 +1049,6 @@ void Client::sendInteractions(const AppBskyFeed::Interaction::List& interactions
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, feedDid, SERVICE_KEY_BSKY_FEEDGEN);
-    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->post("app.bsky.feed.sendInteractions", json, httpHeaders,
         [successCb](const QJsonDocument& reply){

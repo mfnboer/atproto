@@ -56,6 +56,7 @@ struct Follow
 {
     QString mSubject; // did
     QDateTime mCreatedAt;
+    ComATProtoRepo::StrongRef::SharedPtr mVia; // optional
     QJsonObject mJson;
 
     QJsonObject toJson() const;
