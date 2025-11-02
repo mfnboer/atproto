@@ -51,6 +51,7 @@ QJsonObject Follow::toJson() const
     json.insert("$type", "app.bsky.graph.follow");
     json.insert("subject", mSubject);
     json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
 
@@ -61,6 +62,7 @@ Follow::SharedPtr Follow::fromJson(const QJsonObject& json)
     follow->mJson = json;
     follow->mSubject = xjson.getRequiredString("subject");
     follow->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    follow->mVia = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("via");
     return follow;
 }
 
