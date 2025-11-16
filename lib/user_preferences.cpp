@@ -235,6 +235,18 @@ void UserPreferences::setLabelVisibility(const QString& did, const QString& labe
     mContentLabelPrefs[did][label] = visibility;
 }
 
+void UserPreferences::removeLabelVisibility(const QString& did, const QString& label)
+{
+    qDebug() << "Remove label:" << label << "did:" << did;
+    mContentLabelPrefs[did].erase(label);
+
+    if (mContentLabelPrefs[did].empty())
+    {
+        qDebug() << "Remove did:" << did;
+        mContentLabelPrefs.erase(did);
+    }
+}
+
 const UserPreferences::FeedViewPref& UserPreferences::getFeedViewPref(const QString& feed) const
 {
     static std::unordered_map<QString, FeedViewPref> DEFAULT_PREF;

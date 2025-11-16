@@ -1,3 +1,7 @@
+next
+====
+* content label improvement
+
 5.8
 ===
 * Via field in follow-record

@@ -32,6 +32,7 @@ public:
 
     LabelVisibility getLabelVisibility(const QString& did, const QString& label) const;
     void setLabelVisibility(const QString& did, const QString& label, LabelVisibility visibility);
+    void removeLabelVisibility(const QString& did, const QString& label);
 
     const FeedViewPref& getFeedViewPref(const QString& feed) const;
     void setFeedViewPref(const FeedViewPref& pref);
