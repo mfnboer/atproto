@@ -1,3 +1,7 @@
+next
+====
+* BlockedAuthor.viewer
+
 5.9
 ===
 * Ozone report reasons

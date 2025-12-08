@@ -126,7 +126,7 @@ struct NotFoundPost
 struct BlockedAuthor
 {
     QString mDid;
-    // NOT IMPLEMENTED viewer
+    AppBskyActor::ViewerState::SharedPtr mViewer;
 
     QJsonObject toJson() const;
 
