@@ -540,6 +540,7 @@ QJsonObject BlockedAuthor::toJson() const
 {
     QJsonObject json;
     json.insert("did", mDid);
+    XJsonObject::insertOptionalJsonObject<AppBskyActor::ViewerState>(json, "viewer", mViewer);
     return json;
 }
 
@@ -548,6 +549,7 @@ BlockedAuthor::SharedPtr BlockedAuthor::fromJson(const QJsonObject& json)
     auto blockedAuthor = std::make_shared<BlockedAuthor>();
     const XJsonObject xjson(json);
     blockedAuthor->mDid = xjson.getRequiredString("did");
+    blockedAuthor->mViewer = xjson.getOptionalObject<AppBskyActor::ViewerState>("viewer");
     return blockedAuthor;
 }
 
