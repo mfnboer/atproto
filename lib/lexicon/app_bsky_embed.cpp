@@ -289,6 +289,7 @@ QJsonObject RecordViewBlocked::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("uri", mUri);
+    json.insert("author", mAuthor->toJson());
     return json;
 }
 
@@ -297,6 +298,7 @@ RecordViewBlocked::SharedPtr RecordViewBlocked::fromJson(const QJsonObject& json
     auto viewBlocked = std::make_shared<RecordViewBlocked>();
     const XJsonObject xjson(json);
     viewBlocked->mUri = xjson.getRequiredString("uri");
+    viewBlocked->mAuthor = xjson.getRequiredObject<AppBskyFeed::BlockedAuthor>("author");
     return viewBlocked;
 }
 

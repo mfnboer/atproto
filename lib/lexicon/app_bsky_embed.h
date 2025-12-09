@@ -59,6 +59,19 @@ struct GeneratorView {
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.feed.defs#blockedAuthor
+struct BlockedAuthor
+{
+    QString mDid;
+    AppBskyActor::ViewerState::SharedPtr mViewer;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<BlockedAuthor>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "";
+};
+
 }
 
 namespace ATProto::AppBskyGraph {
@@ -286,6 +299,7 @@ struct RecordViewNotFound
 struct RecordViewBlocked
 {
     QString mUri; // at-uri
+    AppBskyFeed::BlockedAuthor::SharedPtr mAuthor; // required
 
     QJsonObject toJson() const;
 

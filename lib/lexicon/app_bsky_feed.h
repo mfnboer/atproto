@@ -4,7 +4,6 @@
 #include "app_bsky_actor.h"
 #include "app_bsky_embed.h"
 #include "app_bsky_feed_include.h"
-#include "app_bsky_graph.h"
 #include "com_atproto_label.h"
 #include "lexicon.h"
 #include <QJsonDocument>
@@ -120,19 +119,6 @@ struct NotFoundPost
     using SharedPtr = std::shared_ptr<NotFoundPost>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.feed.defs#notFoundPost";
-};
-
-// app.bsky.feed.defs#blockedAuthor
-struct BlockedAuthor
-{
-    QString mDid;
-    AppBskyActor::ViewerState::SharedPtr mViewer;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<BlockedAuthor>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "";
 };
 
 // app.bsky.feed.defs#blockedPost
