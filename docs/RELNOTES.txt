@@ -1,6 +1,7 @@
 next
 ====
 * BlockedAuthor.viewer
+* Record.BlockedAuthor
 
 5.9
 ===
