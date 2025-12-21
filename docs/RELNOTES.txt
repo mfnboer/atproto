@@ -1,3 +1,7 @@
+next
+====
+* Change check for logged out visibility
+
 5.10
 ====
 * BlockedAuthor.viewer
