@@ -14,8 +14,8 @@ public:
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
-    static bool hasLabel(const ATProto::AppBskyActor::ProfileView& profileView, const QString& label);
-    static bool getLoggedOutVisibility(const ATProto::AppBskyActor::ProfileView& profileView);
+    static bool hasLabel(const ATProto::AppBskyActor::ProfileViewDetailed& profileView, const QString& label);
+    static bool getLoggedOutVisibility(const ATProto::AppBskyActor::ProfileViewDetailed& profileView);
 
     explicit ProfileMaster(Client& client);
 

@@ -10,7 +10,7 @@ constexpr char const* PROFILE_KEY = "self";
 constexpr char const* LOGGED_OUT_VISIBILITY_LABEL = "!no-unauthenticated";
 }
 
-bool ProfileMaster::hasLabel(const ATProto::AppBskyActor::ProfileView& profileView, const QString& label)
+bool ProfileMaster::hasLabel(const ATProto::AppBskyActor::ProfileViewDetailed& profileView, const QString& label)
 {
     auto it = std::find_if(profileView.mLabels.begin(), profileView.mLabels.end(),
                            [label](const auto& l){ return l->mVal == label && !l->mNeg; });
@@ -18,7 +18,7 @@ bool ProfileMaster::hasLabel(const ATProto::AppBskyActor::ProfileView& profileVi
     return it != profileView.mLabels.end();
 }
 
-bool ProfileMaster::getLoggedOutVisibility(const ATProto::AppBskyActor::ProfileView& profileView)
+bool ProfileMaster::getLoggedOutVisibility(const ATProto::AppBskyActor::ProfileViewDetailed& profileView)
 {
     return !hasLabel(profileView, LOGGED_OUT_VISIBILITY_LABEL);
 }
