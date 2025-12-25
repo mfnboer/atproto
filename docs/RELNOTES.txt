@@ -1,6 +1,8 @@
 next
 ====
 * Change check for logged out visibility
+* Get reposts
+* Resolve PDS for retrieving records from a repo
 
 5.10
 ====

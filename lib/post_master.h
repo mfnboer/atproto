@@ -24,10 +24,13 @@ public:
     using PostCb = std::function<void(const QString& uri, const QString& cid, AppBskyFeed::Record::Post::SharedPtr, AppBskyActor::ProfileViewDetailed::SharedPtr)>;
     using FeedCb = std::function<void(AppBskyFeed::GeneratorView::SharedPtr)>;
     using ListCb = std::function<void(AppBskyGraph::ListView::SharedPtr)>;
+    using GetRepostsSuccessCb = std::function<void(ATProto::AppBskyFeed::OutputFeed::SharedPtr)>;
     using PostgateCb = std::function<void(AppBskyFeed::Postgate::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
     using ProgressCb = std::function<void(const QString& status, std::optional<int> progress)>;
+
+    static constexpr int MAX_GET_REPOSTS = 25;
 
     explicit PostMaster(Client& client);
 
@@ -60,6 +63,18 @@ public:
     // A record can be a post record or a generator record
     void checkRecordExists(const QString& uri, const QString& cid,
                          const Client::SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief getReposts
+     * @param did
+     * @param limit min=0 max=25 default=25
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getReposts(const AppBskyActor::ProfileViewBasic::SharedPtr& author,
+                    std::optional<int> limit, const std::optional<QString>& cursor,
+                    const GetRepostsSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getPost(const QString& httpsUri, const PostCb& successCb);
     void continueGetPost(const ATUri& atUri, AppBskyActor::ProfileViewDetailed::SharedPtr author, const PostCb& successCb);
@@ -104,6 +119,10 @@ public:
                                          const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
+    void getRepostsContinue(const AppBskyActor::ProfileViewBasic::SharedPtr& author,
+                            const ATProto::ComATProtoRepo::Record::List& repostRecords,
+                            const std::optional<QString>& cursor,
+                            const GetRepostsSuccessCb& successCb, const ErrorCb& errorCb);
     void sendInteraction(const QString& postUri, const QString& feedDid, const QString& feedContext,
                          AppBskyFeed::Interaction::EventType event, const SuccessCb& successCb, const ErrorCb& errorCb);
 

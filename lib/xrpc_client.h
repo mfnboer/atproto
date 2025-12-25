@@ -27,6 +27,7 @@ public:
 
     ~Client();
 
+    ATProto::PlcDirectoryClient& getPlcDirectoryClient() { return mPlcDirectoryClient; }
     void setUserAgent(const QString& userAgent);
     const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds, const QString& did);
@@ -41,7 +42,7 @@ public:
     void post(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
               const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-             const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
+             const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {}, const QString& pds = {});
 
 signals:
     // Internal use
@@ -50,7 +51,7 @@ signals:
     void postJsonToNetwork(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
                            const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
     void getToNetwork(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                      const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+                      const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds);
     void pdsChanged(const QString& pds);
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);

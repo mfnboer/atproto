@@ -272,11 +272,11 @@ void Client::post(const QString& service, const NetworkThread::DataType& data, c
 }
 
 void Client::get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                 const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
+                 const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(errorCb);
-    emit getToNetwork(service, params, rawHeaders, successCb, errorCb, accessJwt);
+    emit getToNetwork(service, params, rawHeaders, successCb, errorCb, accessJwt, pds);
 }
 
 }

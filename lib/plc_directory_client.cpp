@@ -12,7 +12,8 @@ PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QSt
     QObject(parent),
     mNetwork(network),
     mHost(host),
-    mFirstAppearanceCache(100)
+    mFirstAppearanceCache(100),
+    mPdsCache(100)
 {
     Q_ASSERT(mNetwork);
     Q_ASSERT(mNetwork->autoDeleteReplies());
@@ -20,6 +21,17 @@ PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QSt
 
 void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    if (mPdsCache.contains(did))
+    {
+        const QString* pds = mPdsCache[did];
+        qDebug() << "Got PDS from cache:" << did << *pds;
+
+        if (successCb)
+            successCb(*pds);
+
+        return;
+    }
+
     Request request;
     QUrl url(QString("https://%1/%2").arg(mHost, did));
     request.mPlcRequest = QNetworkRequest(url);
@@ -44,6 +56,7 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
                 }
 
                 qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS;
+                mPdsCache.insert(did, new QString(*didDoc->mATProtoPDS));
 
                 if (successCb)
                     successCb(*didDoc->mATProtoPDS);
@@ -95,7 +108,7 @@ void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppea
         qDebug() << "First appearance from cache:" << *appearance;
 
         if (successCb)
-            emit successCb(*appearance);
+            successCb(*appearance);
 
         return;
     }
@@ -125,6 +138,12 @@ void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppea
             if (errorCb)
                 errorCb(errorCode, errorMsg);
         });
+}
+
+void PlcDirectoryClient::invalidatePdsCache(const QString& did)
+{
+    qDebug() << "Invalidate PDS cache:" << did;
+    mPdsCache.remove(did);
 }
 
 // TODO: refactor code common with XrpcClient

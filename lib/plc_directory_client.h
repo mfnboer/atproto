@@ -27,6 +27,8 @@ public:
     void getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb);
     void getFirstAppearance(const QString& did, const FirstAppearanceSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void invalidatePdsCache(const QString& did);
+
 private:
     struct Request
     {
@@ -54,7 +56,8 @@ private:
 
     QNetworkAccessManager* mNetwork;
     QString mHost;
-    QCache<QString, QDateTime> mFirstAppearanceCache; // did -> datetime
+    QCache<QString, QDateTime> mFirstAppearanceCache; // DID -> datetime
+    QCache<QString, QString> mPdsCache; // DID -> PDS
 };
 
 }

@@ -287,6 +287,147 @@ void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
         });
 }
 
+void PostMaster::getReposts(const AppBskyActor::ProfileViewBasic::SharedPtr& author,
+                            std::optional<int> limit, const std::optional<QString>& cursor,
+                            const GetRepostsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(author);
+
+    if (!limit)
+        limit = MAX_GET_REPOSTS;
+
+    if (limit < 1 || limit > MAX_GET_REPOSTS)
+    {
+        qWarning() << "Invalid limit:" << *limit;
+        return;
+    }
+
+    mClient.listRecords(author->mDid, AppBskyFeed::Repost::TYPE, limit, cursor,
+        [this, author, successCb, errorCb](ComATProtoRepo::ListRecordsOutput::SharedPtr output){
+            if (output->mRecords.empty())
+            {
+                qDebug() << "No reposts:" << author->mDid;
+
+                if (successCb)
+                {
+                    auto feed = std::make_shared<ATProto::AppBskyFeed::OutputFeed>();
+                    feed->mCursor = output->mCursor;
+                    successCb(feed);
+                }
+
+                return;
+            }
+
+            std::vector<AppBskyFeed::Repost::SharedPtr> reposts;
+
+            for (const auto& record : output->mRecords)
+            {
+                try {
+                    auto repost = AppBskyFeed::Repost::fromJson(record->mValue);
+                    reposts.push_back(repost);
+                } catch (InvalidJsonException& e) {
+                    qWarning() << "Invalid repost:" << e.msg();
+                    qInfo() << record->mValue;
+                    continue;
+                }
+            }
+
+            getRepostsContinue(author, output->mRecords, output->mCursor, successCb, errorCb);
+        },
+        [errorCb](const QString& err, const QString& msg){
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
+void PostMaster::getRepostsContinue(const AppBskyActor::ProfileViewBasic::SharedPtr& author,
+                                    const ATProto::ComATProtoRepo::Record::List& repostRecords,
+                                    const std::optional<QString>& cursor,
+                                    const GetRepostsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    std::vector<QString> uris;
+    uris.reserve(repostRecords.size());
+    std::unordered_map<QString, ATProto::ComATProtoRepo::Record::SharedPtr> recordMap;
+    std::unordered_map<QString, AppBskyFeed::Repost::SharedPtr> repostMap;
+
+    for (const auto& record : repostRecords)
+    {
+        try {
+            auto repost = AppBskyFeed::Repost::fromJson(record->mValue);
+            const QString& uri = repost->mSubject->mUri;
+            uris.push_back(uri);
+            recordMap[uri] = record;
+            repostMap[uri] = repost;
+        } catch (InvalidJsonException& e) {
+            qWarning() << "Invalid repost:" << e.msg();
+            qInfo() << record->mValue;
+            continue;
+        }
+    }
+
+    if (uris.empty())
+    {
+        qWarning() << "No URIs";
+
+        if (successCb)
+        {
+            auto feed = std::make_shared<ATProto::AppBskyFeed::OutputFeed>();
+            feed->mCursor = cursor;
+            successCb(feed);
+        }
+
+        return;
+    }
+
+    mClient.getPosts(uris,
+        [recordMap, repostMap, author, cursor, successCb](AppBskyFeed::PostView::List posts){
+            if (!successCb)
+                return;
+
+            auto feed = std::make_shared<ATProto::AppBskyFeed::OutputFeed>();
+            feed->mCursor = cursor;
+
+            for (const auto& post : posts)
+            {
+                auto feedViewPost = std::make_shared<ATProto::AppBskyFeed::FeedViewPost>();
+                feedViewPost->mPost = post;
+
+                auto reason = std::make_shared<AppBskyFeed::ReasonRepost>();
+                reason->mBy = author;
+
+                const auto repostIt = repostMap.find(post->mUri);
+
+                if (repostIt == repostMap.end())
+                {
+                    qWarning() << "URI missing om repostMap:" << post->mUri;
+                    continue;
+                }
+
+                reason->mIndexedAt = repostIt->second->mCreatedAt;
+
+                const auto recordIt = recordMap.find(post->mUri);
+
+                if (recordIt == recordMap.end())
+                {
+                    qWarning() << "URI missing in recordMap:" << post->mUri;
+                    continue;
+                }
+
+                reason->mUri = recordIt->second->mUri;
+                reason->mCid = recordIt->second->mCid;
+
+                feedViewPost->mReason = reason;
+                feed->mFeed.push_back(feedViewPost);
+            }
+
+            successCb(feed);
+        },
+        [errorCb](const QString& err, const QString& msg){
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
 void PostMaster::getPost(const QString& httpsUri, const PostCb& successCb)
 {
     auto atUri = ATUri::fromHttpsPostUri(httpsUri);

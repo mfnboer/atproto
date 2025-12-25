@@ -1091,6 +1091,7 @@ private:
 
     // Create XRPC error callback from ATProto client callback
     Xrpc::NetworkThread::ErrorCb failure(const ErrorCb& cb);
+    Xrpc::NetworkThread::ErrorCb failureInvalidatePds(const QString& repo, const ErrorCb& cb);
 
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void requestFailed(const QString& err, const QJsonDocument& json, const ErrorCb& errorCb);
@@ -1108,8 +1109,19 @@ private:
                                const SuccessCb& successCb, const ErrorCb& errorCb);
     void resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
                                const SuccessCb& successCb, const ErrorCb& errorCb);
+    void getRecordContinue(const QString& repo, const QString& collection,
+                           const QString& rkey, const std::optional<QString>& cid,
+                           const GetRecordSuccessCb& successCb, const ErrorCb& errorCb,
+                           const QString& pds = {});
+    void listRecordsContinue(const QString& repo, const QString& collection,
+                             std::optional<int> limit, const std::optional<QString>& cursor,
+                             const ListRecordsSuccessCb& successCb, const ErrorCb& errorCb,
+                             const QString& pds = {});
     void getBlobContinue(const QString& did, const QString& cid,
-                         const GetBlobSuccessCb& successCb, const ErrorCb& errorCb);
+                         const GetBlobSuccessCb& successCb, const ErrorCb& errorCb,
+                         const QString& pds = {});
+
+    void resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc);
 
     Xrpc::Client::Ptr mXrpc;
     ComATProtoServer::Session::SharedPtr mSession;

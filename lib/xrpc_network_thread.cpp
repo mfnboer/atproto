@@ -78,11 +78,12 @@ void NetworkThread::postJson(const QString& service, const QJsonDocument& json, 
 }
 
 void NetworkThread::get(const QString& service, const Params& params, const Params& rawHeaders,
-         const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+         const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+         const QString& pds)
 {
     Request request;
     request.mIsPost = false;
-    request.mXrpcRequest =  QNetworkRequest(buildUrl(service, params));
+    request.mXrpcRequest =  QNetworkRequest(buildUrl(service, params, pds));
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
@@ -623,9 +624,12 @@ bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
     return false;
 }
 
-QUrl NetworkThread::buildUrl(const QString& service) const
+QUrl NetworkThread::buildUrl(const QString& service, const QString& pds) const
 {
     Q_ASSERT(!service.isEmpty());
+
+    if (!pds.isEmpty())
+        return QUrl(pds + "/xrpc/" + service);
 
     if (service.startsWith("app.bsky.video."))
     {
@@ -638,9 +642,9 @@ QUrl NetworkThread::buildUrl(const QString& service) const
     }
 }
 
-QUrl NetworkThread::buildUrl(const QString& service, const Params& params) const
+QUrl NetworkThread::buildUrl(const QString& service, const Params& params, const QString& pds) const
 {
-    QUrl url = buildUrl(service);
+    QUrl url = buildUrl(service, pds);
     QUrlQuery query;
 
     if (!params.isEmpty())
