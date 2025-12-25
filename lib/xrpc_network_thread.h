@@ -184,7 +184,8 @@ public:
     void postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
                   const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
     void get(const QString& service, const Params& params, const Params& rawHeaders,
-             const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
+             const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+             const QString& pds);
 
 signals:
     // clazy:excludeall=fully-qualified-moc-types
@@ -263,8 +264,8 @@ protected:
     virtual void run() override;
 
 private:
-    QUrl buildUrl(const QString& service) const;
-    QUrl buildUrl(const QString& service, const Params& params) const;
+    QUrl buildUrl(const QString& service, const QString& pds = {}) const;
+    QUrl buildUrl(const QString& service, const Params& params, const QString& pds = {}) const;
     void setUserAgentHeader(QNetworkRequest& request) const;
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;

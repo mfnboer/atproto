@@ -1891,19 +1891,17 @@ void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
 void Client::getBlob(const QString& did, const QString& cid,
                      const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->setPDSFromDid(did,
-        [this, presence=getPresence(), did, cid, successCb, errorCb]{
-            if (presence)
-                getBlobContinue(did, cid, successCb, errorCb);
-        },
-        [errorCb](const QString& error){
-            if (errorCb)
-                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
-        });
+    auto continueFunc = [this, cid, successCb]
+        (const QString& did, const ErrorCb& errorCb, const QString& pds){
+            getBlobContinue(did, cid, successCb, errorCb, pds);
+        };
+
+    resolvePds(did, errorCb, continueFunc);
 }
 
 void Client::getBlobContinue(const QString& did, const QString& cid,
-                             const GetBlobSuccessCb& successCb, const ErrorCb& errorCb)
+                             const GetBlobSuccessCb& successCb, const ErrorCb& errorCb,
+                             const QString& pds)
 {
     Xrpc::NetworkThread::Params params{{"did", did}, {"cid", cid}};
 
@@ -1914,12 +1912,27 @@ void Client::getBlobContinue(const QString& did, const QString& cid,
             if (successCb)
                 successCb(bytes, contentType);
         },
-        failure(errorCb));
+        failureInvalidatePds(did, errorCb),
+        {},
+        pds);
 }
 
 void Client::getRecord(const QString& repo, const QString& collection,
                        const QString& rkey, const std::optional<QString>& cid,
                        const GetRecordSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    auto continueFunc = [this, collection, rkey, cid, successCb]
+        (const QString& repo, const ErrorCb& errorCb, const QString& pds){
+            getRecordContinue(repo, collection, rkey, cid, successCb, errorCb, pds);
+        };
+
+    resolvePds(repo, errorCb, continueFunc);
+}
+
+void Client::getRecordContinue(const QString& repo, const QString& collection,
+                               const QString& rkey, const std::optional<QString>& cid,
+                               const GetRecordSuccessCb& successCb, const ErrorCb& errorCb,
+                               const QString& pds)
 {
     Xrpc::NetworkThread::Params params{{"repo", repo}, {"collection", collection}, {"rkey", rkey}};
     addOptionalStringParam(params, "cid", cid);
@@ -1940,13 +1953,27 @@ void Client::getRecord(const QString& repo, const QString& collection,
                 invalidJsonError(e, errorCb);
             }
         },
-        failure(errorCb),
-        authToken());
+        failureInvalidatePds(repo, errorCb),
+        {},
+        pds);
 }
 
 void Client::listRecords(const QString& repo, const QString& collection,
                          std::optional<int> limit, const std::optional<QString>& cursor,
                          const ListRecordsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    auto continueFunc = [this, collection, limit, cursor, successCb]
+        (const QString& repo, const ErrorCb& errorCb, const QString& pds){
+            listRecordsContinue(repo, collection, limit, cursor, successCb, errorCb, pds);
+        };
+
+    resolvePds(repo, errorCb, continueFunc);
+}
+
+void Client::listRecordsContinue(const QString& repo, const QString& collection,
+                                 std::optional<int> limit, const std::optional<QString>& cursor,
+                                 const ListRecordsSuccessCb& successCb, const ErrorCb& errorCb,
+                                 const QString& pds)
 {
     Xrpc::NetworkThread::Params params{{"repo", repo}, {"collection", collection}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
@@ -1968,8 +1995,9 @@ void Client::listRecords(const QString& repo, const QString& collection,
                 invalidJsonError(e, errorCb);
             }
         },
-        failure(errorCb),
-        authToken());
+        failureInvalidatePds(repo, errorCb),
+        {},
+        pds);
 }
 
 void Client::createRecord(const QString& repo, const QString& collection, const QString& rkey,
@@ -2812,6 +2840,18 @@ Xrpc::NetworkThread::ErrorCb Client::failure(const ErrorCb& cb)
         };
 }
 
+Xrpc::NetworkThread::ErrorCb Client::failureInvalidatePds(const QString& repo, const ErrorCb& cb)
+{
+    return [this, presence=getPresence(), repo, cb](const QString& err, const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            auto& plcDirectory = mXrpc->getPlcDirectoryClient();
+            plcDirectory.invalidatePdsCache(repo);
+            requestFailed(err, reply, cb);
+        };
+}
+
 void Client::invalidJsonError(InvalidJsonException& e, const ErrorCb& cb)
 {
     qWarning() << e.msg();
@@ -2984,6 +3024,35 @@ void Client::autoRefreshSession(const std::function<void()>& cbDone)
                 if (cbDone)
                     cbDone();
             }
+        });
+}
+
+void Client::resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc)
+{
+    if (repo == getSessionDid())
+    {
+        continueFunc(repo, errorCb, "");
+        return;
+    }
+
+    qDebug() << "Get PDS for:" << repo;
+    auto& plcDirectory = mXrpc->getPlcDirectoryClient();
+
+    plcDirectory.getPds(repo,
+        [presence=getPresence(), repo, errorCb, continueFunc](const QString& pds){
+            if (!presence)
+                return;
+
+            continueFunc(repo, errorCb, pds);
+        },
+        [repo, presence=getPresence(), errorCb](int errorCode, const QString& error){
+            if (!presence)
+                return;
+
+            qWarning() << "Failed to get PDS:" << repo << errorCode << error;
+
+            if (errorCb)
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
         });
 }
 
