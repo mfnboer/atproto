@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "client.h"
+#include "at_uri.h"
 #include "xjson.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
@@ -1921,12 +1922,10 @@ void Client::getRecord(const QString& repo, const QString& collection,
                        const QString& rkey, const std::optional<QString>& cid,
                        const GetRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    auto continueFunc = [this, collection, rkey, cid, successCb]
-        (const QString& repo, const ErrorCb& errorCb, const QString& pds){
-            getRecordContinue(repo, collection, rkey, cid, successCb, errorCb, pds);
-        };
-
-    resolvePds(repo, errorCb, continueFunc);
+    // For some reason all getRecord requests can be sent to the user's PDS.
+    // Resolving the PDS for the repo takes extra time and the BrigdyFed PDS does not
+    // support CID lookup.
+    getRecordContinue(repo, collection, rkey, cid, successCb, errorCb);
 }
 
 void Client::getRecordContinue(const QString& repo, const QString& collection,
@@ -1962,6 +1961,7 @@ void Client::listRecords(const QString& repo, const QString& collection,
                          std::optional<int> limit, const std::optional<QString>& cursor,
                          const ListRecordsSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    // listRecprds requests must be sent to the PDS that hosts the repo
     auto continueFunc = [this, collection, limit, cursor, successCb]
         (const QString& repo, const ErrorCb& errorCb, const QString& pds){
             listRecordsContinue(repo, collection, limit, cursor, successCb, errorCb, pds);
