@@ -273,6 +273,7 @@ void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
                                  const Client::SuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
+
     if (!atUri.isValid())
         return;
 

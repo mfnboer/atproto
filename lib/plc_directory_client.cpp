@@ -8,6 +8,19 @@ namespace ATProto {
 
 constexpr int MAX_RESEND = 4;
 
+static QString normalizeHost(const QString& host)
+{
+    QString normalized = host;
+
+    if (!normalized.startsWith("http"))
+        normalized = "https://" + normalized;
+
+    if (normalized.endsWith('/'))
+        normalized.slice(0, normalized.size() - 1);
+
+    return normalized;
+}
+
 PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QString host, QObject* parent) :
     QObject(parent),
     mNetwork(network),
@@ -55,11 +68,12 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
                     return;
                 }
 
-                qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS;
-                mPdsCache.insert(did, new QString(*didDoc->mATProtoPDS));
+                const QString pds = normalizeHost(*didDoc->mATProtoPDS);
+                qDebug() << "Resolved PDS for:" << did << *didDoc->mATProtoPDS << "normalized:" << pds;
+                mPdsCache.insert(did, new QString(pds));
 
                 if (successCb)
-                    successCb(*didDoc->mATProtoPDS);
+                    successCb(pds);
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
