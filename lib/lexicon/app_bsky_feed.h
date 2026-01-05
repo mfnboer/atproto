@@ -220,6 +220,7 @@ struct OutputFeed
     PostFeed mFeed;
 
     using SharedPtr = std::shared_ptr<OutputFeed>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
