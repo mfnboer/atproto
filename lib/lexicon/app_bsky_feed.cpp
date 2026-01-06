@@ -511,12 +511,21 @@ static void getFeed(PostFeed& feed, const QJsonObject& json)
     }
 }
 
+QJsonObject OutputFeed::toJson() const
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "cursor", mCursor);
+    json.insert("feed", XJsonObject::toJsonArray<FeedViewPost>(mFeed));
+    return json;
+}
+
 OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonObject& json)
 {
     auto outputFeed = std::make_shared<OutputFeed>();
     XJsonObject xjson(json);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
     getFeed(outputFeed->mFeed, json);
+    outputFeed->mJson = json;
     return outputFeed;
 }
 

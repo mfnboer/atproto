@@ -1,5 +1,6 @@
 next
 ====
+* Store raw JSON in OutputFeed
 * Minor improvements
 
 5.11

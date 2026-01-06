@@ -718,6 +718,7 @@ void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const 
     mXrpc->get("app.bsky.feed.getAuthorFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getAuthorFeed: ok";
+            feed->mJson = {};
 
             if (successCb)
                 successCb(std::move(feed));
@@ -740,6 +741,7 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
     mXrpc->get("app.bsky.feed.getActorLikes", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getActorLikes: ok";
+            feed->mJson = {};
 
             if (successCb)
                 successCb(std::move(feed));
@@ -748,7 +750,7 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
         authToken());
 }
 
-void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor, bool keepRawJson,
                          const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params;
@@ -760,8 +762,11 @@ void Client::getTimeline(std::optional<int> limit, const std::optional<QString>&
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.getTimeline", params, httpHeaders,
-        [successCb, errorCb](AppBskyFeed::OutputFeed::SharedPtr feed){
+        [keepRawJson, successCb, errorCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getTimeline succeeded";
+
+            if (!keepRawJson)
+                feed->mJson = {};
 
             if (successCb)
                 successCb(std::move(feed));
@@ -786,6 +791,7 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
     mXrpc->get("app.bsky.feed.getFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getFeed: ok";
+            feed->mJson = {};
 
             if (successCb)
                 successCb(std::move(feed));
@@ -810,6 +816,7 @@ void Client::getListFeed(const QString& list, std::optional<int> limit, const st
     mXrpc->get("app.bsky.feed.getListFeed", params, httpHeaders,
         [successCb](AppBskyFeed::OutputFeed::SharedPtr feed){
             qDebug() << "getListFeed: ok";
+            feed->mJson = {};
 
             if (successCb)
                 successCb(std::move(feed));

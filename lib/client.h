@@ -341,7 +341,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+    void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor, bool keepRawJson,
                      const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**

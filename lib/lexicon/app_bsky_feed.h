@@ -219,6 +219,11 @@ struct OutputFeed
     std::optional<QString> mCursor;
     PostFeed mFeed;
 
+    // This can be a lot of data. If you do not need it, you may erase it.
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
     using SharedPtr = std::shared_ptr<OutputFeed>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
