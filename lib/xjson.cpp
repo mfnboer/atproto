@@ -67,6 +67,12 @@ int XJsonObject::getRequiredInt(const QString& key) const
     return mObject[key].toInt();
 }
 
+int XJsonObject::getRequiredDouble(const QString& key) const
+{
+    checkField(key, QJsonValue::Double);
+    return mObject[key].toDouble();
+}
+
 bool XJsonObject::getRequiredBool(const QString& key) const
 {
     checkField(key, QJsonValue::Bool);
@@ -83,6 +89,18 @@ QDateTime XJsonObject::getRequiredDateTime(const QString& key) const
         throw InvalidJsonException(QString("Invalid datetime: %1").arg(value));
 
     return dateTime;
+}
+
+QDate XJsonObject::getRequiredDate(const QString& key) const
+{
+    checkField(key, QJsonValue::String);
+    const QString value = mObject[key].toString();
+    const QDate date = QDate::fromString(value, Qt::ISODate);
+
+    if (!date.isValid())
+        throw InvalidJsonException(QString("Invalid date: %1").arg(value));
+
+    return date;
 }
 
 QJsonObject XJsonObject::getRequiredJsonObject(const QString& key) const
