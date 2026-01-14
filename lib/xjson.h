@@ -71,8 +71,10 @@ public:
 
     QString getRequiredString(const QString& key) const;
     int getRequiredInt(const QString& key) const;
+    int getRequiredDouble(const QString& key) const;
     bool getRequiredBool(const QString& key) const;
     QDateTime getRequiredDateTime(const QString& key) const;
+    QDate getRequiredDate(const QString& key) const;
     QJsonObject getRequiredJsonObject(const QString& key) const;
     QJsonArray getRequiredArray(const QString& key) const;
     std::optional<QString> getOptionalString(const QString& key) const;
