@@ -52,6 +52,7 @@ public:
     static std::vector<ParsedMatch> parseLinks(const QString& text);
     static std::vector<ParsedMatch> parseTags(const QString& text);
     static bool isHashtag(const QString& text);
+    static bool isCashtag(const QString& text);
 
     // If two facets overlap, then the one with the lowest start index is taken
     static std::vector<ParsedMatch> parseFacets(const QString& text);
