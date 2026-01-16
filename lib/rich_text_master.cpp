@@ -9,6 +9,7 @@
 namespace ATProto {
 
 static constexpr char const* RE_HASHTAG = R"(#(?:[^[:punct:][:space:]]|_)+)";
+static constexpr char const* RE_CASHTAG = R"(\$[a-zA-Z][a-zA-Z0-9]{0,4})";
 
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
 
@@ -302,8 +303,16 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
                 });
             return;
         case ParsedMatch::Type::TAG:
-            // The reference is the text from the hashtag
-            facet.mRef = facet.mMatch.sliced(1);
+            if (facet.mMatch.startsWith('#'))
+            {
+                // The reference is the text from the hashtag
+                facet.mRef = facet.mMatch.sliced(1);
+            }
+            else if (facet.mMatch.startsWith('$'))
+            {
+                // cashtag
+                facet.mRef = facet.mMatch.toUpper();
+            }
             break;
         case ParsedMatch::Type::PARTIAL_MENTION:
             break;
@@ -445,10 +454,12 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString
 {
     static const QRegularExpression reTag(QString(R"([$|\W](%1))").arg(RE_HASHTAG));
     static const QRegularExpression reNumberTag("^#[0-9]+$");
+    static const QRegularExpression reCashTag(QString(R"([$|\W](%1))").arg(RE_CASHTAG));
 
+    const auto potentialCashtags = parseMatches(ParsedMatch::Type::TAG, text, reCashTag, 1);
     const auto potentialTags = parseMatches(ParsedMatch::Type::TAG, text, reTag, 1);
     std::vector<RichTextMaster::ParsedMatch> tags;
-    tags.reserve(potentialTags.size());
+    tags.reserve(potentialTags.size() + potentialCashtags.size());
 
     for (const auto& tag : potentialTags)
     {
@@ -459,7 +470,13 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString
         if (reNumberTag.match(tag.mMatch).hasMatch())
             continue;
 
-        qDebug() << "Tag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+        qDebug() << "Hashtag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
+        tags.push_back(tag);
+    }
+
+    for (const auto& tag : potentialCashtags)
+    {
+        qDebug() << "Cashtag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
         tags.push_back(tag);
     }
 
@@ -476,6 +493,12 @@ bool RichTextMaster::isHashtag(const QString& text)
            !text.startsWith("#\uFE0F") &&
            !reNumberTag.match(text).hasMatch() &&
            reTag.match(text).hasMatch();
+}
+
+bool RichTextMaster::isCashtag(const QString& text)
+{
+    static const QRegularExpression reCashTag(QString("^%1$").arg(RE_CASHTAG));
+    return reCashTag.match(text).hasMatch();
 }
 
 std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parsePartialMentions(const QString& text)

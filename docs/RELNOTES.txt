@@ -1,5 +1,6 @@
 next
 ====
+* Cash tags
 * Minor improvements
 
 5.11

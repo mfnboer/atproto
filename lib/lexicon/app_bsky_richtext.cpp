@@ -188,11 +188,8 @@ static QString createHtmlLink(const QString& linkText, const Facet::Feature& fea
     {
         const auto& facetTag = std::get<ATProto::AppBskyRichtext::FacetTag::SharedPtr>(feature.mFeature);
         const QString normalizedTag = RichTextMaster::normalizeText(facetTag->mTag);
-
-        if (emphasizeHashtags.contains(normalizedTag))
-            return QString("<a href=\"#%1\"%3><b>%2</b></a>").arg(facetTag->mTag, linkText, linkStyle);
-
-        return QString("<a href=\"#%1\"%3>%2</a>").arg(facetTag->mTag, linkText, linkStyle);
+        const QString text = emphasizeHashtags.contains(normalizedTag) ? QString("<b>%1</b>").arg(linkText) : linkText;
+        return QString("<a href=\"#%1\"%3>%2</a>").arg(facetTag->mTag, text, linkStyle);
     }
     case ATProto::AppBskyRichtext::Facet::Feature::Type::PARTIAL_MENTION:
         break;
