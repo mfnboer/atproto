@@ -9,7 +9,8 @@ namespace ATProto {
 GraphMaster::GraphMaster(Client & client) :
     Presence(),
     mClient(client),
-    mRichTextMaster(client)
+    mRichTextMaster(client),
+    mRepoMaster(client)
 {
 }
 
@@ -39,15 +40,7 @@ void GraphMaster::undo(const QString& uri,
     if (!atUri.isValid())
         return;
 
-    mClient.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(),
-        [successCb]{
-            if (successCb)
-                successCb();
-        },
-        [errorCb](const QString& err, const QString& msg) {
-            if (errorCb)
-                errorCb(err, msg);
-        });
+    mRepoMaster.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), successCb, errorCb);
 }
 
 void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& name,

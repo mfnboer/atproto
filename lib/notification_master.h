@@ -3,6 +3,7 @@
 #pragma once
 #include "client.h"
 #include "presence.h"
+#include "repo_master.h"
 #include <lexicon/app_bsky_notification.h>
 
 namespace ATProto {
@@ -21,7 +22,7 @@ public:
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
-    Client& mClient;
+    RepoMaster mRepoMaster;
 };
 
 }

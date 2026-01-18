@@ -4,6 +4,7 @@
 #include "at_uri.h"
 #include "client.h"
 #include "presence.h"
+#include "repo_master.h"
 #include "rich_text_master.h"
 
 namespace ATProto {
@@ -128,6 +129,7 @@ private:
 
     Client& mClient;
     RichTextMaster mRichTextMaster;
+    RepoMaster mRepoMaster;
     QObject mPresence;
 };
 

@@ -4,6 +4,7 @@
 #include "client.h"
 #include "presence.h"
 #include "rich_text_master.h"
+#include "repo_master.h"
 
 /**
  * Functions to change the social graph, e.g. follow, block, ...
@@ -61,6 +62,7 @@ private:
 
     Client& mClient;
     RichTextMaster mRichTextMaster;
+    RepoMaster mRepoMaster;
     std::unordered_map<QString, Blob::SharedPtr> mRKeyBlobMap;
     std::unordered_map<QString, AppBskyGraph::List::SharedPtr> mRKeyListMap;
     QObject mPresence;

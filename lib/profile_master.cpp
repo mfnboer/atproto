@@ -26,49 +26,21 @@ bool ProfileMaster::getLoggedOutVisibility(const ATProto::AppBskyActor::ProfileV
 
 ProfileMaster::ProfileMaster(Client& client) :
     Presence(),
-    mClient(client)
+    mClient(client),
+    mRepoMaster(mClient)
 {
 }
 
 void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get profile:" << did;
-    mClient.getRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {},
-        [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
-            qDebug() << "Got profile:" << record->mValue;
-
-            try {
-                auto profile = AppBskyActor::Profile::fromJson(record->mValue);
-
-                if (successCb)
-                    successCb(std::move(profile));
-            } catch (InvalidJsonException& e) {
-                qWarning() << e.msg();
-
-                if (errorCb)
-                    errorCb("InvalidJsonException", e.msg());
-            }
-        },
-        [errorCb](const QString& err, const QString& msg) {
-            qDebug() << "Failed to get profile:" << err << "-" << msg;
-
-            if (errorCb)
-                errorCb(err, msg);
-        });
+    mRepoMaster.getRecord<AppBskyActor::Profile>(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {}, successCb, errorCb);
 }
 
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile.toJson(), true,
-        [successCb](auto){
-            if (successCb)
-                successCb();
-        },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile, successCb, errorCb);
 }
 
 void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
@@ -295,55 +267,18 @@ bool ProfileMaster::clearPinnedPost(AppBskyActor::Profile& profile) const
 void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get status:" << did;
-    mClient.getRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {},
-        [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
-            qDebug() << "Got status:" << record->mValue;
-
-            try {
-                auto status = AppBskyActor::Status::fromJson(record->mValue);
-
-                if (successCb)
-                    successCb(std::move(status));
-            } catch (InvalidJsonException& e) {
-                qWarning() << e.msg();
-
-                if (errorCb)
-                    errorCb("InvalidJsonException", e.msg());
-            }
-        },
-        [errorCb](const QString& err, const QString& msg) {
-            qDebug() << "Failed to get status:" << err << "-" << msg;
-
-            if (errorCb)
-                errorCb(err, msg);
-        });
+    mRepoMaster.getRecord<AppBskyActor::Status>(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {}, successCb, errorCb);
 }
 
 void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status& status,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, status.toJson(), true,
-        [successCb](auto){
-            if (successCb)
-                successCb();
-        },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, status, successCb, errorCb);
 }
 
 void ProfileMaster::deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mClient.deleteRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY,
-        [successCb]{
-            if (successCb)
-                successCb();
-        },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+    mRepoMaster.deleteRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, successCb, errorCb);
 }
 
 }

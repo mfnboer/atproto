@@ -3,6 +3,7 @@
 #pragma once
 #include "client.h"
 #include "presence.h"
+#include "repo_master.h"
 #include "lexicon/app_bsky_actor.h"
 
 namespace ATProto {
@@ -53,6 +54,7 @@ private:
     bool clearPinnedPost(AppBskyActor::Profile& profile) const;
 
     Client& mClient;
+    RepoMaster mRepoMaster;
     std::unordered_map<QString, Blob::SharedPtr> mDidAvatarBlobMap;
     std::unordered_map<QString, Blob::SharedPtr> mDidBannerBlobMap;
 };

@@ -8,7 +8,8 @@ namespace ATProto {
 PostMaster::PostMaster(Client& client) :
     Presence(),
     mClient(client),
-    mRichTextMaster(client)
+    mRichTextMaster(client),
+    mRepoMaster(client)
 {
 }
 
@@ -258,15 +259,7 @@ void PostMaster::undo(const QString& uri,
     if (!atUri.isValid())
         return;
 
-    mClient.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(),
-        [successCb]{
-            if (successCb)
-                successCb();
-        },
-        [errorCb](const QString& err, const QString& msg) {
-            if (errorCb)
-                errorCb(err, msg);
-        });
+    mRepoMaster.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), successCb, errorCb);
 }
 
 void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
@@ -553,28 +546,8 @@ void PostMaster::getPostgate(const QString& postUri, const PostgateCb& successCb
     if (!atUri.isValid())
         return;
 
-    mClient.getRecord(atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {},
-        [successCb, errorCb](auto record){
-            qDebug() << "Got postgate:" << record->mValue;
-
-            try {
-                auto postgate = AppBskyFeed::Postgate::fromJson(record->mValue);
-
-                if (successCb)
-                    successCb(std::move(postgate));
-            } catch (InvalidJsonException& e) {
-                qWarning() << e.msg();
-
-                if (errorCb)
-                    errorCb("InvalidJsonException", e.msg());
-            }
-        },
-        [errorCb](const QString& err, const QString& msg){
-            qDebug() << err << " - " << msg;
-
-            if (errorCb)
-                errorCb(err, msg);
-        });
+    mRepoMaster.getRecord<AppBskyFeed::Postgate>(
+        atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {}, successCb, errorCb);
 }
 
 AppBskyFeed::PostReplyRef::SharedPtr PostMaster::createReplyRef(const QString& replyToUri, const QString& replyToCid,
