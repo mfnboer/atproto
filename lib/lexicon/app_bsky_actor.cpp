@@ -196,6 +196,29 @@ QString actorStatusToString(ActorStatus status, const QString& unknown)
     return enumToString(status, mapping, unknown);
 }
 
+QJsonObject Status::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("status", actorStatusToString(mStatus, mRawStatus));
+    XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonValue(json, "durationMinutes", mDurationMinutes);
+    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Status::SharedPtr Status::fromJson(const QJsonObject& json)
+{
+    auto status = std::make_shared<Status>();
+    XJsonObject xjson(json);
+    status->mRawStatus = xjson.getRequiredString("status");
+    status->mStatus = stringToActorStatus(status->mRawStatus);
+    status->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::External>("embed");
+    status->mDurationMinutes = xjson.getOptionalInt("durationMinutes");
+    status->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    status->mJson = json;
+    return status;
+}
+
 QJsonObject StatusView::toJson() const
 {
     QJsonObject json;

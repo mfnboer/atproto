@@ -11,6 +11,8 @@ class ProfileMaster : public Presence
 {
 public:
     using ProfileCb = std::function<void(AppBskyActor::Profile::SharedPtr)>;
+    using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using StatusCb = std::function<void(AppBskyActor::Status::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -38,6 +40,11 @@ public:
     void setPinnedPost(const QString& did, const QString& uri, const QString& cid,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
     void clearPinnedPost(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb);
+    void updateStatus(const QString& did, const AppBskyActor::Status& status,
+                      const SuccessCb& successCb, const ErrorCb& errorCb);
+    void deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     bool addLabel(AppBskyActor::Profile& profile, const QString& label) const;

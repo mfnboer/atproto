@@ -7,6 +7,7 @@ namespace ATProto {
 
 namespace {
 constexpr char const* PROFILE_KEY = "self";
+constexpr char const* STATUS_KEY = "self";
 constexpr char const* LOGGED_OUT_VISIBILITY_LABEL = "!no-unauthenticated";
 }
 
@@ -289,6 +290,60 @@ bool ProfileMaster::clearPinnedPost(AppBskyActor::Profile& profile) const
 
     profile.mPinndedPost = nullptr;
     return true;
+}
+
+void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get status:" << did;
+    mClient.getRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {},
+        [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
+            qDebug() << "Got status:" << record->mValue;
+
+            try {
+                auto status = AppBskyActor::Status::fromJson(record->mValue);
+
+                if (successCb)
+                    successCb(std::move(status));
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& err, const QString& msg) {
+            qDebug() << "Failed to get status:" << err << "-" << msg;
+
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
+void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status& status,
+                  const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mClient.putRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, status.toJson(), true,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void ProfileMaster::deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mClient.deleteRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY,
+        [successCb]{
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
 }
 
 }
