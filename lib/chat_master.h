@@ -3,6 +3,7 @@
 #pragma once
 #include "client.h"
 #include "presence.h"
+#include "repo_master.h"
 #include "rich_text_master.h"
 #include "lexicon/chat_bsky_actor.h"
 
@@ -26,8 +27,8 @@ public:
     static void addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid);
 
 private:
-    Client& mClient;
     RichTextMaster mRichTextMaster;
+    RepoMaster mRepoMaster;
 };
 
 }
