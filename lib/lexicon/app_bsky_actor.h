@@ -97,6 +97,25 @@ enum class ActorStatus
 ActorStatus stringToActorStatus(const QString& str);
 QString actorStatusToString(ActorStatus status, const QString& unknown);
 
+// app.bsky.actor.status
+struct Status
+{
+    using EmbedType = std::variant<AppBskyEmbed::External::SharedPtr>;
+
+    QString mRawStatus;
+    ActorStatus mStatus = ActorStatus::UNKNOWN;
+    std::optional<EmbedType> mEmbed;
+    std::optional<int> mDurationMinutes; // minimum = 1
+    QDateTime mCreatedAt;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Status>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.status";
+};
+
 // app.bsky.actor.defs#statusView
 struct StatusView
 {

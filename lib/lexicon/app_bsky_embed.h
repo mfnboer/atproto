@@ -245,31 +245,6 @@ struct VideoView
     static constexpr char const* TYPE = "app.bsky.embed.video#view";
 };
 
-// app.bsky.embed.external#external
-struct ExternalExternal
-{
-    QString mUri;
-    QString mTitle;
-    QString mDescription;
-    Blob::SharedPtr mThumb; // optional: max 1,000,000 bytes mime: image/*
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<ExternalExternal>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
-// app.bsky.embed.external
-struct External
-{
-    ExternalExternal::SharedPtr mExternal;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<External>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
 // app.bsky.embed.record
 struct Record
 {

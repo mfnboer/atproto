@@ -19,6 +19,7 @@ public:
     static constexpr char const* COLLECTION_FEED_POST = AppBskyFeed::Record::Post::TYPE;
     static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
     static constexpr char const* COLLECTION_GRAPH_STARTERPACK = AppBskyGraph::StarterPack::TYPE;
+    static constexpr char const* COLLECTION_ACTOR_STATUS = AppBskyActor::Status::TYPE;
     static constexpr char const* COLLECTION_ACTOR_PROFILE = "app.bsky.actor.profile";
     static constexpr char const* COLLECTION_CHAT_ACTOR_DECLARATION = ChatBskyActor::Declaration::TYPE;
     

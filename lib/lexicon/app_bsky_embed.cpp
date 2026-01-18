@@ -202,7 +202,7 @@ ExternalExternal::SharedPtr ExternalExternal::fromJson(const QJsonObject& json)
 QJsonObject External::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.embed.external");
+    json.insert("$type", TYPE);
     json.insert("external", mExternal->toJson());
     return json;
 }
