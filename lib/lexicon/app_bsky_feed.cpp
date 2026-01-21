@@ -143,9 +143,31 @@ QJsonArray ThreadgateRules::toJson() const
     return allowArray;
 }
 
+void ThreadgateRules::insertRulesInto(QJsonObject& json, const QString& field) const
+{
+    QJsonArray allowArray = toJson();
+
+    if (!allowArray.isEmpty() || mAllowNobody)
+        json.insert(field, allowArray);
+}
+
+ThreadgateRules ThreadgateRules::getRules(const QJsonObject& json, const QString& field)
+{
+    XJsonObject xjson(json);
+    const auto allowArray = xjson.getOptionalArray(field);
+
+    if (allowArray)
+        return *ThreadgateRules::fromJson(*allowArray);
+
+    return ThreadgateRules{};
+}
+
 ThreadgateRules::SharedPtr ThreadgateRules::fromJson(const QJsonArray& allowArray)
 {
     auto threadgateRules = std::make_shared<ThreadgateRules>();
+
+    if (allowArray.empty())
+        threadgateRules->mAllowNobody = true;
 
     for (const auto& allowElem : allowArray)
     {
@@ -191,12 +213,7 @@ QJsonObject Threadgate::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("post", mPost);
-
-    QJsonArray allowArray = mRules.toJson();
-
-    if (!allowArray.isEmpty() || mRules.mAllowNobody)
-        json.insert("allow", allowArray);
-
+    mRules.insertRulesInto(json, "allow");
     std::vector<QString> replies(mHiddenReplies.begin(), mHiddenReplies.end());
     XJsonObject::insertOptionalArray(json, "hiddenReplies", replies);
 

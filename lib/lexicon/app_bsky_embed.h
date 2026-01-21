@@ -446,6 +446,8 @@ struct Post
 
     using SharedPtr = std::shared_ptr<Post>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_TEXT_GRAPHEMES = 300;
+    static constexpr int MAX_TEXT_BYTES = 3000;
     static constexpr char const* TYPE = "app.bsky.feed.post";
 };
 

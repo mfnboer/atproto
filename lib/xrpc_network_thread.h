@@ -3,6 +3,7 @@
 #pragma once
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_bookmark.h"
+#include "lexicon/app_bsky_draft.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_labeler.h"
@@ -64,6 +65,9 @@ public:
     using SuccessSearchPostsOutputCb = std::function<void(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr)>;
     using SuccessGetLikesOutputCb = std::function<void(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr)>;
     using SuccessGetRepostedByOutputCb = std::function<void(ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr)>;
+
+    // app.bsky.draft
+    using SuccessGetDraftsOutputCb = std::function<void(ATProto::AppBskyDraft::GetDraftsOutput::SharedPtr)>;
 
     // app.bsky.graph
     using SuccessGetFollowsOutputCb = std::function<void(ATProto::AppBskyGraph::GetFollowsOutput::SharedPtr)>;
@@ -133,6 +137,9 @@ public:
         SuccessSearchPostsOutputCb,
         SuccessGetLikesOutputCb,
         SuccessGetRepostedByOutputCb,
+
+        // app.bsky.draft
+        SuccessGetDraftsOutputCb,
 
         // app.bsky.graph
         SuccessGetFollowsOutputCb,
@@ -226,6 +233,9 @@ signals:
     void requestSuccessSearchPostsOutput(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr, SuccessSearchPostsOutputCb);
     void requestSuccessGetLikesOutput(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr, SuccessGetLikesOutputCb);
     void requestSuccessGetRepostedByOutput(ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr, SuccessGetRepostedByOutputCb);
+
+    // app.bsky.draft
+    void requestSuccessGetDraftsOutput(ATProto::AppBskyDraft::GetDraftsOutput::SharedPtr, SuccessGetDraftsOutputCb);
 
     // app.bsky.graph
     void requestSuccessGetFollowsOutput(ATProto::AppBskyGraph::GetFollowsOutput::SharedPtr, SuccessGetFollowsOutputCb);

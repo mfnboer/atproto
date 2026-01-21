@@ -78,6 +78,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetLikesOutput, this, &Client::doCallback<NetworkThread::SuccessGetLikesOutputCb, ATProto::AppBskyFeed::GetLikesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetRepostedByOutput, this, &Client::doCallback<NetworkThread::SuccessGetRepostedByOutputCb, ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr>);
 
+    // app.bsky.draft
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetDraftsOutput, this, &Client::doCallback<NetworkThread::SuccessGetDraftsOutputCb, ATProto::AppBskyDraft::GetDraftsOutput::SharedPtr>);
+
     // app.bsky.graph
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetFollowsOutput, this, &Client::doCallback<NetworkThread::SuccessGetFollowsOutputCb, ATProto::AppBskyGraph::GetFollowsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetFollowersOutput, this, &Client::doCallback<NetworkThread::SuccessGetFollowersOutputCb, ATProto::AppBskyGraph::GetFollowersOutput::SharedPtr>);

@@ -599,11 +599,11 @@ void Client::getSuggestions(std::optional<int> limit, const std::optional<QStrin
         authToken());
 }
 
-void Client::createBookmark(QString mUri, QString mCid, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::createBookmark(QString uri, QString cid, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
-    json.insert("uri", mUri);
-    json.insert("cid", mCid);
+    json.insert("uri", uri);
+    json.insert("cid", cid);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
@@ -618,10 +618,10 @@ void Client::createBookmark(QString mUri, QString mCid, const SuccessCb& success
         authToken());
 }
 
-void Client::deleteBookmark(QString mUri, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::deleteBookmark(QString uri, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
-    json.insert("uri", mUri);
+    json.insert("uri", uri);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
@@ -1054,6 +1054,93 @@ void Client::sendInteractions(const AppBskyFeed::Interaction::List& interactions
     mXrpc->post("app.bsky.feed.sendInteractions", json, httpHeaders,
         [successCb](const QJsonDocument& reply){
             qDebug() << "sendInteractions:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getDrafts(std::optional<int> limit, const std::optional<QString>& cursor,
+               const GetDraftsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.draft.getDrafts", params, httpHeaders,
+        [successCb](AppBskyDraft::GetDraftsOutput::SharedPtr drafts){
+            qDebug() << "getDrafts:" << drafts->mDrafts.size();
+
+            if (successCb)
+                successCb(drafts);
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::createDraft(const AppBskyDraft::Draft::SharedPtr& draft,
+                 const CreateDraftSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("draft", draft->toJson());
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.draft.createDraft", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Created draft:" << reply;
+
+            try {
+                auto output = AppBskyDraft::CreateDraftOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::deleteDraft(const QString& id, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("id", id);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.draft.deleteDraft", QJsonDocument(json), httpHeaders,
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Deleted draft reply:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::updateDraft(const AppBskyDraft::DraftWithId::SharedPtr& draft,
+                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("draft", draft->toJson());
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.draft.updateDraft", QJsonDocument(json), httpHeaders,
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Updated draft reply:" << reply;
             if (successCb)
                 successCb();
         },

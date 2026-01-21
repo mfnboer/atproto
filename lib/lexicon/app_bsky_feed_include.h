@@ -47,6 +47,9 @@ struct ThreadgateRules
 
     QJsonArray toJson() const;
 
+    void insertRulesInto(QJsonObject& json, const QString& field) const;
+    static ThreadgateRules getRules(const QJsonObject& json, const QString& field);
+
     using SharedPtr = std::shared_ptr<ThreadgateRules>;
     static SharedPtr fromJson(const QJsonArray& allowArray);
 };
