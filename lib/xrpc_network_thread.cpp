@@ -409,6 +409,16 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 
+// app.bky.draft
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetDraftsOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyDraft::GetDraftsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetDraftsOutput;
+};
+
+
 // app.bsky.graph
 
 template<typename T>

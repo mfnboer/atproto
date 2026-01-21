@@ -7,6 +7,7 @@
 #include "xrpc_client.h"
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_bookmark.h"
+#include "lexicon/app_bsky_draft.h"
 #include "lexicon/app_bsky_feed.h"
 #include "lexicon/app_bsky_graph.h"
 #include "lexicon/app_bsky_labeler.h"
@@ -92,6 +93,8 @@ public:
     using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
     using GetBookmarksSuccessCb = std::function<void(AppBskyBookmark::GetBookmarksOutput::SharedPtr)>;
+    using GetDraftsSuccessCb = std::function<void(AppBskyDraft::GetDraftsOutput::SharedPtr)>;
+    using CreateDraftSuccessCb = std::function<void(AppBskyDraft::CreateDraftOutput::SharedPtr)>;
 
     using DeleteMessageSuccessCb = std::function<void(ChatBskyConvo::DeletedMessageView::SharedPtr)>;
     using AcceptConvoSuccessCb = std::function<void(ChatBskyConvo::AcceptConvoOutput::SharedPtr)>;
@@ -272,20 +275,20 @@ public:
     // app.bsky.bookmark
     /**
      * @brief createBookmark
-     * @param mUri at-uri of app.bsky.feed.post
-     * @param mCid cid of app.bsky.feed.post
+     * @param uri at-uri of app.bsky.feed.post
+     * @param cid cid of app.bsky.feed.post
      * @param successCb
      * @param errorCb
      */
-    void createBookmark(QString mUri, QString mCid, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void createBookmark(QString uri, QString cid, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief deleteBookmark
-     * @param mUri at-uri of app.bsky.feed.post
+     * @param uri at-uri of app.bsky.feed.post
      * @param successCb
      * @param errorCb
      */
-    void deleteBookmark(QString mUri, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void deleteBookmark(QString uri, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getBookmarks
@@ -482,6 +485,44 @@ public:
      */
     void sendInteractions(const AppBskyFeed::Interaction::List& interactions, const QString& feedDid,
                           const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.draft
+
+    /**
+     * @brief getDrafts
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getDrafts(std::optional<int> limit, const std::optional<QString>& cursor,
+                   const GetDraftsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief createDraft
+     * @param draft
+     * @param successCb
+     * @param errorCb
+     */
+    void createDraft(const AppBskyDraft::Draft::SharedPtr& draft,
+                     const CreateDraftSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief deleteDraft
+     * @param id
+     * @param successCb
+     * @param errorCb
+     */
+    void deleteDraft(const QString& id, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief updateDraft
+     * @param draft
+     * @param successCb
+     * @param errorCb
+     */
+    void updateDraft(const AppBskyDraft::DraftWithId::SharedPtr& draft,
+                     const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.graph
 

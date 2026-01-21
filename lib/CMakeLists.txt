@@ -106,6 +106,8 @@ qt_add_qml_module(libatproto
         SOURCES lexicon/app_bsky_bookmark.cpp
         SOURCES repo_master.h
         SOURCES repo_master.cpp
+        SOURCES lexicon/app_bsky_draft.h
+        SOURCES lexicon/app_bsky_draft.cpp
 )
 
 if (NOT ANDROID)
