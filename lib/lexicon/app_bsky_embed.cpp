@@ -128,6 +128,26 @@ VideoCaption::SharedPtr VideoCaption::fromJson(const QJsonObject& json)
     return caption;
 }
 
+VideoPresentation stringToVideoPresentation(const QString& str)
+{
+    static const std::unordered_map<QString, VideoPresentation> mapping = {
+        { "default", VideoPresentation::DEFAULT },
+        { "gif", VideoPresentation::GIF }
+    };
+
+    return stringToEnum(str, mapping, VideoPresentation::UNKNOWN);
+}
+
+QString videoPresentationToString(VideoPresentation presentation, const QString& unknown)
+{
+    static const std::unordered_map<VideoPresentation, QString> mapping = {
+        { VideoPresentation::DEFAULT, "default" },
+        { VideoPresentation::GIF, "gif" }
+    };
+
+    return enumToString(presentation, mapping, unknown);
+}
+
 QJsonObject Video::toJson() const
 {
     QJsonObject json;
@@ -136,6 +156,10 @@ QJsonObject Video::toJson() const
     XJsonObject::insertOptionalArray<VideoCaption>(json, "captions", mCaptions);
     XJsonObject::insertOptionalJsonValue(json, "alt", mAlt);
     XJsonObject::insertOptionalJsonObject<AspectRatio>(json, "aspectRatio", mAspectRatio);
+
+    if (mPresentation)
+        json.insert("presentation", videoPresentationToString(*mPresentation, mRawPresentation.value_or("default")));
+
     return json;
 }
 
@@ -147,6 +171,11 @@ Video::SharedPtr Video::fromJson(const QJsonObject& json)
     video->mCaptions = xjson.getOptionalVector<VideoCaption>("captions");
     video->mAlt = xjson.getOptionalString("alt");
     video->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    video->mRawPresentation = xjson.getOptionalString("presentation");
+
+    if (video->mRawPresentation)
+        video->mPresentation = stringToVideoPresentation(*video->mRawPresentation);
+
     return video;
 }
 
@@ -159,6 +188,10 @@ QJsonObject VideoView::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "thumbnail", mThumbnail);
     XJsonObject::insertOptionalJsonValue(json, "alt", mAlt);
     XJsonObject::insertOptionalJsonObject<AspectRatio>(json, "aspectRatio", mAspectRatio);
+
+    if (mPresentation)
+        json.insert("presentation", videoPresentationToString(*mPresentation, mRawPresentation.value_or("default")));
+
     return json;
 }
 
@@ -171,6 +204,11 @@ VideoView::SharedPtr VideoView::fromJson(const QJsonObject& json)
     view->mThumbnail = xjson.getOptionalString("thumbnail");
     view->mAlt = xjson.getOptionalString("alt");
     view->mAspectRatio = xjson.getOptionalObject<AspectRatio>("aspectRatio");
+    view->mRawPresentation = xjson.getOptionalString("presentation");
+
+    if (view->mRawPresentation)
+        view->mPresentation = stringToVideoPresentation(*view->mRawPresentation);
+
     view->mJson = json;
     return view;
 }
