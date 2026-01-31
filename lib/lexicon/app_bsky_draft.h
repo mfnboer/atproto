@@ -121,6 +121,8 @@ struct DraftPost
 // app.bsky.draft.defs#draft
 struct Draft
 {
+    std::optional<QString> mDeviceId; // maxLength=100
+    std::optional<QString> mDeviceName; // maxLength=100
     DraftPost::List mPosts; // min=1 max=100
     std::vector<QString> mLangs; // optional max=3
     bool mDisableEmbedding = false;

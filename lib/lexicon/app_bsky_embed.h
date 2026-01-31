@@ -212,6 +212,16 @@ struct VideoCaption
     static constexpr char const* TYPE = "app.bsky.embed.video#caption";
 };
 
+enum class VideoPresentation
+{
+    DEFAULT,
+    GIF,
+    UNKNOWN
+};
+
+VideoPresentation stringToVideoPresentation(const QString& str);
+QString videoPresentationToString(VideoPresentation presentation, const QString& unknown);
+
 // app.bsky.embed.video
 struct Video
 {
@@ -219,6 +229,8 @@ struct Video
     VideoCaption::List mCaptions;
     std::optional<QString> mAlt; // max 1000 graphemes, 10,000 bytes
     AspectRatio::SharedPtr mAspectRatio; // optional
+    std::optional<QString> mRawPresentation;
+    std::optional<VideoPresentation> mPresentation;
 
     QJsonObject toJson() const;
 
@@ -236,6 +248,8 @@ struct VideoView
     std::optional<QString> mThumbnail; // URI
     std::optional<QString> mAlt;
     AspectRatio::SharedPtr mAspectRatio; // optional
+    std::optional<QString> mRawPresentation;
+    std::optional<VideoPresentation> mPresentation;
     QJsonObject mJson;
 
     QJsonObject toJson() const;
