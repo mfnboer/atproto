@@ -109,8 +109,8 @@ struct DraftPost
     using SharedPtr = std::shared_ptr<DraftPost>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr int MAX_TEXT_GRAPHEMES = 300;
-    static constexpr int MAX_TEXT_BYTES = 3000;
+    static constexpr int MAX_TEXT_GRAPHEMES = 1000;
+    static constexpr int MAX_TEXT_BYTES = 10000;
     static constexpr int MAX_EMBED_IMAGES = 1;
     static constexpr int MAX_EMBED_VIDEOS = 1;
     static constexpr int MAX_EMBED_EXTERNALS = 1;
