@@ -775,8 +775,8 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
-    void uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.repo
 
