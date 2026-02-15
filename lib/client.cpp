@@ -1870,7 +1870,7 @@ void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVide
         serviceAuthToken);
 }
 
-void Client::uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     QUrl url(mXrpc->getPDS());
     QString aud = "did:web:" + url.host();
@@ -1887,7 +1887,7 @@ void Client::uploadVideo(QFile* blob, const VideoUploadOutputCb& successCb, cons
         });
 }
 
-void Client::uploadVideo(QFile* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Upload video:" << blob->size();
     const QString name = QUuid::createUuid().toString(QUuid::WithoutBraces);

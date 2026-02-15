@@ -2,6 +2,7 @@ next
 ====
 * Draft device
 * Video presentation
+* Video upload now takes QIoDevice* to support both files and HTTPS sources
 
 5.13
 ====
