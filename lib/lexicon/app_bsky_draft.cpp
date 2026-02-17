@@ -7,7 +7,7 @@ namespace ATProto::AppBskyDraft {
 
 QJsonObject DraftEmbedLocalRef::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("path", mPath);
     return json;
@@ -18,12 +18,13 @@ DraftEmbedLocalRef::SharedPtr DraftEmbedLocalRef::fromJson(const QJsonObject& js
     XJsonObject xjson(json);
     auto localRef = std::make_shared<DraftEmbedLocalRef>();
     localRef->mPath = xjson.getRequiredString("path");
+    localRef->mJson = json;
     return localRef;
 }
 
 QJsonObject DraftEmbedCaption::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("lang", mLang);
     json.insert("content", mContent);
@@ -36,12 +37,13 @@ DraftEmbedCaption::SharedPtr DraftEmbedCaption::fromJson(const QJsonObject& json
     auto caption = std::make_shared<DraftEmbedCaption>();
     caption->mLang = xjson.getRequiredString("lang");
     caption->mContent = xjson.getRequiredString("content");
+    caption->mJson = json;
     return caption;
 }
 
 QJsonObject DraftEmbedImage::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("localRef", mLocalRef->toJson());
     XJsonObject::insertOptionalJsonValue(json, "alt", mAlt);
@@ -54,12 +56,13 @@ DraftEmbedImage::SharedPtr DraftEmbedImage::fromJson(const QJsonObject& json)
     auto image = std::make_shared<DraftEmbedImage>();
     image->mLocalRef = xjson.getRequiredObject<DraftEmbedLocalRef>("localRef");
     image->mAlt = xjson.getOptionalString("alt");
+    image->mJson = json;
     return image;
 }
 
 QJsonObject DraftEmbedVideo::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("localRef", mLocalRef->toJson());
     XJsonObject::insertOptionalJsonValue(json, "alt", mAlt);
@@ -74,12 +77,13 @@ DraftEmbedVideo::SharedPtr DraftEmbedVideo::fromJson(const QJsonObject& json)
     video->mLocalRef = xjson.getRequiredObject<DraftEmbedLocalRef>("localRef");
     video->mAlt = xjson.getOptionalString("alt");
     video->mCaptions = xjson.getOptionalVector<DraftEmbedCaption>("captions");
+    video->mJson = json;
     return video;
 }
 
 QJsonObject DraftEmbedExternal::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("uri", mUri);
     return json;
@@ -90,12 +94,13 @@ DraftEmbedExternal::SharedPtr DraftEmbedExternal::fromJson(const QJsonObject& js
     XJsonObject xjson(json);
     auto external = std::make_shared<DraftEmbedExternal>();
     external->mUri = xjson.getRequiredString("uri");
+    external->mJson = json;
     return external;
 }
 
 QJsonObject DraftEmbedRecord::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("record", mRecord->toJson());
     return json;
@@ -106,12 +111,13 @@ DraftEmbedRecord::SharedPtr DraftEmbedRecord::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto record = std::make_shared<DraftEmbedRecord>();
     record->mRecord = xjson.getRequiredObject<ComATProtoRepo::StrongRef>("record");
+    record->mJson = json;
     return record;
 }
 
 QJsonObject DraftPost::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("text", mText);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
@@ -132,12 +138,13 @@ DraftPost::SharedPtr DraftPost::fromJson(const QJsonObject& json)
     post->mEmbedVideos = xjson.getOptionalVector<DraftEmbedVideo>("embedVideos");
     post->mEmbedExternals = xjson.getOptionalVector<DraftEmbedExternal>("embedExternals");
     post->mEmbedRecords = xjson.getOptionalVector<DraftEmbedRecord>("embedRecords");
+    post->mJson = json;
     return post;
 }
 
 QJsonObject Draft::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("posts", XJsonObject::toJsonArray<DraftPost>(mPosts));
     XJsonObject::insertOptionalArray(json, "langs", mLangs);
@@ -151,16 +158,19 @@ Draft::SharedPtr Draft::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto draft = std::make_shared<Draft>();
+    draft->mDeviceId = xjson.getOptionalString("deviceId");
+    draft->mDeviceName = xjson.getOptionalString("deviceName");
     draft->mPosts = xjson.getRequiredVector<DraftPost>("posts");
     draft->mLangs = xjson.getOptionalStringVector("langs");
     draft->mDisableEmbedding = AppBskyFeed::PostgateEmbeddingRules::getDisableEmbedding(json, "postgateEmbeddingRules");
     draft->mThreadgateRules = AppBskyFeed::ThreadgateRules::getRules(json, "threadgateAllow");
+    draft->mJson = json;
     return draft;
 }
 
 QJsonObject DraftWithId::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("id", mId);
     json.insert("draft", mDraft->toJson());
@@ -173,6 +183,7 @@ DraftWithId::SharedPtr DraftWithId::fromJson(const QJsonObject& json)
     auto draft = std::make_shared<DraftWithId>();
     draft->mId = xjson.getRequiredString("id");
     draft->mDraft = xjson.getRequiredObject<Draft>("draft");
+    draft->mJson = json;
     return draft;
 }
 
