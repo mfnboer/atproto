@@ -12,6 +12,7 @@ namespace ATProto::AppBskyDraft {
 struct DraftEmbedLocalRef
 {
     QString mPath; // Local, on-device ref to file to be embedded.
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -27,6 +28,7 @@ struct DraftEmbedCaption
 {
     QString mLang;
     QString mContent;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -41,6 +43,7 @@ struct DraftEmbedImage
 {
     DraftEmbedLocalRef::SharedPtr mLocalRef;
     std::optional<QString> mAlt;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -57,6 +60,7 @@ struct DraftEmbedVideo
     DraftEmbedLocalRef::SharedPtr mLocalRef;
     std::optional<QString> mAlt;
     DraftEmbedCaption::List mCaptions; // optional
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -72,6 +76,7 @@ struct DraftEmbedVideo
 struct DraftEmbedExternal
 {
     QString mUri;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -85,6 +90,7 @@ struct DraftEmbedExternal
 struct DraftEmbedRecord
 {
     ComATProtoRepo::StrongRef::SharedPtr mRecord;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -103,6 +109,7 @@ struct DraftPost
     DraftEmbedVideo::List mEmbedVideos; // optional max=1
     DraftEmbedExternal::List mEmbedExternals; // optional max=1
     DraftEmbedRecord::List mEmbedRecords; // optional max=1
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -127,6 +134,7 @@ struct Draft
     std::vector<QString> mLangs; // optional max=3
     bool mDisableEmbedding = false;
     AppBskyFeed::ThreadgateRules mThreadgateRules;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -144,6 +152,7 @@ struct DraftWithId
 {
     QString mId;
     Draft::SharedPtr mDraft;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 

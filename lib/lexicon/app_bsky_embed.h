@@ -412,7 +412,7 @@ using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
 struct EmbedView
 {
     EmbedViewUnion mEmbed;
-    EmbedViewType mType;
+    EmbedViewType mType = EmbedViewType::UNKNOWN;
     QString mRawType;
 
     QJsonObject toJson() const;
