@@ -202,6 +202,7 @@ GetDraftsOutput::SharedPtr GetDraftsOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto output = std::make_shared<GetDraftsOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
     output->mDrafts = xjson.getRequiredVector<DraftView>("drafts");
     return output;
 }

@@ -178,6 +178,7 @@ struct DraftView
 // app.bsky.draft.getDrafts#output
 struct GetDraftsOutput
 {
+    std::optional<QString> mCursor;
     DraftView::List mDrafts;
 
     using SharedPtr = std::shared_ptr<GetDraftsOutput>;
