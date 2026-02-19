@@ -102,6 +102,7 @@ struct ListView
     using SharedPtr = std::shared_ptr<ListView>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.defs#listView";
 };
 
 // app.bsky.graph.defs#listItemView

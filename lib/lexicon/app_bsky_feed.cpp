@@ -781,7 +781,7 @@ QString contentModeToString(ContentMode mode, const QString& unknown)
 QJsonObject GeneratorView::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.feed.defs#generatorView");
+    json.insert("$type", TYPE);
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     json.insert("did", mDid);
