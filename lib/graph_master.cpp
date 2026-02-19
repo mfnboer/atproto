@@ -14,6 +14,20 @@ GraphMaster::GraphMaster(Client & client) :
 {
 }
 
+AppBskyGraph::StarterPackViewBasic::SharedPtr GraphMaster::createStarterPackViewBasic(const AppBskyGraph::StarterPackView::SharedPtr& view)
+{
+    auto viewBasic = std::make_shared<AppBskyGraph::StarterPackViewBasic>();
+    viewBasic->mUri = view->mUri;
+    viewBasic->mCid = view->mCid;
+    viewBasic->mRecord = view->mRecord;
+    viewBasic->mCreator = view->mCreator;
+    viewBasic->mJoinedWeekCount = view->mJoinedWeekCount;
+    viewBasic->mJoinedAllTimeCount = view->mJoinedAllTimeCount;
+    viewBasic->mLabels = view->mLabels;
+    viewBasic->mIndexedAt = view->mIndexedAt;
+    return viewBasic;
+}
+
 void GraphMaster::follow(const QString& did,
                          const RecordSuccessCb& successCb, const ErrorCb& errorCb)
 {

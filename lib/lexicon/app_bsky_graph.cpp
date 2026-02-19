@@ -167,7 +167,7 @@ ListViewBasic::SharedPtr ListViewBasic::fromJson(const QJsonObject& json)
 QJsonObject ListView::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.graph.defs#listView");
+    json.insert("$type", TYPE);
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     json.insert("creator", mCreator->toJson());

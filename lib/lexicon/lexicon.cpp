@@ -58,9 +58,9 @@ QJsonObject Blob::toJson() const
 RecordType stringToRecordType(const QString& str)
 {
     static const std::unordered_map<QString, RecordType> recordMapping = {
-        { "app.bsky.feed.post", RecordType::APP_BSKY_FEED_POST },
-        { "app.bsky.feed.defs#generatorView", RecordType::APP_BSKY_FEED_GENERATOR_VIEW },
-        { "app.bsky.graph.defs#listView", RecordType::APP_BSKY_GRAPH_LIST_VIEW },
+        { AppBskyFeed::Record::Post::TYPE, RecordType::APP_BSKY_FEED_POST },
+        { ATProto::AppBskyFeed::GeneratorView::TYPE, RecordType::APP_BSKY_FEED_GENERATOR_VIEW },
+        { ATProto::AppBskyGraph::ListView::TYPE, RecordType::APP_BSKY_GRAPH_LIST_VIEW },
         { AppBskyGraph::StarterPackViewBasic::TYPE, RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC },
         { AppBskyLabeler::LabelerView::TYPE, RecordType::APP_BSKY_LABELER_VIEW },
         { AppBskyEmbed::RecordViewBlocked::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED },
@@ -81,8 +81,8 @@ QString recordTypeToString(RecordType recordType)
 {
     static const std::unordered_map<RecordType, QString> mapping = {
         { RecordType::APP_BSKY_FEED_POST, AppBskyFeed::Record::Post::TYPE },
-        { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, "app.bsky.feed.defs#generatorView" },
-        { RecordType::APP_BSKY_GRAPH_LIST_VIEW, "app.bsky.graph.defs#listView" },
+        { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, ATProto::AppBskyFeed::GeneratorView::TYPE },
+        { RecordType::APP_BSKY_GRAPH_LIST_VIEW, ATProto::AppBskyGraph::ListView::TYPE },
         { RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC, AppBskyGraph::StarterPackViewBasic::TYPE },
         { RecordType::APP_BSKY_LABELER_VIEW, AppBskyLabeler::LabelerView::TYPE },
         { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, AppBskyEmbed::RecordViewBlocked::TYPE },

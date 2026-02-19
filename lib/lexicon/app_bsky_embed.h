@@ -57,6 +57,7 @@ struct GeneratorView {
     using SharedPtr = std::shared_ptr<GeneratorView>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#generatorView";
 };
 
 // app.bsky.feed.defs#blockedAuthor

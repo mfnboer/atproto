@@ -23,6 +23,8 @@ public:
 
     explicit GraphMaster(Client& client);
 
+    static AppBskyGraph::StarterPackViewBasic::SharedPtr createStarterPackViewBasic(const AppBskyGraph::StarterPackView::SharedPtr& view);
+
     void follow(const QString& did,
                 const RecordSuccessCb& successCb, const ErrorCb& errorCb);
     void block(const QString& did,
