@@ -146,6 +146,8 @@ QJsonObject Draft::toJson() const
 {
     QJsonObject json(mJson);
     json.insert("$type", TYPE);
+    XJsonObject::insertOptionalJsonValue(json, "deviceId", mDeviceId);
+    XJsonObject::insertOptionalJsonValue(json, "deviceName", mDeviceName);
     json.insert("posts", XJsonObject::toJsonArray<DraftPost>(mPosts));
     XJsonObject::insertOptionalArray(json, "langs", mLangs);
     AppBskyFeed::PostgateEmbeddingRules::insertDisableEmbedding(json, "postgateEmbeddingRules", mDisableEmbedding);
