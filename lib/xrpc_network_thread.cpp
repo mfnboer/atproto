@@ -83,7 +83,7 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
 {
     Request request;
     request.mIsPost = false;
-    request.mXrpcRequest =  QNetworkRequest(buildUrl(service, params, pds));
+    request.mXrpcRequest = QNetworkRequest(buildUrl(service, params, pds));
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
@@ -93,10 +93,20 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
     sendRequest(request, successCb, errorCb);
 }
 
-void NetworkThread::sendRequest(const Request& request, const CallbackType& successCb, const ErrorCb& errorCb)
+void NetworkThread::sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Thread:" << currentThreadId();
     QNetworkReply* reply;
+    const QString host = request.mXrpcRequest.url().host();
+
+    // HACK:
+    // HTTP/2 does not work between Qt6.10.2 and Eurosky. Connection goes
+    // stale after a while and then all requests time out for ~25s.
+    // With HTTP/1.1 all works fine.
+    // With Qt6.8.3 HTTP/2 worked fine too.
+
+    if (host.endsWith("eurosky.social"))
+        request.mXrpcRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 
     if (request.mIsPost)
     {
@@ -115,6 +125,8 @@ void NetworkThread::sendRequest(const Request& request, const CallbackType& succ
     {
         reply = mNetwork->get(request.mXrpcRequest);
     }
+
+    request.mSendTime = QDateTime::currentDateTime();
 
     // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
     // The latter call is not guaranteed however. We must only call errorCb once!
@@ -135,7 +147,8 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     Q_ASSERT(reply);
     const auto errorCode = reply->error();
     const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString().trimmed();
-    qDebug() << "Reply:" << errorCode << "content:" << contentType << "errorHandled:" << *errorHandled;
+    const auto respondeDt = QDateTime::currentDateTime() - request.mSendTime;
+    qDebug() << "Reply:" << errorCode << "content:" << contentType << "errorHandled:" << *errorHandled << "responseMs:" << (respondeDt / 1ms) << request.mXrpcRequest.url();
     auto data = reply->readAll();
 
     // WORK AROUND:
@@ -626,6 +639,7 @@ bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
     case QNetworkReply::ContentReSendError:
     case QNetworkReply::OperationCanceledError: // Timeout
     case QNetworkReply::RemoteHostClosedError:
+    case QNetworkReply::TimeoutError:
         return true;
     default:
         break;

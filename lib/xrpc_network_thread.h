@@ -178,6 +178,7 @@ public:
         QNetworkRequest mXrpcRequest;
         DataType mData;
         int mResendCount = 0;
+        QDateTime mSendTime;
     };
 
     NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
@@ -280,7 +281,7 @@ private:
     void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
-    void sendRequest(const Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
+    void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool mustResend(QNetworkReply::NetworkError error) const;
     void invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType);

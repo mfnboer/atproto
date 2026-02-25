@@ -3,6 +3,9 @@ next
 * Draft device
 * Video presentation
 * Video upload now takes QIoDevice* to support both files and HTTPS sources
+* Fallback to HTTP/1.1 for eurosky
+* Log response times
+* Retry timed out requests
 
 5.13
 ====
