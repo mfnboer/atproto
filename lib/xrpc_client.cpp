@@ -27,7 +27,10 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     qDebug() << "OpenSSL lib build:" << QSslSocket::sslLibraryBuildVersionString();
 
     if (!host.isEmpty())
+    {
         setPDS(host, "");
+        mNetworkThread->setPDS(mPDS);
+    }
 
     if (mNetworkThread->moveToThread(mNetworkThread.get()))
         qDebug() << "Moved network thread";
