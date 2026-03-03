@@ -1040,12 +1040,16 @@ void Client::getRepostedBy(const QString& uri, std::optional<int> limit, const s
         authToken());
 }
 
-void Client::sendInteractions(const AppBskyFeed::Interaction::List& interactions, const QString& feedDid,
-                              const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::sendInteractions(const std::optional<QString>& feedUri, const AppBskyFeed::Interaction::List& interactions,
+                              const QString& feedDid, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto jsonArray = XJsonObject::toJsonArray<AppBskyFeed::Interaction>(interactions);
     QJsonObject jsonObj;
     jsonObj.insert("interactions", jsonArray);
+
+    if (feedUri)
+        jsonObj.insert("feed", *feedUri);
+
     QJsonDocument json(jsonObj);
 
     Xrpc::NetworkThread::Params httpHeaders;

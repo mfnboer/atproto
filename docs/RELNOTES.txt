@@ -1,3 +1,7 @@
+next
+====
+* Add feed to sendInteractions
+
 5.14
 ====
 * Draft device

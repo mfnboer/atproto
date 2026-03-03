@@ -478,13 +478,14 @@ public:
 
     /**
      * @brief sendInteractions
+     * @param feedUri
      * @param interactions
      * @param feedDid DID of the feed generator to which the feedback should be sent
      * @param successCb
      * @param errorCb
      */
-    void sendInteractions(const AppBskyFeed::Interaction::List& interactions, const QString& feedDid,
-                          const SuccessCb& successCb, const ErrorCb& errorCb);
+    void sendInteractions(const std::optional<QString>& feedUri, const AppBskyFeed::Interaction::List& interactions,
+                          const QString& feedDid, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.draft
 
