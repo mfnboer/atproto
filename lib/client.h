@@ -67,6 +67,7 @@ public:
     using GetStarterPacksWithMembershipSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
     using GetServiceAuthSuccessCb = std::function<void(ComATProtoServer::GetServiceAuthOutput::SharedPtr)>;
+    using RequestEmailUpdateSuccessCb = std::function<void(ComATProtoServer::RequestEmailUpdateOutput::SharedPtr)>;
     using UploadBlobSuccessCb = std::function<void(Blob::SharedPtr)>;
     using GetBlobSuccessCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
     using GetRecordSuccessCb = std::function<void(ComATProtoRepo::Record::SharedPtr)>;
@@ -146,7 +147,8 @@ public:
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::SharedPtr session) { mSession = std::move(session); }
     void clearSession() { mSession = nullptr; }
-    void updateTokens(const QString& accessJwt, const QString& refreshJwt);
+    void updateSessionTokens(const QString& accessJwt, const QString& refreshJwt);
+    void updateSession2FA(bool enabled);
 
     QString getSessionDid() const;
 
@@ -207,6 +209,16 @@ public:
      */
     void getServiceAuth(const QString& aud, const std::optional<QDateTime>& expiry, const std::optional<QString>& lexiconMethod,
                         const GetServiceAuthSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief requestEmailUpdate Request a token in order to update email
+     * @param successCb
+     * @param errorCb
+     */
+    void requestEmailUpdate(const RequestEmailUpdateSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void updateEmail(const QString& email, std::optional<bool> emailAuthFactor, const std::optional<QString>& token,
+                     const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**

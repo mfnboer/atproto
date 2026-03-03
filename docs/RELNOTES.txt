@@ -1,6 +1,7 @@
 next
 ====
 * Add feed to sendInteractions
+* Update email request
 
 5.14
 ====

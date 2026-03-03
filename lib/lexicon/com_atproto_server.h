@@ -83,4 +83,13 @@ struct GetServiceAuthOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// com.atproto.server.requestEmailUpdate#output
+struct RequestEmailUpdateOutput
+{
+    bool mTokenRequired = false;
+
+    using SharedPtr = std::shared_ptr<RequestEmailUpdateOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
