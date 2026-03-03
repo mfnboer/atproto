@@ -132,13 +132,26 @@ void Client::removeLabelerDid(const QString& did)
     setAcceptLabelersHeaderValue();
 }
 
-void Client::updateTokens(const QString& accessJwt, const QString& refreshJwt)
+void Client::updateSessionTokens(const QString& accessJwt, const QString& refreshJwt)
 {
     if (mSession)
     {
         qDebug() << "Update tokens";
         mSession->mAccessJwt = accessJwt;
         mSession->mRefreshJwt = refreshJwt;
+    }
+    else
+    {
+        qWarning() << "No session";
+    }
+}
+
+void Client::updateSession2FA(bool enabled)
+{
+    if (mSession)
+    {
+        qDebug() << "Update 2FA:" << enabled;
+        mSession->mEmailAuthFactor = enabled;
     }
     else
     {
@@ -438,6 +451,50 @@ void Client::getServiceAuth(const QString& aud, const std::optional<QDateTime>& 
             qDebug() << "getServiceAuth reply:" << output->mToken;
             if (successCb)
                 successCb(output);
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::requestEmailUpdate(const RequestEmailUpdateSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->post("com.atproto.server.requestEmailUpdate", {}, {},
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "requestEmailUpdate reply:" << reply;
+
+            try {
+                auto output = ComATProtoServer::RequestEmailUpdateOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::updateEmail(const QString& email, std::optional<bool> emailAuthFactor, const std::optional<QString>& token,
+                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("email", email);
+    XJsonObject::insertOptionalJsonValue(json, "emailAuthFactor", emailAuthFactor);
+    XJsonObject::insertOptionalJsonValue(json, "token", token);
+
+    mXrpc->post("com.atproto.server.updateEmail", QJsonDocument(json), {},
+        [presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "updateEmail reply:" << reply;
+
+            if (successCb)
+                successCb();
         },
         failure(errorCb),
         authToken());
@@ -1046,10 +1103,7 @@ void Client::sendInteractions(const std::optional<QString>& feedUri, const AppBs
     const auto jsonArray = XJsonObject::toJsonArray<AppBskyFeed::Interaction>(interactions);
     QJsonObject jsonObj;
     jsonObj.insert("interactions", jsonArray);
-
-    if (feedUri)
-        jsonObj.insert("feed", *feedUri);
-
+    XJsonObject::insertOptionalJsonValue(jsonObj, "feed", feedUri);
     QJsonDocument json(jsonObj);
 
     Xrpc::NetworkThread::Params httpHeaders;

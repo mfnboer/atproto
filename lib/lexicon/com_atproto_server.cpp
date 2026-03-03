@@ -79,4 +79,12 @@ GetServiceAuthOutput::SharedPtr GetServiceAuthOutput::fromJson(const QJsonObject
     return output;
 }
 
+RequestEmailUpdateOutput::SharedPtr RequestEmailUpdateOutput::fromJson(const QJsonObject& json)
+{
+    const XJsonObject xjson(json);
+    auto output = std::make_shared<RequestEmailUpdateOutput>();
+    output->mTokenRequired = xjson.getRequiredBool("tokenRequired");
+    return output;
+}
+
 }
