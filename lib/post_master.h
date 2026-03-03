@@ -114,9 +114,9 @@ public:
     void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, int width, int height, const QString& altText,
                                 bool isGif, const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
 
-    void sendInteractionShowMoreLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+    void sendInteractionShowMoreLikeThis(const QString& postUri, const std::optional<QString>& feedUri, const QString& feedDid, const QString& feedContext,
                                          const SuccessCb& successCb, const ErrorCb& errorCb);
-    void sendInteractionShowLessLikeThis(const QString& postUri, const QString& feedDid, const QString& feedContext,
+    void sendInteractionShowLessLikeThis(const QString& postUri, const std::optional<QString>& feedUri, const QString& feedDid, const QString& feedContext,
                                          const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
@@ -124,7 +124,7 @@ private:
                             const ATProto::ComATProtoRepo::Record::List& repostRecords,
                             const std::optional<QString>& cursor,
                             const GetRepostsSuccessCb& successCb, const ErrorCb& errorCb);
-    void sendInteraction(const QString& postUri, const QString& feedDid, const QString& feedContext,
+    void sendInteraction(const QString& postUri, const std::optional<QString>& feedUri, const QString& feedDid, const QString& feedContext,
                          AppBskyFeed::Interaction::EventType event, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     Client& mClient;
