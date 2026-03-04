@@ -2,6 +2,7 @@ next
 ====
 * Add feed to sendInteractions
 * Update email request
+* Reset password
 
 5.14
 ====

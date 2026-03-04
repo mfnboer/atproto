@@ -500,6 +500,44 @@ void Client::updateEmail(const QString& email, std::optional<bool> emailAuthFact
         authToken());
 }
 
+void Client::requestPasswordReset(const QString& email, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("email", email);
+
+    mXrpc->post("com.atproto.server.requestPasswordReset", QJsonDocument(json), {},
+        [presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "requestPasswordReset reply:" << reply;
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb));
+}
+
+void Client::resetPassword(const QString& password, const QString& token,
+                   const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("token", token);
+    json.insert("password", password);
+
+    mXrpc->post("com.atproto.server.resetPassword", QJsonDocument(json), {},
+        [presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "resetPassword reply:" << reply;
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb));
+}
+
 void Client::resolveHandle(const QString& handle,
                    const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb)
 {

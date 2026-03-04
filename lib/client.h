@@ -217,8 +217,34 @@ public:
      */
     void requestEmailUpdate(const RequestEmailUpdateSuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief updateEmail
+     * @param email
+     * @param emailAuthFactor
+     * @param token Token received by mail from requestEmailUpdate (if needed)
+     * @param successCb
+     * @param errorCb
+     */
     void updateEmail(const QString& email, std::optional<bool> emailAuthFactor, const std::optional<QString>& token,
                      const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief requestPasswordReset Initiate a user account password reset via email
+     * @param email
+     * @param successCb
+     * @param errorCb
+     */
+    void requestPasswordReset(const QString& email, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief resetPassword
+     * @param password
+     * @param token Token received by mail from requestPasswordReset
+     * @param successCb
+     * @param errorCb
+     */
+    void resetPassword(const QString& password, const QString& token,
+                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**
