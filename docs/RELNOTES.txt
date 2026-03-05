@@ -1,6 +1,7 @@
 next
 ====
 * Add feed to sendInteractions
+* Confirm email
 * Update email request
 * Reset password
 

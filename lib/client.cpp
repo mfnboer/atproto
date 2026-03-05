@@ -159,6 +159,32 @@ void Client::updateSession2FA(bool enabled)
     }
 }
 
+void Client::updateSessionEmailConfirmed(bool confirmed)
+{
+    if (mSession)
+    {
+        qDebug() << "Confirmed:" << confirmed;
+        mSession->mEmailConfirmed = confirmed;
+    }
+    else
+    {
+        qWarning() << "No session";
+    }
+}
+
+void Client::updateSessionEmail(const QString& email)
+{
+    if (mSession)
+    {
+        qDebug() << "Email:" << email;
+        mSession->mEmail = email;
+    }
+    else
+    {
+        qWarning() << "No session";
+    }
+}
+
 QString Client::getSessionDid() const
 {
     return mSession ? mSession->mDid : "";
@@ -536,6 +562,43 @@ void Client::resetPassword(const QString& password, const QString& token,
                 successCb();
         },
         failure(errorCb));
+}
+
+void Client::requestEmailConfirmation(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->post("com.atproto.server.requestEmailConfirmation", {}, {},
+        [presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "requestEmailConfirmation reply:" << reply;
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::confirmEmail(const QString& email, const QString& token,
+                  const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("token", token);
+    json.insert("email", email);
+
+    mXrpc->post("com.atproto.server.confirmEmail", QJsonDocument(json), {},
+        [presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "confirmEmail reply:" << reply;
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
 }
 
 void Client::resolveHandle(const QString& handle,

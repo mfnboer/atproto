@@ -149,6 +149,8 @@ public:
     void clearSession() { mSession = nullptr; }
     void updateSessionTokens(const QString& accessJwt, const QString& refreshJwt);
     void updateSession2FA(bool enabled);
+    void updateSessionEmailConfirmed(bool confirmed);
+    void updateSessionEmail(const QString& email);
 
     QString getSessionDid() const;
 
@@ -245,6 +247,23 @@ public:
      */
     void resetPassword(const QString& password, const QString& token,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief requestEmailConfirmation Request an email with a code to confirm ownership of email
+     * @param successCb
+     * @param errorCb
+     */
+    void requestEmailConfirmation(const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief confirmEmail
+     * @param email
+     * @param token
+     * @param successCb
+     * @param errorCb
+     */
+    void confirmEmail(const QString& email, const QString& token,
+                      const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.identity
     /**
