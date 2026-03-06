@@ -1,5 +1,6 @@
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core Network)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Core Network)
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
     add_compile_definitions(QT_NO_DEBUG_OUTPUT)
