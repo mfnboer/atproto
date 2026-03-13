@@ -2168,10 +2168,12 @@ void Client::getRecord(const QString& repo, const QString& collection,
                        const QString& rkey, const std::optional<QString>& cid,
                        const GetRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    // For some reason all getRecord requests can be sent to the user's PDS.
-    // Resolving the PDS for the repo takes extra time and the BrigdyFed PDS does not
-    // support CID lookup.
-    getRecordContinue(repo, collection, rkey, cid, successCb, errorCb);
+    auto continueFunc = [this, collection, rkey, cid, successCb]
+        (const QString& repo, const ErrorCb& errorCb, const QString& pds){
+            getRecordContinue(repo, collection, rkey, cid, successCb, errorCb, pds);
+        };
+
+    resolvePds(repo, errorCb, continueFunc);
 }
 
 void Client::getRecordContinue(const QString& repo, const QString& collection,

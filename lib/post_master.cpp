@@ -265,13 +265,48 @@ void PostMaster::undo(const QString& uri,
 void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
                                  const Client::SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    qDebug() << "Check record exists:" << uri << "cid:" << cid;
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
 
     if (!atUri.isValid())
         return;
 
-    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), cid,
+    // Special case for post -> getPosts (faster than getRecord as getRecord requires
+    // PDS resolution to send the request to the proper PDS to get around a bug in the PDS
+    // the returns an error when a user has migrated away from the PDS you are on)
+    if (atUri.getCollection() == ATUri::COLLECTION_FEED_POST)
+    {
+        checkPostExists(uri, successCb, errorCb);
+        return;
+    }
+
+    // HACK: ignore cid as not all PDS' (BridgyFed) support cid for record lookup.
+    Q_UNUSED(cid);
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
         [successCb](auto) {
+            if (successCb)
+                successCb();
+        },
+        [errorCb](const QString& err, const QString& msg) {
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
+void PostMaster::checkPostExists(const QString& postUri,
+                     const Client::SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Check post exists:" << postUri;
+    mClient.getPosts({ postUri },
+        [successCb, errorCb](AppBskyFeed::PostView::List posts) {
+            if (posts.empty())
+            {
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::RECORD_NOT_FOUND, "Post not found");
+
+                return;
+            }
+
             if (successCb)
                 successCb();
         },

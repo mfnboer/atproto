@@ -61,8 +61,11 @@ public:
     void undo(const QString& uri,
               const Client::SuccessCb& successCb, const ErrorCb& errorCb);
 
-    // A record can be a post record or a generator record
+    // A record can be a post record or any other type of record
     void checkRecordExists(const QString& uri, const QString& cid,
+                         const Client::SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void checkPostExists(const QString& postUri,
                          const Client::SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
