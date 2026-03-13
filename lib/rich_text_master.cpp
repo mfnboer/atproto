@@ -9,7 +9,8 @@
 namespace ATProto {
 
 static constexpr char const* RE_HASHTAG = R"(#(?:[^[:punct:][:space:]]|_)+)";
-static constexpr char const* RE_CASHTAG = R"(\$[a-zA-Z][a-zA-Z0-9]{0,4})";
+static constexpr char const* RE_CASHTAG = R"(\$[a-zA-Z][a-zA-Z0-9_]*)";
+static constexpr int MAX_CASHTAG_LEN = 6; // including $-symbol
 
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
 
@@ -476,6 +477,9 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::parseTags(const QString
 
     for (const auto& tag : potentialCashtags)
     {
+        if (tag.mMatch.size() > MAX_CASHTAG_LEN)
+            continue;
+
         qDebug() << "Cashtag:" << tag.mMatch << "start:" << tag.mStartIndex << "end:" << tag.mEndIndex;
         tags.push_back(tag);
     }

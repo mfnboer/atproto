@@ -4,6 +4,8 @@ next
 * Use getPosts to check existence of a post record to get around the
   bug in the PDS that returns an error when you call getRecord on
   a user that migrated away.
+* Allow underscore in cashtags
+* Cashtag must be terminated by a non-word symbol
 
 5.15
 ====
