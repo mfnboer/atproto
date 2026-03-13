@@ -16,7 +16,7 @@ static QString normalizeHost(const QString& host)
         normalized = "https://" + normalized;
 
     if (normalized.endsWith('/'))
-        normalized.slice(0, normalized.size() - 1);
+        normalized.chop(1);
 
     return normalized;
 }
