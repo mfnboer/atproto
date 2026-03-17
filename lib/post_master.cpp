@@ -271,10 +271,15 @@ void PostMaster::checkRecordExists(const QString& uri, const QString& cid,
     if (!atUri.isValid())
         return;
 
+    // HACK:
     // Special case for post -> getPosts (faster than getRecord as getRecord requires
     // PDS resolution to send the request to the proper PDS to get around a bug in the PDS
     // the returns an error when a user has migrated away from the PDS you are on)
-    if (atUri.getCollection() == ATUri::COLLECTION_FEED_POST)
+    // NOTE: getPosts() should not be used on a post that was just created, as it needs
+    // time to get new posts.
+    // For checks on posts while posting a thread, a post may just have been created. This
+    // is done by the user however, i.e. on the PDS of the current session!
+    if (atUri.getAuthority() != mClient.getSessionDid() && atUri.getCollection() == ATUri::COLLECTION_FEED_POST)
     {
         checkPostExists(uri, successCb, errorCb);
         return;

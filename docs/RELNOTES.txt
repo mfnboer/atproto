@@ -1,3 +1,8 @@
+next
+====
+* Don't use getPosts to check post record existence if it is
+  a post from the current user.
+
 5.16
 ====
 * Resolve PDS to send getRecord to the proper PDS
