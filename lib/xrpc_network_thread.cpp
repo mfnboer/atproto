@@ -95,7 +95,7 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
 
 void NetworkThread::sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Thread:" << currentThreadId();
+    qDebug() << "Request:" << request.mXrpcRequest.url()  << "Thread:" << currentThreadId();
     QNetworkReply* reply;
     const QString host = request.mXrpcRequest.url().host();
 

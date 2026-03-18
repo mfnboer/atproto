@@ -290,6 +290,17 @@ void Client::resumeSession(const ComATProtoServer::Session& session,
 void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
     const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    if (session.mAccessJwt.isEmpty())
+    {
+        qDebug() << "No access token";
+        QTimer::singleShot(0, this, [errorCb]{
+            if (errorCb)
+                errorCb(ATProtoErrorMsg::EXPIRED_TOKEN, "No access token");
+        });
+
+        return;
+    }
+
     mXrpc->get("com.atproto.server.getSession", {}, {},
         [this, presence=getPresence(), session, successCb, errorCb](ComATProtoServer::GetSessionOutput::SharedPtr resumed){
             if (!presence)
@@ -357,7 +368,12 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                         clearSession();
 
                         if (errorCb)
-                            errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_FAILED, msg);
+                        {
+                            if (ATProtoErrorMsg::isTokenFailure(error))
+                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TOKEN_INVALID, msg);
+                            else
+                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                        }
                     });
             }
             else
@@ -372,7 +388,7 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
             if (!presence)
                 return;
 
-            if (!retry && error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
+            if (!retry && ATProtoErrorMsg::isTokenFailure(error))
             {
                 setSession(std::make_shared<ATProto::ComATProtoServer::Session>(session));
                 refreshSession(
@@ -391,7 +407,12 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                         clearSession();
 
                         if (errorCb)
-                            errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_FAILED, msg);
+                        {
+                            if (ATProtoErrorMsg::isTokenFailure(error))
+                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TOKEN_INVALID, msg);
+                            else
+                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                        }
                     }
                 );
             }
@@ -400,7 +421,19 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                 clearSession();
 
                 if (errorCb)
-                    errorCb(error, msg);
+                {
+                    if (ATProtoErrorMsg::isTokenFailure(error))
+                    {
+                        // For some reason the access token does not work, let the caller
+                        // invalidate it and retry refresh later
+                        qWarning() << "Failed to resume session after retry:" << error << " - " << msg;
+                        errorCb(ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                    }
+                    else
+                    {
+                        errorCb(ATProtoErrorMsg::RESUME_SESSION_TMP_FAILURE, msg);
+                    }
+                }
             }
         });
 }

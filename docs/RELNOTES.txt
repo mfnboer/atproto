@@ -1,7 +1,9 @@
 next
 ====
+* Improve token failure handling (resume/refresh session)
 * Don't use getPosts to check post record existence if it is
   a post from the current user.
+* Bug fix for sending DM
 
 5.16
 ====

@@ -52,7 +52,9 @@ public:
 
     // Internal stack errors
     SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
-    SHARED_CONST(QString, REFRESH_SESSION_FAILED, QStringLiteral("RefreshSessionFailed"));
+    SHARED_CONST(QString, RESUME_SESSION_TMP_FAILURE, QStringLiteral("ResumeSessionTmpFailure"));
+    SHARED_CONST(QString, REFRESH_SESSION_TMP_FAILURE, QStringLiteral("RefreshSessionTmpFailure"));
+    SHARED_CONST(QString, REFRESH_SESSION_TOKEN_INVALID, QStringLiteral("RefreshSessionTokenInvalid"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 
     static bool isRecordNotFound(const QString& error)
@@ -66,6 +68,11 @@ public:
         // Currently INVALID_REQUEST is returned when a list does not exist. But I have
         // seen errors getting changed before. Test for NOT_FOUND as a precaution.
         return error == INVALID_REQUEST || error == NOT_FOUND;
+    }
+
+    static bool isTokenFailure(const QString& error)
+    {
+        return error == EXPIRED_TOKEN || error == INVALID_TOKEN;
     }
 };
 

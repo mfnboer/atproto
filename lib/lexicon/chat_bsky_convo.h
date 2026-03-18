@@ -33,7 +33,7 @@ struct MessageInput
 
     using SharedPtr = std::shared_ptr<MessageInput>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.convo.messageInput";
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#messageInput";
 };
 
 // chat.bsky.convo.defs#reactionViewSender
