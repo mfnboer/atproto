@@ -3289,7 +3289,7 @@ void Client::autoRefreshSession(const std::function<void()>& cbDone)
 
             qDebug() << "Session refresh failed:" << error << " - " << msg << "handle:" << mSession->mHandle << "did:" << mSession->mDid;
 
-            if (error == ATProto::ATProtoErrorMsg::EXPIRED_TOKEN)
+            if (ATProtoErrorMsg::isTokenFailure(error))
             {
                 qWarning() << "Token expired, need to login again:" << mSession->mHandle << "did:" << mSession->mDid;
 
