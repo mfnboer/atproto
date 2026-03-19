@@ -337,13 +337,13 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
 }
 
 void Client::resumeAndRefreshSession(const ComATProtoServer::Session& session,
-                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+                                     const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb)
 {
     resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
 }
 
 void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
-                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+                                     const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb)
 {
     qDebug() << "Resume session:" << session.mHandle << "did:" << session.mDid << "retry:" << retry;
 
@@ -365,14 +365,16 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                     },
                     [this, errorCb](const QString& error, const QString& msg){
                         qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                        const QString accessJwt = authToken();
+                        const QString refreshJwt = refreshToken();
                         clearSession();
 
                         if (errorCb)
                         {
                             if (ATProtoErrorMsg::isTokenFailure(error))
-                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TOKEN_INVALID, msg);
+                                errorCb(error, msg, "", "");
                             else
-                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                                errorCb(error, msg, accessJwt, refreshJwt);
                         }
                     });
             }
@@ -391,6 +393,7 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
             if (!retry && ATProtoErrorMsg::isTokenFailure(error))
             {
                 setSession(std::make_shared<ATProto::ComATProtoServer::Session>(session));
+
                 refreshSession(
                     [this, presence, successCb, errorCb]{
                         if (!presence)
@@ -404,14 +407,15 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                             return;
 
                         qDebug() << "Session could not be refreshed:" << error << " - " << msg;
+                        const QString refreshJwt = refreshToken();
                         clearSession();
 
                         if (errorCb)
                         {
                             if (ATProtoErrorMsg::isTokenFailure(error))
-                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TOKEN_INVALID, msg);
+                                errorCb(error, msg, "", "");
                             else
-                                errorCb(ATProto::ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                                errorCb(error, msg, "", refreshJwt);
                         }
                     }
                 );
@@ -427,11 +431,15 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
                         // For some reason the access token does not work, let the caller
                         // invalidate it and retry refresh later
                         qWarning() << "Failed to resume session after retry:" << error << " - " << msg;
-                        errorCb(ATProtoErrorMsg::REFRESH_SESSION_TMP_FAILURE, msg);
+                        errorCb(error, msg, "", session.mRefreshJwt);
+                    }
+                    else if (error == ERROR_INVALID_SESSION)
+                    {
+                        errorCb(error, msg, "", "");
                     }
                     else
                     {
-                        errorCb(ATProtoErrorMsg::RESUME_SESSION_TMP_FAILURE, msg);
+                        errorCb(error, msg, session.mAccessJwt, session.mRefreshJwt);
                     }
                 }
             }

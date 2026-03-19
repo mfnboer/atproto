@@ -110,6 +110,7 @@ public:
     using ReactionSuccessCb = std::function<void(ChatBskyConvo::MessageOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
+    using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
 
     using AutoRefreshDoneCb = std::function<void()>;
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
@@ -195,15 +196,8 @@ public:
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    // The following internal errors (ATProtoErrorMsg) may be returned via errorCb.
-    // PDS_NOT_FOUND                 - PDS could not be resolved or the DID is invalid
-    // RESUME_SESSION_TMP_FAILURE    - Failed to resume due to network/server error, retry later
-    // REFRESH_SESSION_TMP_FAILURE   - Refresh failed due to network/server error, invalidate
-    //                                 access token, retry later with only refresh token
-    // REFRESH_SESSION_TOKEN_INVALID - Refresh token invalid, login again
-    // Other errors: retry later
     void resumeAndRefreshSession(const ComATProtoServer::Session& session,
-                                 const SuccessCb& successCb, const ErrorCb& errorCb);
+                                 const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
 
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -1215,7 +1209,7 @@ private:
     void resumeSessionContinue(const ComATProtoServer::Session& session,
                                const SuccessCb& successCb, const ErrorCb& errorCb);
     void resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
-                               const SuccessCb& successCb, const ErrorCb& errorCb);
+                               const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
     void getRecordContinue(const QString& repo, const QString& collection,
                            const QString& rkey, const std::optional<QString>& cid,
                            const GetRecordSuccessCb& successCb, const ErrorCb& errorCb,
