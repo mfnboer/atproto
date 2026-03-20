@@ -1,4 +1,4 @@
-next
+5.17
 ====
 * Improve token failure handling (resume/refresh session)
 * Don't use getPosts to check post record existence if it is
