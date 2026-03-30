@@ -228,6 +228,8 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
     threadgate->mPost = xjson.getRequiredString("post");
     const auto allowArray = xjson.getOptionalArray("allow");
 
+    // NOTE: an empty allowArray means no one can reply.
+    // An undefined allowArray means anyone can reply.
     if (allowArray)
     {
         const auto rules = ThreadgateRules::fromJson(*allowArray);
@@ -236,10 +238,6 @@ Threadgate::SharedPtr Threadgate::fromJson(const QJsonObject& json)
 
     const auto replies = xjson.getOptionalStringVector("hiddenReplies");
     threadgate->mHiddenReplies.insert(replies.begin(), replies.end());
-
-    // Initially the hidden replies did not exist and an empty threadgate was interpreted
-    // as nobody.
-    threadgate->mRules.mAllowNobody = (allowArray && allowArray->isEmpty()) || (!allowArray && threadgate->mHiddenReplies.empty());
 
     threadgate->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return threadgate;

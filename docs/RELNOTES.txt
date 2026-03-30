@@ -1,3 +1,7 @@
+next
+====
+* Bug fix: empty undefined allow-array means anyone can reply
+
 5.17
 ====
 * Improve token failure handling (resume/refresh session)
