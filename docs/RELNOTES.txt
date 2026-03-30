@@ -1,5 +1,5 @@
-next
-====
+5.17.1
+======
 * Bug fix: empty undefined allow-array means anyone can reply
 
 5.17
