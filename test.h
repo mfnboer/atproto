@@ -21,7 +21,7 @@ public:
 
     Q_INVOKABLE void login(const QString user, QString password, QString host)
     {
-        auto xrpc = std::make_unique<Xrpc::Client>(mNetwork, host);
+        auto xrpc = std::make_unique<Xrpc::Client>(host);
         mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
         mBsky->createSession(user, password, {},
             [this, user]{
@@ -162,7 +162,6 @@ private:
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
-    QNetworkAccessManager* mNetwork;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
 };
