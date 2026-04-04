@@ -35,6 +35,8 @@ qt_add_qml_module(appatproto
     SOURCES test.cpp
     QML_FILES Login.qml
     RESOURCES qtquickcontrols2.conf
+    SOURCES
+    SOURCES
 )
 
 if (ANDROID)

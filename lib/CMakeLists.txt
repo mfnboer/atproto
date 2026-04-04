@@ -110,10 +110,15 @@ qt_add_qml_module(libatproto
         SOURCES repo_master.cpp
         SOURCES lexicon/app_bsky_draft.h
         SOURCES lexicon/app_bsky_draft.cpp
+        SOURCES json_web_key.h
+        SOURCES json_web_key.cpp
+        SOURCES oauth.h
+        SOURCES oauth.cpp
 )
 
 if (NOT ANDROID)
     set(COVERAGE_LIB -lgcov)
+    set(SSL_LIB -lssl)
 endif()
 
 target_link_libraries(libatproto PRIVATE
@@ -121,6 +126,7 @@ target_link_libraries(libatproto PRIVATE
     Qt6::QuickControls2
     Qt6::Core
     Qt6::Network
+    ${SSL_LIB}
     ${COVERAGE_LIB}
 )
 
