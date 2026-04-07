@@ -71,13 +71,20 @@ Window {
     Login {
         id: loginDialog
         anchors.centerIn: parent
+        oauth: true
+
         onAccepted: {
-            test.login(user, password, host)
+            if (oauth)
+                test.oauth(user, host)
+            else
+                test.login(user, password, host)
         }
     }
 
     ATProtoTest {
         id: test
+
+        onLoginRedirect: (url) => Qt.openUrlExternally(url)
     }
 
     Component.onCompleted: {

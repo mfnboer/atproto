@@ -3,7 +3,7 @@ cmake_minimum_required(VERSION 3.16)
 project(appatproto VERSION 1.0 LANGUAGES CXX)
 
 set(CMAKE_AUTOMOC ON)
-set(CMAKE_CXX_STANDARD 20)
+set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
 if (NOT ANDROID)
@@ -13,7 +13,7 @@ if (NOT ANDROID)
 endif()
 
 include(FetchContent)
-find_package(Qt6 6.4 REQUIRED COMPONENTS Quick QuickControls2 Core)
+find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Core HttpServer)
 
 qt_standard_project_setup()
 
@@ -67,6 +67,7 @@ target_link_libraries(appatproto
     PRIVATE Qt6::Quick
     PRIVATE Qt6::QuickControls2
     PRIVATE Qt6::Core
+    PRIVATE Qt6::HttpServer
 )
 
 install(TARGETS appatproto

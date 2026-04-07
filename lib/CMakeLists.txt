@@ -114,6 +114,8 @@ qt_add_qml_module(libatproto
         SOURCES json_web_key.cpp
         SOURCES oauth.h
         SOURCES oauth.cpp
+        SOURCES network_client.h
+        SOURCES
 )
 
 if (NOT ANDROID)

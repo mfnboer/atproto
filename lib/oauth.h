@@ -2,8 +2,9 @@
 // License: GPLv3
 #pragma once
 #include "json_web_key.h"
-#include "presence.h"
+#include "network_client.h"
 #include <QJsonDocument>
+#include <QJsonObject>
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QString>
@@ -11,30 +12,113 @@
 
 namespace ATProto {
 
-class OAuth : public QObject, public Presence
+struct ProtectedResourceMeta
+{
+    std::vector<QString> mAuthorizationServers;
+
+    using Ptr = std::unique_ptr<ProtectedResourceMeta>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct AuthorizationServerMeta
+{
+    QString mIssuer;
+    QString mAuthorizationEndpoint;
+    std::vector<QString> mResponseTypesSupported;
+    std::vector<QString> mGrantTypesSupported;
+    std::vector<QString> mCodeChallengeMethodsSupported;
+    std::vector<QString> mTokenEndpointAuthMedthodsSuppored;
+    QString mTokenEndpoint;
+    std::vector<QString> mScopesSupported;
+    bool mAuthorizationResponeseIssParameterSupported = false;
+    bool mRequirePushedAuthorizationRequests = false;
+    QString mPushedAuthorizationRequestEndpoint;
+    std::vector<QString> mDpopSigningAlgValuesSupported;
+    bool mRequireRequestUriRegistration = true;
+    bool mClientIdMetadataDocumentSupported = false;
+    std::optional<QString> mRevocationEndpoint;
+
+    using Ptr = std::unique_ptr<AuthorizationServerMeta>;
+    static Ptr fromJson(const QJsonObject& json);
+};
+
+struct OAuthRequest
+{
+    QNetworkRequest mNetworkRequest;
+    int mResendCount = 0;
+    int mDpopResendCount = 0;
+    bool mIsPost = true;
+    QByteArray mPostData;
+};
+
+using OAuthSuccessCb = std::function<void(QJsonDocument resp)>;
+using OAuthErrorCb = std::function<void(int code, QString msg)>;
+
+class OAuth : public NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>
 {
 public:
-    using AuthServerSuccessCb = std::function<void(QJsonDocument resp)>;
-    using ParSuccessCb = std::function<void(QString pkceVerifier, QString state, QJsonDocument resp)>;
+    using AuthServerSuccessCb = OAuthSuccessCb;
+    using AuthorizeSuccessCb = std::function<void(QString state, QString issuer, QUrl redirectUrl)>;
+    using ParSuccessCb = std::function<void(QString state, QString issuer, QString requestUri)>;
+    using TokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
+    using SuccessCb = std::function<void()>;
     using ErrorCb = std::function<void(int code, QString msg)>;
 
-    explicit OAuth(QObject* parent = nullptr);
-    void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
-    void sendParAuthRequest(const QString& parUrl, const QString& loginHint, const QString& clientId,
-                            const QString& redirectUrl, const QString& scope, const JsonWebKey& dpopPrivateJwk,
-                            const ParSuccessCb& successCb, const ErrorCb& errorCb);
+    OAuth(const QString& pds, JsonWebKey* dpopPrivateJwk, QObject* parent = nullptr);
+
+    void authorize(const QString& handle, const QString& clientId, const QString& redirectUrl,
+                   const QString& scope,
+                   const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void initialTokenRequest(const QString& clientId,
+                             const QString& redirectUrl, const QString& code,
+                             const TokenSuccessCb& successCb, const ErrorCb& errorCb);
+
+    const QString& getDpopNonce() const { return mDpopNonce; }
 
 private:
-    void authServerPost(const JsonWebKey& dpopPrivateJwk, const QString& dpopAuthServerNonce,
-                        const QString& postUrl, const QUrlQuery& postData,
-                        const AuthServerSuccessCb& successCb, const ErrorCb& errorCb);
+    void authorizeContinue(const QString& clientId, const QString& redirectUrl,
+                                         const QString& scope,
+                                         const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
+    void authorizeContinuePAR(const QString& clientId, const QString& redirectUrl,
+                              const QString& scope,
+                              const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void sendParAuthRequest(const QString& clientId,
+                            const QString& redirectUrl, const QString& scope,
+                            const ParSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
+    void handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
+    void handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    QString getAuthorizationServer() const;
+
+    void authServerPost(const QString& postUrl, const QUrlQuery& postData,
+                        const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    virtual void replyFinished(const OAuthRequest& request, QNetworkReply* reply,
+                               const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
+                               std::shared_ptr<bool> errorHandled) override;
+
+    virtual void networkError(const OAuthRequest& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
+                              const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
+                              std::shared_ptr<bool> errorHandled) override;
+
+    void resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
+                                const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    bool isDpopNonceError(QNetworkReply* reply, const QByteArray& data) const;
 
     QString createPkceCodeChallenge(const QString& verifier) const;
 
-    void setUserAgentHeader(QNetworkRequest& request) const;
-
-    std::unique_ptr<QNetworkAccessManager> mNetwork;
-    QString mUserAgent;
+    QString mPds;
+    ProtectedResourceMeta::Ptr mProtecedResourceMeta;
+    AuthorizationServerMeta::Ptr mAuthorizationServerMeta;
+    QString mLoginHint;
+    JsonWebKey* mDpopPrivateJwk = nullptr;
+    QString mDpopNonce;
+    QString mPkceVerifier;
 };
 
 }

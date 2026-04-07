@@ -1,83 +1,481 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #include "oauth.h"
+#include "xjson.h"
 #include <QCryptographicHash>
+#include <algorithm>
 
 namespace ATProto {
 
-OAuth::OAuth(QObject* parent) :
-    QObject(parent),
-    mNetwork(new QNetworkAccessManager)
+static constexpr int MAX_DPOP_RESENDS = 2;
+
+static bool contains(const std::vector<QString>& list, const QString& value)
 {
-    mNetwork->setAutoDeleteReplies(true);
-    mNetwork->setTransferTimeout(10000);
+    return std::find(list.begin(), list.end(), value) != list.end();
 }
 
-void OAuth::authServerPost(const JsonWebKey& dpopPrivateJwk, const QString& dpopAuthServerNonce,
-                    const QString& postUrl, const QUrlQuery& postData,
-                    const AuthServerSuccessCb& successCb, const ErrorCb& errorCb)
+ProtectedResourceMeta::Ptr ProtectedResourceMeta::fromJson(const QJsonObject& json)
 {
-    qDebug() << "Post:" << postUrl;
-    const QString dpopProof = dpopPrivateJwk.buildDPoPProof("POST", postUrl, dpopAuthServerNonce);
+    XJsonObject xjson(json);
+    auto meta = std::make_unique<ProtectedResourceMeta>();
+    meta->mAuthorizationServers = xjson.getRequiredStringVector("authorization_servers");
+    return meta;
+}
 
-    // TODO: hardened http, SSRF
+AuthorizationServerMeta::Ptr AuthorizationServerMeta::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto meta = std::make_unique<AuthorizationServerMeta>();
+    meta->mIssuer = xjson.getRequiredString("issuer");
+    meta->mAuthorizationEndpoint = xjson.getRequiredString("authorization_endpoint");
+    meta->mResponseTypesSupported = xjson.getRequiredStringVector("response_types_supported");
+    meta->mGrantTypesSupported = xjson.getRequiredStringVector("grant_types_supported");
+    meta->mCodeChallengeMethodsSupported = xjson.getRequiredStringVector("code_challenge_methods_supported");
+    meta->mTokenEndpointAuthMedthodsSuppored = xjson.getRequiredStringVector("token_endpoint_auth_methods_supported");
+    meta->mTokenEndpoint = xjson.getRequiredString("token_endpoint");
+    meta->mScopesSupported = xjson.getRequiredStringVector("scopes_supported");
+    meta->mAuthorizationResponeseIssParameterSupported = xjson.getRequiredBool("authorization_response_iss_parameter_supported");
+    meta->mRequirePushedAuthorizationRequests = xjson.getRequiredBool("require_pushed_authorization_requests");
+    meta->mPushedAuthorizationRequestEndpoint = xjson.getRequiredString("pushed_authorization_request_endpoint");
+    meta->mDpopSigningAlgValuesSupported = xjson.getRequiredStringVector("dpop_signing_alg_values_supported");
+    meta->mRequireRequestUriRegistration = xjson.getOptionalBool("require_request_uri_registration", true);
+    meta->mClientIdMetadataDocumentSupported = xjson.getRequiredBool("client_id_metadata_document_supported");
+    meta->mRevocationEndpoint = xjson.getOptionalString("revocation_endpoint");
+    return meta;
+}
 
-    QNetworkRequest request(postUrl);
-    setUserAgentHeader(request);
-    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
-    request.setRawHeader("DPoP", dpopProof.toUtf8());
-    QNetworkReply* reply = mNetwork->post(request, postData.toString().toUtf8());
+OAuth::OAuth(const QString& pds, JsonWebKey* dpopPrivateJwk, QObject* parent) :
+    ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(new QNetworkAccessManager, parent),
+    mPds(pds),
+    mDpopPrivateJwk(dpopPrivateJwk)
+{
+    Q_ASSERT(mPds.startsWith("http"));
+    mNetwork->setAutoDeleteReplies(true);
+    mNetwork->setTransferTimeout(5000);
+    qDebug() << "Created OAuth, PDS:" << pds;
+}
 
-    connect(reply, &QNetworkReply::finished, this,
-        [presence=getPresence(), reply, successCb, errorCb]{
+void OAuth::authorize(const QString& handle, const QString& clientId, const QString& redirectUrl,
+           const QString& scope,
+           const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Authorize:" << handle << "clientId:" << clientId << "redirect:" << redirectUrl << "scope:" << scope;
+    mLoginHint = handle;
+
+    getProtectedResourceRequest(
+        [this, presence=getPresence(), clientId, redirectUrl, scope, successCb, errorCb]{
+            if (presence)
+                authorizeContinue(clientId, redirectUrl, scope, successCb, errorCb);
+        },
+        [errorCb](int code, QString msg){
+            errorCb(code, msg);
+        });
+}
+
+void OAuth::authorizeContinue(const QString& clientId, const QString& redirectUrl,
+                                     const QString& scope,
+                                     const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    getAuthorizationServerRequest(
+        [this, presence=getPresence(), clientId, redirectUrl, scope, successCb, errorCb]{
+            if (presence)
+                authorizeContinuePAR(clientId, redirectUrl, scope, successCb, errorCb);
+        },
+        [errorCb](int code, QString msg){
+            errorCb(code, msg);
+        });
+}
+
+void OAuth::authorizeContinuePAR(const QString& clientId, const QString& redirectUrl,
+              const QString& scope,
+              const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    sendParAuthRequest(clientId, redirectUrl, scope,
+        [this, presence=getPresence(), clientId, successCb](QString state, QString issuer, QString requestUri){
             if (!presence)
                 return;
 
-            const auto errorCode = reply->error();
+            qDebug() << "State:" << state << "issuer:" << issuer << "requestUri:" << requestUri;
+            QUrlQuery query;
+            query.addQueryItem("client_id", clientId);
+            query.addQueryItem("request_uri", requestUri);
+            QUrl url(mAuthorizationServerMeta->mAuthorizationEndpoint); // TODO safe check
+            url.setQuery(query);
+            successCb(state, issuer, url);
+        },
+        [errorCb](int code, QString msg){
+            errorCb(code, msg);
+        });
+}
 
-            if (errorCode == QNetworkReply::NoError)
-            {
-                const auto data = reply->readAll();
-                const QJsonDocument json(QJsonDocument::fromJson(data));
-                successCb(json);
-            }
-            else
-            {
-                // TODO: Resend?
-                int status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute).toInt();
-                QString reason = reply->attribute(QNetworkRequest::HttpReasonPhraseAttribute).toString();
-                errorCb(status, reason);
-            }
+void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto url = QString("%1/.well-known/oauth-protected-resource").arg(mPds);
+    qDebug() << "Get protected resource:" << url;
+    QNetworkRequest request(url);
+    setUserAgentHeader(request);
+    QNetworkReply* reply = mNetwork->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
+        handleProtectedResourceResponse(reply, successCb, errorCb);
     });
 }
 
-void OAuth::sendParAuthRequest(const QString& parUrl, const QString& loginHint, const QString& clientId,
-                        const QString& redirectUrl, const QString& scope, const JsonWebKey& dpopPrivateJwk,
+void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Reply:" << reply->url();
+
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        const QString& error = reply->errorString();
+        qWarning() << "Failed to get:" << reply->url() << "code:" <<  reply->error() << "error:" << error;
+
+        if (reply->error() == QNetworkReply::ContentNotFoundError)
+        {
+            // Assumed the PDS set is the authorization server
+            mProtecedResourceMeta = std::make_unique<ProtectedResourceMeta>();
+            mProtecedResourceMeta->mAuthorizationServers.push_back(mPds);
+
+            // No login_hint should be set if we did not start with a username and PDS
+            mLoginHint.clear();
+
+            successCb();
+        }
+        else
+        {
+            errorCb(reply->error(), reply->errorString());
+        }
+        return;
+    }
+
+    const auto status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    if (!status.isValid() || status.toInt() != 200)
+    {
+        qWarning() << "Did not receive 200 response:" << status.toInt();
+        errorCb(QNetworkReply::UnknownContentError, "Not a 200 response");
+        return;
+    }
+
+    const auto data = reply->readAll();
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+
+    if (!json.isObject())
+    {
+        qWarning() << "No JSON body";
+        errorCb(QNetworkReply::UnknownContentError, "No JSON body");
+        return;
+    }
+
+    try {
+        mProtecedResourceMeta = ProtectedResourceMeta::fromJson(json.object());
+    } catch (InvalidJsonException& e) {
+        qWarning() << e.msg();
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+        return;
+    }
+
+    successCb();
+}
+
+void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const QString server = getAuthorizationServer();
+
+    if (server.isEmpty())
+    {
+        errorCb(QNetworkReply::HostNotFoundError, "No authorization server found");
+        return;
+    }
+
+    const auto url = QString("%1/.well-known/oauth-authorization-server").arg(server);
+    qDebug() << "Get protected resource:" << url;
+    QNetworkRequest request(url);
+    setUserAgentHeader(request);
+    QNetworkReply* reply = mNetwork->get(request);
+
+    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
+        handleAuthorizatonServerResponse(reply, successCb, errorCb);
+    });
+}
+
+void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (reply->error() != QNetworkReply::NoError)
+    {
+        const QString& error = reply->errorString();
+        qWarning() << "Failed to get:" << reply->url() << "code:" <<  reply->error() << "error:" << error;
+        errorCb(reply->error(), error);
+        return;
+    }
+
+    const auto data = reply->readAll();
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+
+    if (!json.isObject())
+    {
+        errorCb(QNetworkReply::UnknownContentError, "No JSON body");
+        return;
+    }
+
+    try {
+        mAuthorizationServerMeta = AuthorizationServerMeta::fromJson(json.object());
+    } catch (InvalidJsonException& e) {
+        qWarning() << e.msg();
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mResponseTypesSupported, "code"))
+    {
+        qWarning() << "code not supported:" << mAuthorizationServerMeta->mResponseTypesSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "response type 'code' not supported");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mGrantTypesSupported, "authorization_code"))
+    {
+        qWarning() << "authorization_code not supported:" << mAuthorizationServerMeta->mGrantTypesSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "grant type 'authorization_code' not supported");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mGrantTypesSupported, "refresh_token"))
+    {
+        qWarning() << "refresh_token not supported:" << mAuthorizationServerMeta->mGrantTypesSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "grant type 'refresh_token' not supported");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mCodeChallengeMethodsSupported, "S256"))
+    {
+        qWarning() << "S256 not supported:" << mAuthorizationServerMeta->mCodeChallengeMethodsSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "code challenge method 'S256' not supported");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mTokenEndpointAuthMedthodsSuppored, "none"))
+    {
+        qWarning() << "none not supported:" << mAuthorizationServerMeta->mTokenEndpointAuthMedthodsSuppored;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "token endpoint auth method 'none' not supported");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mScopesSupported, "atproto"))
+    {
+        qWarning() << "atproto not supported:" << mAuthorizationServerMeta->mScopesSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "scope 'atproto' not supported");
+        return;
+    }
+
+    if (!mAuthorizationServerMeta->mAuthorizationResponeseIssParameterSupported)
+    {
+        qWarning() << "authorization_response_iss_parameter not supported";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "authorization_response_iss_parameter not supported");
+        return;
+    }
+
+    if (!mAuthorizationServerMeta->mRequirePushedAuthorizationRequests)
+    {
+        qWarning() << "pushed_authorization_requests required";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "pushed_authorization_requests required");
+        return;
+    }
+
+    if (!contains(mAuthorizationServerMeta->mDpopSigningAlgValuesSupported, "ES256"))
+    {
+        qWarning() << "ES256 not supported:" << mAuthorizationServerMeta->mDpopSigningAlgValuesSupported;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP signing alg value 'ES256' not supported");
+        return;
+    }
+
+    if (!mAuthorizationServerMeta->mRequireRequestUriRegistration)
+    {
+        qWarning() << "request_uri_registration required";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "request_uri_registration required");
+        return;
+    }
+
+    if (!mAuthorizationServerMeta->mClientIdMetadataDocumentSupported)
+    {
+        qWarning() << "client_id_metadata_document not supported";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "client_id_metadata_document not supported");
+        return;
+    }
+
+    successCb();
+}
+
+QString OAuth::getAuthorizationServer() const
+{
+    if (!mProtecedResourceMeta || mProtecedResourceMeta->mAuthorizationServers.empty())
+    {
+        qWarning() << "No authorization server found";
+        return {};
+    }
+
+    return mProtecedResourceMeta->mAuthorizationServers.front();
+}
+
+void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
+                    const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Post:" << postUrl;
+    Q_ASSERT(mDpopPrivateJwk);
+    const QString dpopProof = mDpopPrivateJwk->buildDPoPProof("POST", postUrl, mDpopNonce);
+
+    // TODO: hardened http, SSRF
+    OAuthRequest request;
+    request.mNetworkRequest = QNetworkRequest(postUrl);
+    setUserAgentHeader(request.mNetworkRequest);
+    request.mNetworkRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+    request.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    request.mPostData = postData.toString().toUtf8();
+
+    // HACK:
+    // HTTP/2 does not work between Qt6.10.2 and Eurosky.
+    const QString host = request.mNetworkRequest.url().host();
+    if (host.endsWith("eurosky.social"))
+        request.mNetworkRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+
+    sendRequest(request, successCb, errorCb);
+    // TODO: SSL error??
+}
+
+void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
+              const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
+              std::shared_ptr<bool> errorHandled)
+{
+    Q_ASSERT(reply);
+    const auto errorCode = reply->error();
+    const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString().trimmed();
+    qDebug() << "Reply:" << errorCode << "content:" << contentType;
+    const bool hasDpopNonce = reply->hasRawHeader("DPoP-Nonce");
+
+    if (hasDpopNonce)
+        mDpopNonce = reply->rawHeader("DPoP-Nonce");
+
+    if (errorCode == QNetworkReply::NoError)
+    {
+        if (!hasDpopNonce)
+        {
+            qWarning() << "DPoP-Nonce missing";
+            errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
+            return;
+        }
+
+        const auto data = reply->readAll();
+        const QJsonDocument json(QJsonDocument::fromJson(data));
+        successCb(json);
+    }
+    else if (!*errorHandled)
+    {
+        *errorHandled = true;
+        const auto data = reply->readAll();
+
+        if (mustResend(errorCode))
+        {
+            if (resendRequest(request, successCb, errorCb))
+                return;
+        }
+        else if (isDpopNonceError(reply, data))
+        {
+            if (!hasDpopNonce)
+            {
+                qWarning() << "DPoP-Nonce missing";
+                errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
+                return;
+            }
+
+            resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            return;
+        }
+
+        errorCb(errorCode, reply->errorString());
+    }
+    else
+    {
+        qDebug() << "Error already handled";
+    }
+}
+
+void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
+                  const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
+                  std::shared_ptr<bool> errorHandled)
+{
+    Q_ASSERT(reply);
+    const auto errorMsg = reply->errorString();
+    qWarning() << "Network error:" << errorCode << errorMsg;
+
+    if (!*errorHandled)
+    {
+        *errorHandled = true;
+        const auto data = reply->readAll();
+
+        if (errorCode == QNetworkReply::OperationCanceledError)
+        {
+            reply->disconnect();
+        }
+        else if (mustResend(errorCode))
+        {
+            qDebug() << "Try resend on error:" << errorCode << errorMsg;
+
+            if (resendRequest(request, successCb, errorCb))
+                return;
+        }
+        else if (isDpopNonceError(reply, data))
+        {
+                resendWithNewDpopNonce(request, reply, successCb, errorCb);
+                return;
+        }
+
+        errorCb(errorCode, reply->errorString());
+    }
+    else
+    {
+        qDebug() << "Error already handled";
+    }
+}
+
+void OAuth::sendParAuthRequest(const QString& clientId,
+                        const QString& redirectUrl, const QString& scope,
                         const ParSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Send PAR:" << parUrl << "loginHint:" << loginHint << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
+    qDebug() << "Send PAR:" << mAuthorizationServerMeta->mPushedAuthorizationRequestEndpoint << "loginHint:" << mLoginHint << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
     const QString state = JsonWebKey::generateToken();
-    const QString pkceVerifier = JsonWebKey::generateToken(48);
-    const QString codeChallenge = createPkceCodeChallenge(pkceVerifier);
+    mPkceVerifier = JsonWebKey::generateToken(48);
+    const QString codeChallenge = createPkceCodeChallenge(mPkceVerifier);
 
     QUrlQuery parBody;
     parBody.addQueryItem("client_id", clientId);
-    parBody.addQueryItem("reponse_type", "code");
-    parBody.addQueryItem("code_challend", codeChallenge);
+    parBody.addQueryItem("response_type", "code");
+    parBody.addQueryItem("code_challenge", codeChallenge);
     parBody.addQueryItem("code_challenge_method", "S256");
     parBody.addQueryItem("state", state);
+    parBody.addQueryItem("redirect_uri", redirectUrl);
     parBody.addQueryItem("scope", scope);
 
-    if (!loginHint.isEmpty())
-        parBody.addQueryItem("login_hint", loginHint);
+    if (!mLoginHint.isEmpty())
+        parBody.addQueryItem("login_hint", mLoginHint);
 
-    authServerPost(dpopPrivateJwk, "", parUrl, parBody,
-        [presence=getPresence(), pkceVerifier, state, successCb](QJsonDocument resp){
+    authServerPost(mAuthorizationServerMeta->mPushedAuthorizationRequestEndpoint, parBody,
+        [presence=getPresence(), state, successCb, errorCb, this](QJsonDocument resp){
             if (!presence)
                 return;
 
-            qDebug() << "PAR success, PKCE:" << pkceVerifier << "state:" << state << "resp:" << resp;
-            successCb(pkceVerifier, state, resp);
+            qDebug() << "PAR success, state:" << state;
+
+            const QJsonValue requestUri = resp["request_uri"];
+
+            if (requestUri.isUndefined())
+            {
+                qWarning() << "request_uri missing";
+                errorCb(QNetworkReply::ProtocolInvalidOperationError, "no request_uri received from auth server");
+                return;
+            }
+
+            qDebug() << "request_uri:" << requestUri.toString();
+            successCb(state, mAuthorizationServerMeta->mIssuer, requestUri.toString());
         },
         [errorCb](int errorCode, QString errorMsg){
             qDebug() << "PAR failed:" << errorCode << errorMsg;
@@ -86,16 +484,166 @@ void OAuth::sendParAuthRequest(const QString& parUrl, const QString& loginHint, 
     );
 }
 
+void OAuth::initialTokenRequest(const QString& clientId,
+                        const QString& redirectUrl, const QString& code,
+                        const TokenSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Inital token request:" << mAuthorizationServerMeta->mTokenEndpoint << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
+    QUrlQuery body;
+    body.addQueryItem("client_id", clientId);
+    body.addQueryItem("redirect_uri", redirectUrl);
+    body.addQueryItem("grant_type", "authorization_code");
+    body.addQueryItem("code", code);
+    body.addQueryItem("code_verifier", mPkceVerifier);
+
+    authServerPost(mAuthorizationServerMeta->mTokenEndpoint, body,
+        [presence=getPresence(), successCb, errorCb](QJsonDocument resp){
+            if (!presence)
+                return;
+
+            qDebug() << "Token request success";
+
+            try {
+                XJsonObject xjson(resp.object());
+                const QString sub = xjson.getRequiredString("sub");
+                const QString scope = xjson.getRequiredString("scope");
+                const QString accessToken = xjson.getRequiredString("access_token");
+                const QString refreshToken = xjson.getRequiredString("refresh_token");
+                successCb(sub, scope, accessToken, refreshToken);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+                errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+            }
+        },
+        [errorCb](int errorCode, QString errorMsg){
+            qDebug() << "Token request failed:" << errorCode << errorMsg;
+            errorCb(errorCode, errorMsg);
+        }
+    );
+}
+
+void OAuth::resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
+                            const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    if (request.mDpopResendCount >= MAX_DPOP_RESENDS)
+    {
+        qWarning() << "Max DPoP resends:" << request.mDpopResendCount;
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Max DPoP resends");
+        return;
+    }
+
+    const QString postUrl = request.mNetworkRequest.url().toString();
+    qDebug() << "Resend:" << postUrl;
+    OAuthRequest newRequest(request);
+    ++newRequest.mDpopResendCount;
+    const QString nonce = reply->rawHeader("DPoP-Nonce");
+    qDebug() << "DPoP nonce:" << nonce;
+    const QString dpopProof = mDpopPrivateJwk->buildDPoPProof("POST", postUrl, nonce);
+    qDebug() << "DPoP proof:" << dpopProof;
+    newRequest.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    sendRequest(newRequest, successCb, errorCb);
+
+}
+
+static QStringList parseHttpList(const QString& value) {
+    QStringList result;
+    QString current;
+    bool inQuotes = false;
+
+    for (int i = 0; i < value.size(); ++i)
+    {
+        QChar c = value[i];
+
+        if (c == '"')
+        {
+            inQuotes = !inQuotes;
+            current += c;
+        }
+        else if (c == ',' && !inQuotes)
+        {
+            result.append(current.trimmed());
+            current.clear();
+        }
+        else
+        {
+            current += c;
+        }
+    }
+
+    if (!current.trimmed().isEmpty())
+        result << current.trimmed();
+
+    return result;
+}
+
+static QString unquote(const QString& value)
+{
+    if (value.length() > 1 && value.startsWith('"') && value.endsWith('"'))
+        return value.mid(1, value.length() - 2);
+
+    return value;
+}
+
+static std::pair<QString, std::unordered_map<QString, QString>> parseWwwAuthenticate(const QString& headerValue)
+{
+    int index = headerValue.indexOf(' ');
+    const QString scheme = headerValue.mid(0, index);
+    const QString paramString = headerValue.sliced(index + 1);
+    const QStringList paramList = parseHttpList(paramString);
+    std::unordered_map<QString, QString> params;
+
+    for (const auto& param : paramList)
+    {
+        const auto kvList = param.split('=');
+        const QString key = unquote(kvList[0].trimmed());
+        const QString value = kvList.size() > 1 ? unquote(kvList[1].trimmed()) : "";
+        params[key] = value;
+    }
+
+    return { scheme, params };
+}
+
+bool OAuth::isDpopNonceError(QNetworkReply* reply, const QByteArray& data) const
+{
+    const QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
+
+    if (!status.isValid())
+        return false;
+
+    const int statusCode = status.toInt();
+
+    if (statusCode != 400 && statusCode != 401)
+        return false;
+
+    if (reply->hasRawHeader("WWW-Authenticate"))
+    {
+        QByteArray headerValue = reply->rawHeader("WWW-Authenticate");
+        auto [scheme, params] = parseWwwAuthenticate(headerValue);
+        qDebug() << QString(headerValue);
+
+        if (scheme.toLower() == "dpop" && params["error"] == "use_dpop_nonce")
+            return true;
+    }
+
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+    qDebug() << "body:" << json;
+
+    if (json.isObject())
+    {
+        const XJsonObject xjson(json.object());
+        const auto errorField = xjson.getOptionalString("error");
+
+        if (errorField && *errorField == "use_dpop_nonce")
+            return true;
+    }
+
+    return false;
+}
+
 QString OAuth::createPkceCodeChallenge(const QString& verifier) const
 {
     const auto hash = QCryptographicHash::hash(verifier.toUtf8(), QCryptographicHash::Sha256);
     return hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
-}
-
-void OAuth::setUserAgentHeader(QNetworkRequest& request) const
-{
-    if (!mUserAgent.isEmpty())
-        request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
 }

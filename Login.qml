@@ -3,6 +3,7 @@ import QtQuick.Controls
 import QtQuick.Layouts
 
 Dialog {
+    property bool oauth: false
     property string user
     property string password
     property string host
@@ -22,16 +23,19 @@ Dialog {
         TextField {
             id: userField
             Layout.fillWidth: true
+            text: "euroskywalker.eurosky.social"
             focus: true
         }
 
         Label {
             text: qsTr("Password:")
+            visible: !oauth
         }
         TextField {
             id: passwordField
             Layout.fillWidth: true
             echoMode: TextInput.Password
+            visible: !oauth
         }
 
         Label {
@@ -40,7 +44,7 @@ Dialog {
         TextField {
             id: hostField
             Layout.fillWidth: true
-            text: "bsky.social"
+            text: "eurosky.social"
         }
     }
 

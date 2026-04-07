@@ -2,7 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "lexicon/plc_directory.h"
-#include "presence.h"
+#include "network_client.h"
 #include "xjson.h"
 #include <QCache>
 #include <QNetworkAccessManager>
@@ -10,11 +10,22 @@
 
 namespace ATProto {
 
-class PlcDirectoryClient : public QObject, public Presence
+struct PlcRequest
+{
+    QNetworkRequest mNetworkRequest;
+    int mResendCount = 0;
+    bool mIsPost = false;
+    QByteArray mPostData;
+};
+
+using PlcErrorCb = std::function<void(int errorCode, const QString& errorMsg)>;
+using PlcSuccessJsonCb = std::function<void(const QJsonDocument& json)>;
+
+class PlcDirectoryClient : public NetworkClient<PlcRequest, PlcSuccessJsonCb, PlcErrorCb>
 {
 public:
-    using ErrorCb = std::function<void(int errorCode, const QString& errorMsg)>;
-    using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
+    using ErrorCb = PlcErrorCb;
+    using SuccessJsonCb = PlcSuccessJsonCb;
     using PdsSuccessCb = std::function<void(const QString& pds)>;
     using AuditLogSuccessCb = std::function<void(PlcAuditLog::SharedPtr)>;
     using FirstAppearanceSuccessCb = std::function<void(QDateTime)>;
@@ -30,31 +41,20 @@ public:
     void invalidatePdsCache(const QString& did);
 
 private:
-    struct Request
-    {
-        QNetworkRequest mPlcRequest;
-        int mResendCount = 0;
-    };
+    using Request = PlcRequest;
 
-    void sendRequest(const Request& request, const SuccessJsonCb& successCb, const ErrorCb& errorCb);
-
-    void replyFinished(const Request& request, QNetworkReply* reply,
+    virtual void replyFinished(const Request& request, QNetworkReply* reply,
                        const SuccessJsonCb& successCb, const ErrorCb& errorCb,
-                       std::shared_ptr<bool> errorHandled);
+                       std::shared_ptr<bool> errorHandled) override;
 
-    void networkError(const Request& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
+    virtual void networkError(const Request& request, QNetworkReply* reply, QNetworkReply::NetworkError errorCode,
                       const SuccessJsonCb& successCb, const ErrorCb& errorCb,
-                      std::shared_ptr<bool> errorHandled);
+                      std::shared_ptr<bool> errorHandled) override;
 
-    void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
-
-    bool resendRequest(Request request, const SuccessJsonCb& successCb, const ErrorCb& errorCb);
-    bool mustResend(QNetworkReply::NetworkError error) const;
 
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void invokeErrorCb(const QJsonDocument& jsonDoc, QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
 
-    QNetworkAccessManager* mNetwork;
     QString mHost;
     QCache<QString, QDateTime> mFirstAppearanceCache; // DID -> datetime
     QCache<QString, QString> mPdsCache; // DID -> PDS

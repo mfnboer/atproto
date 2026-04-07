@@ -2,7 +2,10 @@
 // License: GPLv3
 #pragma once
 #include "client.h"
+#include "oauth.h"
+#include <QtHttpServer>
 #include <QObject>
+#include <QTcpServer>
 #include <QtQmlIntegration>
 
 namespace ATProto {
@@ -32,6 +35,8 @@ public:
             [](const QString& err, const QString& msg){ qDebug() << "LOGIN FAILED:" << err << msg; });
     }
 
+    Q_INVOKABLE void oauth(const QString user, QString host);
+
     QString getAvatar() const { return mProfile ? mProfile->mAvatar.value_or(QString()) : ""; }
     QString getBanner() const { return mProfile ? mProfile->mBanner.value_or(QString()) : ""; }
     QString getDisplayName() const { return mProfile ? mProfile->mDisplayName.value_or(QString()) : ""; }
@@ -39,8 +44,13 @@ public:
 
 signals:
     void profileChanged();
+    void loginRedirect(QUrl url);
 
 private:
+    void initOAuth(const QString& host);
+    void initHttpServer();
+    void requestToken(const QUrl& url);
+
     void getProfile(const QString& user)
     {
         mBsky->getProfile(user,
@@ -162,8 +172,15 @@ private:
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
+    JsonWebKey mDpopKey;
+    std::unique_ptr<ATProto::OAuth> mOAuth;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
+    std::unique_ptr<QTcpServer> mTcpServer;
+    std::unique_ptr<QHttpServer> mHttpServer;
+    QString mClientId;
+    QString mIssuer;
+    QString mState;
 };
 
 }

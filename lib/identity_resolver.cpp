@@ -283,7 +283,7 @@ void IdentityResolver::httpGetDid(const QString& handle, const SuccessCb& succes
 {
     qDebug() << "Get DID via HTTP:" << handle;
     QUrl url = getHttpUrl(handle);
-    QNetworkRequest request(url);
+    QNetworkRequest request(url); // TODO set User-Agent
     QNetworkReply* reply = mNetwork->get(request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb, dnsError]{
