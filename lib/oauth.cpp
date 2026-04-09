@@ -3,6 +3,7 @@
 #include "oauth.h"
 #include "xjson.h"
 #include <QCryptographicHash>
+#include <QTimer>
 #include <algorithm>
 
 namespace ATProto {
@@ -44,60 +45,61 @@ AuthorizationServerMeta::Ptr AuthorizationServerMeta::fromJson(const QJsonObject
     return meta;
 }
 
-OAuth::OAuth(const QString& pds, JsonWebKey* dpopPrivateJwk, QObject* parent) :
+OAuth::OAuth(const QString& handle, const QString& pds,
+             const QString& clientId, const QString& redirectUrl,
+             JsonWebKey* dpopPrivateJwk, QObject* parent) :
     ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(new QNetworkAccessManager, parent),
+    mLoginHint(handle),
     mPds(pds),
+    mClientId(clientId),
+    mClientRedirectUrl(redirectUrl),
     mDpopPrivateJwk(dpopPrivateJwk)
 {
     Q_ASSERT(mPds.startsWith("http"));
     mNetwork->setAutoDeleteReplies(true);
     mNetwork->setTransferTimeout(5000);
-    qDebug() << "Created OAuth, PDS:" << pds;
+    qDebug() << "Created OAuth, PDS:" << pds << "handle:" << handle << "clientId:" << mClientId << "redirectUrl:" << mClientRedirectUrl;
 }
 
-void OAuth::authorize(const QString& handle, const QString& clientId, const QString& redirectUrl,
-           const QString& scope,
-           const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::login(const QString& scope,
+                  const LoginSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Authorize:" << handle << "clientId:" << clientId << "redirect:" << redirectUrl << "scope:" << scope;
-    mLoginHint = handle;
+    qDebug() << "Login, scope:" << scope;
 
     getProtectedResourceRequest(
-        [this, presence=getPresence(), clientId, redirectUrl, scope, successCb, errorCb]{
+        [this, presence=getPresence(), scope, successCb, errorCb]{
             if (presence)
-                authorizeContinue(clientId, redirectUrl, scope, successCb, errorCb);
+                authorizeContinue(scope, successCb, errorCb);
         },
         [errorCb](int code, QString msg){
             errorCb(code, msg);
         });
 }
 
-void OAuth::authorizeContinue(const QString& clientId, const QString& redirectUrl,
-                                     const QString& scope,
-                                     const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::authorizeContinue(const QString& scope,
+                              const LoginSuccessCb& successCb, const ErrorCb& errorCb)
 {
     getAuthorizationServerRequest(
-        [this, presence=getPresence(), clientId, redirectUrl, scope, successCb, errorCb]{
+        [this, presence=getPresence(), scope, successCb, errorCb]{
             if (presence)
-                authorizeContinuePAR(clientId, redirectUrl, scope, successCb, errorCb);
+                authorizeContinuePAR(scope, successCb, errorCb);
         },
         [errorCb](int code, QString msg){
             errorCb(code, msg);
         });
 }
 
-void OAuth::authorizeContinuePAR(const QString& clientId, const QString& redirectUrl,
-              const QString& scope,
-              const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::authorizeContinuePAR(const QString& scope,
+                                 const LoginSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    sendParAuthRequest(clientId, redirectUrl, scope,
-        [this, presence=getPresence(), clientId, successCb](QString state, QString issuer, QString requestUri){
+    sendParAuthRequest(scope,
+        [this, presence=getPresence(), successCb](QString state, QString issuer, QString requestUri){
             if (!presence)
                 return;
 
             qDebug() << "State:" << state << "issuer:" << issuer << "requestUri:" << requestUri;
             QUrlQuery query;
-            query.addQueryItem("client_id", clientId);
+            query.addQueryItem("client_id", mClientId);
             query.addQueryItem("request_uri", requestUri);
             QUrl url(mAuthorizationServerMeta->mAuthorizationEndpoint); // TODO safe check
             url.setQuery(query);
@@ -135,10 +137,6 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
             // Assumed the PDS set is the authorization server
             mProtecedResourceMeta = std::make_unique<ProtectedResourceMeta>();
             mProtecedResourceMeta->mAuthorizationServers.push_back(mPds);
-
-            // No login_hint should be set if we did not start with a username and PDS
-            mLoginHint.clear();
-
             successCb();
         }
         else
@@ -437,22 +435,21 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
     }
 }
 
-void OAuth::sendParAuthRequest(const QString& clientId,
-                        const QString& redirectUrl, const QString& scope,
-                        const ParSuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::sendParAuthRequest(const QString& scope,
+                               const ParSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Send PAR:" << mAuthorizationServerMeta->mPushedAuthorizationRequestEndpoint << "loginHint:" << mLoginHint << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
+    qDebug() << "Send PAR:" << mAuthorizationServerMeta->mPushedAuthorizationRequestEndpoint << "loginHint:" << mLoginHint << "scope:" << scope;
     const QString state = JsonWebKey::generateToken();
     mPkceVerifier = JsonWebKey::generateToken(48);
     const QString codeChallenge = createPkceCodeChallenge(mPkceVerifier);
 
     QUrlQuery parBody;
-    parBody.addQueryItem("client_id", clientId);
+    parBody.addQueryItem("client_id", mClientId);
     parBody.addQueryItem("response_type", "code");
     parBody.addQueryItem("code_challenge", codeChallenge);
     parBody.addQueryItem("code_challenge_method", "S256");
     parBody.addQueryItem("state", state);
-    parBody.addQueryItem("redirect_uri", redirectUrl);
+    parBody.addQueryItem("redirect_uri", mClientRedirectUrl);
     parBody.addQueryItem("scope", scope);
 
     if (!mLoginHint.isEmpty())
@@ -484,14 +481,13 @@ void OAuth::sendParAuthRequest(const QString& clientId,
     );
 }
 
-void OAuth::initialTokenRequest(const QString& clientId,
-                        const QString& redirectUrl, const QString& code,
-                        const TokenSuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::initialTokenRequest(const QString& code,
+                                const InitialTokenSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Inital token request:" << mAuthorizationServerMeta->mTokenEndpoint << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
+    qDebug() << "Inital token request:" << mAuthorizationServerMeta->mTokenEndpoint;
     QUrlQuery body;
-    body.addQueryItem("client_id", clientId);
-    body.addQueryItem("redirect_uri", redirectUrl);
+    body.addQueryItem("client_id", mClientId);
+    body.addQueryItem("redirect_uri", mClientRedirectUrl);
     body.addQueryItem("grant_type", "authorization_code");
     body.addQueryItem("code", code);
     body.addQueryItem("code_verifier", mPkceVerifier);
@@ -517,6 +513,103 @@ void OAuth::initialTokenRequest(const QString& clientId,
         },
         [errorCb](int errorCode, QString errorMsg){
             qDebug() << "Token request failed:" << errorCode << errorMsg;
+            errorCb(errorCode, errorMsg);
+        }
+    );
+}
+
+void OAuth::refreshTokenRequest(const QString& refreshToken,
+                                const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Refresh token request:" << mAuthorizationServerMeta->mTokenEndpoint;
+    QUrlQuery body;
+    body.addQueryItem("client_id", mClientId);
+    body.addQueryItem("grant_type", "refresh_token");
+    body.addQueryItem("refresh_token", refreshToken);
+
+    authServerPost(mAuthorizationServerMeta->mTokenEndpoint, body,
+        [presence=getPresence(), successCb, errorCb](QJsonDocument resp){
+            if (!presence)
+                return;
+
+            qDebug() << "Refresh token request success";
+
+            try {
+                XJsonObject xjson(resp.object());
+                const QString accessToken = xjson.getRequiredString("access_token");
+                const QString refreshToken = xjson.getRequiredString("refresh_token");
+                successCb(accessToken, refreshToken);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+                errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+            }
+        },
+        [errorCb](int errorCode, QString errorMsg){
+            qDebug() << "Refresh token request failed:" << errorCode << errorMsg;
+            errorCb(errorCode, errorMsg);
+        }
+    );
+}
+
+void OAuth::logout(const QString& accessToken, const QString& refreshToken,
+                   const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Logout:" << mAuthorizationServerMeta->mRevocationEndpoint.value_or("<none>");
+
+    if (!mAuthorizationServerMeta->mRevocationEndpoint)
+    {
+        qWarning() << "Revoking token not supprted";
+        QTimer::singleShot(0, this, [errorCb]{ errorCb(QNetworkReply::ProtocolInvalidOperationError, "Token revocation not supported"); });
+        return;
+    }
+
+    revokeToken(accessToken, "access_token",
+        [this, presence=getPresence(), refreshToken, successCb, errorCb]{
+            if (presence)
+                logoutContinue(refreshToken, successCb, errorCb);
+        },
+        [this, presence=getPresence(), refreshToken, successCb, errorCb](int errorCode, QString errorMsg){
+            if (presence)
+                logoutContinue(refreshToken, successCb, errorCb, errorCode, errorMsg);
+        });
+}
+
+void OAuth::logoutContinue(const QString& refreshToken,
+                           const SuccessCb& successCb, const ErrorCb& errorCb,
+                           std::optional<int> errorCode, const QString& errorMsg)
+{
+    revokeToken(refreshToken, "refresh_token",
+        [errorCode, errorMsg, successCb, errorCb]{
+            if (errorCode)
+                errorCb(*errorCode, errorMsg);
+            else
+                successCb();
+        },
+        [errorCb](int errorCode, QString errorMsg){
+            errorCb(errorCode, errorMsg);
+        });
+}
+
+void OAuth::revokeToken(const QString& token, const QString& tokenType,
+                        const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(mAuthorizationServerMeta->mRevocationEndpoint);
+    qDebug() << "Revoke token:" << tokenType;
+    QUrlQuery body;
+    body.addQueryItem("client_id", mClientId);
+    body.addQueryItem("token", token);
+    body.addQueryItem("token_type_hint", tokenType);
+
+    authServerPost(*mAuthorizationServerMeta->mRevocationEndpoint, body,
+        [presence=getPresence(), tokenType, successCb, errorCb](QJsonDocument){
+            if (!presence)
+                return;
+
+            qDebug() << "Revoke token request success:" << tokenType;
+            successCb();
+        },
+        [errorCb, tokenType](int errorCode, QString errorMsg){
+            qDebug() << "Revoke token request failed:" << tokenType << errorCode << errorMsg;
             errorCb(errorCode, errorMsg);
         }
     );

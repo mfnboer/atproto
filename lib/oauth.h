@@ -58,34 +58,51 @@ class OAuth : public NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>
 {
 public:
     using AuthServerSuccessCb = OAuthSuccessCb;
-    using AuthorizeSuccessCb = std::function<void(QString state, QString issuer, QUrl redirectUrl)>;
+    using LoginSuccessCb = std::function<void(QString state, QString issuer, QUrl redirectUrl)>;
     using ParSuccessCb = std::function<void(QString state, QString issuer, QString requestUri)>;
-    using TokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
+    using InitialTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
+    using RefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using SuccessCb = std::function<void()>;
     using ErrorCb = std::function<void(int code, QString msg)>;
 
-    OAuth(const QString& pds, JsonWebKey* dpopPrivateJwk, QObject* parent = nullptr);
+    /**
+     * @brief OAuth
+     * @param handle May be empty
+     * @param pds This can be an entry point is handle is empty, e.g. https://bsky.social
+     * @param dpopPrivateJwk
+     * @param parent
+     */
+    OAuth(const QString& handle, const QString& pds,
+          const QString& clientId, const QString& redirectUrl,
+          JsonWebKey* dpopPrivateJwk, QObject* parent = nullptr);
 
-    void authorize(const QString& handle, const QString& clientId, const QString& redirectUrl,
-                   const QString& scope,
-                   const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
+    /**
+     * @brief login
+     * @param scope
+     * @param successCb
+     * @param errorCb
+     */
+    void login(const QString& scope,
+               const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void initialTokenRequest(const QString& clientId,
-                             const QString& redirectUrl, const QString& code,
-                             const TokenSuccessCb& successCb, const ErrorCb& errorCb);
+    void initialTokenRequest(const QString& code,
+                             const InitialTokenSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void refreshTokenRequest(const QString& refreshToken,
+                             const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void logout(const QString& accessToken, const QString& refreshToken,
+                const SuccessCb& successCb, const ErrorCb& errorCb);
 
     const QString& getDpopNonce() const { return mDpopNonce; }
 
 private:
-    void authorizeContinue(const QString& clientId, const QString& redirectUrl,
-                                         const QString& scope,
-                                         const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
-    void authorizeContinuePAR(const QString& clientId, const QString& redirectUrl,
-                              const QString& scope,
-                              const AuthorizeSuccessCb& successCb, const ErrorCb& errorCb);
+    void authorizeContinue(const QString& scope,
+                           const LoginSuccessCb& successCb, const ErrorCb& errorCb);
+    void authorizeContinuePAR(const QString& scope,
+                              const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void sendParAuthRequest(const QString& clientId,
-                            const QString& redirectUrl, const QString& scope,
+    void sendParAuthRequest(const QString& scope,
                             const ParSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -106,16 +123,23 @@ private:
                               const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
                               std::shared_ptr<bool> errorHandled) override;
 
+    void logoutContinue(const QString& refreshToken,
+                        const SuccessCb& successCb, const ErrorCb& errorCb,
+                        std::optional<int> errorCode = {}, const QString& errorMsg = {});
+    void revokeToken(const QString& token, const QString& tokenType,
+                     const SuccessCb& successCb, const ErrorCb& errorCb);
     void resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
     bool isDpopNonceError(QNetworkReply* reply, const QByteArray& data) const;
 
     QString createPkceCodeChallenge(const QString& verifier) const;
 
+    QString mLoginHint;
     QString mPds;
     ProtectedResourceMeta::Ptr mProtecedResourceMeta;
     AuthorizationServerMeta::Ptr mAuthorizationServerMeta;
-    QString mLoginHint;
+    QString mClientId;
+    QString mClientRedirectUrl;
     JsonWebKey* mDpopPrivateJwk = nullptr;
     QString mDpopNonce;
     QString mPkceVerifier;

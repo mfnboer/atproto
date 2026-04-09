@@ -47,9 +47,11 @@ signals:
     void loginRedirect(QUrl url);
 
 private:
-    void initOAuth(const QString& host);
+    void initOAuth(const QString& handle, const QString& host);
     void initHttpServer();
     void requestToken(const QUrl& url);
+    void refreshTokenRequest();
+    void logout();
 
     void getProfile(const QString& user)
     {
@@ -178,9 +180,10 @@ private:
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
     std::unique_ptr<QTcpServer> mTcpServer;
     std::unique_ptr<QHttpServer> mHttpServer;
-    QString mClientId;
     QString mIssuer;
     QString mState;
+    QString mAccessToken;
+    QString mRefreshToken;
 };
 
 }
