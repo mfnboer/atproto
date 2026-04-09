@@ -46,7 +46,7 @@ void ATProtoTest::initOAuth(const QString& handle, const QString& host)
     qDebug() << "client_id:" << clientId;
 
     qDebug() << "Create dpop key";
-    mDpopKey = JsonWebKey::generateDPoPKey();
+    mDpopKey = JsonWebKey::generateDPoPKey(handle);
     mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey, this);
 }
 

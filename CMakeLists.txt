@@ -12,6 +12,7 @@ if (NOT ANDROID)
     add_link_options(-fsanitize=address)
 endif()
 
+include(FetchContent)
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Core HttpServer)
 
 qt_standard_project_setup()
@@ -34,9 +35,20 @@ qt_add_qml_module(appatproto
     SOURCES test.cpp
     QML_FILES Login.qml
     RESOURCES qtquickcontrols2.conf
-    SOURCES
-    SOURCES
 )
+
+if (ANDROID)
+    FetchContent_Declare(
+      android_openssl
+      DOWNLOAD_EXTRACT_TIMESTAMP true
+      URL      https://github.com/KDAB/android_openssl/archive/refs/heads/master.zip
+#      URL_HASH MD5=c97d6ad774fab16be63b0ab40f78d945 #optional
+    )
+    FetchContent_MakeAvailable(android_openssl)
+    include(${android_openssl_SOURCE_DIR}/android_openssl.cmake)
+
+    add_android_openssl_libraries(appatproto)
+endif()
 
 set_target_properties(appatproto PROPERTIES
     MACOSX_BUNDLE_GUI_IDENTIFIER my.example.com
@@ -45,6 +57,12 @@ set_target_properties(appatproto PROPERTIES
     MACOSX_BUNDLE TRUE
     WIN32_EXECUTABLE TRUE
 )
+
+if(ANDROID)
+    set_property(TARGET appatproto APPEND PROPERTY
+        QT_ANDROID_PACKAGE_SOURCE_DIR ${CMAKE_CURRENT_SOURCE_DIR}/android
+    )
+endif()
 
 target_link_libraries(appatproto
     PRIVATE libatproto

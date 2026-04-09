@@ -94,8 +94,6 @@ qt_add_qml_module(libatproto
         SOURCES identity_resolver.h
         SOURCES identity_resolver.cpp
         SOURCES lexicon/app_bsky_embed_include.h
-        SOURCES
-        SOURCES
         SOURCES xrpc_network_thread.h
         SOURCES xrpc_network_thread.cpp
         SOURCES scoped_handle.h
@@ -116,7 +114,6 @@ qt_add_qml_module(libatproto
         SOURCES oauth.h
         SOURCES oauth.cpp
         SOURCES network_client.h
-        SOURCES
 )
 
 if (ANDROID)
