@@ -122,12 +122,24 @@ void ATProtoTest::logout()
 {
     qDebug() << "Logout";
     mOAuth->logout(mAccessToken, mRefreshToken,
-        []{
+        [this]{
             qDebug() << "Logout succces";
+            cleanup();
         },
-        [](int code, QString error){
+        [this](int code, QString error){
             qWarning() << "Logout error:" << code << error;
+            cleanup();
         });
+}
+
+void ATProtoTest::cleanup()
+{
+#ifdef Q_OS_ANDROID
+    const QString alias = mDpopKey.getAlias();
+
+    if (JsonWebKey::deleteKey(alias))
+        qDebug() << "Deleted key:" << alias;
+#endif
 }
 
 }

@@ -52,6 +52,7 @@ private:
     void requestToken(const QUrl& url);
     void refreshTokenRequest();
     void logout();
+    void cleanup();
 
     void getProfile(const QString& user)
     {

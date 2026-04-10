@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #include "json_web_key.h"
+#include <QFile>
 #include <QRandomGenerator>
 #include <openssl/pem.h>
 #include <openssl/ecdsa.h>
@@ -108,14 +109,17 @@ JsonWebKey JsonWebKey::generateDPoPKey(const QString& user)
     const auto alias = QString("%1-%2").arg(DPOP_KEY_ALIAS, user);
     qDebug() << "Generate DPoP key:" << alias;
 
-    QJniObject::callStaticMethod<void>(
+    jboolean generated = QJniObject::callStaticMethod<jboolean>(
         "eu/thereforeiam/atproto/KeystoreHelper",
         "generateKey",
-        "(Ljava/lang/String;)V",
+        "(Ljava/lang/String;)Z",
         QJniObject::fromString(alias).object()
     );
 
-    return JsonWebKey(alias);
+    if (generated)
+        return JsonWebKey(alias);
+
+    return {};
 #else
     Q_UNUSED(user);
     EVP_PKEY_CTX* ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_EC, nullptr);
@@ -176,6 +180,15 @@ QByteArray JsonWebKey::sign(const QByteArray& data) const
 
     // Convert DER-encoded ECDSA sig to raw R||S for JWT
     return derToRawEcSignature(sig);
+}
+
+bool JsonWebKey::isNull() const
+{
+#ifdef Q_OS_ANDROID
+    return mAlias.isEmpty();
+#else
+    return mKey == nullptr;
+#endif
 }
 
 QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const
@@ -276,5 +289,74 @@ JsonWebKey& JsonWebKey::operator=(JsonWebKey&& other)
 
     return *this;
 }
+
+#ifdef Q_OS_ANDROID
+bool JsonWebKey::deleteKey(const QString& alias)
+{
+    QJniObject jalias = QJniObject::fromString(alias);
+    jboolean deleted = QJniObject::callStaticMethod<jboolean>(
+        "eu/thereforeiam/atproto/KeystoreHelper",
+        "deleteKey",
+        "(Ljava/lang/String;)Z",
+        jalias.object()
+        );
+
+    return (bool)deleted;
+}
+#else
+bool JsonWebKey::save(const QString& path, const QString& passPhrase) const
+{
+    qDebug() << "Save:" << path;
+
+    QFile file(path);
+    if (!file.open(QIODevice::WriteOnly))
+    {
+        qWarning() << "Cannot open file:" << path;
+        return false;
+    }
+
+    const QByteArray passPhraseBytes = passPhrase.toUtf8();
+    BIO* bio = BIO_new(BIO_s_mem());
+    PEM_write_bio_PrivateKey(bio, mKey, EVP_aes_256_cbc(),
+                             nullptr, 0, nullptr, (void*)passPhraseBytes.constData());
+
+    BUF_MEM* mem = nullptr;
+    BIO_get_mem_ptr(bio, &mem);
+    file.write(mem->data, mem->length);
+    BIO_free(bio);
+    return true;
+}
+
+JsonWebKey JsonWebKey::load(const QString& path, const QString& passPhrase)
+{
+    qDebug() << "Load:" << path;
+
+    QFile file(path);
+    if (!file.open(QIODevice::ReadOnly))
+    {
+        qWarning() << "Cannot open file:" << path;
+        return {};
+    }
+
+    const QByteArray passPhraseBytes = passPhrase.toUtf8();
+    QByteArray data = file.readAll();
+    BIO* bio = BIO_new_mem_buf(data.constData(), data.size());
+    EVP_PKEY* pkey = PEM_read_bio_PrivateKey(bio, nullptr,
+                                             nullptr, (void*)passPhraseBytes.constData());
+    BIO_free(bio);
+    return JsonWebKey{pkey};
+}
+
+bool JsonWebKey::deleteKey(const QString& path)
+{
+    qDebug() << "Delete:" << path;
+    const bool deleted = QFile::remove(path);
+
+    if (!deleted)
+        qWarning() << "Failed to delete:" << path;
+
+    return deleted;
+}
+#endif
 
 }
