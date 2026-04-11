@@ -115,6 +115,8 @@ qt_add_qml_module(libatproto
         SOURCES oauth.h
         SOURCES oauth.cpp
         SOURCES network_client.h
+        SOURCES network_utils.h
+        SOURCES network_utils.cpp
 )
 
 if (ANDROID)

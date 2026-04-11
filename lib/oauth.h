@@ -136,7 +136,6 @@ private:
                      const SuccessCb& successCb, const ErrorCb& errorCb);
     void resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
-    bool isDpopNonceError(QNetworkReply* reply, const QByteArray& data) const;
 
     QString createPkceCodeChallenge(const QString& verifier) const;
 

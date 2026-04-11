@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #include "oauth.h"
+#include "network_utils.h"
 #include "xjson.h"
 #include <QCryptographicHash>
 #include <QTimer>
@@ -8,7 +9,7 @@
 
 namespace ATProto {
 
-static constexpr int MAX_DPOP_RESENDS = 2;
+static constexpr int MAX_DPOP_RESEND = 2;
 
 static bool contains(const std::vector<QString>& list, const QString& value)
 {
@@ -84,7 +85,7 @@ void OAuth::login(const QString& scope,
 
 std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) const
 {
-    if (!isSafeUrl(url))
+    if (!NetworkUtils::isSafeUrl(url))
         return {};
 
     QNetworkRequest request(url);
@@ -330,21 +331,21 @@ void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const Success
         return;
     }
 
-    if (!isSafeUrl(mAuthorizationServerMeta->mAuthorizationEndpoint))
+    if (!NetworkUtils::isSafeUrl(mAuthorizationServerMeta->mAuthorizationEndpoint))
     {
         qWarning() << "Unsafe authorization_endpoint";
         errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe authorization_endpoint");
         return;
     }
 
-    if (!isSafeUrl(mAuthorizationServerMeta->mTokenEndpoint))
+    if (!NetworkUtils::isSafeUrl(mAuthorizationServerMeta->mTokenEndpoint))
     {
         qWarning() << "Unsafe token_endpoint";
         errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe token_endpoint");
         return;
     }
 
-    if (mAuthorizationServerMeta->mRevocationEndpoint && !isSafeUrl(*mAuthorizationServerMeta->mRevocationEndpoint))
+    if (mAuthorizationServerMeta->mRevocationEndpoint && !NetworkUtils::isSafeUrl(*mAuthorizationServerMeta->mRevocationEndpoint))
     {
         qWarning() << "Unsafe revocation_endpoint";
         errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe revocation_endpoint");
@@ -370,7 +371,7 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
 {
     qDebug() << "Post:" << postUrl;
     Q_ASSERT(mDpopPrivateJwk);
-    const QString dpopProof = mDpopPrivateJwk->buildDPoPProof("POST", postUrl, mDpopNonce);
+    const QString dpopProof = mDpopPrivateJwk->buildAuthDPoPProof("POST", postUrl, mDpopNonce);
 
     auto networkRequest = createNetworkRequest(postUrl);
 
@@ -403,10 +404,10 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
     const auto errorCode = reply->error();
     const QString contentType = reply->header(QNetworkRequest::ContentTypeHeader).toString().trimmed();
     qDebug() << "Reply:" << errorCode << "content:" << contentType;
-    const bool hasDpopNonce = reply->hasRawHeader("DPoP-Nonce");
+    const bool hasDpopNonce = NetworkUtils::hasDpopNonce(reply);
 
     if (hasDpopNonce)
-        mDpopNonce = reply->rawHeader("DPoP-Nonce");
+        mDpopNonce = NetworkUtils::getDpopNonce(reply);
 
     if (errorCode == QNetworkReply::NoError)
     {
@@ -431,16 +432,18 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
-        else if (isDpopNonceError(reply, data))
+        else if (NetworkUtils::isDpopNonceError(reply, data))
         {
-            if (!hasDpopNonce)
+            if (hasDpopNonce)
+            {
+                resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            }
+            else
             {
                 qWarning() << "DPoP-Nonce missing";
                 errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
-                return;
             }
 
-            resendWithNewDpopNonce(request, reply, successCb, errorCb);
             return;
         }
 
@@ -466,20 +469,19 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
         const auto data = reply->readAll();
 
         if (errorCode == QNetworkReply::OperationCanceledError)
-        {
             reply->disconnect();
-        }
-        else if (mustResend(errorCode))
+
+        if (mustResend(errorCode))
         {
             qDebug() << "Try resend on error:" << errorCode << errorMsg;
 
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
-        else if (isDpopNonceError(reply, data))
+        else if (NetworkUtils::isDpopNonceError(reply, data))
         {
-                resendWithNewDpopNonce(request, reply, successCb, errorCb);
-                return;
+            resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            return;
         }
 
         errorCb(errorCode, reply->errorString());
@@ -673,7 +675,7 @@ void OAuth::revokeToken(const QString& token, const QString& tokenType,
 void OAuth::resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
                             const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    if (request.mDpopResendCount >= MAX_DPOP_RESENDS)
+    if (request.mDpopResendCount >= MAX_DPOP_RESEND)
     {
         qWarning() << "Max DPoP resends:" << request.mDpopResendCount;
         errorCb(QNetworkReply::ProtocolInvalidOperationError, "Max DPoP resends");
@@ -684,108 +686,12 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* r
     qDebug() << "Resend:" << postUrl;
     OAuthRequest newRequest(request);
     ++newRequest.mDpopResendCount;
-    const QString nonce = reply->rawHeader("DPoP-Nonce");
-    qDebug() << "DPoP nonce:" << nonce;
-    const QString dpopProof = mDpopPrivateJwk->buildDPoPProof("POST", postUrl, nonce);
+    mDpopNonce = reply->rawHeader("DPoP-Nonce");
+    qDebug() << "DPoP nonce:" << mDpopNonce;
+    const QString dpopProof = mDpopPrivateJwk->buildAuthDPoPProof("POST", postUrl, mDpopNonce);
     qDebug() << "DPoP proof:" << dpopProof;
     newRequest.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     sendRequest(newRequest, successCb, errorCb);
-
-}
-
-static QStringList parseHttpList(const QString& value) {
-    QStringList result;
-    QString current;
-    bool inQuotes = false;
-
-    for (int i = 0; i < value.size(); ++i)
-    {
-        QChar c = value[i];
-
-        if (c == '"')
-        {
-            inQuotes = !inQuotes;
-            current += c;
-        }
-        else if (c == ',' && !inQuotes)
-        {
-            result.append(current.trimmed());
-            current.clear();
-        }
-        else
-        {
-            current += c;
-        }
-    }
-
-    if (!current.trimmed().isEmpty())
-        result << current.trimmed();
-
-    return result;
-}
-
-static QString unquote(const QString& value)
-{
-    if (value.length() > 1 && value.startsWith('"') && value.endsWith('"'))
-        return value.mid(1, value.length() - 2);
-
-    return value;
-}
-
-static std::pair<QString, std::unordered_map<QString, QString>> parseWwwAuthenticate(const QString& headerValue)
-{
-    int index = headerValue.indexOf(' ');
-    const QString scheme = headerValue.mid(0, index);
-    const QString paramString = headerValue.sliced(index + 1);
-    const QStringList paramList = parseHttpList(paramString);
-    std::unordered_map<QString, QString> params;
-
-    for (const auto& param : paramList)
-    {
-        const auto kvList = param.split('=');
-        const QString key = unquote(kvList[0].trimmed());
-        const QString value = kvList.size() > 1 ? unquote(kvList[1].trimmed()) : "";
-        params[key] = value;
-    }
-
-    return { scheme, params };
-}
-
-bool OAuth::isDpopNonceError(QNetworkReply* reply, const QByteArray& data) const
-{
-    const QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
-
-    if (!status.isValid())
-        return false;
-
-    const int statusCode = status.toInt();
-
-    if (statusCode != 400 && statusCode != 401)
-        return false;
-
-    if (reply->hasRawHeader("WWW-Authenticate"))
-    {
-        QByteArray headerValue = reply->rawHeader("WWW-Authenticate");
-        auto [scheme, params] = parseWwwAuthenticate(headerValue);
-        qDebug() << QString(headerValue);
-
-        if (scheme.toLower() == "dpop" && params["error"] == "use_dpop_nonce")
-            return true;
-    }
-
-    const QJsonDocument json(QJsonDocument::fromJson(data));
-    qDebug() << "body:" << json;
-
-    if (json.isObject())
-    {
-        const XJsonObject xjson(json.object());
-        const auto errorField = xjson.getOptionalString("error");
-
-        if (errorField && *errorField == "use_dpop_nonce")
-            return true;
-    }
-
-    return false;
 }
 
 QString OAuth::createPkceCodeChallenge(const QString& verifier) const

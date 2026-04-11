@@ -156,6 +156,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::postJsonToNetwork, mNetworkThread.get(), &NetworkThread::postJson, Qt::QueuedConnection);
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
     connect(this, &Client::pdsChanged, mNetworkThread.get(), &NetworkThread::setPDS, Qt::QueuedConnection);
+    connect(this, &Client::oauthEnabled, mNetworkThread.get(), &NetworkThread::enableOAuth, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
     connect(this, &Client::videoHostChanged, mNetworkThread.get(), &NetworkThread::setVideoHost, Qt::QueuedConnection);
 
@@ -204,6 +205,11 @@ void Client::setPDS(const QString& pds, const QString& did)
     mDid = did;
     qDebug() << "PDS:" << mPDS << "DID:" << did;
     emit pdsChanged(mPDS);
+}
+
+void Client::enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl)
+{
+    emit oauthEnabled(user, clientId, redirectUrl);
 }
 
 void Client::setPDSFromSession(const ATProto::ComATProtoServer::Session& session)

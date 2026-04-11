@@ -2,7 +2,6 @@
 // License: GPLv3
 #pragma once
 #include "client.h"
-#include "oauth.h"
 #include <QtHttpServer>
 #include <QObject>
 #include <QTcpServer>
@@ -47,12 +46,11 @@ signals:
     void loginRedirect(QUrl url);
 
 private:
-    void initOAuth(const QString& handle, const QString& host);
     void initHttpServer();
     void requestToken(const QUrl& url);
     void refreshTokenRequest();
+    void getSession();
     void logout();
-    void cleanup();
 
     void getProfile(const QString& user)
     {
@@ -176,14 +174,13 @@ private:
     }
 
     QNetworkAccessManager* mNetwork;
-    JsonWebKey mDpopKey;
-    std::unique_ptr<ATProto::OAuth> mOAuth;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
     std::unique_ptr<QTcpServer> mTcpServer;
     std::unique_ptr<QHttpServer> mHttpServer;
     QString mIssuer;
     QString mState;
+    QString mUserDid;
     QString mAccessToken;
     QString mRefreshToken;
 };

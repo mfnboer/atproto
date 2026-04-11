@@ -116,6 +116,7 @@ public:
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
+    // TODO: return scope?
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;

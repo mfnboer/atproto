@@ -35,7 +35,8 @@ public:
 
     bool isNull() const;
 
-    QString buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const;
+    QString buildAuthDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const;
+    QString buildPdsDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& accessToken, const QString& nonce) const;
 
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     // On Android there is no need to save and load the key. The key is stored in
@@ -49,6 +50,8 @@ public:
 #endif
 
 private:
+    QString buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& accessToken, const QString& nonce) const;
+
     QByteArray sign(const QByteArray& data) const;
     QJsonObject extractPublicJwk() const;
 
@@ -57,7 +60,6 @@ private:
 #else
     EVP_PKEY* mKey = nullptr;
 #endif
-
 };
 
 }

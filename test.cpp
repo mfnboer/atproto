@@ -5,7 +5,7 @@
 
 namespace ATProto {
 
-constexpr char const* OAUTH_SCOPE = "atproto";
+constexpr char const* OAUTH_SCOPE = "atproto transition:generic transition:email";
 constexpr char const* REDIRECT_URI = "http://127.0.0.1:1970/oauth/callback";
 constexpr int LISTEN_PORT = 1970;
 constexpr char const* CLIENT_ID = "http://localhost";
@@ -16,25 +16,9 @@ ATProtoTest::ATProtoTest(QObject* parent) : QObject(parent)
 
 void ATProtoTest::oauth(const QString user, QString host)
 {
-    initOAuth(user, host);
+    auto xrpc = std::make_unique<Xrpc::Client>(host);
+    mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
     initHttpServer();
-
-    mOAuth->login(OAUTH_SCOPE,
-        [this](QString state, QString issuer, QUrl redirectUrl){
-            qDebug() << "Authorize state:" << state << "issuer:" << issuer << "redirect:" << redirectUrl;
-            mState = state;
-            mIssuer = issuer;
-            emit loginRedirect(redirectUrl);
-        },
-        [](int code, QString msg){
-            qWarning() << "Authorize error:" << code << msg;
-        });
-}
-
-void ATProtoTest::initOAuth(const QString& handle, const QString& host)
-{
-    if (mOAuth)
-        return;
 
     QUrl clientUrl(CLIENT_ID);
     QUrlQuery query;
@@ -45,15 +29,14 @@ void ATProtoTest::initOAuth(const QString& handle, const QString& host)
     const QString clientId = clientUrl.toString();
     qDebug() << "client_id:" << clientId;
 
-    qDebug() << "Create dpop key";
-    mDpopKey = JsonWebKey::generateDPoPKey(handle);
-
-    mNetwork = new QNetworkAccessManager(this);
-    mNetwork->setAutoDeleteReplies(true);
-    mNetwork->setTransferTimeout(5000);
-
-    mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey,
-                                     mNetwork, this);
+    mBsky->oauthLogin(user, clientId, REDIRECT_URI, OAUTH_SCOPE,
+        [this](QUrl redirectUrl){
+            qDebug() << "Login success, redirect:" << redirectUrl;
+            emit loginRedirect(redirectUrl);
+        },
+        [](QString msg){
+            qWarning() << "Login error:" << msg;
+        });
 }
 
 void ATProtoTest::initHttpServer()
@@ -85,67 +68,60 @@ void ATProtoTest::requestToken(const QUrl& url)
     const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
     qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
 
-    if (state != mState)
-    {
-        qWarning() << "Unexpected state:" << state << "expected:" << mState;
-        return;
-    }
-
-    if (issuer != mIssuer)
-    {
-        qWarning() << "Unexpected issuer:" << issuer << "expected:" << mIssuer;
-        return;
-    }
-
-    mOAuth->initialTokenRequest(code,
-        [this](QString did, QString scope, QString accessToken, QString refreshToken){
-            qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
+    mBsky->oauthRequestInitialToken(url,
+        [this](QString did, QString accessToken, QString refreshToken){
+            qDebug() << "Token sucess did:" << did << "access:" << accessToken << "refresh:" << refreshToken;
+            mUserDid = did;
             mAccessToken = accessToken;
             mRefreshToken = refreshToken;
             refreshTokenRequest();
         },
-        [](int code, QString error){
-            qWarning() << "Token error:" << code << error;
+        [](QString error){
+            qWarning() << "Token error:" << error;
         });
 }
 
 void ATProtoTest::refreshTokenRequest()
 {
     qDebug() << "Refresh token";
-    mOAuth->refreshTokenRequest(mRefreshToken,
+    mBsky->oauthRefreshToken(mRefreshToken,
         [this](QString accessToken, QString refreshToken){
             qDebug() << "Token refreshed access:" << accessToken << "refresh:" << refreshToken;
             mAccessToken = accessToken;
             mRefreshToken = refreshToken;
+            getSession();
+        },
+        [](QString error){
+            qWarning() << "Token refresh error:" << error;
+        });
+}
+
+void ATProtoTest::getSession()
+{
+    qDebug() << "Get session";
+    ComATProtoServer::Session session;
+    session.mDid = mUserDid;
+    session.mAccessJwt = mAccessToken;
+    mBsky->resumeSession(session,
+        [this]{
+            auto* s = mBsky->getSession();
+            Q_ASSERT(s);
+            qDebug() << "Session:" << s->mHandle << "did:" << s->mDid << "access:" << s->mAccessJwt << "refresh:" << s->mRefreshJwt << "email:" << s->mEmail.value_or("") << "didDoc:" << (s->mDidDoc ? "yes" : "no");
             logout();
         },
-        [](int code, QString error){
-            qWarning() << "Token refresh error:" << code << error;
+        [this](const QString& error, const QString& msg){
+            qWarning() << "Get session failed:" << error << " - " << msg;
+            logout();
         });
 }
 
 void ATProtoTest::logout()
 {
     qDebug() << "Logout";
-    mOAuth->logout(mAccessToken, mRefreshToken,
+    mBsky->oauthLogout(mAccessToken, mRefreshToken,
         [this]{
             qDebug() << "Logout succces";
-            cleanup();
-        },
-        [this](int code, QString error){
-            qWarning() << "Logout error:" << code << error;
-            cleanup();
         });
-}
-
-void ATProtoTest::cleanup()
-{
-#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
-    const QString alias = mDpopKey.getAlias();
-
-    if (JsonWebKey::deleteKey(alias))
-        qDebug() << "Deleted key:" << alias;
-#endif
 }
 
 }

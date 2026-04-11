@@ -31,6 +31,10 @@ public:
     void setUserAgent(const QString& userAgent);
     const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds, const QString& did);
+
+    // TODO: remove
+    void enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl);
+
     void setVideoHost(const QString& host);
 
     void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
@@ -53,6 +57,7 @@ signals:
     void getToNetwork(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
                       const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds);
     void pdsChanged(const QString& pds);
+    void oauthEnabled(const QString& user, const QString& clientId, const QString& redirectUrl);
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);
 

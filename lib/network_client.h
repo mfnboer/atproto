@@ -11,37 +11,6 @@ template<typename RequestType, typename RequestSuccessCb, typename RequestErrorC
 class NetworkClient : public QObject, public Presence
 {
 public:
-    static bool isSafeUrl(const QUrl url)
-    {
-        if (url.scheme() != "https" ||
-            url.host().isEmpty() ||
-            !url.userName().isEmpty() ||
-            !url.password().isEmpty() ||
-            url.port() > -1)
-        {
-            qWarning() << "Unsafe URL:" << url;
-            return false;
-        }
-
-        const auto segments = url.host().split('.');
-
-        if (segments.length() < 2)
-        {
-            qWarning() << "Not enough segments in host:" << url;
-            return false;
-        }
-
-        static const std::unordered_set<QString> FORBIDDEN_DOMAINS = {"local", "arpa", "internal", "localhost"};
-
-        if (FORBIDDEN_DOMAINS.contains(segments.last()))
-        {
-            qWarning() << "Forbidden domain in URL:" << url;
-            return false;
-        }
-
-        return true;
-    }
-
     explicit NetworkClient(QNetworkAccessManager* network, QObject* parent = nullptr) :
         QObject(parent),
         mNetwork(network)

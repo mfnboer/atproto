@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "xrpc_network_thread.h"
 #include "client.h"
+#include "network_utils.h"
 #include "xjson.h"
 #include "lexicon/lexicon.h"
 #include <QSslSocket>
@@ -11,6 +12,7 @@ namespace Xrpc {
 using namespace std::chrono_literals;
 
 constexpr int MAX_RESEND = 4;
+static constexpr int MAX_DPOP_RESEND = 2;
 
 static bool isEmpty(const NetworkThread::DataType& data)
 {
@@ -74,7 +76,7 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request.mXrpcRequest, accessJwt);
+        setAuthorization(request, accessJwt);
 
     // Setting Content-Type header when no body is present causes this error on some
     // PDS' as of 23-6-2024
@@ -103,7 +105,7 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request.mXrpcRequest, accessJwt);
+        setAuthorization(request, accessJwt);
 
     setRawHeaders(request.mXrpcRequest, rawHeaders);
     sendRequest(request, successCb, errorCb);
@@ -166,6 +168,10 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     const auto respondeDt = QDateTime::currentDateTime() - request.mSendTime;
     qDebug() << "Reply:" << errorCode << "content:" << contentType << "errorHandled:" << *errorHandled << "responseMs:" << (respondeDt / 1ms) << request.mXrpcRequest.url();
     auto data = reply->readAll();
+    const bool hasDpopNonce = ATProto::NetworkUtils::hasDpopNonce(reply);
+
+    if (hasDpopNonce)
+        mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
 
     // WORK AROUND:
     // Since Qt6.9.2 we sometimes get an Unknown error like this:
@@ -175,6 +181,14 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     // 09-01 19:24:47.662 10707 10792 W default : 19:24:47.663 warning unknown'0 Retry on unknown error
     if (errorCode == QNetworkReply::NoError && !*errorHandled)
     {
+        // TODO
+        // if (mOAuth && !hasDpopNonce)
+        // {
+        //     qWarning() << "DPoP-Nonce missing";
+        //     emit requestError("DPoP-Nonce missing", {}, errorCb);
+        //     return;
+        // }
+
         invokeCallback(std::move(successCb), errorCb, std::move(data), contentType);
     }
     else if (!*errorHandled)
@@ -185,6 +199,20 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
         {
             if (resendRequest(request, successCb, errorCb))
                 return;
+        }
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        {
+            if (hasDpopNonce)
+            {
+                resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            }
+            else
+            {
+                qWarning() << "DPoP-Nonce missing";
+                emit requestError("DPoP-Nonce missing", {}, errorCb);
+            }
+
+            return;
         }
 
         QJsonDocument json(QJsonDocument::fromJson(data));
@@ -207,6 +235,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
     if (!*errorHandled)
     {
         *errorHandled = true;
+        const auto data = reply->readAll();
 
         if (errorCode == QNetworkReply::OperationCanceledError)
             reply->disconnect();
@@ -218,6 +247,11 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        {
+            resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            return;
+        }
 
         if (errorCode == QNetworkReply::OperationCanceledError)
         {
@@ -225,7 +259,6 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             return;
         }
 
-        const auto data = reply->readAll();
         QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(std::move(errorMsg), std::move(json), errorCb);
     }
@@ -646,6 +679,27 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
     return true;
 }
 
+bool NetworkThread::resendWithNewDpopNonce(Request request, QNetworkReply* reply, const CallbackType& successCb, const ErrorCb& errorCb)
+{
+    const QUrl requestUrl = request.mXrpcRequest.url();
+
+    if (request.mDpopResendCount >= MAX_DPOP_RESEND)
+    {
+        qWarning() << "Max DPoP resends reached:" << requestUrl;
+        return false;
+    }
+
+    ++request.mDpopResendCount;
+    qDebug() << "DPoP resend:" << requestUrl << "count:" << request.mDpopResendCount;
+    mDpopPdsNonce = reply->rawHeader("DPoP-Nonce");
+    const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+        request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+    request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+
+    sendRequest(request, successCb, errorCb);
+    return true;
+}
+
 bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
 {
     switch (error)
@@ -704,10 +758,25 @@ void NetworkThread::setUserAgentHeader(QNetworkRequest& request) const
         request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
-void NetworkThread::setAuthorization(QNetworkRequest& request, const QString& accessJwt) const
+void NetworkThread::setAuthorization(Request& request, const QString& accessJwt) const
 {
-    QString auth = QString("Bearer %1").arg(accessJwt);
-    request.setRawHeader("Authorization", auth.toUtf8());
+    if (mOAuth)
+    {
+        const QUrl url = request.mXrpcRequest.url();
+        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+            request.mIsPost ? "POST" : "GET", url.toString(), accessJwt, mDpopPdsNonce);
+
+        QString auth = QString("DPoP %1").arg(accessJwt);
+        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
+        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    }
+    else
+    {
+        QString auth = QString("Bearer %1").arg(accessJwt);
+        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
+    }
+
+    request.mAccessJwt = accessJwt;
 }
 
 void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params) const
@@ -719,13 +788,19 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
     }
 }
 
+void NetworkThread::enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl)
+{
+    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
+    mOAuth = std::make_unique<ATProto::OAuth>(user, mPDS, clientId, redirectUrl, &mDpopKey, mNetwork, this);
+    mOAuth->setUserAgent(mUserAgent);
+    mDpopPdsNonce.clear();
+}
+
 void NetworkThread::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
                                const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Login:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
-    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
-    mOAuth = std::make_unique<ATProto::OAuth>(user, mPDS, clientId, redirectUrl, &mDpopKey, mNetwork, this);
-    mOAuth->setUserAgent(mUserAgent);
+    enableOAuth(user, clientId, redirectUrl);
 
     mOAuth->login(scope,
         [this, successCb](QString state, QString issuer, QUrl redirectUrl){
@@ -818,6 +893,7 @@ void NetworkThread::oauthCleanup()
     mDpopKey = {};
     mOAuthState.clear();
     mOAuthIssuer.clear();
+    mDpopPdsNonce.clear();
 }
 
 }

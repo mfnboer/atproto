@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #include "json_web_key.h"
+#include <QCryptographicHash>
 #include <QFile>
 #include <QRandomGenerator>
 #include <openssl/pem.h>
@@ -192,9 +193,14 @@ bool JsonWebKey::isNull() const
 #endif
 }
 
-QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const
+static QString createS256CodeChallend(const QString& token)
 {
-    qDebug() << "Start build DPoP proof";
+    const auto hash = QCryptographicHash::hash(token.toUtf8(), QCryptographicHash::Sha256);
+    return hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+}
+
+QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& accessToken, const QString& nonce) const
+{
     QJsonObject header;
     header["typ"] = "dpop+jwt";
     header["alg"] = "ES256";
@@ -208,9 +214,11 @@ QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& htt
     payload["iat"] = now;
     payload["exp"] = now + 30;
 
-    if (!nonce.isEmpty()) {
+    if (!accessToken.isEmpty())
+        payload["ath"] = createS256CodeChallend(accessToken);
+
+    if (!nonce.isEmpty())
         payload["nonce"] = nonce;
-    }
 
     // Base64url-encode header and payload
     auto b64url = [](const QByteArray& data) {
@@ -227,6 +235,18 @@ QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& htt
     const QString proof(signingInput + "." + b64url(signature));
     qDebug() << "End build DPoP proof";
     return proof;
+}
+
+QString JsonWebKey::buildAuthDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const
+{
+    qDebug() << "Start build AUTH DPoP proof";
+    return buildDPoPProof(httpMethod, httpUri, {}, nonce);
+}
+
+QString JsonWebKey::buildPdsDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& accessToken, const QString& nonce) const
+{
+    qDebug() << "Start build PDS DPoP proof";
+    return buildDPoPProof(httpMethod, httpUri, accessToken, nonce);
 }
 
 QString JsonWebKey::generateToken(int length)

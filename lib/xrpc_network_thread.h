@@ -185,7 +185,9 @@ public:
         bool mIsPost = false;
         QNetworkRequest mXrpcRequest;
         DataType mData;
+        QString mAccessJwt;
         int mResendCount = 0;
+        int mDpopResendCount = 0;
         QDateTime mSendTime;
     };
 
@@ -203,6 +205,7 @@ public:
              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
              const QString& pds);
 
+    void enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl);
     void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthRequestInitialToken(const QUrl& url,
@@ -304,11 +307,12 @@ private:
     QUrl buildUrl(const QString& service, const QString& pds = {}) const;
     QUrl buildUrl(const QString& service, const Params& params, const QString& pds = {}) const;
     void setUserAgentHeader(QNetworkRequest& request) const;
-    void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
+    void setAuthorization(Request& request, const QString& accessJwt) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
     void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
+    bool resendWithNewDpopNonce(Request request, QNetworkReply* reply, const CallbackType& successCb, const ErrorCb& errorCb);
     bool mustResend(QNetworkReply::NetworkError error) const;
     void invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType);
     void replyFinished(const Request& request, QNetworkReply* reply,
@@ -337,6 +341,7 @@ private:
     std::unique_ptr<ATProto::OAuth> mOAuth;
     QString mOAuthState;
     QString mOAuthIssuer;
+    QString mDpopPdsNonce;
 };
 
 }
