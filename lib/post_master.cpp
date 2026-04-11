@@ -28,7 +28,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
     }
 
     qDebug() << "Posting:" << postJson;
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = postJson["$type"].toString();
 
     mClient.createRecord(repo, collection, {}, postJson, true,
@@ -53,7 +53,7 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     auto threadgate = createThreadgate(uri, allowMention, allowFollower, allowFollowing, allowLists, allowNobody, hiddenReplies);
     QJsonObject threadgateJson = threadgate->toJson();
     qDebug() << "Add threadgate:" << threadgateJson;
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = threadgateJson["$type"].toString();
 
     mClient.putRecord(repo, collection, atUri.getRkey(), threadgateJson, true,
@@ -77,7 +77,7 @@ void PostMaster::addPostgate(const QString& uri, bool disableEmbedding, const QS
     auto postgate = createPostgate(uri, disableEmbedding, detachedEmbeddingUris);
     QJsonObject postgateJson = postgate->toJson();
     qDebug() << "Add postgate:" << postgateJson;
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = postgateJson["$type"].toString();
 
     mClient.putRecord(repo, collection, atUri.getRkey(), postgateJson, true,
@@ -203,7 +203,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     }
 
     const auto repostJson = repost.toJson();
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
 
     mClient.createRecord(repo, AppBskyFeed::Repost::TYPE, {}, repostJson, true,
         [successCb](auto strongRef){
@@ -238,7 +238,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
     }
 
     const auto likeJson = like.toJson();
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
 
     mClient.createRecord(repo, AppBskyFeed::Like::TYPE, {}, likeJson, true,
         [successCb](auto strongRef){
