@@ -47,7 +47,13 @@ void ATProtoTest::initOAuth(const QString& handle, const QString& host)
 
     qDebug() << "Create dpop key";
     mDpopKey = JsonWebKey::generateDPoPKey(handle);
-    mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey, this);
+
+    mNetwork = new QNetworkAccessManager(this);
+    mNetwork->setAutoDeleteReplies(true);
+    mNetwork->setTransferTimeout(5000);
+
+    mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey,
+                                     mNetwork, this);
 }
 
 void ATProtoTest::initHttpServer()
@@ -134,7 +140,7 @@ void ATProtoTest::logout()
 
 void ATProtoTest::cleanup()
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     const QString alias = mDpopKey.getAlias();
 
     if (JsonWebKey::deleteKey(alias))

@@ -14,7 +14,7 @@ public:
     static QString generateToken(int length = 30);
     static JsonWebKey generateDPoPKey(const QString& user);
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     explicit JsonWebKey(const QString& alias);
 
     // The alias can be stored to retrieve the key at a later time.
@@ -37,7 +37,7 @@ public:
 
     QString buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const;
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     // On Android there is no need to save and load the key. The key is stored in
     // the Android keystore. You need to keep the alias for the key to retrieve it.
     static bool deleteKey(const QString& alias);
@@ -52,7 +52,7 @@ private:
     QByteArray sign(const QByteArray& data) const;
     QJsonObject extractPublicJwk() const;
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     QString mAlias;
 #else
     EVP_PKEY* mKey = nullptr;

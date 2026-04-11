@@ -1,6 +1,7 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "oauth.h"
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_bookmark.h"
 #include "lexicon/app_bsky_draft.h"
@@ -99,6 +100,13 @@ public:
     using SuccessConvoListOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr)>;
     using SuccessConvoOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoOutput::SharedPtr)>;
 
+    // oauth
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString accessToken, QString refreshToken)>;
+    using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
+    using OAuthLogoutSuccessCb = std::function<void()>;
+    using OAuthErrorCb = std::function<void(QString error)>;
+
     using CallbackType = std::variant<
         SuccessJsonCb,
         SuccessBytesCb,
@@ -183,8 +191,8 @@ public:
 
     NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
 
-    void setPDS(const QString& pds) { mPDS = pds; }
-    void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
+    void setPDS(const QString& pds);
+    void setUserAgent(const QString& userAgent);
     void setVideoHost(const QString& host);
 
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
@@ -194,6 +202,15 @@ public:
     void get(const QString& service, const Params& params, const Params& rawHeaders,
              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
              const QString& pds);
+
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+                    const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthRequestInitialToken(const QUrl& url,
+                                  const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthRefreshToken(const QString& refreshToken,
+                           const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthLogout(const QString& accessToken, const QString& refreshToken,
+                     const OAuthLogoutSuccessCb& successCb);
 
 signals:
     // clazy:excludeall=fully-qualified-moc-types
@@ -271,6 +288,15 @@ signals:
     void requestError(QString error, QJsonDocument json, ErrorCb cb);
     void requestInvalidJsonError(QString exceptionMsg, ErrorCb cb);
 
+    // OAuth
+    void oauthLoginRedirect(QUrl url, OAuthLoginSuccessCb cb);
+    void oauthLoginFailed(QString error, OAuthErrorCb cb);
+    void oauthRequestInitialTokenSuccess(QString did, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
+    void oauthRequestInitialTokenFailed(QString error, OAuthErrorCb cb);
+    void oauthRefreshTokenSucces(QString accessToken, QString refreshToken, OAuthRefreshTokenSuccessCb cb);
+    void oauthRefreshTokenFailed(QString error, OAuthErrorCb cb);
+    void oauthLoggedOut(OAuthLogoutSuccessCb cb);
+
 protected:
     virtual void run() override;
 
@@ -293,6 +319,8 @@ private:
                       std::shared_ptr<bool> errorHandled);
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
 
+    void oauthCleanup();
+
     struct Task
     {
         Request mRequest;
@@ -304,6 +332,11 @@ private:
     QString mPDS;
     QString mUserAgent;
     QString mVideoHost;
+
+    ATProto::JsonWebKey mDpopKey;
+    std::unique_ptr<ATProto::OAuth> mOAuth;
+    QString mOAuthState;
+    QString mOAuthIssuer;
 };
 
 }

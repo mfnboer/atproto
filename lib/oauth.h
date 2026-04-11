@@ -67,14 +67,18 @@ public:
 
     /**
      * @brief OAuth
-     * @param handle May be empty
+     * @param handle handle or DID. May be empty.
      * @param pds This can be an entry point is handle is empty, e.g. https://bsky.social
      * @param dpopPrivateJwk
      * @param parent
      */
-    OAuth(const QString& handle, const QString& pds,
+    OAuth(const QString& user, const QString& pds,
           const QString& clientId, const QString& redirectUrl,
-          JsonWebKey* dpopPrivateJwk, QObject* parent = nullptr);
+          JsonWebKey* dpopPrivateJwk,
+          QNetworkAccessManager* network,
+          QObject* parent = nullptr);
+
+    void setPds(const QString& pds);
 
     /**
      * @brief login
@@ -97,6 +101,8 @@ public:
     const QString& getDpopNonce() const { return mDpopNonce; }
 
 private:
+    std::optional<QNetworkRequest> createNetworkRequest(const QString& url) const;
+
     void authorizeContinue(const QString& scope,
                            const LoginSuccessCb& successCb, const ErrorCb& errorCb);
     void authorizeContinuePAR(const QString& scope,

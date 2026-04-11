@@ -115,6 +115,12 @@ public:
     using AutoRefreshDoneCb = std::function<void()>;
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString accessToken, QString refreshToken)>;
+    using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
+    using OAuthLogoutSuccessCb = std::function<void()>;
+    using OAuthErrorCb = std::function<void(QString error)>;
+
     using Ptr = std::unique_ptr<Client>;
     using SharedPtr = std::shared_ptr<Client>;
 
@@ -1185,6 +1191,17 @@ public:
                      const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
     void removeReaction(const QString& convoId, const QString& messageId, const QString& value,
                         const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // oauth
+
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+                    const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthRequestInitialToken(const QUrl& url,
+                                  const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthRefreshToken(const QString& refreshToken,
+                           const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthLogout(const QString& accessToken, const QString& refreshToken,
+                     const OAuthLogoutSuccessCb& successCb);
 
 private:
     const QString& authToken() const;

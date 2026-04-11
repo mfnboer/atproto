@@ -45,20 +45,26 @@ AuthorizationServerMeta::Ptr AuthorizationServerMeta::fromJson(const QJsonObject
     return meta;
 }
 
-OAuth::OAuth(const QString& handle, const QString& pds,
+OAuth::OAuth(const QString& user, const QString& pds,
              const QString& clientId, const QString& redirectUrl,
-             JsonWebKey* dpopPrivateJwk, QObject* parent) :
-    ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(new QNetworkAccessManager, parent),
-    mLoginHint(handle),
+             JsonWebKey* dpopPrivateJwk,
+             QNetworkAccessManager* network,
+             QObject* parent) :
+    ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(network, parent),
+    mLoginHint(user),
     mPds(pds),
     mClientId(clientId),
     mClientRedirectUrl(redirectUrl),
     mDpopPrivateJwk(dpopPrivateJwk)
 {
     Q_ASSERT(mPds.startsWith("http"));
-    mNetwork->setAutoDeleteReplies(true);
-    mNetwork->setTransferTimeout(5000);
-    qDebug() << "Created OAuth, PDS:" << pds << "handle:" << handle << "clientId:" << mClientId << "redirectUrl:" << mClientRedirectUrl;
+    qDebug() << "Created OAuth, PDS:" << pds << "user:" << user << "clientId:" << mClientId << "redirectUrl:" << mClientRedirectUrl;
+}
+
+void OAuth::setPds(const QString& pds)
+{
+    Q_ASSERT(pds.startsWith("http"));
+    mPds = pds;
 }
 
 void OAuth::login(const QString& scope,
@@ -74,6 +80,17 @@ void OAuth::login(const QString& scope,
         [errorCb](int code, QString msg){
             errorCb(code, msg);
         });
+}
+
+std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) const
+{
+    if (!isSafeUrl(url))
+        return {};
+
+    QNetworkRequest request(url);
+    request.setMaximumRedirectsAllowed(0);
+    setUserAgentHeader(request);
+    return request;
 }
 
 void OAuth::authorizeContinue(const QString& scope,
@@ -101,7 +118,7 @@ void OAuth::authorizeContinuePAR(const QString& scope,
             QUrlQuery query;
             query.addQueryItem("client_id", mClientId);
             query.addQueryItem("request_uri", requestUri);
-            QUrl url(mAuthorizationServerMeta->mAuthorizationEndpoint); // TODO safe check
+            QUrl url(mAuthorizationServerMeta->mAuthorizationEndpoint);
             url.setQuery(query);
             successCb(state, issuer, url);
         },
@@ -114,9 +131,15 @@ void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorC
 {
     const auto url = QString("%1/.well-known/oauth-protected-resource").arg(mPds);
     qDebug() << "Get protected resource:" << url;
-    QNetworkRequest request(url);
-    setUserAgentHeader(request);
-    QNetworkReply* reply = mNetwork->get(request);
+    auto request = createNetworkRequest(url);
+
+    if (!request)
+    {
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        return;
+    }
+
+    QNetworkReply* reply = mNetwork->get(*request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
         handleProtectedResourceResponse(reply, successCb, errorCb);
@@ -188,9 +211,15 @@ void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const Erro
 
     const auto url = QString("%1/.well-known/oauth-authorization-server").arg(server);
     qDebug() << "Get protected resource:" << url;
-    QNetworkRequest request(url);
-    setUserAgentHeader(request);
-    QNetworkReply* reply = mNetwork->get(request);
+    auto request = createNetworkRequest(url);
+
+    if (!request)
+    {
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        return;
+    }
+
+    QNetworkReply* reply = mNetwork->get(*request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
         handleAuthorizatonServerResponse(reply, successCb, errorCb);
@@ -301,6 +330,27 @@ void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const Success
         return;
     }
 
+    if (!isSafeUrl(mAuthorizationServerMeta->mAuthorizationEndpoint))
+    {
+        qWarning() << "Unsafe authorization_endpoint";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe authorization_endpoint");
+        return;
+    }
+
+    if (!isSafeUrl(mAuthorizationServerMeta->mTokenEndpoint))
+    {
+        qWarning() << "Unsafe token_endpoint";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe token_endpoint");
+        return;
+    }
+
+    if (mAuthorizationServerMeta->mRevocationEndpoint && !isSafeUrl(*mAuthorizationServerMeta->mRevocationEndpoint))
+    {
+        qWarning() << "Unsafe revocation_endpoint";
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe revocation_endpoint");
+        return;
+    }
+
     successCb();
 }
 
@@ -322,10 +372,16 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
     Q_ASSERT(mDpopPrivateJwk);
     const QString dpopProof = mDpopPrivateJwk->buildDPoPProof("POST", postUrl, mDpopNonce);
 
-    // TODO: hardened http, SSRF
+    auto networkRequest = createNetworkRequest(postUrl);
+
+    if (!networkRequest)
+    {
+        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        return;
+    }
+
     OAuthRequest request;
-    request.mNetworkRequest = QNetworkRequest(postUrl);
-    setUserAgentHeader(request.mNetworkRequest);
+    request.mNetworkRequest = *networkRequest;
     request.mNetworkRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     request.mPostData = postData.toString().toUtf8();
@@ -337,7 +393,6 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
         request.mNetworkRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 
     sendRequest(request, successCb, errorCb);
-    // TODO: SSL error??
 }
 
 void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,

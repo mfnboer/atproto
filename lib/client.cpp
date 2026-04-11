@@ -3109,6 +3109,30 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
         authToken());
 }
 
+void Client::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+                        const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
+}
+
+void Client::oauthRequestInitialToken(const QUrl& url,
+                              const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    mXrpc->oauthRequestInitialToken(url, successCb, errorCb);
+}
+
+void Client::oauthRefreshToken(const QString& refreshToken,
+                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
+}
+
+void Client::oauthLogout(const QString& accessToken, const QString& refreshToken,
+                 const OAuthLogoutSuccessCb& successCb)
+{
+    mXrpc->oauthLogout(accessToken, refreshToken, successCb);
+}
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;
