@@ -97,6 +97,8 @@ public:
     const QString& getDpopNonce() const { return mDpopNonce; }
 
 private:
+    std::optional<QNetworkRequest> createNetworkRequest(const QString& url) const;
+
     void authorizeContinue(const QString& scope,
                            const LoginSuccessCb& successCb, const ErrorCb& errorCb);
     void authorizeContinuePAR(const QString& scope,

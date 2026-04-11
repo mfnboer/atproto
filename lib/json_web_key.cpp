@@ -8,13 +8,13 @@
 #include <openssl/bn.h>
 #include <openssl/core_names.h>
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
 #include <QJniObject>
 #endif
 
 namespace ATProto {
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
 constexpr char const* DPOP_KEY_ALIAS = "dpop";
 #endif
 
@@ -70,7 +70,7 @@ static QJsonObject extractPublicJwkSsl(EVP_PKEY* pkey)
 
 QJsonObject JsonWebKey::extractPublicJwk() const
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     // Retrieve DER bytes via JNI
     QJniEnvironment env;
     QJniObject jalias = QJniObject::fromString(mAlias);
@@ -105,7 +105,7 @@ QJsonObject JsonWebKey::extractPublicJwk() const
 
 JsonWebKey JsonWebKey::generateDPoPKey(const QString& user)
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     const auto alias = QString("%1-%2").arg(DPOP_KEY_ALIAS, user);
     qDebug() << "Generate DPoP key:" << alias;
 
@@ -135,7 +135,7 @@ JsonWebKey JsonWebKey::generateDPoPKey(const QString& user)
 
 QByteArray JsonWebKey::sign(const QByteArray& data) const
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     QJniObject jalias = QJniObject::fromString(mAlias);
     QJniEnvironment env;
 
@@ -184,7 +184,7 @@ QByteArray JsonWebKey::sign(const QByteArray& data) const
 
 bool JsonWebKey::isNull() const
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     return mAlias.isEmpty();
 #else
     return mKey == nullptr;
@@ -193,6 +193,7 @@ bool JsonWebKey::isNull() const
 
 QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& httpUri, const QString& nonce) const
 {
+    qDebug() << "Start build DPoP proof";
     QJsonObject header;
     header["typ"] = "dpop+jwt";
     header["alg"] = "ES256";
@@ -222,7 +223,9 @@ QString JsonWebKey::buildDPoPProof(const QString& httpMethod, const QString& htt
     // Sign with private key
     QByteArray signature = sign(signingInput);
 
-    return QString(signingInput + "." + b64url(signature));
+    const QString proof(signingInput + "." + b64url(signature));
+    qDebug() << "End build DPoP proof";
+    return proof;
 }
 
 QString JsonWebKey::generateToken(int length)
@@ -240,7 +243,7 @@ QString JsonWebKey::generateToken(int length)
     return token;
 }
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
 JsonWebKey::JsonWebKey(const QString& alias) :
     mAlias(alias)
 {
@@ -276,7 +279,7 @@ JsonWebKey::~JsonWebKey()
 
 JsonWebKey& JsonWebKey::operator=(JsonWebKey&& other)
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     mAlias = other.mAlias;
     other.mAlias.clear();
 #else
@@ -290,7 +293,7 @@ JsonWebKey& JsonWebKey::operator=(JsonWebKey&& other)
     return *this;
 }
 
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
 bool JsonWebKey::deleteKey(const QString& alias)
 {
     QJniObject jalias = QJniObject::fromString(alias);

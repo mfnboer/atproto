@@ -134,7 +134,7 @@ void ATProtoTest::logout()
 
 void ATProtoTest::cleanup()
 {
-#ifdef Q_OS_ANDROID
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     const QString alias = mDpopKey.getAlias();
 
     if (JsonWebKey::deleteKey(alias))

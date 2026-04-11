@@ -7,6 +7,7 @@ if(CMAKE_BUILD_TYPE MATCHES Release)
     add_compile_definitions(QT_NO_DEBUG_OUTPUT)
 endif()
 
+add_compile_definitions(USE_ANDROID_KEYSTORE)
 add_compile_options(-Wall -Wextra -Werror)
 
 if (NOT ANDROID AND NOT CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)

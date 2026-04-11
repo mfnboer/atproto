@@ -153,6 +153,7 @@ void Client::doCallback(ArgType arg, CallbackType cb)
 void Client::setUserAgent(const QString& userAgent)
 {
     mPlcDirectoryClient.setUserAgent(userAgent);
+    mIdentityResolver.setUserAgent(userAgent);
     emit userAgentChanged(userAgent);
 }
 
