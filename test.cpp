@@ -47,7 +47,13 @@ void ATProtoTest::initOAuth(const QString& handle, const QString& host)
 
     qDebug() << "Create dpop key";
     mDpopKey = JsonWebKey::generateDPoPKey(handle);
-    mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey, this);
+
+    mNetwork = new QNetworkAccessManager(this);
+    mNetwork->setAutoDeleteReplies(true);
+    mNetwork->setTransferTimeout(5000);
+
+    mOAuth = std::make_unique<OAuth>(handle, "https://" + host, clientId, REDIRECT_URI, &mDpopKey,
+                                     mNetwork, this);
 }
 
 void ATProtoTest::initHttpServer()

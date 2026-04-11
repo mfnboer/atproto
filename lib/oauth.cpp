@@ -45,20 +45,26 @@ AuthorizationServerMeta::Ptr AuthorizationServerMeta::fromJson(const QJsonObject
     return meta;
 }
 
-OAuth::OAuth(const QString& handle, const QString& pds,
+OAuth::OAuth(const QString& user, const QString& pds,
              const QString& clientId, const QString& redirectUrl,
-             JsonWebKey* dpopPrivateJwk, QObject* parent) :
-    ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(new QNetworkAccessManager, parent),
-    mLoginHint(handle),
+             JsonWebKey* dpopPrivateJwk,
+             QNetworkAccessManager* network,
+             QObject* parent) :
+    ATProto::NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>(network, parent),
+    mLoginHint(user),
     mPds(pds),
     mClientId(clientId),
     mClientRedirectUrl(redirectUrl),
     mDpopPrivateJwk(dpopPrivateJwk)
 {
     Q_ASSERT(mPds.startsWith("http"));
-    mNetwork->setAutoDeleteReplies(true);
-    mNetwork->setTransferTimeout(5000);
-    qDebug() << "Created OAuth, PDS:" << pds << "handle:" << handle << "clientId:" << mClientId << "redirectUrl:" << mClientRedirectUrl;
+    qDebug() << "Created OAuth, PDS:" << pds << "user:" << user << "clientId:" << mClientId << "redirectUrl:" << mClientRedirectUrl;
+}
+
+void OAuth::setPds(const QString& pds)
+{
+    Q_ASSERT(pds.startsWith("http"));
+    mPds = pds;
 }
 
 void OAuth::login(const QString& scope,

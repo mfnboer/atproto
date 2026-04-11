@@ -34,6 +34,22 @@ NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
 {
 }
 
+void NetworkThread::setPDS(const QString& pds)
+{
+    mPDS = pds;
+
+    if (mOAuth)
+        mOAuth->setPds(pds);
+}
+
+void NetworkThread::setUserAgent(const QString& userAgent)
+{
+    mUserAgent = userAgent;
+
+    if (mOAuth)
+        mOAuth->setUserAgent(userAgent);
+}
+
 void NetworkThread::setVideoHost(const QString& host)
 {
     qDebug() << "Video host:" << host;
@@ -703,5 +719,105 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
     }
 }
 
+void NetworkThread::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+                               const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Login:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
+    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
+    mOAuth = std::make_unique<ATProto::OAuth>(user, mPDS, clientId, redirectUrl, &mDpopKey, mNetwork, this);
+    mOAuth->setUserAgent(mUserAgent);
+
+    mOAuth->login(scope,
+        [this, successCb](QString state, QString issuer, QUrl redirectUrl){
+            qDebug() << "Login state:" << state << "issuer:" << issuer << "redirect:" << redirectUrl;
+            mOAuthState = state;
+            mOAuthIssuer = issuer;
+            emit oauthLoginRedirect(std::move(redirectUrl), successCb);
+        },
+        [this, errorCb](int code, QString msg){
+            qWarning() << "Login error:" << code << msg;
+            emit oauthLoginFailed(std::move(msg), errorCb);
+        });
+}
+
+void NetworkThread::oauthRequestInitialToken(const QUrl& url,
+                                             const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Request initial token:" << url;
+    const QUrlQuery query(url.query());
+    const QString state = query.queryItemValue("state", QUrl::FullyDecoded);
+    const QString issuer = query.queryItemValue("iss", QUrl::FullyDecoded);
+    const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
+    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
+
+    if (state != mOAuthState)
+    {
+        qWarning() << "Unexpected state:" << state << "expected:" << mOAuthState;
+        emit oauthRequestInitialTokenFailed("Unexpected state", errorCb);
+        return;
+    }
+
+    if (issuer != mOAuthIssuer)
+    {
+        qWarning() << "Unexpected issuer:" << issuer << "expected:" << mOAuthIssuer;
+        emit oauthRequestInitialTokenFailed("Unexpected issuer", errorCb);
+        return;
+    }
+
+    mOAuth->initialTokenRequest(code,
+        [this, successCb](QString did, QString scope, QString accessToken, QString refreshToken){
+            qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
+            oauthRequestInitialTokenSuccess(did, accessToken, refreshToken, successCb);
+        },
+        [this, errorCb](int code, QString error){
+            qWarning() << "Token error:" << code << error;
+            emit oauthRequestInitialTokenFailed(error, errorCb);
+        });
+}
+
+void NetworkThread::oauthRefreshToken(const QString& refreshToken,
+                                      const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Refresh token";
+    mOAuth->refreshTokenRequest(refreshToken,
+        [this, successCb](QString newAccessToken, QString newRefreshToken){
+            qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
+            emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
+        },
+        [this, errorCb](int code, QString error){
+            qWarning() << "Token refresh error:" << code << error;
+            emit oauthRefreshTokenFailed(error, errorCb);
+        });
+}
+
+void NetworkThread::oauthLogout(const QString& accessToken, const QString& refreshToken,
+                                const OAuthLogoutSuccessCb& successCb)
+{
+    qDebug() << "Logout";
+    mOAuth->logout(accessToken, refreshToken,
+        [this, successCb]{
+            qDebug() << "Logout succces";
+            oauthCleanup();
+            emit oauthLoggedOut(successCb);
+        },
+        [this, successCb](int code, QString error){
+            qWarning() << "Logout error:" << code << error;
+            oauthCleanup();
+            emit oauthLoggedOut(successCb);
+        });
+}
+
+void NetworkThread::oauthCleanup()
+{
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    const QString alias = mDpopKey.getAlias();
+
+    if (JsonWebKey::deleteKey(alias))
+        qDebug() << "Deleted key:" << alias;
+#endif
+    mDpopKey = {};
+    mOAuthState.clear();
+    mOAuthIssuer.clear();
+}
 
 }

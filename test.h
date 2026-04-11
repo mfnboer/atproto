@@ -175,6 +175,7 @@ private:
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
+    QNetworkAccessManager* mNetwork;
     JsonWebKey mDpopKey;
     std::unique_ptr<ATProto::OAuth> mOAuth;
     std::unique_ptr<ATProto::Client> mBsky;

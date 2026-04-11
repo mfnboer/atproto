@@ -56,6 +56,15 @@ signals:
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);
 
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+                    const NetworkThread::OAuthLoginSuccessCb& successCb, const NetworkThread::OAuthErrorCb);
+    void oauthRequestInitialToken(const QUrl& url,
+                                  const NetworkThread::OAuthInitalTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
+    void oauthRefreshToken(const QString& refreshToken,
+                           const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
+    void oauthLogout(const QString& accessToken, const QString& refreshToken,
+                     const NetworkThread::OAuthLogoutSuccessCb& successCb);
+
 private:
     template<typename CallbackType, typename ArgType>
     void doCallback(ArgType arg, CallbackType cb);
