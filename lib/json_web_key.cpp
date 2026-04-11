@@ -68,6 +68,7 @@ static QJsonObject extractPublicJwkSsl(EVP_PKEY* pkey)
     return jwk;
 }
 
+// TODO: cache public key
 QJsonObject JsonWebKey::extractPublicJwk() const
 {
 #ifdef Q_OS_ANDROID
