@@ -5,7 +5,7 @@
 
 namespace ATProto {
 
-constexpr char const* OAUTH_SCOPE = "atproto transition:generic transition:email";
+static const QStringList TEST_SCOPE = { OAuth::SCPOPE_ATPROTO, OAuth::SCPOPE_BSKY_APP, OAuth::SCPOPE_BSKY_CHAT, OAuth::SCPOPE_TRANSITION_EMAIL };
 constexpr char const* REDIRECT_URI = "http://127.0.0.1:1970/oauth/callback";
 constexpr int LISTEN_PORT = 1970;
 constexpr char const* CLIENT_ID = "http://localhost";
@@ -14,22 +14,27 @@ ATProtoTest::ATProtoTest(QObject* parent) : QObject(parent)
 {
 }
 
+QString createClientId()
+{
+    const QString scope = TEST_SCOPE.join(' ');
+    QUrl clientUrl(CLIENT_ID);
+    QUrlQuery query;
+    query.addQueryItem("redirect_uri", REDIRECT_URI);
+    query.addQueryItem("scope", QUrl::toPercentEncoding(scope));
+    clientUrl.setQuery(query);
+
+    const QString clientId = clientUrl.toString();
+    qDebug() << "client_id:" << clientId;
+    return clientId;
+}
+
 void ATProtoTest::oauth(const QString user, QString host)
 {
     auto xrpc = std::make_unique<Xrpc::Client>(host);
     mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
     initHttpServer();
 
-    QUrl clientUrl(CLIENT_ID);
-    QUrlQuery query;
-    query.addQueryItem("redirect_uri", REDIRECT_URI);
-    query.addQueryItem("scope", OAUTH_SCOPE);
-    clientUrl.setQuery(query);
-
-    const QString clientId = clientUrl.toString();
-    qDebug() << "client_id:" << clientId;
-
-    mBsky->oauthLogin(user, clientId, REDIRECT_URI, OAUTH_SCOPE,
+    mBsky->oauthLogin(user, createClientId(), REDIRECT_URI, TEST_SCOPE,
         [this](QUrl redirectUrl){
             qDebug() << "Login success, redirect:" << redirectUrl;
             emit loginRedirect(redirectUrl);
@@ -69,8 +74,8 @@ void ATProtoTest::requestToken(const QUrl& url)
     qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
 
     mBsky->oauthRequestInitialToken(url,
-        [this](QString did, QString accessToken, QString refreshToken){
-            qDebug() << "Token sucess did:" << did << "access:" << accessToken << "refresh:" << refreshToken;
+        [this](QString did, QString scope, QString accessToken, QString refreshToken){
+            qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
             mUserDid = did;
             mAccessToken = accessToken;
             mRefreshToken = refreshToken;
@@ -102,6 +107,8 @@ void ATProtoTest::getSession()
     ComATProtoServer::Session session;
     session.mDid = mUserDid;
     session.mAccessJwt = mAccessToken;
+    session.mRefreshJwt = mRefreshToken;
+
     mBsky->resumeSession(session,
         [this]{
             auto* s = mBsky->getSession();

@@ -51,6 +51,8 @@ public:
     SHARED_CONST(QString, RECORD_NOT_FOUND, QStringLiteral("RecordNotFound"));
 
     // Internal stack errors
+    SHARED_CONST(QString, DPOP_NONCE_MISSING, QStringLiteral("DpopNonceMissing"));
+    SHARED_CONST(QString, OAUTH_REFRESH_FAILED, QStringLiteral("OAuthRefreshFailed"));
     SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 
@@ -141,7 +143,6 @@ RecordType stringToRecordType(const QString& str);
 QString recordTypeToString(RecordType recordType);
 
 struct DidDocument {
-    QString mId;
     std::optional<QString> mATProtoPDS;
     QJsonObject mJson;
 

@@ -65,6 +65,13 @@ public:
     using SuccessCb = std::function<void()>;
     using ErrorCb = std::function<void(int code, QString msg)>;
 
+    static constexpr char const* SCPOPE_ATPROTO = "atproto";
+    static constexpr char const* SCPOPE_TRANSITION_GENERIC = "transition:generic";
+    static constexpr char const* SCPOPE_TRANSITION_EMAIL = "transition:email";
+    static constexpr char const* SCPOPE_TRANSITION_CHAT = "transition:chat.bsky";
+    static constexpr char const* SCPOPE_BSKY_APP = "include:app.bsky.authFullApp?aud=did:web:api.bsky.app%23bsky_appview";
+    static constexpr char const* SCPOPE_BSKY_CHAT = "include:chat.bsky.authFullChatClient?aud=did:web:api.bsky.chat%23bsky_chat";
+
     /**
      * @brief OAuth
      * @param handle handle or DID. May be empty.
@@ -86,7 +93,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void login(const QString& scope,
+    void login(const QStringList& scope,
                const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
     void initialTokenRequest(const QString& code,
@@ -134,7 +141,7 @@ private:
                         std::optional<int> errorCode = {}, const QString& errorMsg = {});
     void revokeToken(const QString& token, const QString& tokenType,
                      const SuccessCb& successCb, const ErrorCb& errorCb);
-    void resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
+    void resendWithNewDpopNonce(const OAuthRequest& request,
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     QString createPkceCodeChallenge(const QString& verifier) const;

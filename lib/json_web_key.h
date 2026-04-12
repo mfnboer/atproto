@@ -60,6 +60,7 @@ private:
 #else
     EVP_PKEY* mKey = nullptr;
 #endif
+    std::optional<QJsonObject> mPublicJwk;
 };
 
 }

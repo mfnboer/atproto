@@ -181,14 +181,6 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     // 09-01 19:24:47.662 10707 10792 W default : 19:24:47.663 warning unknown'0 Retry on unknown error
     if (errorCode == QNetworkReply::NoError && !*errorHandled)
     {
-        // TODO
-        // if (mOAuth && !hasDpopNonce)
-        // {
-        //     qWarning() << "DPoP-Nonce missing";
-        //     emit requestError("DPoP-Nonce missing", {}, errorCb);
-        //     return;
-        // }
-
         invokeCallback(std::move(successCb), errorCb, std::move(data), contentType);
     }
     else if (!*errorHandled)
@@ -204,12 +196,12 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
         {
             if (hasDpopNonce)
             {
-                resendWithNewDpopNonce(request, reply, successCb, errorCb);
+                resendWithNewDpopNonce(request, successCb, errorCb);
             }
             else
             {
                 qWarning() << "DPoP-Nonce missing";
-                emit requestError("DPoP-Nonce missing", {}, errorCb);
+                emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
             }
 
             return;
@@ -249,7 +241,17 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
         }
         else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
         {
-            resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            if (ATProto::NetworkUtils::hasDpopNonce(reply))
+            {
+                mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
+                resendWithNewDpopNonce(request, successCb, errorCb);
+            }
+            else
+            {
+                qWarning() << "DPoP-Nonce missing";
+                emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
+            }
+
             return;
         }
 
@@ -679,8 +681,9 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
     return true;
 }
 
-bool NetworkThread::resendWithNewDpopNonce(Request request, QNetworkReply* reply, const CallbackType& successCb, const ErrorCb& errorCb)
+bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
+    Q_ASSERT(!mDpopPdsNonce.isEmpty());
     const QUrl requestUrl = request.mXrpcRequest.url();
 
     if (request.mDpopResendCount >= MAX_DPOP_RESEND)
@@ -691,7 +694,6 @@ bool NetworkThread::resendWithNewDpopNonce(Request request, QNetworkReply* reply
 
     ++request.mDpopResendCount;
     qDebug() << "DPoP resend:" << requestUrl << "count:" << request.mDpopResendCount;
-    mDpopPdsNonce = reply->rawHeader("DPoP-Nonce");
     const QString dpopProof = mDpopKey.buildPdsDPoPProof(
         request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
     request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
@@ -790,13 +792,21 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
 
 void NetworkThread::enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl)
 {
+    qDebug() << "Enable OAuth:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
     mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
     mOAuth = std::make_unique<ATProto::OAuth>(user, mPDS, clientId, redirectUrl, &mDpopKey, mNetwork, this);
     mOAuth->setUserAgent(mUserAgent);
     mDpopPdsNonce.clear();
 }
 
-void NetworkThread::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+void NetworkThread::disableOAuth()
+{
+    qDebug() << "Disable OAuth";
+    mOAuth.reset();
+}
+
+void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
+                               const QString& redirectUrl, const QStringList& scope,
                                const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Login:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
@@ -842,7 +852,7 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
     mOAuth->initialTokenRequest(code,
         [this, successCb](QString did, QString scope, QString accessToken, QString refreshToken){
             qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
-            oauthRequestInitialTokenSuccess(did, accessToken, refreshToken, successCb);
+            oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);
         },
         [this, errorCb](int code, QString error){
             qWarning() << "Token error:" << code << error;

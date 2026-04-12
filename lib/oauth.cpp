@@ -68,15 +68,16 @@ void OAuth::setPds(const QString& pds)
     mPds = pds;
 }
 
-void OAuth::login(const QString& scope,
+void OAuth::login(const QStringList& scope,
                   const LoginSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Login, scope:" << scope;
+    const QString authScope = scope.join(' ');
+    qDebug() << "Login, scope:" << authScope;
 
     getProtectedResourceRequest(
-        [this, presence=getPresence(), scope, successCb, errorCb]{
+        [this, presence=getPresence(), authScope, successCb, errorCb]{
             if (presence)
-                authorizeContinue(scope, successCb, errorCb);
+                authorizeContinue(authScope, successCb, errorCb);
         },
         [errorCb](int code, QString msg){
             errorCb(code, msg);
@@ -411,13 +412,6 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
 
     if (errorCode == QNetworkReply::NoError)
     {
-        if (!hasDpopNonce)
-        {
-            qWarning() << "DPoP-Nonce missing";
-            errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
-            return;
-        }
-
         const auto data = reply->readAll();
         const QJsonDocument json(QJsonDocument::fromJson(data));
         successCb(json);
@@ -436,7 +430,7 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
         {
             if (hasDpopNonce)
             {
-                resendWithNewDpopNonce(request, reply, successCb, errorCb);
+                resendWithNewDpopNonce(request, successCb, errorCb);
             }
             else
             {
@@ -480,7 +474,16 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
         }
         else if (NetworkUtils::isDpopNonceError(reply, data))
         {
-            resendWithNewDpopNonce(request, reply, successCb, errorCb);
+            if (NetworkUtils::hasDpopNonce(reply))
+            {
+                mDpopNonce = NetworkUtils::getDpopNonce(reply);
+                resendWithNewDpopNonce(request, successCb, errorCb);
+            }
+            else
+            {
+                qWarning() << "DPoP-Nonce missing";
+                errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
+            }
             return;
         }
 
@@ -672,9 +675,11 @@ void OAuth::revokeToken(const QString& token, const QString& tokenType,
     );
 }
 
-void OAuth::resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* reply,
+void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
                             const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
+    Q_ASSERT(!mDpopNonce.isEmpty());
+
     if (request.mDpopResendCount >= MAX_DPOP_RESEND)
     {
         qWarning() << "Max DPoP resends:" << request.mDpopResendCount;
@@ -686,7 +691,6 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request, QNetworkReply* r
     qDebug() << "Resend:" << postUrl;
     OAuthRequest newRequest(request);
     ++newRequest.mDpopResendCount;
-    mDpopNonce = reply->rawHeader("DPoP-Nonce");
     qDebug() << "DPoP nonce:" << mDpopNonce;
     const QString dpopProof = mDpopPrivateJwk->buildAuthDPoPProof("POST", postUrl, mDpopNonce);
     qDebug() << "DPoP proof:" << dpopProof;

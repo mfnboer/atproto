@@ -116,8 +116,7 @@ public:
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
-    // TODO: return scope?
-    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString accessToken, QString refreshToken)>;
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
     using OAuthErrorCb = std::function<void(QString error)>;
@@ -1195,12 +1194,39 @@ public:
 
     // oauth
 
-    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+    /**
+     * @brief oauthLogin
+     * @param user DID or handle
+     * @param clientId
+     * @param redirectUrl
+     * @param scope
+     * @param successCb
+     * @param errorCb
+     */
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    /**
+     * @brief oauthRequestInitialToken
+     * @param url The url gotten from the call back from the auth server
+     * @param successCb
+     * @param errorCb
+     */
     void oauthRequestInitialToken(const QUrl& url,
                                   const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    /**
+     * @brief oauthCreateSession Request initial token and resume the session from the PDS
+     * @param url The url gotten from the call back from the auth server
+     * @param successCb
+     * @param errorCb
+     */
+    void oauthCreateSession(const QUrl& url,
+                            const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
     void oauthRefreshToken(const QString& refreshToken,
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
 
@@ -1241,6 +1267,12 @@ private:
                          const QString& pds = {});
 
     void resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc);
+
+    void oauthCreateSessionContinue(
+        const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
+        const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void deleteSessionOAuth(const SuccessCb& successCb);
+    void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     Xrpc::Client::Ptr mXrpc;
     ComATProtoServer::Session::SharedPtr mSession;

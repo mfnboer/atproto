@@ -69,9 +69,11 @@ static QJsonObject extractPublicJwkSsl(EVP_PKEY* pkey)
     return jwk;
 }
 
-// TODO: cache public key
 QJsonObject JsonWebKey::extractPublicJwk() const
 {
+    if (mPublicJwk)
+        return *mPublicJwk;
+
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     // Retrieve DER bytes via JNI
     QJniEnvironment env;
@@ -96,13 +98,13 @@ QJsonObject JsonWebKey::extractPublicJwk() const
         return {};
 
     // Reuse your existing function directly
-    QJsonObject jwk = extractPublicJwkSsl(pkey);
+    const_cast<JsonWebKey*>(this)->mPublicJwk = extractPublicJwkSsl(pkey);
     EVP_PKEY_free(pkey);
 #else
-    QJsonObject jwk = extractPublicJwkSsl(mKey);
+    const_cast<JsonWebKey*>(this)->mPublicJwk = extractPublicJwkSsl(mKey);
 #endif
 
-    return jwk;
+    return *mPublicJwk;
 }
 
 JsonWebKey JsonWebKey::generateDPoPKey(const QString& user)

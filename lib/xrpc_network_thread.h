@@ -102,7 +102,7 @@ public:
 
     // oauth
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
-    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString accessToken, QString refreshToken)>;
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
     using OAuthErrorCb = std::function<void(QString error)>;
@@ -205,8 +205,14 @@ public:
              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
              const QString& pds);
 
+    // OAuth
+    // OAuth is done from the network thread. Creating DPoP proofs is expensive (15ms on Android).
+    // openssl on Android can do it in 2ms, but the Android Keystore offers better security and
+    // key storage.
     void enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl);
-    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+    void disableOAuth();
+    void oauthLogin(const QString& user, const QString& clientId,
+                    const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthRequestInitialToken(const QUrl& url,
                                   const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
@@ -294,7 +300,7 @@ signals:
     // OAuth
     void oauthLoginRedirect(QUrl url, OAuthLoginSuccessCb cb);
     void oauthLoginFailed(QString error, OAuthErrorCb cb);
-    void oauthRequestInitialTokenSuccess(QString did, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
+    void oauthRequestInitialTokenSuccess(QString did, QString scope, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
     void oauthRequestInitialTokenFailed(QString error, OAuthErrorCb cb);
     void oauthRefreshTokenSucces(QString accessToken, QString refreshToken, OAuthRefreshTokenSuccessCb cb);
     void oauthRefreshTokenFailed(QString error, OAuthErrorCb cb);
@@ -312,7 +318,7 @@ private:
 
     void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
-    bool resendWithNewDpopNonce(Request request, QNetworkReply* reply, const CallbackType& successCb, const ErrorCb& errorCb);
+    bool resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool mustResend(QNetworkReply::NetworkError error) const;
     void invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType);
     void replyFinished(const Request& request, QNetworkReply* reply,

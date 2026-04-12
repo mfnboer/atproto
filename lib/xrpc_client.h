@@ -31,9 +31,8 @@ public:
     void setUserAgent(const QString& userAgent);
     const QString& getPDS() const { return mPDS; }
     void setPDS(const QString& pds, const QString& did);
-
-    // TODO: remove
-    void enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl);
+    void enableOAuth(bool enable);
+    bool isOAuthEnabled() const { return mOAuthEnabled; }
 
     void setVideoHost(const QString& host);
 
@@ -57,11 +56,11 @@ signals:
     void getToNetwork(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
                       const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds);
     void pdsChanged(const QString& pds);
-    void oauthEnabled(const QString& user, const QString& clientId, const QString& redirectUrl);
+    void oauthDisabled();
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);
 
-    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QString& scope,
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                     const NetworkThread::OAuthLoginSuccessCb& successCb, const NetworkThread::OAuthErrorCb);
     void oauthRequestInitialToken(const QUrl& url,
                                   const NetworkThread::OAuthInitalTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
@@ -76,6 +75,7 @@ private:
 
     QString mPDS;
     QString mDid; // PDS is set for this DID
+    bool mOAuthEnabled = false;
     std::unique_ptr<QNetworkAccessManager> mNetwork;
     ATProto::PlcDirectoryClient mPlcDirectoryClient;
     ATProto::IdentityResolver mIdentityResolver;
