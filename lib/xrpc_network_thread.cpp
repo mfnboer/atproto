@@ -819,9 +819,9 @@ void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
             mOAuthIssuer = issuer;
             emit oauthLoginRedirect(std::move(redirectUrl), successCb);
         },
-        [this, errorCb](int code, QString msg){
+        [this, errorCb](QString code, QString msg){
             qWarning() << "Login error:" << code << msg;
-            emit oauthLoginFailed(std::move(msg), errorCb);
+            emit oauthLoginFailed(std::move(code), std::move(msg), errorCb);
         });
 }
 
@@ -831,21 +831,33 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
     qDebug() << "Request initial token:" << url;
     const QUrlQuery query(url.query());
     const QString state = query.queryItemValue("state", QUrl::FullyDecoded);
-    const QString issuer = query.queryItemValue("iss", QUrl::FullyDecoded);
-    const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
-    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
 
     if (state != mOAuthState)
     {
         qWarning() << "Unexpected state:" << state << "expected:" << mOAuthState;
-        emit oauthRequestInitialTokenFailed("Unexpected state", errorCb);
+        emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected state", errorCb);
         return;
     }
+
+    const QString error = query.queryItemValue("error", QUrl::FullyDecoded);
+
+    if (!error.isEmpty())
+    {
+        // Spaces seem to be encoded as '+'s
+        const QString errorDescription = query.queryItemValue("error_description", QUrl::FullyDecoded).replace('+', ' ');
+        qWarning() << "Error:" << error << "description:" << errorDescription;
+        emit oauthRefreshTokenFailed(error, errorDescription, errorCb);
+        return;
+    }
+
+    const QString issuer = query.queryItemValue("iss", QUrl::FullyDecoded);
+    const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
+    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
 
     if (issuer != mOAuthIssuer)
     {
         qWarning() << "Unexpected issuer:" << issuer << "expected:" << mOAuthIssuer;
-        emit oauthRequestInitialTokenFailed("Unexpected issuer", errorCb);
+        emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected issuer", errorCb);
         return;
     }
 
@@ -854,9 +866,9 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
             qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
             oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);
         },
-        [this, errorCb](int code, QString error){
+        [this, errorCb](QString code, QString error){
             qWarning() << "Token error:" << code << error;
-            emit oauthRequestInitialTokenFailed(error, errorCb);
+            emit oauthRequestInitialTokenFailed(code, error, errorCb);
         });
 }
 
@@ -869,9 +881,9 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
             qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
             emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
         },
-        [this, errorCb](int code, QString error){
+        [this, errorCb](QString code, QString error){
             qWarning() << "Token refresh error:" << code << error;
-            emit oauthRefreshTokenFailed(error, errorCb);
+            emit oauthRefreshTokenFailed(code, error, errorCb);
         });
 }
 
@@ -885,7 +897,7 @@ void NetworkThread::oauthLogout(const QString& accessToken, const QString& refre
             oauthCleanup();
             emit oauthLoggedOut(successCb);
         },
-        [this, successCb](int code, QString error){
+        [this, successCb](QString code, QString error){
             qWarning() << "Logout error:" << code << error;
             oauthCleanup();
             emit oauthLoggedOut(successCb);

@@ -39,8 +39,8 @@ void ATProtoTest::oauth(const QString user, QString host)
             qDebug() << "Login success, redirect:" << redirectUrl;
             emit loginRedirect(redirectUrl);
         },
-        [](QString msg){
-            qWarning() << "Login error:" << msg;
+        [](QString error, QString msg){
+            qWarning() << "Login error:" << error << "-" << msg;
         });
 }
 
@@ -50,7 +50,7 @@ void ATProtoTest::initHttpServer()
     mHttpServer->route("/oauth/callback", this,
         [this](const QHttpServerRequest& request, QHttpServerResponder& responder){
             qDebug() << "oauth callback:" << request.url();
-            requestToken(request.url());
+            loginContinue(request.url());
             responder.write(QHttpServerResponder::StatusCode::NoContent);
         });
 
@@ -65,24 +65,30 @@ void ATProtoTest::initHttpServer()
     qDebug() << "Listening on port:" << mTcpServer->serverPort();
 }
 
-void ATProtoTest::requestToken(const QUrl& url)
+void ATProtoTest::loginContinue(const QUrl& url)
 {
     const QUrlQuery query(url.query());
     const QString state = query.queryItemValue("state", QUrl::FullyDecoded);
     const QString issuer = query.queryItemValue("iss", QUrl::FullyDecoded);
     const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
-    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
+    const QString error = query.queryItemValue("error", QUrl::FullyDecoded);
+    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code << "error:" << error;
 
-    mBsky->oauthRequestInitialToken(url,
+    mBsky->oauthLoginContinue(url,
         [this](QString did, QString scope, QString accessToken, QString refreshToken){
             qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
             mUserDid = did;
             mAccessToken = accessToken;
             mRefreshToken = refreshToken;
+
+            auto* s = mBsky->getSession();
+            Q_ASSERT(s);
+            qDebug() << "Session:" << s->mHandle << "did:" << s->mDid << "access:" << s->mAccessJwt << "refresh:" << s->mRefreshJwt << "email:" << s->mEmail.value_or("") << "didDoc:" << (s->mDidDoc ? "yes" : "no");
+
             refreshTokenRequest();
         },
-        [](QString error){
-            qWarning() << "Token error:" << error;
+        [](QString error, QString msg){
+            qWarning() << "Token error:" << error << "-" << msg;
         });
 }
 
@@ -94,30 +100,10 @@ void ATProtoTest::refreshTokenRequest()
             qDebug() << "Token refreshed access:" << accessToken << "refresh:" << refreshToken;
             mAccessToken = accessToken;
             mRefreshToken = refreshToken;
-            getSession();
-        },
-        [](QString error){
-            qWarning() << "Token refresh error:" << error;
-        });
-}
-
-void ATProtoTest::getSession()
-{
-    qDebug() << "Get session";
-    ComATProtoServer::Session session;
-    session.mDid = mUserDid;
-    session.mAccessJwt = mAccessToken;
-    session.mRefreshJwt = mRefreshToken;
-
-    mBsky->resumeSession(session,
-        [this]{
-            auto* s = mBsky->getSession();
-            Q_ASSERT(s);
-            qDebug() << "Session:" << s->mHandle << "did:" << s->mDid << "access:" << s->mAccessJwt << "refresh:" << s->mRefreshJwt << "email:" << s->mEmail.value_or("") << "didDoc:" << (s->mDidDoc ? "yes" : "no");
             logout();
         },
-        [this](const QString& error, const QString& msg){
-            qWarning() << "Get session failed:" << error << " - " << msg;
+        [this](QString error, QString msg){
+            qWarning() << "Token refresh error:" << error << "-" << msg;
             logout();
         });
 }

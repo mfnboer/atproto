@@ -52,7 +52,7 @@ struct OAuthRequest
 };
 
 using OAuthSuccessCb = std::function<void(QJsonDocument resp)>;
-using OAuthErrorCb = std::function<void(int code, QString msg)>;
+using OAuthErrorCb = std::function<void(QString code, QString msg)>;
 
 class OAuth : public NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>
 {
@@ -63,7 +63,7 @@ public:
     using InitialTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using RefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using SuccessCb = std::function<void()>;
-    using ErrorCb = std::function<void(int code, QString msg)>;
+    using ErrorCb = std::function<void(QString code, QString msg)>;
 
     static constexpr char const* SCPOPE_ATPROTO = "atproto";
     static constexpr char const* SCPOPE_TRANSITION_GENERIC = "transition:generic";
@@ -71,6 +71,17 @@ public:
     static constexpr char const* SCPOPE_TRANSITION_CHAT = "transition:chat.bsky";
     static constexpr char const* SCPOPE_BSKY_APP = "include:app.bsky.authFullApp?aud=did:web:api.bsky.app%23bsky_appview";
     static constexpr char const* SCPOPE_BSKY_CHAT = "include:chat.bsky.authFullChatClient?aud=did:web:api.bsky.chat%23bsky_chat";
+
+    static constexpr char const* ERROR_INVALID_REQUEST = "invalid_request";
+    static constexpr char const* ERROR_INVALID_CLIENT = "invalid_client";
+    static constexpr char const* ERROR_INVALID_GRANT = "invalid_grant";
+    static constexpr char const* ERROR_UNAUTHORIZED_CLIENT = "unauthorized_client";
+    static constexpr char const* ERROR_UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
+    static constexpr char const* ERROR_INVALID_SCOPE = "invalid_scope";
+    static constexpr char const* ERROR_ACCESS_DENIED = "access_denied";
+    static constexpr char const* ERROR_UNSUPPORTED_RESPONSE_TYPE = "unsupported_repsonse_type";
+    static constexpr char const* ERROR_SERVER_ERROR = "server_error";
+    static constexpr char const* ERROR_TEMP_UNAVAILABLE = "temporarily_unavailable";
 
     /**
      * @brief OAuth
@@ -96,6 +107,12 @@ public:
     void login(const QStringList& scope,
                const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief initialTokenRequest
+     * @param code code from login
+     * @param successCb
+     * @param errorCb
+     */
     void initialTokenRequest(const QString& code,
                              const InitialTokenSuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -128,6 +145,8 @@ private:
     void authServerPost(const QString& postUrl, const QUrlQuery& postData,
                         const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
+    void reportError(QNetworkReply* reply, const QByteArray& data, const OAuthErrorCb& errorCb);
+
     virtual void replyFinished(const OAuthRequest& request, QNetworkReply* reply,
                                const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb,
                                std::shared_ptr<bool> errorHandled) override;
@@ -138,7 +157,7 @@ private:
 
     void logoutContinue(const QString& refreshToken,
                         const SuccessCb& successCb, const ErrorCb& errorCb,
-                        std::optional<int> errorCode = {}, const QString& errorMsg = {});
+                        std::optional<QString> errorCode = {}, const QString& errorMsg = {});
     void revokeToken(const QString& token, const QString& tokenType,
                      const SuccessCb& successCb, const ErrorCb& errorCb);
     void resendWithNewDpopNonce(const OAuthRequest& request,

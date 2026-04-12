@@ -47,9 +47,8 @@ signals:
 
 private:
     void initHttpServer();
-    void requestToken(const QUrl& url);
+    void loginContinue(const QUrl& url);
     void refreshTokenRequest();
-    void getSession();
     void logout();
 
     void getProfile(const QString& user)

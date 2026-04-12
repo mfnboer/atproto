@@ -79,7 +79,7 @@ void OAuth::login(const QStringList& scope,
             if (presence)
                 authorizeContinue(authScope, successCb, errorCb);
         },
-        [errorCb](int code, QString msg){
+        [errorCb](QString code, QString msg){
             errorCb(code, msg);
         });
 }
@@ -103,7 +103,7 @@ void OAuth::authorizeContinue(const QString& scope,
             if (presence)
                 authorizeContinuePAR(scope, successCb, errorCb);
         },
-        [errorCb](int code, QString msg){
+        [errorCb](QString code, QString msg){
             errorCb(code, msg);
         });
 }
@@ -124,7 +124,7 @@ void OAuth::authorizeContinuePAR(const QString& scope,
             url.setQuery(query);
             successCb(state, issuer, url);
         },
-        [errorCb](int code, QString msg){
+        [errorCb](QString code, QString msg){
             errorCb(code, msg);
         });
 }
@@ -137,7 +137,7 @@ void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorC
 
     if (!request)
     {
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        errorCb(ERROR_INVALID_REQUEST, "Unsafe URL");
         return;
     }
 
@@ -166,7 +166,7 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
         }
         else
         {
-            errorCb(reply->error(), reply->errorString());
+            errorCb(ERROR_INVALID_REQUEST, reply->errorString());
         }
         return;
     }
@@ -176,7 +176,7 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
     if (!status.isValid() || status.toInt() != 200)
     {
         qWarning() << "Did not receive 200 response:" << status.toInt();
-        errorCb(QNetworkReply::UnknownContentError, "Not a 200 response");
+        errorCb(ERROR_SERVER_ERROR, "Not a 200 response");
         return;
     }
 
@@ -186,7 +186,7 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
     if (!json.isObject())
     {
         qWarning() << "No JSON body";
-        errorCb(QNetworkReply::UnknownContentError, "No JSON body");
+        errorCb(ERROR_SERVER_ERROR, "No JSON body");
         return;
     }
 
@@ -194,7 +194,7 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
         mProtecedResourceMeta = ProtectedResourceMeta::fromJson(json.object());
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+        errorCb(ERROR_SERVER_ERROR, e.msg());
         return;
     }
 
@@ -207,7 +207,7 @@ void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const Erro
 
     if (server.isEmpty())
     {
-        errorCb(QNetworkReply::HostNotFoundError, "No authorization server found");
+        errorCb(ERROR_INVALID_REQUEST, "No authorization server found");
         return;
     }
 
@@ -217,7 +217,7 @@ void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const Erro
 
     if (!request)
     {
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        errorCb(ERROR_INVALID_REQUEST, "Unsafe URL");
         return;
     }
 
@@ -234,7 +234,7 @@ void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const Success
     {
         const QString& error = reply->errorString();
         qWarning() << "Failed to get:" << reply->url() << "code:" <<  reply->error() << "error:" << error;
-        errorCb(reply->error(), error);
+        errorCb(ERROR_INVALID_REQUEST, error);
         return;
     }
 
@@ -243,7 +243,7 @@ void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const Success
 
     if (!json.isObject())
     {
-        errorCb(QNetworkReply::UnknownContentError, "No JSON body");
+        errorCb(ERROR_SERVER_ERROR, "No JSON body");
         return;
     }
 
@@ -251,105 +251,105 @@ void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const Success
         mAuthorizationServerMeta = AuthorizationServerMeta::fromJson(json.object());
     } catch (InvalidJsonException& e) {
         qWarning() << e.msg();
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+        errorCb(ERROR_SERVER_ERROR, e.msg());
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mResponseTypesSupported, "code"))
     {
         qWarning() << "code not supported:" << mAuthorizationServerMeta->mResponseTypesSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "response type 'code' not supported");
+        errorCb(ERROR_SERVER_ERROR, "response type 'code' not supported");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mGrantTypesSupported, "authorization_code"))
     {
         qWarning() << "authorization_code not supported:" << mAuthorizationServerMeta->mGrantTypesSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "grant type 'authorization_code' not supported");
+        errorCb(ERROR_SERVER_ERROR, "grant type 'authorization_code' not supported");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mGrantTypesSupported, "refresh_token"))
     {
         qWarning() << "refresh_token not supported:" << mAuthorizationServerMeta->mGrantTypesSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "grant type 'refresh_token' not supported");
+        errorCb(ERROR_SERVER_ERROR, "grant type 'refresh_token' not supported");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mCodeChallengeMethodsSupported, "S256"))
     {
         qWarning() << "S256 not supported:" << mAuthorizationServerMeta->mCodeChallengeMethodsSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "code challenge method 'S256' not supported");
+        errorCb(ERROR_SERVER_ERROR, "code challenge method 'S256' not supported");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mTokenEndpointAuthMedthodsSuppored, "none"))
     {
         qWarning() << "none not supported:" << mAuthorizationServerMeta->mTokenEndpointAuthMedthodsSuppored;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "token endpoint auth method 'none' not supported");
+        errorCb(ERROR_SERVER_ERROR, "token endpoint auth method 'none' not supported");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mScopesSupported, "atproto"))
     {
         qWarning() << "atproto not supported:" << mAuthorizationServerMeta->mScopesSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "scope 'atproto' not supported");
+        errorCb(ERROR_SERVER_ERROR, "scope 'atproto' not supported");
         return;
     }
 
     if (!mAuthorizationServerMeta->mAuthorizationResponeseIssParameterSupported)
     {
         qWarning() << "authorization_response_iss_parameter not supported";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "authorization_response_iss_parameter not supported");
+        errorCb(ERROR_SERVER_ERROR, "authorization_response_iss_parameter not supported");
         return;
     }
 
     if (!mAuthorizationServerMeta->mRequirePushedAuthorizationRequests)
     {
         qWarning() << "pushed_authorization_requests required";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "pushed_authorization_requests required");
+        errorCb(ERROR_SERVER_ERROR, "pushed_authorization_requests required");
         return;
     }
 
     if (!contains(mAuthorizationServerMeta->mDpopSigningAlgValuesSupported, "ES256"))
     {
         qWarning() << "ES256 not supported:" << mAuthorizationServerMeta->mDpopSigningAlgValuesSupported;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP signing alg value 'ES256' not supported");
+        errorCb(ERROR_SERVER_ERROR, "DPoP signing alg value 'ES256' not supported");
         return;
     }
 
     if (!mAuthorizationServerMeta->mRequireRequestUriRegistration)
     {
         qWarning() << "request_uri_registration required";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "request_uri_registration required");
+        errorCb(ERROR_SERVER_ERROR, "request_uri_registration required");
         return;
     }
 
     if (!mAuthorizationServerMeta->mClientIdMetadataDocumentSupported)
     {
         qWarning() << "client_id_metadata_document not supported";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "client_id_metadata_document not supported");
+        errorCb(ERROR_SERVER_ERROR, "client_id_metadata_document not supported");
         return;
     }
 
     if (!NetworkUtils::isSafeUrl(mAuthorizationServerMeta->mAuthorizationEndpoint))
     {
         qWarning() << "Unsafe authorization_endpoint";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe authorization_endpoint");
+        errorCb(ERROR_SERVER_ERROR, "Unsafe authorization_endpoint");
         return;
     }
 
     if (!NetworkUtils::isSafeUrl(mAuthorizationServerMeta->mTokenEndpoint))
     {
         qWarning() << "Unsafe token_endpoint";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe token_endpoint");
+        errorCb(ERROR_SERVER_ERROR, "Unsafe token_endpoint");
         return;
     }
 
     if (mAuthorizationServerMeta->mRevocationEndpoint && !NetworkUtils::isSafeUrl(*mAuthorizationServerMeta->mRevocationEndpoint))
     {
         qWarning() << "Unsafe revocation_endpoint";
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe revocation_endpoint");
+        errorCb(ERROR_SERVER_ERROR, "Unsafe revocation_endpoint");
         return;
     }
 
@@ -378,7 +378,7 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
 
     if (!networkRequest)
     {
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Unsafe URL");
+        errorCb(ERROR_INVALID_REQUEST, "Unsafe URL");
         return;
     }
 
@@ -395,6 +395,23 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
         request.mNetworkRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 
     sendRequest(request, successCb, errorCb);
+}
+
+void OAuth::reportError(QNetworkReply* reply, const QByteArray& data, const OAuthErrorCb& errorCb)
+{
+    QJsonDocument json(QJsonDocument::fromJson(data));
+    const XJsonObject xjson(json.object());
+    const auto error = xjson.getOptionalString("error");
+
+    if (error)
+    {
+        const auto errorDescription = xjson.getOptionalString("error_description", *error);
+        errorCb(*error, errorDescription);
+    }
+    else
+    {
+        errorCb(ERROR_SERVER_ERROR, reply->errorString());
+    }
 }
 
 void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
@@ -435,13 +452,13 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
             else
             {
                 qWarning() << "DPoP-Nonce missing";
-                errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
+                errorCb(ERROR_SERVER_ERROR, "DPoP-Nonce missing");
             }
 
             return;
         }
 
-        errorCb(errorCode, reply->errorString());
+        reportError(reply, data, errorCb);
     }
     else
     {
@@ -482,12 +499,12 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
             else
             {
                 qWarning() << "DPoP-Nonce missing";
-                errorCb(QNetworkReply::ProtocolInvalidOperationError, "DPoP-Nonce missing");
+                errorCb(ERROR_SERVER_ERROR, "DPoP-Nonce missing");
             }
             return;
         }
 
-        errorCb(errorCode, reply->errorString());
+        reportError(reply, data, errorCb);
     }
     else
     {
@@ -527,14 +544,14 @@ void OAuth::sendParAuthRequest(const QString& scope,
             if (requestUri.isUndefined())
             {
                 qWarning() << "request_uri missing";
-                errorCb(QNetworkReply::ProtocolInvalidOperationError, "no request_uri received from auth server");
+                errorCb(ERROR_SERVER_ERROR, "no request_uri received from auth server");
                 return;
             }
 
             qDebug() << "request_uri:" << requestUri.toString();
             successCb(state, mAuthorizationServerMeta->mIssuer, requestUri.toString());
         },
-        [errorCb](int errorCode, QString errorMsg){
+        [errorCb](QString errorCode, QString errorMsg){
             qDebug() << "PAR failed:" << errorCode << errorMsg;
             errorCb(errorCode, errorMsg);
         }
@@ -568,10 +585,10 @@ void OAuth::initialTokenRequest(const QString& code,
                 successCb(sub, scope, accessToken, refreshToken);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
-                errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+                errorCb(ERROR_SERVER_ERROR, e.msg());
             }
         },
-        [errorCb](int errorCode, QString errorMsg){
+        [errorCb](QString errorCode, QString errorMsg){
             qDebug() << "Token request failed:" << errorCode << errorMsg;
             errorCb(errorCode, errorMsg);
         }
@@ -601,10 +618,10 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
                 successCb(accessToken, refreshToken);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
-                errorCb(QNetworkReply::ProtocolInvalidOperationError, e.msg());
+                errorCb(ERROR_SERVER_ERROR, e.msg());
             }
         },
-        [errorCb](int errorCode, QString errorMsg){
+        [errorCb](QString errorCode, QString errorMsg){
             qDebug() << "Refresh token request failed:" << errorCode << errorMsg;
             errorCb(errorCode, errorMsg);
         }
@@ -619,7 +636,7 @@ void OAuth::logout(const QString& accessToken, const QString& refreshToken,
     if (!mAuthorizationServerMeta->mRevocationEndpoint)
     {
         qWarning() << "Revoking token not supprted";
-        QTimer::singleShot(0, this, [errorCb]{ errorCb(QNetworkReply::ProtocolInvalidOperationError, "Token revocation not supported"); });
+        QTimer::singleShot(0, this, [errorCb]{ errorCb(ERROR_SERVER_ERROR, "Token revocation not supported"); });
         return;
     }
 
@@ -628,7 +645,7 @@ void OAuth::logout(const QString& accessToken, const QString& refreshToken,
             if (presence)
                 logoutContinue(refreshToken, successCb, errorCb);
         },
-        [this, presence=getPresence(), refreshToken, successCb, errorCb](int errorCode, QString errorMsg){
+        [this, presence=getPresence(), refreshToken, successCb, errorCb](QString errorCode, QString errorMsg){
             if (presence)
                 logoutContinue(refreshToken, successCb, errorCb, errorCode, errorMsg);
         });
@@ -636,7 +653,7 @@ void OAuth::logout(const QString& accessToken, const QString& refreshToken,
 
 void OAuth::logoutContinue(const QString& refreshToken,
                            const SuccessCb& successCb, const ErrorCb& errorCb,
-                           std::optional<int> errorCode, const QString& errorMsg)
+                           std::optional<QString> errorCode, const QString& errorMsg)
 {
     revokeToken(refreshToken, "refresh_token",
         [errorCode, errorMsg, successCb, errorCb]{
@@ -645,7 +662,7 @@ void OAuth::logoutContinue(const QString& refreshToken,
             else
                 successCb();
         },
-        [errorCb](int errorCode, QString errorMsg){
+        [errorCb](QString errorCode, QString errorMsg){
             errorCb(errorCode, errorMsg);
         });
 }
@@ -668,7 +685,7 @@ void OAuth::revokeToken(const QString& token, const QString& tokenType,
             qDebug() << "Revoke token request success:" << tokenType;
             successCb();
         },
-        [errorCb, tokenType](int errorCode, QString errorMsg){
+        [errorCb, tokenType](QString errorCode, QString errorMsg){
             qDebug() << "Revoke token request failed:" << tokenType << errorCode << errorMsg;
             errorCb(errorCode, errorMsg);
         }
@@ -683,7 +700,7 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
     if (request.mDpopResendCount >= MAX_DPOP_RESEND)
     {
         qWarning() << "Max DPoP resends:" << request.mDpopResendCount;
-        errorCb(QNetworkReply::ProtocolInvalidOperationError, "Max DPoP resends");
+        errorCb(ERROR_SERVER_ERROR, "Max DPoP resends");
         return;
     }
 

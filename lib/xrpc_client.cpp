@@ -119,7 +119,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
         [](QUrl url, NetworkThread::OAuthLoginSuccessCb cb){ cb(std::move(url)); });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthLoginFailed, this,
-        [](QString error, NetworkThread::OAuthErrorCb cb){ cb(std::move(error)); });
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthRequestInitialTokenSuccess, this,
         [](QString did, QString scope, QString accessToken, QString refreshToken, NetworkThread::OAuthInitalTokenSuccessCb cb){
@@ -127,7 +127,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
         });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthRequestInitialTokenFailed, this,
-        [](QString error, NetworkThread::OAuthErrorCb cb){ cb(std::move(error)); });
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthRefreshTokenSucces, this,
         [](QString accessToken, QString refreshToken, NetworkThread::OAuthRefreshTokenSuccessCb cb){
@@ -135,7 +135,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
         });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthRefreshTokenFailed, this,
-        [](QString error, NetworkThread::OAuthErrorCb cb){ cb(std::move(error)); });
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthLoggedOut, this,
         [](NetworkThread::OAuthLogoutSuccessCb cb){ cb(); });

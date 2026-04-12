@@ -52,7 +52,6 @@ public:
 
     // Internal stack errors
     SHARED_CONST(QString, DPOP_NONCE_MISSING, QStringLiteral("DpopNonceMissing"));
-    SHARED_CONST(QString, OAUTH_REFRESH_FAILED, QStringLiteral("OAuthRefreshFailed"));
     SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 

@@ -119,7 +119,7 @@ public:
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
-    using OAuthErrorCb = std::function<void(QString error)>;
+    using OAuthErrorCb = std::function<void(QString errorCode, QString errorMsg)>;
 
     using Ptr = std::unique_ptr<Client>;
     using SharedPtr = std::shared_ptr<Client>;
@@ -171,7 +171,7 @@ public:
 
     // com.atproto.server
     /**
-     * @brief createSession
+     * @brief createSession (only passwd)
      * @param user user handle or did
      * @param pwd password
      * @param authFactorToken 2FA token
@@ -185,14 +185,14 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief deleteSession Delete the current session
+     * @brief deleteSession Delete the current session (both passwd and oauth)
      * @param successCb
      * @param errorCb
      */
     void deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief resumeSession Resume a previously created session
+     * @brief resumeSession Resume a previously created session (only passwd)
      * @param session
      * @param successCb
      * @param errorCb
@@ -205,6 +205,11 @@ public:
     void resumeAndRefreshSession(const ComATProtoServer::Session& session,
                                  const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
 
+    /**
+     * @brief refreshSession (both passwd and oauth)
+     * @param successCb
+     * @param errorCb
+     */
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb);
@@ -1207,25 +1212,25 @@ public:
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     /**
-     * @brief oauthRequestInitialToken
+     * @brief oauthLoginContinue Request initial tokens and resume the session from the PDS
      * @param url The url gotten from the call back from the auth server
      * @param successCb
      * @param errorCb
      */
-    void oauthRequestInitialToken(const QUrl& url,
-                                  const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
-
-    /**
-     * @brief oauthCreateSession Request initial token and resume the session from the PDS
-     * @param url The url gotten from the call back from the auth server
-     * @param successCb
-     * @param errorCb
-     */
-    void oauthCreateSession(const QUrl& url,
+    void oauthLoginContinue(const QUrl& url,
                             const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthRefreshToken(const QString& refreshToken,
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    /**
+     * @brief oautResumeSession refresh the tokens from the session and resume
+     * @param session
+     * @param successCb
+     * @param errorCb
+     */
+    void oautResumeSession(const ComATProtoServer::Session& session,
+                           const SuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);

@@ -32,6 +32,16 @@ protected:
                       const RequestSuccessCb& successCb, const RequestErrorCb& errorCb,
                       std::shared_ptr<bool> errorHandled) = 0;
 
+    void sslErrorCallback(int code, const QString& error, const std::function<void(int code, QString error)>& cb) const
+    {
+        cb(code, error);
+    }
+
+    void sslErrorCallback(int, const QString& error, const std::function<void(QString code, QString error)>& cb) const
+    {
+        cb("SslError", error);
+    }
+
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const RequestErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
     {
         Q_ASSERT(reply);
@@ -45,7 +55,7 @@ protected:
             if (!errors.empty())
                 msg.append(": ").append(errors.front().errorString());
 
-            errorCb(reply->error(), msg);
+            sslErrorCallback(reply->error(), msg, errorCb);
         }
         else
         {

@@ -105,7 +105,7 @@ public:
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
-    using OAuthErrorCb = std::function<void(QString error)>;
+    using OAuthErrorCb = std::function<void(QString errorCode, QString errorMsg)>;
 
     using CallbackType = std::variant<
         SuccessJsonCb,
@@ -299,11 +299,11 @@ signals:
 
     // OAuth
     void oauthLoginRedirect(QUrl url, OAuthLoginSuccessCb cb);
-    void oauthLoginFailed(QString error, OAuthErrorCb cb);
+    void oauthLoginFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
     void oauthRequestInitialTokenSuccess(QString did, QString scope, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
-    void oauthRequestInitialTokenFailed(QString error, OAuthErrorCb cb);
+    void oauthRequestInitialTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
     void oauthRefreshTokenSucces(QString accessToken, QString refreshToken, OAuthRefreshTokenSuccessCb cb);
-    void oauthRefreshTokenFailed(QString error, OAuthErrorCb cb);
+    void oauthRefreshTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
     void oauthLoggedOut(OAuthLogoutSuccessCb cb);
 
 protected:

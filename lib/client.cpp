@@ -520,15 +520,21 @@ void Client::refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& erro
             if (successCb)
                 successCb();
         },
-        [this, presence=getPresence(), errorCb](QString error){
+        [this, presence=getPresence(), errorCb](QString errorCode, QString errorMsg){
             if (!presence)
                 return;
 
-            qWarning() << "Refresh OAUth failed:" << mSession->mDid << "error:" << error;
+            qWarning() << "Refresh OAUth failed:" << mSession->mDid << "error:" << errorCode << "-" << errorMsg;
 
-            // TODO: handle expired token
             if (errorCb)
-                errorCb(ATProtoErrorMsg::OAUTH_REFRESH_FAILED, error);
+            {
+                // Map OAuth error for an invalid/expired token to the ATProto error INVALID_TOKEN,
+                // so expired/revoked tokens will be handled correctly byt the caller.
+                if (errorCode == OAuth::ERROR_INVALID_GRANT)
+                    errorCb(ATProtoErrorMsg::INVALID_TOKEN, errorMsg);
+                else
+                    errorCb(errorCode, errorMsg);
+            }
         });
 }
 
@@ -3167,16 +3173,10 @@ void Client::oauthLogin(const QString& user, const QString& clientId, const QStr
     mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
 }
 
-void Client::oauthRequestInitialToken(const QUrl& url,
-                              const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
-{
-    mXrpc->oauthRequestInitialToken(url, successCb, errorCb);
-}
-
-void Client::oauthCreateSession(const QUrl& url,
+void Client::oauthLoginContinue(const QUrl& url,
                         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    oauthRequestInitialToken(url,
+    mXrpc->oauthRequestInitialToken(url,
         [this, presence=getPresence(), successCb, errorCb](QString did, QString scope, QString accessToken, QString refreshToken){
             if (!presence)
                 return;
@@ -3197,22 +3197,35 @@ void Client::oauthCreateSessionContinue(
     session.mRefreshJwt = refreshToken;
 
     resumeSession(session,
-        [this, presence=getPresence(), did, scope, accessToken, refreshToken, successCb]{
-            auto* s = getSession();
-            Q_ASSERT(s);
-            qDebug() << "Session:" << s->mHandle << "did:" << s->mDid << "access:" << s->mAccessJwt << "refresh:" << s->mRefreshJwt;
+        [did, scope, accessToken, refreshToken, successCb]{
             successCb(did, scope, accessToken, refreshToken);
         },
-        [errorCb](const QString& error, const QString& msg){
-            qWarning() << "Get session failed:" << error << " - " << msg;
-            errorCb(msg);
-        });
+        errorCb);
 }
 
 void Client::oauthRefreshToken(const QString& refreshToken,
                        const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
+}
+
+void Client::oautResumeSession(const ComATProtoServer::Session& session,
+                       const SuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Resume:" << session.mDid;
+
+    oauthRefreshToken(session.mRefreshJwt,
+        [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
+            if (!presence)
+                return;
+
+            qDebug() << "Got tokens, resume session";
+            ComATProtoServer::Session newSession(session);
+            newSession.mAccessJwt = newAccessToken;
+            newSession.mRefreshJwt = newRefreshToken;
+            resumeSession(session, successCb, errorCb);
+        },
+        errorCb);
 }
 
 void Client::oauthLogout(const QString& accessToken, const QString& refreshToken,
