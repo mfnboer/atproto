@@ -34,6 +34,14 @@ bool NetworkUtils::isSafeUrl(const QUrl url)
         return false;
     }
 
+    const QChar lastChar = url.host().back();
+
+    if (lastChar.isDigit())
+    {
+        qWarning() << "IP address as host:" << url;
+        return false;
+    }
+
     return true;
 }
 

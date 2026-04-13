@@ -1207,6 +1207,8 @@ public:
      * @param scope
      * @param successCb
      * @param errorCb
+     *
+     * PDS will be resolved from the user
      */
     void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
@@ -1228,6 +1230,8 @@ public:
      * @param session
      * @param successCb
      * @param errorCb
+     *
+     * PDS will be resolved from the user
      */
     void oautResumeSession(const ComATProtoServer::Session& session,
                            const SuccessCb& successCb, const OAuthErrorCb& errorCb);
@@ -1272,10 +1276,14 @@ private:
                          const QString& pds = {});
 
     void resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc);
+    void setPdsFromUser(const QString& user, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void oauthCreateSessionContinue(
         const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oautResumeSessionContinue(
+        const ComATProtoServer::Session& session,
+        const SuccessCb& successCb, const OAuthErrorCb& errorCb);
     void deleteSessionOAuth(const SuccessCb& successCb);
     void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
 

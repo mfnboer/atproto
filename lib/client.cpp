@@ -196,34 +196,12 @@ void Client::createSession(const QString& user, const QString& pwd,
 {
     mXrpc->enableOAuth(false);
 
-    if (user.startsWith("did:"))
-    {
-        qDebug() << "User is did:" << user;
-
-        mXrpc->setPDSFromDid(user,
-            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
-                if (presence)
-                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
-            },
-            [errorCb](const QString& error){
-                if (errorCb)
-                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
-            });
-    }
-    else
-    {
-        qDebug() << "User is handle:" << user;
-
-        mXrpc->setPDSFromHandle(user,
-            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
-                if (presence)
-                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
-            },
-            [errorCb](const QString& error){
-                if (errorCb)
-                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
-            });
-    }
+    setPdsFromUser(user,
+        [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
+            if (presence)
+                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+        },
+        errorCb);
 }
 
 void Client::createSessionContinue(const QString& user, const QString& pwd,
@@ -3169,8 +3147,15 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
 void Client::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    mXrpc->enableOAuth(true);
-    mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
+    setPdsFromUser(user,
+        [this, presence=getPresence(), user, clientId, redirectUrl, scope, successCb, errorCb]{
+            if (!presence)
+                return;
+
+            mXrpc->enableOAuth(true);
+            mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
+        },
+        errorCb);
 }
 
 void Client::oauthLoginContinue(const QUrl& url,
@@ -3178,10 +3163,8 @@ void Client::oauthLoginContinue(const QUrl& url,
 {
     mXrpc->oauthRequestInitialToken(url,
         [this, presence=getPresence(), successCb, errorCb](QString did, QString scope, QString accessToken, QString refreshToken){
-            if (!presence)
-                return;
-
-            oauthCreateSessionContinue(did, scope, accessToken, refreshToken, successCb, errorCb);
+            if (presence)
+                oauthCreateSessionContinue(did, scope, accessToken, refreshToken, successCb, errorCb);
         },
         errorCb);
 }
@@ -3214,6 +3197,21 @@ void Client::oautResumeSession(const ComATProtoServer::Session& session,
 {
     qDebug() << "Resume:" << session.mDid;
 
+    mXrpc->setPDSFromDid(session.mDid,
+        [this, presence=getPresence(), session, successCb, errorCb]{
+            if (presence)
+                oautResumeSessionContinue(session, successCb, errorCb);
+        },
+        [errorCb](const QString& error){
+            if (errorCb)
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+        });
+}
+
+void Client::oautResumeSessionContinue(
+    const ComATProtoServer::Session& session,
+    const SuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
     oauthRefreshToken(session.mRefreshJwt,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
             if (!presence)
@@ -3468,6 +3466,32 @@ void Client::resolvePds(const QString& repo, const ErrorCb& errorCb, std::functi
             if (errorCb)
                 errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
         });
+}
+
+void Client::setPdsFromUser(const QString& user, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (user.startsWith("did:"))
+    {
+        qDebug() << "User is did:" << user;
+
+        mXrpc->setPDSFromDid(user,
+            successCb,
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+            });
+    }
+    else
+    {
+        qDebug() << "User is handle:" << user;
+
+        mXrpc->setPDSFromHandle(user,
+            successCb,
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+            });
+    }
 }
 
 }
