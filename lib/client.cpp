@@ -333,25 +333,10 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
         session.mAccessJwt);
 }
 
-void Client::resumeAndRefreshSession(bool useOAuth, const ComATProtoServer::Session& session,
+void Client::resumeAndRefreshSession(const ComATProtoServer::Session& session,
                                      const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb)
 {
-    if (useOAuth)
-    {
-        // TODO: get clientId, redirectUrl
-        oauthResumeSession(session, successCb,
-            [errorCb](QString error, QString msg){
-                qWarning() << "Session could not be resumed:" << error << " - " << msg;
-
-                // TODO: check for invalid token?
-                if (errorCb)
-                    errorCb(error, msg, "", "");
-            });
-    }
-    else
-    {
-        resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
-    }
+    resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
 }
 
 void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
@@ -2117,7 +2102,7 @@ void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVide
                 successCb(std::move(output));
         },
         failure(errorCb),
-        serviceAuthToken);
+        serviceAuthToken, true);
 }
 
 void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
@@ -2200,7 +2185,7 @@ void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const
                 requestFailed(err, reply, errorCb);
             }
         },
-        serviceAuthToken);
+        serviceAuthToken, true);
 }
 
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
@@ -2251,7 +2236,7 @@ void Client::getBlobContinue(const QString& did, const QString& cid,
                 successCb(bytes, contentType);
         },
         failureInvalidatePds(did, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -2292,7 +2277,7 @@ void Client::getRecordContinue(const QString& repo, const QString& collection,
             }
         },
         failureInvalidatePds(repo, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -2335,7 +2320,7 @@ void Client::listRecordsContinue(const QString& repo, const QString& collection,
             }
         },
         failureInvalidatePds(repo, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -3207,19 +3192,19 @@ void Client::oauthRefreshToken(const QString& refreshToken,
     mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
 }
 
-void Client::oauthResumeSession(const QString& user, const QString& clientId,
-                                const QString& redirectUrl, const ComATProtoServer::Session& session,
+void Client::oauthResumeSession(const QString& clientId,
+                                const ComATProtoServer::Session& session,
                                 const SuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Resume:" << session.mDid;
 
     mXrpc->setPDSFromDid(session.mDid,
-        [this, presence=getPresence(), user, clientId, redirectUrl, session, successCb, errorCb]{
+        [this, presence=getPresence(), clientId, session, successCb, errorCb]{
             if (!presence)
                 return;
 
             mXrpc->enableOAuth(true);
-            oautResumeSessionContinue(user, clientId, redirectUrl, session, successCb, errorCb);
+            oautResumeSessionContinue(clientId, session, successCb, errorCb);
         },
         [errorCb](const QString& error){
             if (errorCb)
@@ -3228,11 +3213,10 @@ void Client::oauthResumeSession(const QString& user, const QString& clientId,
 }
 
 void Client::oautResumeSessionContinue(
-    const QString& user, const QString& clientId,
-    const QString& redirectUrl, const ComATProtoServer::Session& session,
+    const QString& clientId, const ComATProtoServer::Session& session,
     const SuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    mXrpc->oauthResumeSession(user, clientId, redirectUrl, session.mRefreshJwt,
+    mXrpc->oauthResumeSession(clientId, session.mRefreshJwt,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
             if (!presence)
                 return;
@@ -3241,7 +3225,7 @@ void Client::oautResumeSessionContinue(
             ComATProtoServer::Session newSession(session);
             newSession.mAccessJwt = newAccessToken;
             newSession.mRefreshJwt = newRefreshToken;
-            resumeSession(session, successCb, errorCb);
+            resumeSession(newSession, successCb, errorCb);
         },
         errorCb);
 }
@@ -3251,6 +3235,18 @@ void Client::oauthLogout(const QString& accessToken, const QString& refreshToken
 {
     mXrpc->oauthLogout(accessToken, refreshToken, successCb);
 }
+
+#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+void Client::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
+{
+    mXrpc->oauthSaveDpopKey(path, passPhrase);
+}
+
+void Client::oauthLoadDpopKey(const QString& path, const QString& passPhrase)
+{
+    mXrpc->oauthLoadDpopKey(path, passPhrase);
+}
+#endif
 
 const QString& Client::authToken() const
 {

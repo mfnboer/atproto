@@ -90,6 +90,7 @@ protected:
         {
         case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
             qWarning() << "Retry on unknown error";
+            return true;
         case QNetworkReply::ContentReSendError:
         case QNetworkReply::OperationCanceledError: // Timeout
         case QNetworkReply::RemoteHostClosedError:

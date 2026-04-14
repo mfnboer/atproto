@@ -75,7 +75,7 @@ void OAuth::login(const QString& user, const QString& redirectUrl, const QString
     getServerMetaData(
         [this, presence=getPresence(), user, redirectUrl, authScope, successCb, errorCb]{
             if (presence)
-                authorizeContinuePAR(user, redirectUrl, authoScope, authScope, successCb, errorCb);
+                authorizeContinuePAR(user, redirectUrl, authScope, successCb, errorCb);
         },
         errorCb);
 }

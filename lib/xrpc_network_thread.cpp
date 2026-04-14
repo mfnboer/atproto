@@ -68,7 +68,8 @@ void NetworkThread::run()
 }
 
 void NetworkThread::postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
-              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+              bool isServiceAuthToken)
 {
     Request request;
     request.mIsPost = true;
@@ -76,7 +77,7 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request, accessJwt);
+        setAuthorization(request, accessJwt, isServiceAuthToken);
 
     // Setting Content-Type header when no body is present causes this error on some
     // PDS' as of 23-6-2024
@@ -89,15 +90,16 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
 }
 
 void NetworkThread::postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
-              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+              bool isServiceAuthToken)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
-    postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt);
+    postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
 void NetworkThread::get(const QString& service, const Params& params, const Params& rawHeaders,
          const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
-         const QString& pds)
+         bool isServiceAuthToken, const QString& pds)
 {
     Request request;
     request.mIsPost = false;
@@ -105,7 +107,7 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request, accessJwt);
+        setAuthorization(request, accessJwt, isServiceAuthToken);
 
     setRawHeaders(request.mXrpcRequest, rawHeaders);
     sendRequest(request, successCb, errorCb);
@@ -760,13 +762,13 @@ void NetworkThread::setUserAgentHeader(QNetworkRequest& request) const
         request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
-void NetworkThread::setAuthorization(Request& request, const QString& accessJwt) const
+void NetworkThread::setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const
 {
-    if (mOAuth)
+    if (mOAuth && !isServiceAuthToken)
     {
-        const QUrl url = request.mXrpcRequest.url();
+        const QUrl requestUrl = request.mXrpcRequest.url();
         const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-            request.mIsPost ? "POST" : "GET", url.toString(), accessJwt, mDpopPdsNonce);
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mDpopPdsNonce);
 
         QString auth = QString("DPoP %1").arg(accessJwt);
         request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
@@ -793,6 +795,7 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
 void NetworkThread::enableOAuth(const QString& clientId)
 {
     qDebug() << "Enable OAuth:" << clientId;
+    Q_ASSERT(!mDpopKey.isNull());
     mOAuth = std::make_unique<ATProto::OAuth>(mPDS, clientId, &mDpopKey, mNetwork, this);
     mOAuth->setUserAgent(mUserAgent);
     mDpopPdsNonce.clear();
@@ -890,13 +893,19 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
         });
 }
 
-void NetworkThread::oauthResumeSession(const QString& user, const QString& clientId,
-                                       const QString& redirectUrl, const QString& refreshToken,
+void NetworkThread::oauthResumeSession(const QString& clientId, const QString& refreshToken,
                                        const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    // TODO: need redirectUrl?
-    qDebug() << "Resume session:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
-    enableOAuth(user, clientId, redirectUrl);
+    qDebug() << "Resume session:" << clientId;
+
+    if (mDpopKey.isNull())
+    {
+        qWarning() << "No DPoP key";
+        QTimer::singleShot(0, this, [errorCb]{ errorCb("InvalidSession", "Cannot resume session"); });
+        return;
+    }
+
+    enableOAuth(clientId);
 
     mOAuth->resumeSession(refreshToken,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
@@ -939,5 +948,21 @@ void NetworkThread::oauthCleanup()
     mOAuthIssuer.clear();
     mDpopPdsNonce.clear();
 }
+
+#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+void NetworkThread::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
+{
+    if (!mDpopKey.save(path, passPhrase))
+        qWarning() << "Could not save key";
+}
+
+void NetworkThread::oauthLoadDpopKey(const QString& path, const QString& passPhrase)
+{
+    mDpopKey = ATProto::JsonWebKey::load(path, passPhrase);
+
+    if (mDpopKey.isNull())
+        qWarning() << "Could not load key";
+}
+#endif
 
 }

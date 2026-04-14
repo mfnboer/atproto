@@ -198,12 +198,14 @@ public:
     void setVideoHost(const QString& host);
 
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
-                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
+                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+                  bool isServiceAuthToken);
     void postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
-                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
+                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+                  bool isServiceAuthToken);
     void get(const QString& service, const Params& params, const Params& rawHeaders,
              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
-             const QString& pds);
+             bool isServiceAuthToken, const QString& pds);
 
     // OAuth
     // OAuth is done from the network thread. Creating DPoP proofs is expensive (15ms on Android).
@@ -218,11 +220,15 @@ public:
                                   const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthRefreshToken(const QString& refreshToken,
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
-    void oauthResumeSession(const QString& user, const QString& clientId,
-                            const QString& redirectUrl, const QString& refreshToken,
+    void oauthResumeSession(const QString& clientId, const QString& refreshToken,
                             const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
+
+#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+    void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
+    void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
+#endif
 
 signals:
     // clazy:excludeall=fully-qualified-moc-types
@@ -316,7 +322,7 @@ private:
     QUrl buildUrl(const QString& service, const QString& pds = {}) const;
     QUrl buildUrl(const QString& service, const Params& params, const QString& pds = {}) const;
     void setUserAgentHeader(QNetworkRequest& request) const;
-    void setAuthorization(Request& request, const QString& accessJwt) const;
+    void setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
     void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);

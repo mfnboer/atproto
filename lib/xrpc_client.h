@@ -41,20 +41,26 @@ public:
     void setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
 
     void post(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-              const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {});
+              const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+              const QString& accessJwt = {}, bool isServiceAuthToken = false);
     void post(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
-              const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+              const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb,
+              const QString& accessJwt, bool isServiceAuthToken = false);
     void get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-             const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt = {}, const QString& pds = {});
+             const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+             const QString& accessJwt = {}, bool isServiceAuthToken = false, const QString& pds = {});
 
 signals:
     // Internal use
     void postDataToNetwork(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
-                           const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+                           const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb,
+                           const QString& accessJwt, bool isServiceAuthToken);
     void postJsonToNetwork(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-                           const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt);
+                           const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+                           const QString& accessJwt, bool isServiceAuthToken);
     void getToNetwork(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                      const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds);
+                      const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+                      const QString& accessJwt, bool isServiceAuthToken, const QString& pds);
     void pdsChanged(const QString& pds);
     void oauthDisabled();
     void userAgentChanged(const QString& userAgent);
@@ -66,11 +72,15 @@ signals:
                                   const NetworkThread::OAuthInitalTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthRefreshToken(const QString& refreshToken,
                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
-    void oauthResumeSession(const QString& user, const QString& clientId,
-                            const QString& redirectUrl, const QString& refreshToken,
+    void oauthResumeSession(const QString& clientId, const QString& refreshToken,
                             const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const NetworkThread::OAuthLogoutSuccessCb& successCb);
+
+#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+    void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
+    void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
+#endif
 
 private:
     template<typename CallbackType, typename ArgType>

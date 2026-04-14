@@ -202,7 +202,7 @@ public:
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    void resumeAndRefreshSession(bool useOAuth, const ComATProtoServer::Session& session,
+    void resumeAndRefreshSession(const ComATProtoServer::Session& session,
                                  const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
 
     /**
@@ -1231,14 +1231,18 @@ public:
      * @param successCb
      * @param errorCb
      *
-     * PDS will be resolved from the user
+     * PDS will be resolved from the session DID
      */
-    void oauthResumeSession(const QString& user, const QString& clientId,
-                            const QString& redirectUrl, const ComATProtoServer::Session& session,
+    void oauthResumeSession(const QString& clientId, const ComATProtoServer::Session& session,
                             const SuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
+
+#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+    void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
+    void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
+#endif
 
 private:
     const QString& authToken() const;
@@ -1283,8 +1287,7 @@ private:
         const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oautResumeSessionContinue(
-        const QString& user, const QString& clientId,
-        const QString& redirectUrl, const ComATProtoServer::Session& session,
+        const QString& clientId, const ComATProtoServer::Session& session,
         const SuccessCb& successCb, const OAuthErrorCb& errorCb);
     void deleteSessionOAuth(const SuccessCb& successCb);
     void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
