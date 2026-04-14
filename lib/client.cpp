@@ -49,7 +49,7 @@ static void addOptionalDateTimeParam(Xrpc::NetworkThread::Params& params, const 
                                  const std::optional<QDateTime>& value)
 {
     if (value)
-        params.append({name, value->toString(Qt::ISODateWithMs)});
+        params.append({name, value->toUTC().toString(Qt::ISODateWithMs)});
 }
 
 static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QString& name,
@@ -754,6 +754,7 @@ void Client::putPreferences(const UserPreferences& userPrefs,
     AppBskyActor::GetPreferencesOutput prefs;
     prefs.mPreferences = userPrefs.toPreferenceList();
     auto json = prefs.toJson();
+    qDebug() << "PREFS:" << json;
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
@@ -1845,7 +1846,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 {
     QJsonDocument json;
     QJsonObject paramsJson;
-    paramsJson.insert("seenAt", dateTime.toString(Qt::ISODateWithMs));
+    paramsJson.insert("seenAt", dateTime.toUTC().toString(Qt::ISODateWithMs));
     json.setObject(paramsJson);
 
     Xrpc::NetworkThread::Params httpHeaders;

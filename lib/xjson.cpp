@@ -47,7 +47,7 @@ void XJsonObject::insertOptionalDateTime(QJsonObject& json, const QString& key, 
     if (!value)
         json.remove(key);
     else
-        json.insert(key, value->toString(Qt::ISODateWithMs));
+        json.insert(key, value->toUTC().toString(Qt::ISODateWithMs));
 }
 
 XJsonObject::XJsonObject(const QJsonObject& obj) :

@@ -91,7 +91,7 @@ QJsonObject VerificationView::toJson() const
     json.insert("issuer", mIssuer);
     json.insert("uri", mUri);
     json.insert("isValid", mIsValid);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -202,7 +202,7 @@ QJsonObject Status::toJson() const
     json.insert("status", actorStatusToString(mStatus, mRawStatus));
     XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonValue(json, "durationMinutes", mDurationMinutes);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 

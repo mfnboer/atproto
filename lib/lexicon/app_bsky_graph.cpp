@@ -50,7 +50,7 @@ QJsonObject Follow::toJson() const
     QJsonObject json(mJson);
     json.insert("$type", "app.bsky.graph.follow");
     json.insert("subject", mSubject);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
@@ -71,7 +71,7 @@ QJsonObject Block::toJson() const
     QJsonObject json(mJson);
     json.insert("$type", "app.bsky.graph.block");
     json.insert("subject", mSubject);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -225,7 +225,7 @@ QJsonObject List::toJson() const
     json.insert("descriptionFacets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mDescriptionFacets));
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -250,7 +250,7 @@ QJsonObject ListBlock::toJson() const
     QJsonObject json(mJson);
     json.insert("$type", "app.bsky.graph.listblock");
     json.insert("subject", mSubject);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -270,7 +270,7 @@ QJsonObject ListItem::toJson() const
     json.insert("$type", TYPE);
     json.insert("subject", mSubject);
     json.insert("list", mList);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -346,7 +346,7 @@ QJsonObject StarterPack::toJson() const
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "descriptionFacets", mDescriptionFacets);
     json.insert("list", mList);
     XJsonObject::insertOptionalArray<StarterPackFeedItem>(json, "feeds", mFeeds);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -375,7 +375,7 @@ QJsonObject StarterPackViewBasic::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "joinedWeekCount", mJoinedWeekCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "joinedAllTimeCount", mJoinedAllTimeCount, 0);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -455,7 +455,7 @@ QJsonObject Verification::toJson() const
     json.insert("subject", mSubject);
     json.insert("handle", mHandle);
     json.insert("displayName", mDisplayName);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 

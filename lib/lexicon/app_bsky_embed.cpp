@@ -645,7 +645,7 @@ QJsonObject RecordViewRecord::toJson() const
     json.insert("value", XJsonObject::variantToJsonObject(mValue));
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalArray<EmbedView>(json, "embeds", mEmbeds);
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
