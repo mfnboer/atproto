@@ -790,11 +790,10 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
     }
 }
 
-void NetworkThread::enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl)
+void NetworkThread::enableOAuth(const QString& clientId)
 {
-    qDebug() << "Enable OAuth:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
-    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
-    mOAuth = std::make_unique<ATProto::OAuth>(user, mPDS, clientId, redirectUrl, &mDpopKey, mNetwork, this);
+    qDebug() << "Enable OAuth:" << clientId;
+    mOAuth = std::make_unique<ATProto::OAuth>(mPDS, clientId, &mDpopKey, mNetwork, this);
     mOAuth->setUserAgent(mUserAgent);
     mDpopPdsNonce.clear();
 }
@@ -810,9 +809,10 @@ void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
                                const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Login:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
-    enableOAuth(user, clientId, redirectUrl);
+    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
+    enableOAuth(clientId);
 
-    mOAuth->login(scope,
+    mOAuth->login(user, redirectUrl, scope,
         [this, successCb](QString state, QString issuer, QUrl redirectUrl){
             qDebug() << "Login state:" << state << "issuer:" << issuer << "redirect:" << redirectUrl;
             mOAuthState = state;
@@ -861,7 +861,10 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
         return;
     }
 
-    mOAuth->initialTokenRequest(code,
+    const QString redirectUrl = url.toString(QUrl::RemoveQuery);
+    qDebug() << "RedirectUrl:" << redirectUrl;
+
+    mOAuth->initialTokenRequest(code, redirectUrl,
         [this, successCb](QString did, QString scope, QString accessToken, QString refreshToken){
             qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
             oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);

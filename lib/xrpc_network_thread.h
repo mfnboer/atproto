@@ -209,7 +209,7 @@ public:
     // OAuth is done from the network thread. Creating DPoP proofs is expensive (15ms on Android).
     // openssl on Android can do it in 2ms, but the Android Keystore offers better security and
     // key storage.
-    void enableOAuth(const QString& user, const QString& clientId, const QString& redirectUrl);
+    void enableOAuth(const QString& clientId);
     void disableOAuth();
     void oauthLogin(const QString& user, const QString& clientId,
                     const QString& redirectUrl, const QStringList& scope,
