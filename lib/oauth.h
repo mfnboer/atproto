@@ -65,12 +65,12 @@ public:
     using SuccessCb = std::function<void()>;
     using ErrorCb = std::function<void(QString code, QString msg)>;
 
-    static constexpr char const* SCPOPE_ATPROTO = "atproto";
-    static constexpr char const* SCPOPE_TRANSITION_GENERIC = "transition:generic";
-    static constexpr char const* SCPOPE_TRANSITION_EMAIL = "transition:email";
-    static constexpr char const* SCPOPE_TRANSITION_CHAT = "transition:chat.bsky";
-    static constexpr char const* SCPOPE_BSKY_APP = "include:app.bsky.authFullApp?aud=did:web:api.bsky.app%23bsky_appview";
-    static constexpr char const* SCPOPE_BSKY_CHAT = "include:chat.bsky.authFullChatClient?aud=did:web:api.bsky.chat%23bsky_chat";
+    static constexpr char const* SCOPE_ATPROTO = "atproto";
+    static constexpr char const* SCOPE_TRANSITION_GENERIC = "transition:generic";
+    static constexpr char const* SCOPE_TRANSITION_EMAIL = "transition:email";
+    static constexpr char const* SCOPE_TRANSITION_CHAT = "transition:chat.bsky";
+    static constexpr char const* SCOPE_BSKY_APP = "include:app.bsky.authFullApp?aud=did:web:api.bsky.app%23bsky_appview";
+    static constexpr char const* SCOPE_BSKY_CHAT = "include:chat.bsky.authFullChatClient?aud=did:web:api.bsky.chat%23bsky_chat";
 
     static constexpr char const* ERROR_INVALID_REQUEST = "invalid_request";
     static constexpr char const* ERROR_INVALID_CLIENT = "invalid_client";
