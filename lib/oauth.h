@@ -103,6 +103,8 @@ public:
      * @param scope
      * @param successCb
      * @param errorCb
+     *
+     * Gets meta data for the authorizaion server.
      */
     void login(const QStringList& scope,
                const LoginSuccessCb& successCb, const ErrorCb& errorCb);
@@ -118,6 +120,18 @@ public:
 
     void refreshTokenRequest(const QString& refreshToken,
                              const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief resumeSession get meta data and refresh
+     * @param refreshToken
+     * @param successCb
+     * @param errorCb
+     *
+     * Gets meta data for the authorizaion server.
+     *
+     */
+    void resumeSession(const QString& refreshToken,
+                       const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb);
 
     void logout(const QString& accessToken, const QString& refreshToken,
                 const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -135,6 +149,7 @@ private:
     void sendParAuthRequest(const QString& scope,
                             const ParSuccessCb& successCb, const ErrorCb& errorCb);
 
+    void getServerMetaData(const SuccessCb& successCb, const ErrorCb& errorCb);
     void getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
     void handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
     void getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb);

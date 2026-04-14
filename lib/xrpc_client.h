@@ -66,6 +66,9 @@ signals:
                                   const NetworkThread::OAuthInitalTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthRefreshToken(const QString& refreshToken,
                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
+    void oauthResumeSession(const QString& user, const QString& clientId,
+                            const QString& redirectUrl, const QString& refreshToken,
+                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const NetworkThread::OAuthLogoutSuccessCb& successCb);
 

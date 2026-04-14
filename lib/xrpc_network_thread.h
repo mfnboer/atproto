@@ -218,6 +218,9 @@ public:
                                   const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthRefreshToken(const QString& refreshToken,
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthResumeSession(const QString& user, const QString& clientId,
+                            const QString& redirectUrl, const QString& refreshToken,
+                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
 

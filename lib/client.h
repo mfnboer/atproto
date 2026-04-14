@@ -202,7 +202,7 @@ public:
     void resumeSession(const ComATProtoServer::Session& session,
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    void resumeAndRefreshSession(const ComATProtoServer::Session& session,
+    void resumeAndRefreshSession(bool useOAuth, const ComATProtoServer::Session& session,
                                  const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
 
     /**
@@ -1226,15 +1226,16 @@ public:
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     /**
-     * @brief oautResumeSession refresh the tokens from the session and resume
+     * @brief oauthResumeSession refresh the tokens from the session and resume
      * @param session
      * @param successCb
      * @param errorCb
      *
      * PDS will be resolved from the user
      */
-    void oautResumeSession(const ComATProtoServer::Session& session,
-                           const SuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthResumeSession(const QString& user, const QString& clientId,
+                            const QString& redirectUrl, const ComATProtoServer::Session& session,
+                            const SuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
@@ -1282,7 +1283,8 @@ private:
         const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oautResumeSessionContinue(
-        const ComATProtoServer::Session& session,
+        const QString& user, const QString& clientId,
+        const QString& redirectUrl, const ComATProtoServer::Session& session,
         const SuccessCb& successCb, const OAuthErrorCb& errorCb);
     void deleteSessionOAuth(const SuccessCb& successCb);
     void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);

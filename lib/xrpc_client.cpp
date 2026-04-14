@@ -163,6 +163,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::oauthLogin, mNetworkThread.get(), &NetworkThread::oauthLogin, Qt::QueuedConnection);
     connect(this, &Client::oauthRequestInitialToken, mNetworkThread.get(), &NetworkThread::oauthRequestInitialToken, Qt::QueuedConnection);
     connect(this, &Client::oauthRefreshToken, mNetworkThread.get(), &NetworkThread::oauthRefreshToken, Qt::QueuedConnection);
+    connect(this, &Client::oauthResumeSession, mNetworkThread.get(), &NetworkThread::oauthResumeSession, Qt::QueuedConnection);
     connect(this, &Client::oauthLogout, mNetworkThread.get(), &NetworkThread::oauthLogout, Qt::QueuedConnection);
 
     qDebug() << "Start network thread";

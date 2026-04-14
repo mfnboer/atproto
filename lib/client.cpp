@@ -333,10 +333,25 @@ void Client::resumeSessionContinue(const ComATProtoServer::Session& session,
         session.mAccessJwt);
 }
 
-void Client::resumeAndRefreshSession(const ComATProtoServer::Session& session,
+void Client::resumeAndRefreshSession(bool useOAuth, const ComATProtoServer::Session& session,
                                      const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb)
 {
-    resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
+    if (useOAuth)
+    {
+        // TODO: get clientId, redirectUrl
+        oauthResumeSession(session, successCb,
+            [errorCb](QString error, QString msg){
+                qWarning() << "Session could not be resumed:" << error << " - " << msg;
+
+                // TODO: check for invalid token?
+                if (errorCb)
+                    errorCb(error, msg, "", "");
+            });
+    }
+    else
+    {
+        resumeAndRefreshSessionContinue(false, session, successCb, errorCb);
+    }
 }
 
 void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer::Session& session,
@@ -3192,15 +3207,19 @@ void Client::oauthRefreshToken(const QString& refreshToken,
     mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
 }
 
-void Client::oautResumeSession(const ComATProtoServer::Session& session,
-                       const SuccessCb& successCb, const OAuthErrorCb& errorCb)
+void Client::oauthResumeSession(const QString& user, const QString& clientId,
+                                const QString& redirectUrl, const ComATProtoServer::Session& session,
+                                const SuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Resume:" << session.mDid;
 
     mXrpc->setPDSFromDid(session.mDid,
-        [this, presence=getPresence(), session, successCb, errorCb]{
-            if (presence)
-                oautResumeSessionContinue(session, successCb, errorCb);
+        [this, presence=getPresence(), user, clientId, redirectUrl, session, successCb, errorCb]{
+            if (!presence)
+                return;
+
+            mXrpc->enableOAuth(true);
+            oautResumeSessionContinue(user, clientId, redirectUrl, session, successCb, errorCb);
         },
         [errorCb](const QString& error){
             if (errorCb)
@@ -3209,10 +3228,11 @@ void Client::oautResumeSession(const ComATProtoServer::Session& session,
 }
 
 void Client::oautResumeSessionContinue(
-    const ComATProtoServer::Session& session,
+    const QString& user, const QString& clientId,
+    const QString& redirectUrl, const ComATProtoServer::Session& session,
     const SuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    oauthRefreshToken(session.mRefreshJwt,
+    mXrpc->oauthResumeSession(user, clientId, redirectUrl, session.mRefreshJwt,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
             if (!presence)
                 return;

@@ -74,14 +74,12 @@ void OAuth::login(const QStringList& scope,
     const QString authScope = scope.join(' ');
     qDebug() << "Login, scope:" << authScope;
 
-    getProtectedResourceRequest(
+    getServerMetaData(
         [this, presence=getPresence(), authScope, successCb, errorCb]{
             if (presence)
-                authorizeContinue(authScope, successCb, errorCb);
+                authorizeContinuePAR(authScope, successCb, errorCb);
         },
-        [errorCb](QString code, QString msg){
-            errorCb(code, msg);
-        });
+        errorCb);
 }
 
 std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) const
@@ -93,19 +91,6 @@ std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) c
     request.setMaximumRedirectsAllowed(0);
     setUserAgentHeader(request);
     return request;
-}
-
-void OAuth::authorizeContinue(const QString& scope,
-                              const LoginSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    getAuthorizationServerRequest(
-        [this, presence=getPresence(), scope, successCb, errorCb]{
-            if (presence)
-                authorizeContinuePAR(scope, successCb, errorCb);
-        },
-        [errorCb](QString code, QString msg){
-            errorCb(code, msg);
-        });
 }
 
 void OAuth::authorizeContinuePAR(const QString& scope,
@@ -127,6 +112,16 @@ void OAuth::authorizeContinuePAR(const QString& scope,
         [errorCb](QString code, QString msg){
             errorCb(code, msg);
         });
+}
+
+void OAuth::getServerMetaData(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    getProtectedResourceRequest(
+        [this, presence=getPresence(), successCb, errorCb]{
+            if (presence)
+                getAuthorizationServerRequest(successCb, errorCb);
+        },
+        errorCb);
 }
 
 void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -626,6 +621,19 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
             errorCb(errorCode, errorMsg);
         }
     );
+}
+
+void OAuth::resumeSession(const QString& refreshToken,
+                          const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Resume session";
+
+    getServerMetaData(
+        [this, presence=getPresence(), refreshToken, successCb, errorCb]{
+            if (presence)
+                refreshTokenRequest(refreshToken, successCb, errorCb);
+        },
+        errorCb);
 }
 
 void OAuth::logout(const QString& accessToken, const QString& refreshToken,

@@ -887,6 +887,25 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
         });
 }
 
+void NetworkThread::oauthResumeSession(const QString& user, const QString& clientId,
+                                       const QString& redirectUrl, const QString& refreshToken,
+                                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    // TODO: need redirectUrl?
+    qDebug() << "Resume session:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl;
+    enableOAuth(user, clientId, redirectUrl);
+
+    mOAuth->resumeSession(refreshToken,
+        [this, successCb](QString newAccessToken, QString newRefreshToken){
+            qDebug() << "Resumed session access:" << newAccessToken << "refresh:" << newRefreshToken;
+            emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
+        },
+        [this, errorCb](QString code, QString error){
+            qWarning() << "Resume session error:" << code << error;
+            emit oauthRefreshTokenFailed(code, error, errorCb);
+        });
+}
+
 void NetworkThread::oauthLogout(const QString& accessToken, const QString& refreshToken,
                                 const OAuthLogoutSuccessCb& successCb)
 {
