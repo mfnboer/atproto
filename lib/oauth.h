@@ -90,8 +90,7 @@ public:
      * @param dpopPrivateJwk
      * @param parent
      */
-    OAuth(const QString& user, const QString& pds,
-          const QString& clientId, const QString& redirectUrl,
+    OAuth(const QString& pds, const QString& clientId,
           JsonWebKey* dpopPrivateJwk,
           QNetworkAccessManager* network,
           QObject* parent = nullptr);
@@ -106,7 +105,7 @@ public:
      *
      * Gets meta data for the authorizaion server.
      */
-    void login(const QStringList& scope,
+    void login(const QString& user, const QString& redirectUrl, const QStringList& scope,
                const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -115,7 +114,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void initialTokenRequest(const QString& code,
+    void initialTokenRequest(const QString& code, const QString& redirectUrl,
                              const InitialTokenSuccessCb& successCb, const ErrorCb& errorCb);
 
     void refreshTokenRequest(const QString& refreshToken,
@@ -141,12 +140,12 @@ public:
 private:
     std::optional<QNetworkRequest> createNetworkRequest(const QString& url) const;
 
-    void authorizeContinue(const QString& scope,
+    void authorizeContinue(const QString& user, const QString& redirectUrl, const QString& scope,
                            const LoginSuccessCb& successCb, const ErrorCb& errorCb);
-    void authorizeContinuePAR(const QString& scope,
+    void authorizeContinuePAR(const QString& user, const QString& redirectUrl, const QString& scope,
                               const LoginSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void sendParAuthRequest(const QString& scope,
+    void sendParAuthRequest(const QString& user, const QString& redirectUrl, const QString& scope,
                             const ParSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getServerMetaData(const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -179,13 +178,10 @@ private:
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     QString createPkceCodeChallenge(const QString& verifier) const;
-
-    QString mLoginHint;
     QString mPds;
     ProtectedResourceMeta::Ptr mProtecedResourceMeta;
     AuthorizationServerMeta::Ptr mAuthorizationServerMeta;
     QString mClientId;
-    QString mClientRedirectUrl;
     JsonWebKey* mDpopPrivateJwk = nullptr;
     QString mDpopNonce;
     QString mPkceVerifier;
