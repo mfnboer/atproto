@@ -3237,7 +3237,12 @@ void Client::oauthLogout(const QString& accessToken, const QString& refreshToken
     mXrpc->oauthLogout(accessToken, refreshToken, successCb);
 }
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+void Client::oauthSetDpopKeyAlias(const QString& alias)
+{
+    mXrpc->oauthSetDpopKeyAlias(alias);
+}
+#else
 void Client::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
 {
     mXrpc->oauthSaveDpopKey(path, passPhrase);

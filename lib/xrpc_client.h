@@ -77,7 +77,9 @@ signals:
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const NetworkThread::OAuthLogoutSuccessCb& successCb);
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    void oauthSetDpopKeyAlias(const QString& alias);
+#else
     void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
     void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
 #endif

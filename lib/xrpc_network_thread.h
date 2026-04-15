@@ -101,7 +101,7 @@ public:
     using SuccessConvoOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoOutput::SharedPtr)>;
 
     // oauth
-    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // alias only set on Androids
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
@@ -225,7 +225,10 @@ public:
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    const QString& oauthDpopKeyGetAlias() const;
+    void oauthSetDpopKeyAlias(const QString& alias);
+#else
     void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
     void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
 #endif
@@ -307,7 +310,7 @@ signals:
     void requestInvalidJsonError(QString exceptionMsg, ErrorCb cb);
 
     // OAuth
-    void oauthLoginRedirect(QUrl url, OAuthLoginSuccessCb cb);
+    void oauthLoginRedirect(QUrl url, QString alias, OAuthLoginSuccessCb cb);
     void oauthLoginFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
     void oauthRequestInitialTokenSuccess(QString did, QString scope, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
     void oauthRequestInitialTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);

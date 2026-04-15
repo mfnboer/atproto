@@ -805,6 +805,7 @@ void NetworkThread::disableOAuth()
 {
     qDebug() << "Disable OAuth";
     mOAuth.reset();
+    oauthCleanup();
 }
 
 void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
@@ -820,10 +821,17 @@ void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
             qDebug() << "Login state:" << state << "issuer:" << issuer << "redirect:" << redirectUrl;
             mOAuthState = state;
             mOAuthIssuer = issuer;
-            emit oauthLoginRedirect(std::move(redirectUrl), successCb);
+
+#ifdef Q_OS_ANDROID
+            QString alias = mDpopKey.getAlias();
+#else
+            QString alias;
+#endif
+            emit oauthLoginRedirect(std::move(redirectUrl), std::move(alias), successCb);
         },
         [this, errorCb](QString code, QString msg){
             qWarning() << "Login error:" << code << msg;
+            oauthCleanup();
             emit oauthLoginFailed(std::move(code), std::move(msg), errorCb);
         });
 }
@@ -838,6 +846,7 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
     if (state != mOAuthState)
     {
         qWarning() << "Unexpected state:" << state << "expected:" << mOAuthState;
+        oauthCleanup();
         emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected state", errorCb);
         return;
     }
@@ -849,6 +858,7 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
         // Spaces seem to be encoded as '+'s
         const QString errorDescription = query.queryItemValue("error_description", QUrl::FullyDecoded).replace('+', ' ');
         qWarning() << "Error:" << error << "description:" << errorDescription;
+        oauthCleanup();
         emit oauthRefreshTokenFailed(error, errorDescription, errorCb);
         return;
     }
@@ -861,6 +871,7 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
     {
         qWarning() << "Unexpected issuer:" << issuer << "expected:" << mOAuthIssuer;
         emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected issuer", errorCb);
+        oauthCleanup();
         return;
     }
 
@@ -874,6 +885,7 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
         },
         [this, errorCb](QString code, QString error){
             qWarning() << "Token error:" << code << error;
+            oauthCleanup();
             emit oauthRequestInitialTokenFailed(code, error, errorCb);
         });
 }
@@ -938,9 +950,9 @@ void NetworkThread::oauthLogout(const QString& accessToken, const QString& refre
 void NetworkThread::oauthCleanup()
 {
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
-    const QString alias = mDpopKey.getAlias();
+    const QString alias = oauthDpopKeyGetAlias();
 
-    if (JsonWebKey::deleteKey(alias))
+    if (ATProto::JsonWebKey::deleteKey(alias))
         qDebug() << "Deleted key:" << alias;
 #endif
     mDpopKey = {};
@@ -949,7 +961,17 @@ void NetworkThread::oauthCleanup()
     mDpopPdsNonce.clear();
 }
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+const QString& NetworkThread::oauthDpopKeyGetAlias() const
+{
+    return mDpopKey.getAlias();
+}
+
+void NetworkThread::oauthSetDpopKeyAlias(const QString& alias)
+{
+    mDpopKey = ATProto::JsonWebKey(alias);
+}
+#else
 void NetworkThread::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
 {
     if (!mDpopKey.save(path, passPhrase))

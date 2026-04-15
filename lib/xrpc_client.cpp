@@ -116,7 +116,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
 
     // oauth
     connect(mNetworkThread.get(), &NetworkThread::oauthLoginRedirect, this,
-        [](QUrl url, NetworkThread::OAuthLoginSuccessCb cb){ cb(std::move(url)); });
+        [](QUrl url, QString alias, NetworkThread::OAuthLoginSuccessCb cb){ cb(std::move(url), std::move(alias)); });
 
     connect(mNetworkThread.get(), &NetworkThread::oauthLoginFailed, this,
         [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
@@ -166,7 +166,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::oauthResumeSession, mNetworkThread.get(), &NetworkThread::oauthResumeSession, Qt::QueuedConnection);
     connect(this, &Client::oauthLogout, mNetworkThread.get(), &NetworkThread::oauthLogout, Qt::QueuedConnection);
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    connect(this, &Client::oauthSetDpopKeyAlias, mNetworkThread.get(), &NetworkThread::oauthSetDpopKeyAlias, Qt::QueuedConnection);
+#else
     connect(this, &Client::oauthSaveDpopKey, mNetworkThread.get(), &NetworkThread::oauthSaveDpopKey, Qt::QueuedConnection);
     connect(this, &Client::oauthLoadDpopKey, mNetworkThread.get(), &NetworkThread::oauthLoadDpopKey, Qt::QueuedConnection);
 #endif

@@ -115,7 +115,7 @@ public:
     using AutoRefreshDoneCb = std::function<void()>;
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
-    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl)>;
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // dpopKeyAlias only set on Android
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
     using OAuthLogoutSuccessCb = std::function<void()>;
@@ -1239,7 +1239,12 @@ public:
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
 
-#if not defined(Q_OS_ANDROID) || not defined(USE_ANDROID_KEYSTORE)
+    // TODO: something is rotten here. When oauthSetDpopKeyAlias is inside the #if where it
+    // belongs then Skywalker will not compile.
+    void oauthSetDpopKeyAlias(const QString& alias);
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    //void oauthSetDpopKeyAlias(const QString& alias);
+#else
     void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
     void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
 #endif
