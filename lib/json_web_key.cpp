@@ -71,10 +71,14 @@ static QJsonObject extractPublicJwkSsl(EVP_PKEY* pkey)
 
 QJsonObject JsonWebKey::extractPublicJwk() const
 {
+    qDebug() << "Extract public key";
+
     if (mPublicJwk)
         return *mPublicJwk;
 
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    qDebug() << "Alias:" << mAlias;
+
     // Retrieve DER bytes via JNI
     QJniEnvironment env;
     QJniObject jalias = QJniObject::fromString(mAlias);

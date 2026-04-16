@@ -118,6 +118,11 @@ public:
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // dpopKeyAlias only set on Android
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
     using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
+
+    // When resuming a session fails, the tokens may have been refreshed. The new tokens are
+    // returned.
+    using OAuthResumeSessionErrorCb = std::function<void(QString errorCode, QString errorMsg, QString accessToken, QString refreshToken)>;
+
     using OAuthLogoutSuccessCb = std::function<void()>;
     using OAuthErrorCb = std::function<void(QString errorCode, QString errorMsg)>;
 
@@ -1234,7 +1239,7 @@ public:
      * PDS will be resolved from the session DID
      */
     void oauthResumeSession(const QString& clientId, const ComATProtoServer::Session& session,
-                            const SuccessCb& successCb, const OAuthErrorCb& errorCb);
+                            const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
 
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
@@ -1293,7 +1298,7 @@ private:
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oautResumeSessionContinue(
         const QString& clientId, const ComATProtoServer::Session& session,
-        const SuccessCb& successCb, const OAuthErrorCb& errorCb);
+        const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
     void deleteSessionOAuth(const SuccessCb& successCb);
     void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
 

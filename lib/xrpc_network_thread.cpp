@@ -671,14 +671,25 @@ void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorC
 
 bool NetworkThread::resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
+    const QUrl requestUrl = request.mXrpcRequest.url();
+
     if (request.mResendCount >= MAX_RESEND)
     {
-        qWarning() << "Maximum resends reached:" << request.mXrpcRequest.url();
+        qWarning() << "Maximum resends reached:" << requestUrl;
         return false;
     }
 
     ++request.mResendCount;
-    qDebug() << "Resend:" << request.mXrpcRequest.url() << "count:" << request.mResendCount;
+    qDebug() << "Resend:" << requestUrl << "count:" << request.mResendCount;
+
+    if (request.mXrpcRequest.hasRawHeader("DPoP"))
+    {
+        // A new DPoP proof must be created, otherwise the resend will be seen as DPoP proof replay
+        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    }
+
     sendRequest(request, successCb, errorCb);
     return true;
 }
@@ -901,6 +912,10 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
         },
         [this, errorCb](QString code, QString error){
             qWarning() << "Token refresh error:" << code << error;
+
+            if (code == ATProto::OAuth::ERROR_INVALID_GRANT)
+                code = ATProto::ATProtoErrorMsg::INVALID_TOKEN;
+
             emit oauthRefreshTokenFailed(code, error, errorCb);
         });
 }

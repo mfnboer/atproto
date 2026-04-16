@@ -498,22 +498,7 @@ void Client::refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& erro
             if (successCb)
                 successCb();
         },
-        [this, presence=getPresence(), errorCb](QString errorCode, QString errorMsg){
-            if (!presence)
-                return;
-
-            qWarning() << "Refresh OAUth failed:" << mSession->mDid << "error:" << errorCode << "-" << errorMsg;
-
-            if (errorCb)
-            {
-                // Map OAuth error for an invalid/expired token to the ATProto error INVALID_TOKEN,
-                // so expired/revoked tokens will be handled correctly byt the caller.
-                if (errorCode == OAuth::ERROR_INVALID_GRANT)
-                    errorCb(ATProtoErrorMsg::INVALID_TOKEN, errorMsg);
-                else
-                    errorCb(errorCode, errorMsg);
-            }
-        });
+        errorCb);
 }
 
 void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb)
@@ -3195,7 +3180,7 @@ void Client::oauthRefreshToken(const QString& refreshToken,
 
 void Client::oauthResumeSession(const QString& clientId,
                                 const ComATProtoServer::Session& session,
-                                const SuccessCb& successCb, const OAuthErrorCb& errorCb)
+                                const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
 {
     qDebug() << "Resume:" << session.mDid;
 
@@ -3207,15 +3192,15 @@ void Client::oauthResumeSession(const QString& clientId,
             mXrpc->enableOAuth(true);
             oautResumeSessionContinue(clientId, session, successCb, errorCb);
         },
-        [errorCb](const QString& error){
+        [session, errorCb](const QString& error){
             if (errorCb)
-                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error, session.mAccessJwt, session.mRefreshJwt);
         });
 }
 
 void Client::oautResumeSessionContinue(
     const QString& clientId, const ComATProtoServer::Session& session,
-    const SuccessCb& successCb, const OAuthErrorCb& errorCb)
+    const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
 {
     mXrpc->oauthResumeSession(clientId, session.mRefreshJwt,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
@@ -3226,9 +3211,23 @@ void Client::oautResumeSessionContinue(
             ComATProtoServer::Session newSession(session);
             newSession.mAccessJwt = newAccessToken;
             newSession.mRefreshJwt = newRefreshToken;
-            resumeSession(newSession, successCb, errorCb);
+            resumeSession(newSession,
+                successCb,
+                [newSession, errorCb](const QString& errorCode, const QString& errorMessage){
+                    qWarning() <<  "Failed to resume:" << errorCode << "-" << errorMessage;
+                    errorCb(errorCode, errorMessage, newSession.mAccessJwt, newSession.mRefreshJwt);
+                });
         },
-        errorCb);
+        [session, errorCb](const QString& errorCode, const QString& errorMessage){
+            qWarning() << "Failed to resume:" << errorCode << "-" << errorMessage;
+
+                // Map OAuth error for an invalid/expired token to the ATProto error INVALID_TOKEN,
+                // so expired/revoked tokens will be handled correctly byt the caller.
+                if (errorCode == OAuth::ERROR_INVALID_GRANT)
+                    errorCb(ATProtoErrorMsg::INVALID_TOKEN, errorMessage, "", "");
+                else
+                    errorCb(errorCode, errorMessage, session.mAccessJwt, session.mRefreshJwt);
+        });
 }
 
 void Client::oauthLogout(const QString& accessToken, const QString& refreshToken,
