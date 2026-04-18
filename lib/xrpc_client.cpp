@@ -114,6 +114,33 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoListOutput, this, &Client::doCallback<NetworkThread::SuccessConvoListOutputCb, ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoOutput, this, &Client::doCallback<NetworkThread::SuccessConvoOutputCb, ATProto::ChatBskyConvo::ConvoOutput::SharedPtr>);
 
+    // oauth
+    connect(mNetworkThread.get(), &NetworkThread::oauthLoginRedirect, this,
+        [](QUrl url, QString alias, NetworkThread::OAuthLoginSuccessCb cb){ cb(std::move(url), std::move(alias)); });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthLoginFailed, this,
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthRequestInitialTokenSuccess, this,
+        [](QString did, QString scope, QString accessToken, QString refreshToken, NetworkThread::OAuthInitalTokenSuccessCb cb){
+            cb(std::move(did), std::move(scope), std::move(accessToken), std::move(refreshToken));
+        });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthRequestInitialTokenFailed, this,
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthRefreshTokenSucces, this,
+        [](QString accessToken, QString refreshToken, NetworkThread::OAuthRefreshTokenSuccessCb cb){
+            cb(std::move(accessToken), std::move(refreshToken));
+        });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthRefreshTokenFailed, this,
+        [](QString error, QString msg, NetworkThread::OAuthErrorCb cb){ cb(std::move(error), std::move(msg)); });
+
+    connect(mNetworkThread.get(), &NetworkThread::oauthLoggedOut, this,
+        [](NetworkThread::OAuthLogoutSuccessCb cb){ cb(); });
+
+    // errors
     connect(mNetworkThread.get(), &NetworkThread::requestError, this,
         [](QString error, QJsonDocument json, NetworkThread::ErrorCb cb) {
             cb(std::move(error), std::move(json));
@@ -129,8 +156,22 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::postJsonToNetwork, mNetworkThread.get(), &NetworkThread::postJson, Qt::QueuedConnection);
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
     connect(this, &Client::pdsChanged, mNetworkThread.get(), &NetworkThread::setPDS, Qt::QueuedConnection);
+    connect(this, &Client::oauthDisabled, mNetworkThread.get(), &NetworkThread::disableOAuth, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
     connect(this, &Client::videoHostChanged, mNetworkThread.get(), &NetworkThread::setVideoHost, Qt::QueuedConnection);
+
+    connect(this, &Client::oauthLogin, mNetworkThread.get(), &NetworkThread::oauthLogin, Qt::QueuedConnection);
+    connect(this, &Client::oauthRequestInitialToken, mNetworkThread.get(), &NetworkThread::oauthRequestInitialToken, Qt::QueuedConnection);
+    connect(this, &Client::oauthRefreshToken, mNetworkThread.get(), &NetworkThread::oauthRefreshToken, Qt::QueuedConnection);
+    connect(this, &Client::oauthResumeSession, mNetworkThread.get(), &NetworkThread::oauthResumeSession, Qt::QueuedConnection);
+    connect(this, &Client::oauthLogout, mNetworkThread.get(), &NetworkThread::oauthLogout, Qt::QueuedConnection);
+
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    connect(this, &Client::oauthSetDpopKeyAlias, mNetworkThread.get(), &NetworkThread::oauthSetDpopKeyAlias, Qt::QueuedConnection);
+#else
+    connect(this, &Client::oauthSaveDpopKey, mNetworkThread.get(), &NetworkThread::oauthSaveDpopKey, Qt::QueuedConnection);
+    connect(this, &Client::oauthLoadDpopKey, mNetworkThread.get(), &NetworkThread::oauthLoadDpopKey, Qt::QueuedConnection);
+#endif
 
     qDebug() << "Start network thread";
     mNetworkThread->start();
@@ -152,12 +193,22 @@ void Client::doCallback(ArgType arg, CallbackType cb)
 
 void Client::setUserAgent(const QString& userAgent)
 {
+    mPlcDirectoryClient.setUserAgent(userAgent);
+    mIdentityResolver.setUserAgent(userAgent);
     emit userAgentChanged(userAgent);
 }
 
 void Client::setVideoHost(const QString& host)
 {
     emit videoHostChanged(host);
+}
+
+void Client::enableOAuth(bool enable)
+{
+    mOAuthEnabled = enable;
+
+    if (!enable)
+        emit oauthDisabled();
 }
 
 void Client::setPDS(const QString& pds, const QString& did)
@@ -261,28 +312,32 @@ void Client::setPDSFromHandle(const QString& handle, const SetPdsSuccessCb& succ
 }
 
 void Client::post(const QString& service, const QJsonDocument& json, const NetworkThread::Params& rawHeaders,
-                  const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
+                  const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+                  const QString& accessJwt, bool isServiceAuthToken)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(errorCb);
-    emit postJsonToNetwork(service, json, rawHeaders, successCb, errorCb, accessJwt);
+    emit postJsonToNetwork(service, json, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
-void Client::post(const QString& service, const NetworkThread::DataType& data, const QString& mimeType, const NetworkThread::Params& rawHeaders,
-                  const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt)
+void Client::post(const QString& service, const NetworkThread::DataType& data,
+                  const QString& mimeType, const NetworkThread::Params& rawHeaders,
+                  const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb,
+                  const QString& accessJwt, bool isServiceAuthToken)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
-    emit postDataToNetwork(service, data, mimeType, rawHeaders, successCb, errorCb, accessJwt);
+    emit postDataToNetwork(service, data, mimeType, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
 void Client::get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
-                 const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb, const QString& accessJwt, const QString& pds)
+                 const NetworkThread::CallbackType& successCb, const NetworkThread::ErrorCb& errorCb,
+                 const QString& accessJwt, bool isServiceAuthToken, const QString& pds)
 {
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(errorCb);
-    emit getToNetwork(service, params, rawHeaders, successCb, errorCb, accessJwt, pds);
+    emit getToNetwork(service, params, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken, pds);
 }
 
 }

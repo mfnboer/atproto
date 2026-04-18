@@ -38,7 +38,7 @@ QJsonObject LabelerView::toJson() const
     json.insert("creator", mCreator->toJson());
     XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
     XJsonObject::insertOptionalJsonObject<LabelerViewerState>(json, "viewer", mViewer);
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     return json;
 }

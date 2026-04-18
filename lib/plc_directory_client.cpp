@@ -6,8 +6,6 @@
 
 namespace ATProto {
 
-constexpr int MAX_RESEND = 4;
-
 static QString normalizeHost(const QString& host)
 {
     QString normalized = host;
@@ -22,8 +20,7 @@ static QString normalizeHost(const QString& host)
 }
 
 PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QString host, QObject* parent) :
-    QObject(parent),
-    mNetwork(network),
+    NetworkClient<PlcRequest, PlcSuccessJsonCb, PlcErrorCb>(network, parent),
     mHost(host),
     mFirstAppearanceCache(100),
     mPdsCache(100)
@@ -47,7 +44,8 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
 
     Request request;
     QUrl url(QString("https://%1/%2").arg(mHost, did));
-    request.mPlcRequest = QNetworkRequest(url);
+    request.mNetworkRequest = QNetworkRequest(url);
+    setUserAgentHeader(request.mNetworkRequest);
 
     sendRequest(request,
         [this, presence=getPresence(), did, successCb, errorCb](const QJsonDocument& reply) {
@@ -89,7 +87,8 @@ void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb
 {
     Request request;
     QUrl url(QString("https://%1/%2/log/audit").arg(mHost, did));
-    request.mPlcRequest = QNetworkRequest(url);
+    request.mNetworkRequest = QNetworkRequest(url);
+    setUserAgentHeader(request.mNetworkRequest);
 
     sendRequest(request,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply) {
@@ -160,24 +159,6 @@ void PlcDirectoryClient::invalidatePdsCache(const QString& did)
     mPdsCache.remove(did);
 }
 
-// TODO: refactor code common with XrpcClient
-void PlcDirectoryClient::sendRequest(const Request& request, const SuccessJsonCb& successCb, const ErrorCb& errorCb)
-{
-    QNetworkReply* reply;
-    reply = mNetwork->get(request.mPlcRequest);
-
-    // In case of an error multiple callbacks may fire. First errorOcccured() and then probably finished()
-    // The latter call is not guaranteed however. We must only call errorCb once!
-    auto errorHandled = std::make_shared<bool>(false);
-
-    connect(reply, &QNetworkReply::finished, this,
-            [this, request, reply, successCb, errorCb, errorHandled]{ replyFinished(request, reply, successCb, errorCb, errorHandled); });
-    connect(reply, &QNetworkReply::errorOccurred, this,
-            [this, request, reply, successCb, errorCb, errorHandled](auto errorCode){ this->networkError(request, reply, errorCode, successCb, errorCb, errorHandled); });
-    connect(reply, &QNetworkReply::sslErrors, this,
-            [this, reply, errorCb, errorHandled](const QList<QSslError>& errors){ sslErrors(reply, errors, errorCb, errorHandled); });
-}
-
 void PlcDirectoryClient::replyFinished(const Request& request, QNetworkReply* reply,
                                        const SuccessJsonCb& successCb, const ErrorCb& errorCb,
                                        std::shared_ptr<bool> errorHandled)
@@ -218,7 +199,7 @@ void PlcDirectoryClient::networkError(const Request& request, QNetworkReply* rep
 {
     Q_ASSERT(reply);
     const auto errorMsg = reply->errorString();
-    qInfo() << "Network error:" << errorCode << errorMsg;
+    qWarning() << "Network error:" << errorCode << errorMsg;
 
     if (!*errorHandled)
     {
@@ -249,58 +230,6 @@ void PlcDirectoryClient::networkError(const Request& request, QNetworkReply* rep
     {
         qDebug() << "Error already handled";
     }
-}
-
-void PlcDirectoryClient::sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled)
-{
-    Q_ASSERT(reply);
-    qWarning() << "SSL errors:" << errors;
-
-    if (!*errorHandled)
-    {
-        *errorHandled = true;
-        QString msg = "SSL error";
-
-        if (!errors.empty())
-            msg.append(": ").append(errors.front().errorString());
-
-        errorCb(reply->error(), msg);
-    }
-    else
-    {
-        qDebug() << "Error already handled";
-    }
-}
-
-bool PlcDirectoryClient::resendRequest(Request request, const SuccessJsonCb& successCb, const ErrorCb& errorCb)
-{
-    if (request.mResendCount >= MAX_RESEND)
-    {
-        qWarning() << "Maximum resends reached:" << request.mPlcRequest.url();
-        return false;
-    }
-
-    ++request.mResendCount;
-    qDebug() << "Resend:" << request.mPlcRequest.url() << "count:" << request.mResendCount;
-    sendRequest(request, successCb, errorCb);
-    return true;
-}
-
-bool PlcDirectoryClient::mustResend(QNetworkReply::NetworkError error) const
-{
-    switch (error)
-    {
-    case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
-        qWarning() << "Retry PLC on unknown error";
-    case QNetworkReply::ContentReSendError:
-    case QNetworkReply::OperationCanceledError: // Timeout
-    case QNetworkReply::RemoteHostClosedError:
-        return true;
-    default:
-        break;
-    }
-
-    return false;
 }
 
 void PlcDirectoryClient::invalidJsonError(InvalidJsonException& e, const ErrorCb& cb)

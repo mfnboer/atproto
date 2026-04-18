@@ -77,7 +77,7 @@ QJsonObject Postgate::toJson() const
 {
     QJsonObject json;
     json.insert("$type", TYPE);
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     json.insert("post", mPost);
     XJsonObject::insertOptionalArray(json, "detachedEmbeddingUris", mDetachedEmbeddingUris);
     PostgateEmbeddingRules::insertDisableEmbedding(json, "embeddingRules", mDisableEmbedding);
@@ -217,7 +217,7 @@ QJsonObject Threadgate::toJson() const
     std::vector<QString> replies(mHiddenReplies.begin(), mHiddenReplies.end());
     XJsonObject::insertOptionalArray(json, "hiddenReplies", replies);
 
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -306,7 +306,7 @@ QJsonObject Record::Post::toJson() const
     if (!mLanguages.empty())
         json.insert("langs", XJsonObject::toJsonArray(mLanguages));
 
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonValue(json, "bridgyOriginalText", mBridgyOriginalText);
     return json;
 }
@@ -341,7 +341,7 @@ QJsonObject PostView::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "repostCount", mRepostCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "likeCount", mLikeCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "quoteCount", mQuoteCount, 0);
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonObject<ViewerState>(json, "viewer", mViewer);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalJsonObject<ThreadgateView>(json, "threadgate", mThreadgate);
@@ -445,7 +445,7 @@ QJsonObject ReasonRepost::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("by", mBy->toJson());
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 
@@ -654,7 +654,7 @@ QJsonObject Like::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("subject", mSubject->toJson());
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
@@ -674,7 +674,7 @@ QJsonObject Repost::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("subject", mSubject->toJson());
-    json.insert("createdAt", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);
     return json;
 }
@@ -797,7 +797,7 @@ QJsonObject GeneratorView::toJson() const
     else
         json.remove("contentMode");
 
-    json.insert("indexedAt", mIndexedAt.toString(Qt::ISODateWithMs));
+    json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
 

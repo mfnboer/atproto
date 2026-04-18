@@ -155,7 +155,7 @@ struct Image
     using SharedPtr = std::shared_ptr<Image>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr int MAX_BYTES = 1'000'000;
+    static constexpr int MAX_BYTES = 2'000'000;
 };
 
 // app.bsky.embed.images

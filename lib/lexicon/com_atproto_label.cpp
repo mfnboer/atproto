@@ -14,7 +14,7 @@ QJsonObject Label::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "cid", mCid);
     json.insert("val", mVal);
     XJsonObject::insertOptionalJsonValue(json, "neg", mNeg, false);
-    json.insert("cts", mCreatedAt.toString(Qt::ISODateWithMs));
+    json.insert("cts", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalDateTime(json, "exp", mExpires);
 
     return json;

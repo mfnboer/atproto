@@ -1,11 +1,13 @@
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
+include(FetchContent)
 find_package(Qt6 REQUIRED COMPONENTS Quick QuickControls2 Core Network)
 
 if(CMAKE_BUILD_TYPE MATCHES Release)
     add_compile_definitions(QT_NO_DEBUG_OUTPUT)
 endif()
 
+add_compile_definitions(USE_ANDROID_KEYSTORE)
 add_compile_options(-Wall -Wextra -Werror)
 
 if (NOT ANDROID AND NOT CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
@@ -93,8 +95,6 @@ qt_add_qml_module(libatproto
         SOURCES identity_resolver.h
         SOURCES identity_resolver.cpp
         SOURCES lexicon/app_bsky_embed_include.h
-        SOURCES
-        SOURCES
         SOURCES xrpc_network_thread.h
         SOURCES xrpc_network_thread.cpp
         SOURCES scoped_handle.h
@@ -110,10 +110,34 @@ qt_add_qml_module(libatproto
         SOURCES repo_master.cpp
         SOURCES lexicon/app_bsky_draft.h
         SOURCES lexicon/app_bsky_draft.cpp
+        SOURCES json_web_key.h
+        SOURCES json_web_key.cpp
+        SOURCES oauth.h
+        SOURCES oauth.cpp
+        SOURCES network_client.h
+        SOURCES network_utils.h
+        SOURCES network_utils.cpp
 )
 
-if (NOT ANDROID)
+if (ANDROID)
+    FetchContent_Declare(
+      android_openssl
+      DOWNLOAD_EXTRACT_TIMESTAMP true
+      URL      https://github.com/KDAB/android_openssl/archive/refs/heads/master.zip
+#      URL_HASH MD5=c97d6ad774fab16be63b0ab40f78d945 #optional
+    )
+    FetchContent_MakeAvailable(android_openssl)
+    include(${android_openssl_SOURCE_DIR}/android_openssl.cmake)
+
+    # Add OpenSSL headers
+    target_include_directories(libatproto PRIVATE
+       ${android_openssl_SOURCE_DIR}/ssl_3/${ANDROID_ABI}/include
+    )
+
+    add_android_openssl_libraries(libatproto)
+else()
     set(COVERAGE_LIB -lgcov)
+    set(SSL_LIB -lssl)
 endif()
 
 target_link_libraries(libatproto PRIVATE
@@ -121,6 +145,7 @@ target_link_libraries(libatproto PRIVATE
     Qt6::QuickControls2
     Qt6::Core
     Qt6::Network
+    ${SSL_LIB}
     ${COVERAGE_LIB}
 )
 

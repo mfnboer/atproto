@@ -1,6 +1,7 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "oauth.h"
 #include "lexicon/app_bsky_actor.h"
 #include "lexicon/app_bsky_bookmark.h"
 #include "lexicon/app_bsky_draft.h"
@@ -99,6 +100,13 @@ public:
     using SuccessConvoListOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr)>;
     using SuccessConvoOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoOutput::SharedPtr)>;
 
+    // oauth
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // alias only set on Androids
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
+    using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
+    using OAuthLogoutSuccessCb = std::function<void()>;
+    using OAuthErrorCb = std::function<void(QString errorCode, QString errorMsg)>;
+
     using CallbackType = std::variant<
         SuccessJsonCb,
         SuccessBytesCb,
@@ -177,23 +185,56 @@ public:
         bool mIsPost = false;
         QNetworkRequest mXrpcRequest;
         DataType mData;
+        QString mAccessJwt;
         int mResendCount = 0;
+        int mDpopResendCount = 0;
         QDateTime mSendTime;
     };
 
     NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
 
-    void setPDS(const QString& pds) { mPDS = pds; }
-    void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
+    void setPDS(const QString& pds);
+    void setUserAgent(const QString& userAgent);
     void setVideoHost(const QString& host);
 
     void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
-                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
+                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+                  bool isServiceAuthToken);
     void postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
-                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt);
+                  const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+                  bool isServiceAuthToken);
     void get(const QString& service, const Params& params, const Params& rawHeaders,
              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
-             const QString& pds);
+             bool isServiceAuthToken, const QString& pds);
+
+    // OAuth
+    // OAuth is done from the network thread. Creating DPoP proofs is expensive (15ms on Android).
+    // openssl on Android can do it in 2ms, but the Android Keystore offers better security and
+    // key storage.
+    void enableOAuth(const QString& clientId);
+    void disableOAuth();
+    void oauthLogin(const QString& user, const QString& clientId,
+                    const QString& redirectUrl, const QStringList& scope,
+                    const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthRequestInitialToken(const QUrl& url,
+                                  const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    // invalid_grant error will be mapped to InvalidToken error to make it the same as atproto.
+    void oauthRefreshToken(const QString& refreshToken,
+                           const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    void oauthResumeSession(const QString& clientId, const QString& refreshToken,
+                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oauthLogout(const QString& accessToken, const QString& refreshToken,
+                     const OAuthLogoutSuccessCb& successCb);
+
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    const QString& oauthDpopKeyGetAlias() const;
+    void oauthSetDpopKeyAlias(const QString& alias);
+#else
+    void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
+    void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
+#endif
 
 signals:
     // clazy:excludeall=fully-qualified-moc-types
@@ -271,6 +312,15 @@ signals:
     void requestError(QString error, QJsonDocument json, ErrorCb cb);
     void requestInvalidJsonError(QString exceptionMsg, ErrorCb cb);
 
+    // OAuth
+    void oauthLoginRedirect(QUrl url, QString alias, OAuthLoginSuccessCb cb);
+    void oauthLoginFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
+    void oauthRequestInitialTokenSuccess(QString did, QString scope, QString accessToken, QString refreshToken, OAuthInitalTokenSuccessCb cb);
+    void oauthRequestInitialTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
+    void oauthRefreshTokenSucces(QString accessToken, QString refreshToken, OAuthRefreshTokenSuccessCb cb);
+    void oauthRefreshTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
+    void oauthLoggedOut(OAuthLogoutSuccessCb cb);
+
 protected:
     virtual void run() override;
 
@@ -278,11 +328,12 @@ private:
     QUrl buildUrl(const QString& service, const QString& pds = {}) const;
     QUrl buildUrl(const QString& service, const Params& params, const QString& pds = {}) const;
     void setUserAgentHeader(QNetworkRequest& request) const;
-    void setAuthorization(QNetworkRequest& request, const QString& accessJwt) const;
+    void setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
     void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
+    bool resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool mustResend(QNetworkReply::NetworkError error) const;
     void invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType);
     void replyFinished(const Request& request, QNetworkReply* reply,
@@ -292,6 +343,8 @@ private:
                       const CallbackType& successCb, const ErrorCb& errorCb,
                       std::shared_ptr<bool> errorHandled);
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
+
+    void oauthCleanup();
 
     struct Task
     {
@@ -304,6 +357,12 @@ private:
     QString mPDS;
     QString mUserAgent;
     QString mVideoHost;
+
+    ATProto::JsonWebKey mDpopKey;
+    std::unique_ptr<ATProto::OAuth> mOAuth;
+    QString mOAuthState;
+    QString mOAuthIssuer;
+    QString mDpopPdsNonce;
 };
 
 }

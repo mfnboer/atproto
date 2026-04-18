@@ -90,7 +90,7 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey
 {
     const auto listJson = list.toJson();
     qDebug() << "Create list:" << listJson;
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = listJson["$type"].toString();
 
     mClient.createRecord(repo, collection, rKey, listJson, true,
@@ -195,7 +195,7 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
 {
     const auto listJson = list.toJson();
     qDebug() << "Update list:" << listJson;
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = listJson["$type"].toString();
 
     mClient.putRecord(repo, collection, rkey, listJson, true,
@@ -218,7 +218,7 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
     record.mCreatedAt = QDateTime::currentDateTimeUtc();
 
     const auto recordJson = record.toJson();
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = AppBskyGraph::ListItem::TYPE;
 
     mClient.createRecord(repo, collection, {}, recordJson, true,
@@ -250,7 +250,7 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
         writes.push_back(std::move(create));
     }
 
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
 
     mClient.applyWrites(repo, writes, false,
         [successCb, presence=getPresence()] {
@@ -279,7 +279,7 @@ void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& su
     record.mCreatedAt = QDateTime::currentDateTimeUtc();
 
     const auto recordJson = record.toJson();
-    const QString& repo = mClient.getSession()->mDid;
+    const QString& repo = mClient.getSessionDid();
     const QString collection = recordJson["$type"].toString();
 
     mClient.createRecord(repo, collection, {}, recordJson, true,

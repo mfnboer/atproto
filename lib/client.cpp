@@ -49,7 +49,7 @@ static void addOptionalDateTimeParam(Xrpc::NetworkThread::Params& params, const 
                                  const std::optional<QDateTime>& value)
 {
     if (value)
-        params.append({name, value->toString(Qt::ISODateWithMs)});
+        params.append({name, value->toUTC().toString(Qt::ISODateWithMs)});
 }
 
 static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QString& name,
@@ -136,7 +136,7 @@ void Client::updateSessionTokens(const QString& accessJwt, const QString& refres
 {
     if (mSession)
     {
-        qDebug() << "Update tokens";
+        qDebug() << "Update tokens:" << mSession->mDid << "access:" << accessJwt << "refresh:" << refreshJwt;
         mSession->mAccessJwt = accessJwt;
         mSession->mRefreshJwt = refreshJwt;
     }
@@ -194,34 +194,14 @@ void Client::createSession(const QString& user, const QString& pwd,
                            const std::optional<QString>& authFactorToken,
                            const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    if (user.startsWith("did:"))
-    {
-        qDebug() << "User is did:" << user;
+    mXrpc->enableOAuth(false);
 
-        mXrpc->setPDSFromDid(user,
-            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
-                if (presence)
-                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
-            },
-            [errorCb](const QString& error){
-                if (errorCb)
-                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
-            });
-    }
-    else
-    {
-        qDebug() << "User is handle:" << user;
-
-        mXrpc->setPDSFromHandle(user,
-            [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
-                if (presence)
-                    createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
-            },
-            [errorCb](const QString& error){
-                if (errorCb)
-                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
-            });
-    }
+    setPdsFromUser(user,
+        [this, presence=getPresence(), user, pwd, authFactorToken, successCb, errorCb]{
+            if (presence)
+                createSessionContinue(user, pwd, authFactorToken, successCb, errorCb);
+        },
+        errorCb);
 }
 
 void Client::createSessionContinue(const QString& user, const QString& pwd,
@@ -258,6 +238,12 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
         return;
     }
 
+    if (mXrpc->isOAuthEnabled())
+    {
+        deleteSessionOAuth(successCb);
+        return;
+    }
+
     mXrpc->post("com.atproto.server.deleteSession", {}, {},
         [this, presence=getPresence(), successCb](const QJsonDocument& reply){
             if (!presence)
@@ -271,6 +257,17 @@ void Client::deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb)
         },
         failure(errorCb),
         authToken());
+}
+
+void Client::deleteSessionOAuth(const SuccessCb& successCb)
+{
+    mXrpc->oauthLogout(mSession->mAccessJwt, mSession->mRefreshJwt,
+        [this, presence=getPresence(), successCb]{
+            clearSession();
+
+            if (successCb)
+                successCb();
+        });
 }
 
 void Client::resumeSession(const ComATProtoServer::Session& session,
@@ -448,6 +445,12 @@ void Client::resumeAndRefreshSessionContinue(bool retry, const ComATProtoServer:
 
 void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    if (mXrpc->isOAuthEnabled())
+    {
+        refreshSessionOAuth(successCb, errorCb);
+        return;
+    }
+
     mXrpc->post("com.atproto.server.refreshSession", {}, {},
         [this, presence=getPresence(), successCb, errorCb](ComATProtoServer::Session::SharedPtr refreshed){
             if (!presence)
@@ -479,6 +482,23 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
         },
         failure(errorCb),
         refreshToken());
+}
+
+void Client::refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mXrpc->oauthRefreshToken(mSession->mRefreshJwt,
+        [this, presence=getPresence(), successCb](QString accessToken, QString refreshToken){
+            if (!presence)
+                return;
+
+            qDebug() << "Refreshed OAuth session:" << mSession->mDid;
+            mSession->mAccessJwt = accessToken;
+            mSession->mRefreshJwt = refreshToken;
+
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 void Client::getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb)
@@ -719,6 +739,7 @@ void Client::putPreferences(const UserPreferences& userPrefs,
     AppBskyActor::GetPreferencesOutput prefs;
     prefs.mPreferences = userPrefs.toPreferenceList();
     auto json = prefs.toJson();
+    qDebug() << "PREFS:" << json;
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
@@ -1810,7 +1831,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 {
     QJsonDocument json;
     QJsonObject paramsJson;
-    paramsJson.insert("seenAt", dateTime.toString(Qt::ISODateWithMs));
+    paramsJson.insert("seenAt", dateTime.toUTC().toString(Qt::ISODateWithMs));
     json.setObject(paramsJson);
 
     Xrpc::NetworkThread::Params httpHeaders;
@@ -2067,7 +2088,7 @@ void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVide
                 successCb(std::move(output));
         },
         failure(errorCb),
-        serviceAuthToken);
+        serviceAuthToken, true);
 }
 
 void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
@@ -2150,7 +2171,7 @@ void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const
                 requestFailed(err, reply, errorCb);
             }
         },
-        serviceAuthToken);
+        serviceAuthToken, true);
 }
 
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
@@ -2201,7 +2222,7 @@ void Client::getBlobContinue(const QString& did, const QString& cid,
                 successCb(bytes, contentType);
         },
         failureInvalidatePds(did, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -2242,7 +2263,7 @@ void Client::getRecordContinue(const QString& repo, const QString& collection,
             }
         },
         failureInvalidatePds(repo, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -2285,7 +2306,7 @@ void Client::listRecordsContinue(const QString& repo, const QString& collection,
             }
         },
         failureInvalidatePds(repo, errorCb),
-        {},
+        {}, false,
         pds);
 }
 
@@ -3109,6 +3130,129 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
         authToken());
 }
 
+void Client::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
+                        const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    setPdsFromUser(user,
+        [this, presence=getPresence(), user, clientId, redirectUrl, scope, successCb, errorCb]{
+            if (!presence)
+                return;
+
+            mXrpc->enableOAuth(true);
+            mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
+        },
+        errorCb);
+}
+
+void Client::oauthLoginContinue(const QUrl& url,
+                        const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    mXrpc->oauthRequestInitialToken(url,
+        [this, presence=getPresence(), successCb, errorCb](QString did, QString scope, QString accessToken, QString refreshToken){
+            if (presence)
+                oauthCreateSessionContinue(did, scope, accessToken, refreshToken, successCb, errorCb);
+        },
+        errorCb);
+}
+
+void Client::oauthCreateSessionContinue(
+    const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
+    const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Got tokens, get session";
+    ComATProtoServer::Session session;
+    session.mDid = did;
+    session.mAccessJwt = accessToken;
+    session.mRefreshJwt = refreshToken;
+
+    resumeSession(session,
+        [did, scope, accessToken, refreshToken, successCb]{
+            successCb(did, scope, accessToken, refreshToken);
+        },
+        errorCb);
+}
+
+void Client::oauthRefreshToken(const QString& refreshToken,
+                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
+}
+
+void Client::oauthResumeSession(const QString& clientId,
+                                const ComATProtoServer::Session& session,
+                                const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
+{
+    qDebug() << "Resume:" << session.mDid;
+
+    mXrpc->setPDSFromDid(session.mDid,
+        [this, presence=getPresence(), clientId, session, successCb, errorCb]{
+            if (!presence)
+                return;
+
+            mXrpc->enableOAuth(true);
+            oautResumeSessionContinue(clientId, session, successCb, errorCb);
+        },
+        [session, errorCb](const QString& error){
+            if (errorCb)
+                errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error, session.mAccessJwt, session.mRefreshJwt);
+        });
+}
+
+void Client::oautResumeSessionContinue(
+    const QString& clientId, const ComATProtoServer::Session& session,
+    const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
+{
+    mXrpc->oauthResumeSession(clientId, session.mRefreshJwt,
+        [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
+            if (!presence)
+                return;
+
+            qDebug() << "Got tokens, resume session";
+            ComATProtoServer::Session newSession(session);
+            newSession.mAccessJwt = newAccessToken;
+            newSession.mRefreshJwt = newRefreshToken;
+            resumeSession(newSession,
+                successCb,
+                [newSession, errorCb](const QString& errorCode, const QString& errorMessage){
+                    qWarning() <<  "Failed to resume:" << errorCode << "-" << errorMessage;
+                    errorCb(errorCode, errorMessage, newSession.mAccessJwt, newSession.mRefreshJwt);
+                });
+        },
+        [session, errorCb](const QString& errorCode, const QString& errorMessage){
+            qWarning() << "Failed to resume:" << errorCode << "-" << errorMessage;
+
+                // Map OAuth error for an invalid/expired token to the ATProto error INVALID_TOKEN,
+                // so expired/revoked tokens will be handled correctly byt the caller.
+                if (errorCode == OAuth::ERROR_INVALID_GRANT)
+                    errorCb(ATProtoErrorMsg::INVALID_TOKEN, errorMessage, "", "");
+                else
+                    errorCb(errorCode, errorMessage, session.mAccessJwt, session.mRefreshJwt);
+        });
+}
+
+void Client::oauthLogout(const QString& accessToken, const QString& refreshToken,
+                 const OAuthLogoutSuccessCb& successCb)
+{
+    mXrpc->oauthLogout(accessToken, refreshToken, successCb);
+}
+
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+void Client::oauthSetDpopKeyAlias(const QString& alias)
+{
+    mXrpc->oauthSetDpopKeyAlias(alias);
+}
+#else
+void Client::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
+{
+    mXrpc->oauthSaveDpopKey(path, passPhrase);
+}
+
+void Client::oauthLoadDpopKey(const QString& path, const QString& passPhrase)
+{
+    mXrpc->oauthLoadDpopKey(path, passPhrase);
+}
+#endif
+
 const QString& Client::authToken() const
 {
     static const QString NO_TOKEN;
@@ -3343,6 +3487,32 @@ void Client::resolvePds(const QString& repo, const ErrorCb& errorCb, std::functi
             if (errorCb)
                 errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
         });
+}
+
+void Client::setPdsFromUser(const QString& user, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    if (user.startsWith("did:"))
+    {
+        qDebug() << "User is did:" << user;
+
+        mXrpc->setPDSFromDid(user,
+            successCb,
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+            });
+    }
+    else
+    {
+        qDebug() << "User is handle:" << user;
+
+        mXrpc->setPDSFromHandle(user,
+            successCb,
+            [errorCb](const QString& error){
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::PDS_NOT_FOUND, error);
+            });
+    }
 }
 
 }

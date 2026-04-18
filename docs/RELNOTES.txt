@@ -1,3 +1,9 @@
+next
+====
+* OAuth
+* Make sure timestamps are always save as UTC
+* Increase max image size to 2MB
+
 5.17.1
 ======
 * Bug fix: empty undefined allow-array means anyone can reply

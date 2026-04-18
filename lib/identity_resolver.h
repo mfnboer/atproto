@@ -15,9 +15,11 @@ public:
     using SuccessCb = std::function<void(const QString& did)>;
 
     explicit IdentityResolver(QNetworkAccessManager* network);
+    void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
     void resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
+    void setUserAgentHeader(QNetworkRequest& request) const;
     QString getDnsLookupName(const QString& handle) const;
     QUrl getDohUrl(const QString& dohUrl, const QString& handle) const;
 
@@ -35,6 +37,7 @@ private:
     std::unique_ptr<QDnsLookup> mDns;
 
     QNetworkAccessManager* mNetwork;
+    QString mUserAgent;
 };
 
 }

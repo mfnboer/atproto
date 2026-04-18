@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "client.h"
+#include <QtHttpServer>
 #include <QObject>
 #include <QtQmlIntegration>
 
@@ -32,6 +33,8 @@ public:
             [](const QString& err, const QString& msg){ qDebug() << "LOGIN FAILED:" << err << msg; });
     }
 
+    Q_INVOKABLE void oauth(const QString user, QString host);
+
     QString getAvatar() const { return mProfile ? mProfile->mAvatar.value_or(QString()) : ""; }
     QString getBanner() const { return mProfile ? mProfile->mBanner.value_or(QString()) : ""; }
     QString getDisplayName() const { return mProfile ? mProfile->mDisplayName.value_or(QString()) : ""; }
@@ -39,8 +42,14 @@ public:
 
 signals:
     void profileChanged();
+    void loginRedirect(QUrl url);
 
 private:
+    void initHttpServer();
+    void loginContinue(const QUrl& url);
+    void refreshTokenRequest();
+    void logout();
+
     void getProfile(const QString& user)
     {
         mBsky->getProfile(user,
@@ -162,8 +171,15 @@ private:
         qDebug() << "  Post:" << post->mCreatedAt << post->mText;
     }
 
+    QNetworkAccessManager* mNetwork;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
+    std::unique_ptr<QHttpServer> mHttpServer;
+    QString mIssuer;
+    QString mState;
+    QString mUserDid;
+    QString mAccessToken;
+    QString mRefreshToken;
 };
 
 }

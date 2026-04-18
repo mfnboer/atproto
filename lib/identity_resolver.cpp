@@ -43,11 +43,18 @@ void IdentityResolver::resolveHandleDoh(const QString& dohUrl, const QString& ha
     QUrl url = getDohUrl(dohUrl, handle);
     QNetworkRequest request(url);
     request.setRawHeader("Accept", "application/dns-json"); // Without this Cloudflare will not respond
+    setUserAgentHeader(request);
     QNetworkReply* reply = mNetwork->get(request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, dohUrl, handle, successCb, errorCb]{
         handleDohResponse(reply, dohUrl, handle, successCb, errorCb);
     });
+}
+
+void IdentityResolver::setUserAgentHeader(QNetworkRequest& request) const
+{
+    if (!mUserAgent.isEmpty())
+        request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
 QString IdentityResolver::getDnsLookupName(const QString& handle) const
@@ -284,6 +291,7 @@ void IdentityResolver::httpGetDid(const QString& handle, const SuccessCb& succes
     qDebug() << "Get DID via HTTP:" << handle;
     QUrl url = getHttpUrl(handle);
     QNetworkRequest request(url);
+    setUserAgentHeader(request);
     QNetworkReply* reply = mNetwork->get(request);
 
     connect(reply, &QNetworkReply::finished, this, [this, reply, handle, successCb, errorCb, dnsError]{

@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "xrpc_network_thread.h"
 #include "client.h"
+#include "network_utils.h"
 #include "xjson.h"
 #include "lexicon/lexicon.h"
 #include <QSslSocket>
@@ -11,6 +12,7 @@ namespace Xrpc {
 using namespace std::chrono_literals;
 
 constexpr int MAX_RESEND = 4;
+static constexpr int MAX_DPOP_RESEND = 2;
 
 static bool isEmpty(const NetworkThread::DataType& data)
 {
@@ -34,6 +36,22 @@ NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
 {
 }
 
+void NetworkThread::setPDS(const QString& pds)
+{
+    mPDS = pds;
+
+    if (mOAuth)
+        mOAuth->setPds(pds);
+}
+
+void NetworkThread::setUserAgent(const QString& userAgent)
+{
+    mUserAgent = userAgent;
+
+    if (mOAuth)
+        mOAuth->setUserAgent(userAgent);
+}
+
 void NetworkThread::setVideoHost(const QString& host)
 {
     qDebug() << "Video host:" << host;
@@ -50,7 +68,8 @@ void NetworkThread::run()
 }
 
 void NetworkThread::postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
-              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+              bool isServiceAuthToken)
 {
     Request request;
     request.mIsPost = true;
@@ -58,7 +77,7 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request.mXrpcRequest, accessJwt);
+        setAuthorization(request, accessJwt, isServiceAuthToken);
 
     // Setting Content-Type header when no body is present causes this error on some
     // PDS' as of 23-6-2024
@@ -71,15 +90,16 @@ void NetworkThread::postData(const QString& service, const DataType& data, const
 }
 
 void NetworkThread::postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,
-              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt)
+              const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
+              bool isServiceAuthToken)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
-    postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt);
+    postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
 void NetworkThread::get(const QString& service, const Params& params, const Params& rawHeaders,
          const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
-         const QString& pds)
+         bool isServiceAuthToken, const QString& pds)
 {
     Request request;
     request.mIsPost = false;
@@ -87,7 +107,7 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
-        setAuthorization(request.mXrpcRequest, accessJwt);
+        setAuthorization(request, accessJwt, isServiceAuthToken);
 
     setRawHeaders(request.mXrpcRequest, rawHeaders);
     sendRequest(request, successCb, errorCb);
@@ -150,6 +170,10 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     const auto respondeDt = QDateTime::currentDateTime() - request.mSendTime;
     qDebug() << "Reply:" << errorCode << "content:" << contentType << "errorHandled:" << *errorHandled << "responseMs:" << (respondeDt / 1ms) << request.mXrpcRequest.url();
     auto data = reply->readAll();
+    const bool hasDpopNonce = ATProto::NetworkUtils::hasDpopNonce(reply);
+
+    if (hasDpopNonce)
+        mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
 
     // WORK AROUND:
     // Since Qt6.9.2 we sometimes get an Unknown error like this:
@@ -169,6 +193,20 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
         {
             if (resendRequest(request, successCb, errorCb))
                 return;
+        }
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        {
+            if (hasDpopNonce)
+            {
+                resendWithNewDpopNonce(request, successCb, errorCb);
+            }
+            else
+            {
+                qWarning() << "DPoP-Nonce missing";
+                emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
+            }
+
+            return;
         }
 
         QJsonDocument json(QJsonDocument::fromJson(data));
@@ -191,6 +229,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
     if (!*errorHandled)
     {
         *errorHandled = true;
+        const auto data = reply->readAll();
 
         if (errorCode == QNetworkReply::OperationCanceledError)
             reply->disconnect();
@@ -202,6 +241,21 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        {
+            if (ATProto::NetworkUtils::hasDpopNonce(reply))
+            {
+                mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
+                resendWithNewDpopNonce(request, successCb, errorCb);
+            }
+            else
+            {
+                qWarning() << "DPoP-Nonce missing";
+                emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
+            }
+
+            return;
+        }
 
         if (errorCode == QNetworkReply::OperationCanceledError)
         {
@@ -209,7 +263,6 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             return;
         }
 
-        const auto data = reply->readAll();
         QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(std::move(errorMsg), std::move(json), errorCb);
     }
@@ -618,14 +671,46 @@ void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorC
 
 bool NetworkThread::resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
+    const QUrl requestUrl = request.mXrpcRequest.url();
+
     if (request.mResendCount >= MAX_RESEND)
     {
-        qWarning() << "Maximum resends reached:" << request.mXrpcRequest.url();
+        qWarning() << "Maximum resends reached:" << requestUrl;
         return false;
     }
 
     ++request.mResendCount;
-    qDebug() << "Resend:" << request.mXrpcRequest.url() << "count:" << request.mResendCount;
+    qDebug() << "Resend:" << requestUrl << "count:" << request.mResendCount;
+
+    if (request.mXrpcRequest.hasRawHeader("DPoP"))
+    {
+        // A new DPoP proof must be created, otherwise the resend will be seen as DPoP proof replay
+        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    }
+
+    sendRequest(request, successCb, errorCb);
+    return true;
+}
+
+bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
+{
+    Q_ASSERT(!mDpopPdsNonce.isEmpty());
+    const QUrl requestUrl = request.mXrpcRequest.url();
+
+    if (request.mDpopResendCount >= MAX_DPOP_RESEND)
+    {
+        qWarning() << "Max DPoP resends reached:" << requestUrl;
+        return false;
+    }
+
+    ++request.mDpopResendCount;
+    qDebug() << "DPoP resend:" << requestUrl << "count:" << request.mDpopResendCount;
+    const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+        request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+    request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+
     sendRequest(request, successCb, errorCb);
     return true;
 }
@@ -688,10 +773,25 @@ void NetworkThread::setUserAgentHeader(QNetworkRequest& request) const
         request.setHeader(QNetworkRequest::UserAgentHeader, mUserAgent);
 }
 
-void NetworkThread::setAuthorization(QNetworkRequest& request, const QString& accessJwt) const
+void NetworkThread::setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const
 {
-    QString auth = QString("Bearer %1").arg(accessJwt);
-    request.setRawHeader("Authorization", auth.toUtf8());
+    if (mOAuth && !isServiceAuthToken)
+    {
+        const QUrl requestUrl = request.mXrpcRequest.url();
+        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mDpopPdsNonce);
+
+        QString auth = QString("DPoP %1").arg(accessJwt);
+        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
+        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+    }
+    else
+    {
+        QString auth = QString("Bearer %1").arg(accessJwt);
+        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
+    }
+
+    request.mAccessJwt = accessJwt;
 }
 
 void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params) const
@@ -703,5 +803,203 @@ void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params
     }
 }
 
+void NetworkThread::enableOAuth(const QString& clientId)
+{
+    qDebug() << "Enable OAuth:" << clientId;
+    Q_ASSERT(!mDpopKey.isNull());
+    mOAuth = std::make_unique<ATProto::OAuth>(mPDS, clientId, &mDpopKey, mNetwork, this);
+    mOAuth->setUserAgent(mUserAgent);
+    mDpopPdsNonce.clear();
+}
+
+void NetworkThread::disableOAuth()
+{
+    qDebug() << "Disable OAuth";
+    mOAuth.reset();
+    oauthCleanup();
+}
+
+void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
+                               const QString& redirectUrl, const QStringList& scope,
+                               const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Login:" << user << "clientId:" << clientId << "redirectUrl:" << redirectUrl << "scope:" << scope;
+    mDpopKey = ATProto::JsonWebKey::generateDPoPKey(user);
+    enableOAuth(clientId);
+
+    mOAuth->login(user, redirectUrl, scope,
+        [this, successCb](QString state, QString issuer, QUrl redirectUrl){
+            qDebug() << "Login state:" << state << "issuer:" << issuer << "redirect:" << redirectUrl;
+            mOAuthState = state;
+            mOAuthIssuer = issuer;
+
+#ifdef Q_OS_ANDROID
+            QString alias = mDpopKey.getAlias();
+#else
+            QString alias;
+#endif
+            emit oauthLoginRedirect(std::move(redirectUrl), std::move(alias), successCb);
+        },
+        [this, errorCb](QString code, QString msg){
+            qWarning() << "Login error:" << code << msg;
+            oauthCleanup();
+            emit oauthLoginFailed(std::move(code), std::move(msg), errorCb);
+        });
+}
+
+void NetworkThread::oauthRequestInitialToken(const QUrl& url,
+                                             const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Request initial token:" << url;
+    const QUrlQuery query(url.query());
+    const QString state = query.queryItemValue("state", QUrl::FullyDecoded);
+
+    if (state != mOAuthState)
+    {
+        qWarning() << "Unexpected state:" << state << "expected:" << mOAuthState;
+        oauthCleanup();
+        emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected state", errorCb);
+        return;
+    }
+
+    const QString error = query.queryItemValue("error", QUrl::FullyDecoded);
+
+    if (!error.isEmpty())
+    {
+        // Spaces seem to be encoded as '+'s
+        const QString errorDescription = query.queryItemValue("error_description", QUrl::FullyDecoded).replace('+', ' ');
+        qWarning() << "Error:" << error << "description:" << errorDescription;
+        oauthCleanup();
+        emit oauthRefreshTokenFailed(error, errorDescription, errorCb);
+        return;
+    }
+
+    const QString issuer = query.queryItemValue("iss", QUrl::FullyDecoded);
+    const QString code = query.queryItemValue("code", QUrl::FullyDecoded);
+    qDebug() << "state:" << state << "issuer:" << issuer << "code:" << code;
+
+    if (issuer != mOAuthIssuer)
+    {
+        qWarning() << "Unexpected issuer:" << issuer << "expected:" << mOAuthIssuer;
+        emit oauthRequestInitialTokenFailed(ATProto::OAuth::ERROR_SERVER_ERROR, "Unexpected issuer", errorCb);
+        oauthCleanup();
+        return;
+    }
+
+    const QString redirectUrl = url.toString(QUrl::RemoveQuery);
+    qDebug() << "RedirectUrl:" << redirectUrl;
+
+    mOAuth->initialTokenRequest(code, redirectUrl,
+        [this, successCb](QString did, QString scope, QString accessToken, QString refreshToken){
+            qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
+            oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);
+        },
+        [this, errorCb](QString code, QString error){
+            qWarning() << "Token error:" << code << error;
+            oauthCleanup();
+            emit oauthRequestInitialTokenFailed(code, error, errorCb);
+        });
+}
+
+void NetworkThread::oauthRefreshToken(const QString& refreshToken,
+                                      const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Refresh token";
+    mOAuth->refreshTokenRequest(refreshToken,
+        [this, successCb](QString newAccessToken, QString newRefreshToken){
+            qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
+            emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
+        },
+        [this, errorCb](QString code, QString error){
+            qWarning() << "Token refresh error:" << code << error;
+
+            if (code == ATProto::OAuth::ERROR_INVALID_GRANT)
+                code = ATProto::ATProtoErrorMsg::INVALID_TOKEN;
+
+            emit oauthRefreshTokenFailed(code, error, errorCb);
+        });
+}
+
+void NetworkThread::oauthResumeSession(const QString& clientId, const QString& refreshToken,
+                                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    qDebug() << "Resume session:" << clientId;
+
+    if (mDpopKey.isNull())
+    {
+        qWarning() << "No DPoP key";
+        QTimer::singleShot(0, this, [errorCb]{ errorCb("InvalidSession", "Cannot resume session"); });
+        return;
+    }
+
+    enableOAuth(clientId);
+
+    mOAuth->resumeSession(refreshToken,
+        [this, successCb](QString newAccessToken, QString newRefreshToken){
+            qDebug() << "Resumed session access:" << newAccessToken << "refresh:" << newRefreshToken;
+            emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
+        },
+        [this, errorCb](QString code, QString error){
+            qWarning() << "Resume session error:" << code << error;
+            emit oauthRefreshTokenFailed(code, error, errorCb);
+        });
+}
+
+void NetworkThread::oauthLogout(const QString& accessToken, const QString& refreshToken,
+                                const OAuthLogoutSuccessCb& successCb)
+{
+    qDebug() << "Logout";
+    mOAuth->logout(accessToken, refreshToken,
+        [this, successCb]{
+            qDebug() << "Logout succces";
+            oauthCleanup();
+            emit oauthLoggedOut(successCb);
+        },
+        [this, successCb](QString code, QString error){
+            qWarning() << "Logout error:" << code << error;
+            oauthCleanup();
+            emit oauthLoggedOut(successCb);
+        });
+}
+
+void NetworkThread::oauthCleanup()
+{
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    const QString alias = oauthDpopKeyGetAlias();
+
+    if (ATProto::JsonWebKey::deleteKey(alias))
+        qDebug() << "Deleted key:" << alias;
+#endif
+    mDpopKey = {};
+    mOAuthState.clear();
+    mOAuthIssuer.clear();
+    mDpopPdsNonce.clear();
+}
+
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+const QString& NetworkThread::oauthDpopKeyGetAlias() const
+{
+    return mDpopKey.getAlias();
+}
+
+void NetworkThread::oauthSetDpopKeyAlias(const QString& alias)
+{
+    mDpopKey = ATProto::JsonWebKey(alias);
+}
+#else
+void NetworkThread::oauthSaveDpopKey(const QString& path, const QString& passPhrase)
+{
+    if (!mDpopKey.save(path, passPhrase))
+        qWarning() << "Could not save key";
+}
+
+void NetworkThread::oauthLoadDpopKey(const QString& path, const QString& passPhrase)
+{
+    mDpopKey = ATProto::JsonWebKey::load(path, passPhrase);
+
+    if (mDpopKey.isNull())
+        qWarning() << "Could not load key";
+}
+#endif
 
 }

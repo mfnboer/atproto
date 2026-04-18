@@ -115,6 +115,17 @@ public:
     using AutoRefreshDoneCb = std::function<void()>;
     using AutoRefreshSessionExpiredCb = std::function<void(const QString& message)>;
 
+    using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // dpopKeyAlias only set on Android
+    using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
+    using OAuthRefreshTokenSuccessCb = std::function<void(QString accessToken, QString refreshToken)>;
+
+    // When resuming a session fails, the tokens may have been refreshed. The new tokens are
+    // returned.
+    using OAuthResumeSessionErrorCb = std::function<void(QString errorCode, QString errorMsg, QString accessToken, QString refreshToken)>;
+
+    using OAuthLogoutSuccessCb = std::function<void()>;
+    using OAuthErrorCb = std::function<void(QString errorCode, QString errorMsg)>;
+
     using Ptr = std::unique_ptr<Client>;
     using SharedPtr = std::shared_ptr<Client>;
 
@@ -165,7 +176,7 @@ public:
 
     // com.atproto.server
     /**
-     * @brief createSession
+     * @brief createSession (only passwd)
      * @param user user handle or did
      * @param pwd password
      * @param authFactorToken 2FA token
@@ -179,14 +190,14 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief deleteSession Delete the current session
+     * @brief deleteSession Delete the current session (both passwd and oauth)
      * @param successCb
      * @param errorCb
      */
     void deleteSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief resumeSession Resume a previously created session
+     * @brief resumeSession Resume a previously created session (only passwd)
      * @param session
      * @param successCb
      * @param errorCb
@@ -199,6 +210,11 @@ public:
     void resumeAndRefreshSession(const ComATProtoServer::Session& session,
                                  const SuccessCb& successCb, const ResumeAndRefreshSessionErrorCb& errorCb);
 
+    /**
+     * @brief refreshSession (both passwd and oauth)
+     * @param successCb
+     * @param errorCb
+     */
     void refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void getAccountInviteCodes(const GetAccountInviteCodesSuccessCb& successCb, const ErrorCb& errorCb);
@@ -1186,6 +1202,55 @@ public:
     void removeReaction(const QString& convoId, const QString& messageId, const QString& value,
                         const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
 
+    // oauth
+
+    /**
+     * @brief oauthLogin
+     * @param user DID or handle
+     * @param clientId
+     * @param redirectUrl
+     * @param scope
+     * @param successCb
+     * @param errorCb
+     *
+     * PDS will be resolved from the user
+     */
+    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
+                    const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    /**
+     * @brief oauthLoginContinue Request initial tokens and resume the session from the PDS
+     * @param url The url gotten from the call back from the auth server
+     * @param successCb
+     * @param errorCb
+     */
+    void oauthLoginContinue(const QUrl& url,
+                            const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    void oauthRefreshToken(const QString& refreshToken,
+                           const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+
+    /**
+     * @brief oauthResumeSession refresh the tokens from the session and resume
+     * @param session
+     * @param successCb
+     * @param errorCb
+     *
+     * PDS will be resolved from the session DID
+     */
+    void oauthResumeSession(const QString& clientId, const ComATProtoServer::Session& session,
+                            const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
+
+    void oauthLogout(const QString& accessToken, const QString& refreshToken,
+                     const OAuthLogoutSuccessCb& successCb);
+
+#if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
+    void oauthSetDpopKeyAlias(const QString& alias);
+#else
+    void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
+    void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
+#endif
+
 private:
     const QString& authToken() const;
     const QString& refreshToken() const;
@@ -1223,6 +1288,16 @@ private:
                          const QString& pds = {});
 
     void resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc);
+    void setPdsFromUser(const QString& user, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void oauthCreateSessionContinue(
+        const QString& did, const QString& scope, const QString& accessToken, const QString& refreshToken,
+        const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    void oautResumeSessionContinue(
+        const QString& clientId, const ComATProtoServer::Session& session,
+        const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
+    void deleteSessionOAuth(const SuccessCb& successCb);
+    void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
 
     Xrpc::Client::Ptr mXrpc;
     ComATProtoServer::Session::SharedPtr mSession;
