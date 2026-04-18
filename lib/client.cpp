@@ -136,7 +136,7 @@ void Client::updateSessionTokens(const QString& accessJwt, const QString& refres
 {
     if (mSession)
     {
-        qDebug() << "Update tokens";
+        qDebug() << "Update tokens:" << mSession->mDid << "access:" << accessJwt << "refresh:" << refreshJwt;
         mSession->mAccessJwt = accessJwt;
         mSession->mRefreshJwt = refreshJwt;
     }

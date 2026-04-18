@@ -103,7 +103,7 @@ protected:
         return false;
     }
 
-    bool resendRequest(RequestType request, const RequestSuccessCb& successCb, const RequestErrorCb& errorCb)
+    virtual bool resendRequest(RequestType request, const RequestSuccessCb& successCb, const RequestErrorCb& errorCb)
     {
         if (request.mResendCount >= MAX_RESEND)
         {

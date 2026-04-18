@@ -54,6 +54,15 @@ struct OAuthRequest
 using OAuthSuccessCb = std::function<void(QJsonDocument resp)>;
 using OAuthErrorCb = std::function<void(QString code, QString msg)>;
 
+/**
+ * @brief OAuth atproto implementation
+ * To start an OAuth session either call login to start a new session or resumeSession to
+ * resume an existing session.
+ * Note that to resume a session you need to pass the DPoP key that you used to login into
+ * the constructor.
+ * login and resumeSession both fetch the meta data from the authorization server that is
+ * needed by any of the other calls.
+ */
 class OAuth : public NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>
 {
 public:
@@ -71,6 +80,7 @@ public:
     static constexpr char const* SCOPE_TRANSITION_CHAT = "transition:chat.bsky";
     static constexpr char const* SCOPE_BSKY_APP = "include:app.bsky.authFullApp?aud=did:web:api.bsky.app%23bsky_appview";
     static constexpr char const* SCOPE_BSKY_CHAT = "include:chat.bsky.authFullChatClient?aud=did:web:api.bsky.chat%23bsky_chat";
+    static constexpr char const* SCOPE_EMAIL_MANAGE = "account:email?action=manage";
 
     static constexpr char const* ERROR_INVALID_REQUEST = "invalid_request";
     static constexpr char const* ERROR_INVALID_CLIENT = "invalid_client";
@@ -87,7 +97,7 @@ public:
      * @brief OAuth
      * @param handle handle or DID. May be empty.
      * @param pds This can be an entry point is handle is empty, e.g. https://bsky.social
-     * @param dpopPrivateJwk
+     * @param dpopPrivateJwk a new key for login, the key from login to resume
      * @param parent
      */
     OAuth(const QString& pds, const QString& clientId,
@@ -103,7 +113,7 @@ public:
      * @param successCb
      * @param errorCb
      *
-     * Gets meta data for the authorizaion server.
+     * Gets meta data for the authorization server.
      */
     void login(const QString& user, const QString& redirectUrl, const QStringList& scope,
                const LoginSuccessCb& successCb, const ErrorCb& errorCb);
@@ -176,6 +186,7 @@ private:
                      const SuccessCb& successCb, const ErrorCb& errorCb);
     void resendWithNewDpopNonce(const OAuthRequest& request,
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
+    virtual bool resendRequest(OAuthRequest request, const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb) override;
 
     QString createPkceCodeChallenge(const QString& verifier) const;
     QString mPds;

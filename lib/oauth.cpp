@@ -593,6 +593,7 @@ void OAuth::initialTokenRequest(const QString& code, const QString& redirectUrl,
 void OAuth::refreshTokenRequest(const QString& refreshToken,
                                 const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    Q_ASSERT(mAuthorizationServerMeta);
     qDebug() << "Refresh token request:" << mAuthorizationServerMeta->mTokenEndpoint;
     QUrlQuery body;
     body.addQueryItem("client_id", mClientId);
@@ -639,6 +640,7 @@ void OAuth::resumeSession(const QString& refreshToken,
 void OAuth::logout(const QString& accessToken, const QString& refreshToken,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    Q_ASSERT(mAuthorizationServerMeta);
     qDebug() << "Logout:" << mAuthorizationServerMeta->mRevocationEndpoint.value_or("<none>");
 
     if (!mAuthorizationServerMeta->mRevocationEndpoint)
@@ -721,6 +723,29 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
     qDebug() << "DPoP proof:" << dpopProof;
     newRequest.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     sendRequest(newRequest, successCb, errorCb);
+}
+
+bool OAuth::resendRequest(OAuthRequest request, const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
+{
+    const QString requestUrl = request.mNetworkRequest.url().toString();
+
+    if (request.mResendCount >= MAX_RESEND)
+    {
+        qWarning() << "Maximum resends reached:" << requestUrl;
+        return false;
+    }
+
+    ++request.mResendCount;
+    qDebug() << "Resend:" << requestUrl << "count:" << request.mResendCount;
+
+    if (request.mNetworkRequest.hasRawHeader("DPoP"))
+    {
+        // A new DPoP proof must be created, otherwise the resend will be seen as DPoP proof replay
+        const QString dpopProof = mDpopPrivateJwk->buildAuthDPoPProof("POST", requestUrl, mDpopNonce);
+    }
+
+    sendRequest(request, successCb, errorCb);
+    return true;
 }
 
 QString OAuth::createPkceCodeChallenge(const QString& verifier) const

@@ -41,6 +41,9 @@ public:
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
     // On Android there is no need to save and load the key. The key is stored in
     // the Android keystore. You need to keep the alias for the key to retrieve it.
+    // To 'load' a key from the Android store, call JsonWebKey(alias) and you can use
+    // as a key to resume a session.
+
     static bool deleteKey(const QString& alias);
 #else
     // path must be full path with file name.
