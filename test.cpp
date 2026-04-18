@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "test.h"
 #include <QHostAddress>
+#include <QTcpServer>
 
 namespace ATProto {
 
@@ -54,15 +55,15 @@ void ATProtoTest::initHttpServer()
             responder.write(QHttpServerResponder::StatusCode::NoContent);
         });
 
-    mTcpServer = std::make_unique<QTcpServer>(this);
+    auto tcpServer = new QTcpServer(this);
 
-    if (!mTcpServer->listen(QHostAddress::LocalHost, LISTEN_PORT) || !mHttpServer->bind(mTcpServer.get()))
+    if (!mTcpServer->listen(QHostAddress::LocalHost, LISTEN_PORT) || !mHttpServer->bind(tcpServer))
     {
         qWarning() << "Failed to list on port:" << LISTEN_PORT;
         return;
     }
 
-    qDebug() << "Listening on port:" << mTcpServer->serverPort();
+    qDebug() << "Listening on port:" << tcpServer->serverPort();
 }
 
 void ATProtoTest::loginContinue(const QUrl& url)

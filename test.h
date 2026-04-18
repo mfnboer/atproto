@@ -4,7 +4,6 @@
 #include "client.h"
 #include <QtHttpServer>
 #include <QObject>
-#include <QTcpServer>
 #include <QtQmlIntegration>
 
 namespace ATProto {
@@ -175,7 +174,6 @@ private:
     QNetworkAccessManager* mNetwork;
     std::unique_ptr<ATProto::Client> mBsky;
     AppBskyActor::ProfileViewDetailed::SharedPtr mProfile;
-    std::unique_ptr<QTcpServer> mTcpServer;
     std::unique_ptr<QHttpServer> mHttpServer;
     QString mIssuer;
     QString mState;
