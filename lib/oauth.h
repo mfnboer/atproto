@@ -159,10 +159,10 @@ private:
                             const ParSuccessCb& successCb, const ErrorCb& errorCb);
 
     void getServerMetaData(const SuccessCb& successCb, const ErrorCb& errorCb);
-    void getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
-    void handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
-    void getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb);
-    void handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount = 0);
+    void handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount);
+    void getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount = 0);
+    void handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount);
 
     QString getAuthorizationServer() const;
 

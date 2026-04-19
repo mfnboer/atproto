@@ -88,6 +88,13 @@ std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) c
     QNetworkRequest request(url);
     request.setMaximumRedirectsAllowed(0);
     setUserAgentHeader(request);
+
+    // HACK:
+    // HTTP/2 does not work between Qt6.10.2 and Eurosky.
+    const QString host = request.url().host();
+    if (host.endsWith("eurosky.social"))
+        request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+
     return request;
 }
 
@@ -122,7 +129,7 @@ void OAuth::getServerMetaData(const SuccessCb& successCb, const ErrorCb& errorCb
         errorCb);
 }
 
-void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount)
 {
     const auto url = QString("%1/.well-known/oauth-protected-resource").arg(mPds);
     qDebug() << "Get protected resource:" << url;
@@ -136,12 +143,12 @@ void OAuth::getProtectedResourceRequest(const SuccessCb& successCb, const ErrorC
 
     QNetworkReply* reply = mNetwork->get(*request);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
-        handleProtectedResourceResponse(reply, successCb, errorCb);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb, resendCount]{
+        handleProtectedResourceResponse(reply, successCb, errorCb, resendCount);
     });
 }
 
-void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount)
 {
     qDebug() << "Reply:" << reply->url();
 
@@ -149,6 +156,19 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
     {
         const QString& error = reply->errorString();
         qWarning() << "Failed to get:" << reply->url() << "code:" <<  reply->error() << "error:" << error;
+
+        if (mustResend(reply->error()))
+        {
+            if (resendCount >= MAX_RESEND)
+            {
+                qWarning() << "Maximum resends reached:" << reply->url();
+                errorCb(ERROR_TEMP_UNAVAILABLE, reply->errorString());
+                return;
+            }
+
+            getProtectedResourceRequest(successCb, errorCb, resendCount + 1);
+            return;
+        }
 
         if (reply->error() == QNetworkReply::ContentNotFoundError)
         {
@@ -194,7 +214,7 @@ void OAuth::handleProtectedResourceResponse(QNetworkReply* reply, const SuccessC
     successCb();
 }
 
-void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount)
 {
     const QString server = getAuthorizationServer();
 
@@ -216,17 +236,31 @@ void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const Erro
 
     QNetworkReply* reply = mNetwork->get(*request);
 
-    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb]{
-        handleAuthorizatonServerResponse(reply, successCb, errorCb);
+    connect(reply, &QNetworkReply::finished, this, [this, reply, successCb, errorCb, resendCount]{
+        handleAuthorizatonServerResponse(reply, successCb, errorCb, resendCount);
     });
 }
 
-void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb)
+void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount)
 {
     if (reply->error() != QNetworkReply::NoError)
     {
         const QString& error = reply->errorString();
         qWarning() << "Failed to get:" << reply->url() << "code:" <<  reply->error() << "error:" << error;
+
+        if (mustResend(reply->error()))
+        {
+            if (resendCount >= MAX_RESEND)
+            {
+                qWarning() << "Maximum resends reached:" << reply->url();
+                errorCb(ERROR_TEMP_UNAVAILABLE, reply->errorString());
+                return;
+            }
+
+            getAuthorizationServerRequest(successCb, errorCb, resendCount + 1);
+            return;
+        }
+
         errorCb(ERROR_INVALID_REQUEST, error);
         return;
     }
@@ -380,12 +414,6 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
     request.mNetworkRequest.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
     request.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     request.mPostData = postData.toString().toUtf8();
-
-    // HACK:
-    // HTTP/2 does not work between Qt6.10.2 and Eurosky.
-    const QString host = request.mNetworkRequest.url().host();
-    if (host.endsWith("eurosky.social"))
-        request.mNetworkRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
 
     sendRequest(request, successCb, errorCb);
 }
