@@ -191,7 +191,7 @@ public:
         QDateTime mSendTime;
     };
 
-    NetworkThread(int networkTransferTimeoutMs, QObject* parent = nullptr);
+    NetworkThread(int networkTransferTimeoutMs, const QString& pdsDpopNonce = {}, QObject* parent = nullptr);
 
     void setPDS(const QString& pds);
     void setUserAgent(const QString& userAgent);
@@ -213,6 +213,7 @@ public:
     // key storage.
     void enableOAuth(const QString& clientId);
     void disableOAuth();
+    void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
     void oauthLogin(const QString& user, const QString& clientId,
                     const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
@@ -224,7 +225,8 @@ public:
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthResumeSession(const QString& clientId, const QString& refreshToken,
-                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
+                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb,
+                            const QString& authDpopNonce = {});
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
 
@@ -320,6 +322,8 @@ signals:
     void oauthRefreshTokenSucces(QString accessToken, QString refreshToken, OAuthRefreshTokenSuccessCb cb);
     void oauthRefreshTokenFailed(QString errorCode, QString errorMsg, OAuthErrorCb cb);
     void oauthLoggedOut(OAuthLogoutSuccessCb cb);
+    void pdsDpopNonceChanged(QString nonce);
+    void authDpopNonceChanged(QString nonce);
 
 protected:
     virtual void run() override;
@@ -345,6 +349,7 @@ private:
     void sslErrors(QNetworkReply* reply, const QList<QSslError>& errors, const ErrorCb& errorCb, std::shared_ptr<bool> errorHandled);
 
     void oauthCleanup();
+    void setPdsDpopNonce(const QString& nonce);
 
     struct Task
     {
@@ -362,7 +367,7 @@ private:
     std::unique_ptr<ATProto::OAuth> mOAuth;
     QString mOAuthState;
     QString mOAuthIssuer;
-    QString mDpopPdsNonce;
+    QString mPdsDpopNonce;
 };
 
 }

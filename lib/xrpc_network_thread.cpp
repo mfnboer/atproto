@@ -29,11 +29,13 @@ static bool isEmpty(const NetworkThread::DataType& data)
 }
 
 
-NetworkThread::NetworkThread(int networkTransferTimeoutMs, QObject* parent) :
+NetworkThread::NetworkThread(int networkTransferTimeoutMs, const QString& pdsDpopNonce, QObject* parent) :
     QThread(parent),
     mNetworkTransferTimeoutMs(networkTransferTimeoutMs),
-    mVideoHost(ATProto::Client::SERVICE_VIDEO_HOST)
+    mVideoHost(ATProto::Client::SERVICE_VIDEO_HOST),
+    mPdsDpopNonce(pdsDpopNonce)
 {
+    qDebug() << "timeout:" << mNetworkTransferTimeoutMs << "video:" << mVideoHost << "pdsDpopNonce:" << mPdsDpopNonce;
 }
 
 void NetworkThread::setPDS(const QString& pds)
@@ -173,7 +175,7 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     const bool hasDpopNonce = ATProto::NetworkUtils::hasDpopNonce(reply);
 
     if (hasDpopNonce)
-        mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
+        setPdsDpopNonce(ATProto::NetworkUtils::getDpopNonce(reply));
 
     // WORK AROUND:
     // Since Qt6.9.2 we sometimes get an Unknown error like this:
@@ -245,7 +247,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
         {
             if (ATProto::NetworkUtils::hasDpopNonce(reply))
             {
-                mDpopPdsNonce = ATProto::NetworkUtils::getDpopNonce(reply);
+                setPdsDpopNonce(ATProto::NetworkUtils::getDpopNonce(reply));
                 resendWithNewDpopNonce(request, successCb, errorCb);
             }
             else
@@ -686,7 +688,7 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
     {
         // A new DPoP proof must be created, otherwise the resend will be seen as DPoP proof replay
         const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-            request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mPdsDpopNonce);
         request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     }
 
@@ -696,7 +698,7 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
 
 bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
-    Q_ASSERT(!mDpopPdsNonce.isEmpty());
+    Q_ASSERT(!mPdsDpopNonce.isEmpty());
     const QUrl requestUrl = request.mXrpcRequest.url();
 
     if (request.mDpopResendCount >= MAX_DPOP_RESEND)
@@ -708,7 +710,7 @@ bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& 
     ++request.mDpopResendCount;
     qDebug() << "DPoP resend:" << requestUrl << "count:" << request.mDpopResendCount;
     const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-        request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mDpopPdsNonce);
+        request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mPdsDpopNonce);
     request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
 
     sendRequest(request, successCb, errorCb);
@@ -779,7 +781,7 @@ void NetworkThread::setAuthorization(Request& request, const QString& accessJwt,
     {
         const QUrl requestUrl = request.mXrpcRequest.url();
         const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-            request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mDpopPdsNonce);
+            request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mPdsDpopNonce);
 
         QString auth = QString("DPoP %1").arg(accessJwt);
         request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
@@ -809,7 +811,7 @@ void NetworkThread::enableOAuth(const QString& clientId)
     Q_ASSERT(!mDpopKey.isNull());
     mOAuth = std::make_unique<ATProto::OAuth>(mPDS, clientId, &mDpopKey, mNetwork, this);
     mOAuth->setUserAgent(mUserAgent);
-    mDpopPdsNonce.clear();
+    connect(mOAuth.get(), &ATProto::OAuth::dpopNonceChanged, this, &NetworkThread::authDpopNonceChanged);
 }
 
 void NetworkThread::disableOAuth()
@@ -817,6 +819,14 @@ void NetworkThread::disableOAuth()
     qDebug() << "Disable OAuth";
     mOAuth.reset();
     oauthCleanup();
+}
+
+void NetworkThread::setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce)
+{
+    setPdsDpopNonce(pdsDpopNonce);
+
+    if (mOAuth)
+        mOAuth->setDpopNonce(authDpopNonce);
 }
 
 void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
@@ -921,7 +931,8 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
 }
 
 void NetworkThread::oauthResumeSession(const QString& clientId, const QString& refreshToken,
-                                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
+                                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb,
+                                       const QString& authDpopNonce)
 {
     qDebug() << "Resume session:" << clientId;
 
@@ -942,7 +953,8 @@ void NetworkThread::oauthResumeSession(const QString& clientId, const QString& r
         [this, errorCb](QString code, QString error){
             qWarning() << "Resume session error:" << code << error;
             emit oauthRefreshTokenFailed(code, error, errorCb);
-        });
+        },
+        authDpopNonce);
 }
 
 void NetworkThread::oauthLogout(const QString& accessToken, const QString& refreshToken,
@@ -973,7 +985,7 @@ void NetworkThread::oauthCleanup()
     mDpopKey = {};
     mOAuthState.clear();
     mOAuthIssuer.clear();
-    mDpopPdsNonce.clear();
+    setPdsDpopNonce({});
 }
 
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)
@@ -1001,5 +1013,14 @@ void NetworkThread::oauthLoadDpopKey(const QString& path, const QString& passPhr
         qWarning() << "Could not load key";
 }
 #endif
+
+void NetworkThread::setPdsDpopNonce(const QString& nonce)
+{
+    if (nonce == mPdsDpopNonce)
+        return;
+
+    mPdsDpopNonce = nonce;
+    emit pdsDpopNonceChanged(mPdsDpopNonce);
+}
 
 }

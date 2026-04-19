@@ -243,6 +243,8 @@ void OAuth::getAuthorizationServerRequest(const SuccessCb& successCb, const Erro
 
 void OAuth::handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount)
 {
+    qDebug() << "Reply:" << reply->url();
+
     if (reply->error() != QNetworkReply::NoError)
     {
         const QString& error = reply->errorString();
@@ -446,7 +448,7 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
     const bool hasDpopNonce = NetworkUtils::hasDpopNonce(reply);
 
     if (hasDpopNonce)
-        mDpopNonce = NetworkUtils::getDpopNonce(reply);
+        setDpopNonce(NetworkUtils::getDpopNonce(reply));
 
     if (errorCode == QNetworkReply::NoError)
     {
@@ -514,7 +516,7 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
         {
             if (NetworkUtils::hasDpopNonce(reply))
             {
-                mDpopNonce = NetworkUtils::getDpopNonce(reply);
+                setDpopNonce(NetworkUtils::getDpopNonce(reply));
                 resendWithNewDpopNonce(request, successCb, errorCb);
             }
             else
@@ -653,9 +655,11 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
 }
 
 void OAuth::resumeSession(const QString& refreshToken,
-                          const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
+                          const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb,
+                          const QString& dpopNonce)
 {
     qDebug() << "Resume session";
+    setDpopNonce(dpopNonce);
 
     getServerMetaData(
         [this, presence=getPresence(), refreshToken, successCb, errorCb]{
@@ -780,6 +784,15 @@ QString OAuth::createPkceCodeChallenge(const QString& verifier) const
 {
     const auto hash = QCryptographicHash::hash(verifier.toUtf8(), QCryptographicHash::Sha256);
     return hash.toBase64(QByteArray::Base64UrlEncoding | QByteArray::OmitTrailingEquals);
+}
+
+void OAuth::setDpopNonce(const QString& nonce)
+{
+    if (nonce == mDpopNonce)
+        return;
+
+    mDpopNonce = nonce;
+    emit dpopNonceChanged(mDpopNonce);
 }
 
 }

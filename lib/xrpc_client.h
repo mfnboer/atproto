@@ -21,9 +21,12 @@ public:
     using SetPdsSuccessCb = std::function<void()>;
     using SetPdsErrorCb = std::function<void(const QString& error)>;
 
+    static constexpr int DEFAULT_TIMEOUT_MS = 5000;
+
     // Host can be set as first point of contact for a new account.
     // If handle to DID resolution via DNS fails, then createSession will be sent to host.
-    explicit Client(const QString& host = {}, int networkTransferTimeoutMs = 5000);
+    // pdsDpopNonce is the last received nonce from previous session (OPTIONAL)
+    explicit Client(const QString& host = {}, int networkTransferTimeoutMs = DEFAULT_TIMEOUT_MS, const QString& pdsDpopNonce = {});
 
     ~Client();
 
@@ -33,6 +36,7 @@ public:
     void setPDS(const QString& pds, const QString& did);
     void enableOAuth(bool enable);
     bool isOAuthEnabled() const { return mOAuthEnabled; }
+    void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
 
     void setVideoHost(const QString& host);
 
@@ -63,6 +67,7 @@ signals:
                       const QString& accessJwt, bool isServiceAuthToken, const QString& pds);
     void pdsChanged(const QString& pds);
     void oauthDisabled();
+    void dpopNoncesChanged(const QString& pdsDpopNonce, const QString& authDpopNonce);
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);
 
@@ -73,7 +78,8 @@ signals:
     void oauthRefreshToken(const QString& refreshToken,
                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthResumeSession(const QString& clientId, const QString& refreshToken,
-                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
+                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb,
+                            const QString& authDpopNonce = {});
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const NetworkThread::OAuthLogoutSuccessCb& successCb);
 
@@ -83,6 +89,9 @@ signals:
     void oauthSaveDpopKey(const QString& path, const QString& passPhrase);
     void oauthLoadDpopKey(const QString& path, const QString& passPhrase);
 #endif
+
+    void pdsDpopNonceChanged(QString nonce);
+    void authDpopNonceChanged(QString nonce);
 
 private:
     template<typename CallbackType, typename ArgType>

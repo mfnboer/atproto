@@ -14,11 +14,11 @@ static QNetworkAccessManager* makeNetwork(int networkTransferTimeoutMs, QObject*
     return network;
 }
 
-Client::Client(const QString& host, int networkTransferTimeoutMs) :
+Client::Client(const QString& host, int networkTransferTimeoutMs, const QString& pdsDpopNonce) :
     mNetwork(makeNetwork(networkTransferTimeoutMs, this)),
     mPlcDirectoryClient(mNetwork.get()),
     mIdentityResolver(mNetwork.get()),
-    mNetworkThread(new NetworkThread(networkTransferTimeoutMs))
+    mNetworkThread(new NetworkThread(networkTransferTimeoutMs, pdsDpopNonce))
 {
     qDebug() << "Host:" << host;
     qDebug() << "Network transfer timeout:" << networkTransferTimeoutMs;
@@ -140,6 +140,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(mNetworkThread.get(), &NetworkThread::oauthLoggedOut, this,
         [](NetworkThread::OAuthLogoutSuccessCb cb){ cb(); });
 
+    connect(mNetworkThread.get(), &NetworkThread::pdsDpopNonceChanged, this, &Client::pdsDpopNonceChanged);
+    connect(mNetworkThread.get(), &NetworkThread::authDpopNonceChanged, this, &Client::authDpopNonceChanged);
+
     // errors
     connect(mNetworkThread.get(), &NetworkThread::requestError, this,
         [](QString error, QJsonDocument json, NetworkThread::ErrorCb cb) {
@@ -157,6 +160,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs) :
     connect(this, &Client::getToNetwork, mNetworkThread.get(), &NetworkThread::get, Qt::QueuedConnection);
     connect(this, &Client::pdsChanged, mNetworkThread.get(), &NetworkThread::setPDS, Qt::QueuedConnection);
     connect(this, &Client::oauthDisabled, mNetworkThread.get(), &NetworkThread::disableOAuth, Qt::QueuedConnection);
+    connect(this, &Client::dpopNoncesChanged, mNetworkThread.get(), &NetworkThread::setDpopNonces, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
     connect(this, &Client::videoHostChanged, mNetworkThread.get(), &NetworkThread::setVideoHost, Qt::QueuedConnection);
 
@@ -209,6 +213,11 @@ void Client::enableOAuth(bool enable)
 
     if (!enable)
         emit oauthDisabled();
+}
+
+void Client::setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce)
+{
+    emit dpopNoncesChanged(pdsDpopNonce, authDpopNonce);
 }
 
 void Client::setPDS(const QString& pds, const QString& did)

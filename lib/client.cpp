@@ -94,6 +94,12 @@ void Client::setServiceDidVideo(const QString& did)
     mServiceDidVideo = did;
 }
 
+void Client::setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce)
+{
+    qDebug() << "pdsDpopNonce:" << pdsDpopNonce << "authDpopNonce:" << authDpopNonce;
+    mXrpc->setDpopNonces(pdsDpopNonce, authDpopNonce);
+}
+
 bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
 {
     if (dids.size() > MAX_LABELERS)
@@ -3180,17 +3186,18 @@ void Client::oauthRefreshToken(const QString& refreshToken,
 
 void Client::oauthResumeSession(const QString& clientId,
                                 const ComATProtoServer::Session& session,
-                                const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
+                                const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
+                                const QString& authDpopNonce)
 {
     qDebug() << "Resume:" << session.mDid;
 
     mXrpc->setPDSFromDid(session.mDid,
-        [this, presence=getPresence(), clientId, session, successCb, errorCb]{
+        [this, presence=getPresence(), clientId, session, successCb, errorCb, authDpopNonce]{
             if (!presence)
                 return;
 
             mXrpc->enableOAuth(true);
-            oautResumeSessionContinue(clientId, session, successCb, errorCb);
+            oautResumeSessionContinue(clientId, session, successCb, errorCb, authDpopNonce);
         },
         [session, errorCb](const QString& error){
             if (errorCb)
@@ -3200,7 +3207,8 @@ void Client::oauthResumeSession(const QString& clientId,
 
 void Client::oautResumeSessionContinue(
     const QString& clientId, const ComATProtoServer::Session& session,
-    const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb)
+    const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
+    const QString& authDpopNonce)
 {
     mXrpc->oauthResumeSession(clientId, session.mRefreshJwt,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
@@ -3227,7 +3235,8 @@ void Client::oautResumeSessionContinue(
                     errorCb(ATProtoErrorMsg::INVALID_TOKEN, errorMessage, "", "");
                 else
                     errorCb(errorCode, errorMessage, session.mAccessJwt, session.mRefreshJwt);
-        });
+        },
+        authDpopNonce);
 }
 
 void Client::oauthLogout(const QString& accessToken, const QString& refreshToken,

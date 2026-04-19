@@ -65,6 +65,8 @@ using OAuthErrorCb = std::function<void(QString code, QString msg)>;
  */
 class OAuth : public NetworkClient<OAuthRequest, OAuthSuccessCb, OAuthErrorCb>
 {
+    Q_OBJECT
+
 public:
     using AuthServerSuccessCb = OAuthSuccessCb;
     using LoginSuccessCb = std::function<void(QString state, QString issuer, QUrl redirectUrl)>;
@@ -135,17 +137,22 @@ public:
      * @param refreshToken
      * @param successCb
      * @param errorCb
+     * @param dpopNonce last received nonce from previous session (OPTIONAL)
      *
      * Gets meta data for the authorizaion server.
      *
      */
     void resumeSession(const QString& refreshToken,
-                       const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb);
+                       const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb,
+                       const QString& dpopNonce = {});
 
     void logout(const QString& accessToken, const QString& refreshToken,
                 const SuccessCb& successCb, const ErrorCb& errorCb);
 
-    const QString& getDpopNonce() const { return mDpopNonce; }
+    void setDpopNonce(const QString& nonce);
+
+signals:
+    void dpopNonceChanged(QString nonce);
 
 private:
     std::optional<QNetworkRequest> createNetworkRequest(const QString& url) const;

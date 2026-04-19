@@ -155,6 +155,9 @@ public:
     const QString& getServiceDidVideo() const { return mServiceDidVideo; }
     void setServiceDidVideo(const QString& did);
 
+    void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
+
+    Xrpc::Client* getXrpcClient() const { return mXrpc.get(); }
     const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }
     void setSession(ComATProtoServer::Session::SharedPtr session) { mSession = std::move(session); }
@@ -1235,11 +1238,13 @@ public:
      * @param session
      * @param successCb
      * @param errorCb
+     * @param authDpopNonce last received nonce from previous session (OPTIONAL)
      *
      * PDS will be resolved from the session DID
      */
     void oauthResumeSession(const QString& clientId, const ComATProtoServer::Session& session,
-                            const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
+                            const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
+                            const QString& authDpopNonce = {});
 
     void oauthLogout(const QString& accessToken, const QString& refreshToken,
                      const OAuthLogoutSuccessCb& successCb);
@@ -1295,7 +1300,8 @@ private:
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oautResumeSessionContinue(
         const QString& clientId, const ComATProtoServer::Session& session,
-        const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb);
+        const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
+        const QString& authDpopNonce);
     void deleteSessionOAuth(const SuccessCb& successCb);
     void refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb);
 
