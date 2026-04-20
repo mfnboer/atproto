@@ -399,7 +399,7 @@ QString OAuth::getAuthorizationServer() const
 void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
                     const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    qDebug() << "Post:" << postUrl;
+    qDebug() << "Post:" << postUrl << "data:" << postData.toString();
     Q_ASSERT(mDpopPrivateJwk);
     const QString dpopProof = mDpopPrivateJwk->buildAuthDPoPProof("POST", postUrl, mDpopNonce);
 
