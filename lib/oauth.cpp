@@ -624,7 +624,7 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
                                 const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(mAuthorizationServerMeta);
-    qDebug() << "Refresh token request:" << mAuthorizationServerMeta->mTokenEndpoint;
+    qDebug() << "Refresh token request:" << mAuthorizationServerMeta->mTokenEndpoint << "token:" << refreshToken;
     QUrlQuery body;
     body.addQueryItem("client_id", mClientId);
     body.addQueryItem("grant_type", "refresh_token");
