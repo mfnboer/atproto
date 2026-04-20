@@ -11,7 +11,7 @@ namespace Xrpc {
 
 using namespace std::chrono_literals;
 
-constexpr int MAX_RESEND = 4;
+constexpr int MAX_RESEND = 2;
 static constexpr int MAX_DPOP_RESEND = 2;
 
 static bool isEmpty(const NetworkThread::DataType& data)

@@ -22,7 +22,7 @@ public:
     void setUserAgent(const QString& userAgent) { mUserAgent = userAgent; }
 
 protected:
-    static constexpr int MAX_RESEND = 4;
+    static constexpr int MAX_RESEND = 2;
 
     virtual void replyFinished(const RequestType& request, QNetworkReply* reply,
                        const RequestSuccessCb& successCb, const RequestErrorCb& errorCb,

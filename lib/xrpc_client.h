@@ -21,7 +21,7 @@ public:
     using SetPdsSuccessCb = std::function<void()>;
     using SetPdsErrorCb = std::function<void(const QString& error)>;
 
-    static constexpr int DEFAULT_TIMEOUT_MS = 5000;
+    static constexpr int DEFAULT_TIMEOUT_MS = 10000;
 
     // Host can be set as first point of contact for a new account.
     // If handle to DID resolution via DNS fails, then createSession will be sent to host.

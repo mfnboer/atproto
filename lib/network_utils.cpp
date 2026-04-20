@@ -103,6 +103,11 @@ static std::pair<QString, std::unordered_map<QString, QString>> parseWwwAuthenti
     return { scheme, params };
 }
 
+static bool isDpopError(const QString& error)
+{
+    return error == "use_dpop_nonce" || error == "invalid_dpop_proof";
+}
+
 bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data)
 {
     const QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
@@ -121,7 +126,7 @@ bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data
         auto [scheme, params] = parseWwwAuthenticate(headerValue);
         qDebug() << QString(headerValue);
 
-        if (scheme.toLower() == "dpop" && params["error"] == "use_dpop_nonce")
+        if (scheme.toLower() == "dpop" && isDpopError(params["error"]))
             return true;
     }
 
@@ -133,7 +138,7 @@ bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data
         const XJsonObject xjson(json.object());
         const auto errorField = xjson.getOptionalString("error");
 
-        if (errorField && *errorField == "use_dpop_nonce")
+        if (errorField && isDpopError(*errorField))
             return true;
     }
 
