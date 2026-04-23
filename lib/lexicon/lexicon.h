@@ -45,6 +45,7 @@ public:
     SHARED_CONST(QString, BLOCKED_ACTOR, QStringLiteral("BlockedActor"));
     SHARED_CONST(QString, DRAFT_LIMIT_REACHED, QStringLiteral("DraftLimitReached"));
     SHARED_CONST(QString, EXPIRED_TOKEN, QStringLiteral("ExpiredToken"));
+    SHARED_CONST(QString, INTERNAL_SERVER_ERROR, QStringLiteral("Internal server error"));
     SHARED_CONST(QString, INVALID_REQUEST, QStringLiteral("InvalidRequest"));
     SHARED_CONST(QString, INVALID_TOKEN, QStringLiteral("InvalidToken"));
     SHARED_CONST(QString, NOT_FOUND, QStringLiteral("NotFound"));
@@ -58,7 +59,9 @@ public:
     static bool isRecordNotFound(const QString& error)
     {
         // Sometimes INVALID_REQUEST is returned when a record does not exist.
-        return error == RECORD_NOT_FOUND || error == INVALID_REQUEST;
+        // INTERNAL_SERVER_ERROR was returned by requesting a postgate record from a PDS that did
+        // not have any postgate records.
+        return error == RECORD_NOT_FOUND || error == INVALID_REQUEST || error == INTERNAL_SERVER_ERROR;
     }
 
     static bool isListNotFound(const QString& error)
