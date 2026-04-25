@@ -1,5 +1,5 @@
-next
-====
+6.0
+===
 * OAuth
 * Make sure timestamps are always save as UTC
 * Increase max image size to 2MB
