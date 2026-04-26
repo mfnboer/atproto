@@ -423,7 +423,8 @@ void OAuth::authServerPost(const QString& postUrl, const QUrlQuery& postData,
 void OAuth::reportError(QNetworkReply* reply, const QByteArray& data, const OAuthErrorCb& errorCb)
 {
     QJsonDocument json(QJsonDocument::fromJson(data));
-    const XJsonObject xjson(json.object());
+    const auto jsonObject = json.object();
+    const XJsonObject xjson(jsonObject);
     const auto error = xjson.getOptionalString("error");
 
     if (error)
@@ -602,7 +603,8 @@ void OAuth::initialTokenRequest(const QString& code, const QString& redirectUrl,
             qDebug() << "Token request success";
 
             try {
-                XJsonObject xjson(resp.object());
+                const auto json = resp.object();
+                XJsonObject xjson(json);
                 const QString sub = xjson.getRequiredString("sub");
                 const QString scope = xjson.getRequiredString("scope");
                 const QString accessToken = xjson.getRequiredString("access_token");
@@ -638,7 +640,8 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
             qDebug() << "Refresh token request success";
 
             try {
-                XJsonObject xjson(resp.object());
+                const auto json = resp.object();
+                XJsonObject xjson(json);
                 const QString accessToken = xjson.getRequiredString("access_token");
                 const QString refreshToken = xjson.getRequiredString("refresh_token");
                 successCb(accessToken, refreshToken);

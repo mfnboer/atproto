@@ -3136,16 +3136,22 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
         authToken());
 }
 
-void Client::oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
+void Client::oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    setPdsFromUser(user,
-        [this, presence=getPresence(), user, clientId, redirectUrl, scope, successCb, errorCb]{
+    // If we have a DID then use it for PDS resolution as we do not need to resolve
+    // the handle anymore. For OAuth log we prefer to use a handle as that is shown
+    // as the login hint to the user by the login website.
+    const QString& userPdsResolution = did.isEmpty() ? handle : did;
+    const QString& userLogin = handle.isEmpty() ? did : handle;
+
+    setPdsFromUser(userPdsResolution,
+        [this, presence=getPresence(), userLogin, clientId, redirectUrl, scope, successCb, errorCb]{
             if (!presence)
                 return;
 
             mXrpc->enableOAuth(true);
-            mXrpc->oauthLogin(user, clientId, redirectUrl, scope, successCb, errorCb);
+            mXrpc->oauthLogin(userLogin, clientId, redirectUrl, scope, successCb, errorCb);
         },
         errorCb);
 }

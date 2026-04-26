@@ -135,7 +135,8 @@ bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data
 
     if (json.isObject())
     {
-        const XJsonObject xjson(json.object());
+        const auto jsonObject = json.object();
+        const XJsonObject xjson(jsonObject);
         const auto errorField = xjson.getOptionalString("error");
 
         if (errorField && isDpopError(*errorField))

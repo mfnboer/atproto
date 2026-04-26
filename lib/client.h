@@ -1209,16 +1209,19 @@ public:
 
     /**
      * @brief oauthLogin
-     * @param user DID or handle
+     * @param handle
+     * @param did
      * @param clientId
      * @param redirectUrl
      * @param scope
      * @param successCb
      * @param errorCb
      *
-     * PDS will be resolved from the user
+     * PDS will be resolved from the handle or did.
+     * At least one of handle and did must be set. Preferrably handle is set is that will
+     * be shown to the user on the OAuth login website.
      */
-    void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
+    void oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     /**

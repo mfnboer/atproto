@@ -1,3 +1,7 @@
+next
+====
+* Fix crash in OAuth
+
 6.0
 ===
 * OAuth
