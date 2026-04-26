@@ -1,12 +1,17 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "test.h"
+#include "oauth.h"
 #include <QHostAddress>
 #include <QTcpServer>
 
 namespace ATProto {
 
-static const QStringList TEST_SCOPE = { OAuth::SCPOPE_ATPROTO, OAuth::SCPOPE_BSKY_APP, OAuth::SCPOPE_BSKY_CHAT, OAuth::SCPOPE_TRANSITION_EMAIL };
+static const QStringList TEST_SCOPE = {
+    OAuth::SCOPE_ATPROTO,
+    OAuth::SCOPE_BSKY_APP,
+    OAuth::SCOPE_BSKY_CHAT,
+    OAuth::SCOPE_TRANSITION_EMAIL };
 constexpr char const* REDIRECT_URI = "http://127.0.0.1:1970/oauth/callback";
 constexpr int LISTEN_PORT = 1970;
 constexpr char const* CLIENT_ID = "http://localhost";
@@ -35,9 +40,9 @@ void ATProtoTest::oauth(const QString user, QString host)
     mBsky = std::make_unique<ATProto::Client>(std::move(xrpc));
     initHttpServer();
 
-    mBsky->oauthLogin(user, createClientId(), REDIRECT_URI, TEST_SCOPE,
-        [this](QUrl redirectUrl){
-            qDebug() << "Login success, redirect:" << redirectUrl;
+    mBsky->oauthLogin(user, "", createClientId(), REDIRECT_URI, TEST_SCOPE,
+        [this](QUrl redirectUrl, QString dpopKeyAlias){
+            qDebug() << "Login success, redirect:" << redirectUrl << "keyAlias:" << dpopKeyAlias;
             emit loginRedirect(redirectUrl);
         },
         [](QString error, QString msg){
@@ -57,7 +62,7 @@ void ATProtoTest::initHttpServer()
 
     auto tcpServer = new QTcpServer(this);
 
-    if (!mTcpServer->listen(QHostAddress::LocalHost, LISTEN_PORT) || !mHttpServer->bind(tcpServer))
+    if (!tcpServer->listen(QHostAddress::LocalHost, LISTEN_PORT) || !mHttpServer->bind(tcpServer))
     {
         qWarning() << "Failed to list on port:" << LISTEN_PORT;
         return;

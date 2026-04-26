@@ -1,5 +1,5 @@
-next
-====
+6.0.1
+=====
 * Fix crash in OAuth
 
 6.0
