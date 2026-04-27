@@ -125,6 +125,7 @@ struct List
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::Facet::List mDescriptionFacets;
     Blob::SharedPtr mAvatar; // optional
+    static constexpr int MAX_BYTES_AVATAR = 1'000'000;
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     QDateTime mCreatedAt;
     QJsonObject mJson;

@@ -1,6 +1,7 @@
-next
-====
+6.1
+===
 * getListByName
+* Explicit blob sizes defined
 
 6.0.1
 =====

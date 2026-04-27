@@ -283,7 +283,9 @@ struct Profile
     std::optional<QString> mPronouns;
     std::optional<QString> mWebsite;
     Blob::SharedPtr mAvatar; // optional
+    static constexpr int MAX_BYTES_AVATAR = 1'000'000;
     Blob::SharedPtr mBanner; // optional
+    static constexpr int MAX_BYTES_BANNER = 1'000'000;
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
     QJsonObject mJson;
