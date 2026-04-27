@@ -18,6 +18,7 @@ public:
     using CreateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using GetListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -50,6 +51,11 @@ public:
 
     void batchAddUsersToList(const QString& listUri, const QStringList& dids,
                              const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getListByName(const QString& did, const QString& name, AppBskyGraph::ListPurpose purpose,
+                       const std::optional<QString>& cursor,
+                       const GetListSuccessCb& successCb, const ErrorCb& errorCb,
+                       int maxPages = 10);
 
 private:
     void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
