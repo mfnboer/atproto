@@ -146,7 +146,7 @@ struct AspectRatio
 // app.bsky.embed.images#image
 struct Image
 {
-    Blob::SharedPtr mImage; // max 1,000,000 bytes mime: image/*
+    Blob::SharedPtr mImage; // max 2,000,000 bytes mime: image/*
     QString mAlt;
     AspectRatio::SharedPtr mAspectRatio; // optional
 

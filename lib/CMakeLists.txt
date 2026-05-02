@@ -11,18 +11,22 @@ add_compile_definitions(USE_ANDROID_KEYSTORE)
 add_compile_options(-Wall -Wextra -Werror)
 
 if (NOT ANDROID AND NOT CMAKE_BUILD_TYPE MATCHES RelWithDebInfo)
-    add_compile_options(-fsanitize=address)
-    add_compile_options(-fno-omit-frame-pointer)
-    add_link_options(-fsanitize=address)
+    if (ENABLE_ASAN)
+        add_compile_options(-fsanitize=address)
+        add_compile_options(-fno-omit-frame-pointer)
+        add_link_options(-fsanitize=address)
+    endif()
 
-    add_compile_options(-fprofile-arcs -ftest-coverage)
-    add_link_options(-fprofile-arcs -ftest-coverage)
+    if (ENABLE_TEST_COVERAGE)
+        add_compile_options(-fprofile-arcs -ftest-coverage)
+        add_link_options(-fprofile-arcs -ftest-coverage)
+    endif()
 endif()
 
 include_directories(lexicon)
 
 qt_add_qml_module(libatproto
-    VERSION 6.0
+    VERSION 6.1
     URI atproto.lib
     IMPORT_PATH .
     SOURCES
@@ -136,8 +140,11 @@ if (ANDROID)
 
     add_android_openssl_libraries(libatproto)
 else()
-    set(COVERAGE_LIB -lgcov)
-    set(SSL_LIB -lssl)
+    if (ENABLE_TEST_COVERAGE)
+        set(COVERAGE_LIB -lgcov)
+    endif()
+
+    set(SSL_LIB -lssl -lcrypto)
 endif()
 
 target_link_libraries(libatproto PRIVATE

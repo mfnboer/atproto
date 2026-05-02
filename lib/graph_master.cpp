@@ -271,6 +271,55 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
         });
 }
 
+void GraphMaster::getListByName(const QString& did, const QString& name, AppBskyGraph::ListPurpose purpose,
+                                const std::optional<QString>& cursor,
+                                const GetListSuccessCb& successCb, const ErrorCb& errorCb,
+                                int maxPages)
+{
+    qDebug() << "Get list:" << name << "purpose:" << (int)purpose << "did:" << did << "cursor:" << cursor << "maxPages:" << maxPages;
+
+    mClient.getLists(did, { purpose }, 100, cursor,
+        [this, presence=getPresence(), did, name, purpose, successCb, errorCb, maxPages](AppBskyGraph::GetListsOutput::SharedPtr output){
+            if (!presence)
+                return;
+
+            for (const auto& list : output->mLists)
+            {
+                if (list->mName == name)
+                {
+                    qDebug() << "Found list:" << name << "uri:" << list->mUri << "cid:" << list->mCid;
+
+                    if (successCb)
+                        successCb(list->mUri, list->mCid);
+
+                    return;
+                }
+            }
+
+            if (output->mCursor)
+            {
+                if (maxPages <= 1)
+                {
+                    qWarning() << "Max pages reached:" << name;
+
+                    if (errorCb)
+                        errorCb(ATProtoErrorMsg::NOT_FOUND, "Max pages reached");
+
+                    return;
+                }
+
+                getListByName(did, name, purpose, output->mCursor, successCb, errorCb, maxPages - 1);
+                return;
+            }
+
+            qDebug() << "List not found:" << name;
+
+            if (errorCb)
+                errorCb(ATProtoErrorMsg::NOT_FOUND, "List not found");
+        },
+        errorCb);
+}
+
 template<class RecordType>
 void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb)
 {

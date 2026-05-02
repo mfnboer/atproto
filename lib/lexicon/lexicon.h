@@ -68,7 +68,7 @@ public:
     {
         // Currently INVALID_REQUEST is returned when a list does not exist. But I have
         // seen errors getting changed before. Test for NOT_FOUND as a precaution.
-        return error == INVALID_REQUEST || error == NOT_FOUND;
+        return error == INVALID_REQUEST || error == NOT_FOUND || error == RECORD_NOT_FOUND;
     }
 
     static bool isTokenFailure(const QString& error)

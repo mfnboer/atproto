@@ -494,44 +494,12 @@ FeedViewPost::SharedPtr FeedViewPost::fromJson(const QJsonObject& json)
     return feedViewPost;
 }
 
-static void getFeed(PostFeed& feed, const QJsonObject& json)
-{
-    XJsonObject xjson(json);
-
-    try {
-        const QJsonArray& feedArray = xjson.getRequiredArray("feed");
-        feed.reserve(feedArray.size());
-
-        for (const auto& feedJson : feedArray)
-        {
-            if (!feedJson.isObject())
-            {
-                qWarning() << "PROTO ERROR invalid feed element: not an object";
-                qInfo() << json;
-                continue;
-            }
-
-            try {
-                auto feedViewPost = FeedViewPost::fromJson(feedJson.toObject());
-                feed.push_back(std::move(feedViewPost));
-            } catch (InvalidJsonException& e) {
-                qWarning() << "PROTO ERROR invalid feed element:" << e.msg();
-                qInfo() << json;
-                continue;
-            }
-        }
-    } catch (InvalidJsonException& e) {
-        qWarning() << "PROTO ERROR invalid feed:" << e.msg();
-        qInfo() << json;
-    }
-}
-
 OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonObject& json)
 {
     auto outputFeed = std::make_shared<OutputFeed>();
     XJsonObject xjson(json);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
-    getFeed(outputFeed->mFeed, json);
+    outputFeed->mFeed = xjson.getRequiredVector<FeedViewPost>("feed");
     return outputFeed;
 }
 

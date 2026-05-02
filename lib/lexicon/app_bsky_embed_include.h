@@ -13,6 +13,7 @@ struct ExternalExternal
     QString mTitle;
     QString mDescription;
     Blob::SharedPtr mThumb; // optional: max 1,000,000 bytes mime: image/*
+    static constexpr int MAX_BYTES_THUMB = 1'000'000;
 
     QJsonObject toJson() const;
 
