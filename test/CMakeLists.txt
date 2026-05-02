@@ -13,7 +13,7 @@ find_package(Qt6 REQUIRED COMPONENTS Test Network Quick QuickControls2 Core)
 
 add_compile_options(-Wall -Wextra -Werror)
 
-if (NOT ANDROID)
+if (NOT ANDROID AND ENABLE_ASAN)
     add_compile_options(-fsanitize=address)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fsanitize=address)

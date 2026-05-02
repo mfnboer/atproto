@@ -6,7 +6,10 @@ set(CMAKE_AUTOMOC ON)
 set(CMAKE_CXX_STANDARD 23)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
 
-if (NOT ANDROID)
+set(ENABLE_ASAN ON)
+set(ENABLE_TEST_COVERAGE OFF)
+
+if (NOT ANDROID AND ENABLE_ASAN)
     add_compile_options(-fsanitize=address)
     add_compile_options(-fno-omit-frame-pointer)
     add_link_options(-fsanitize=address)
