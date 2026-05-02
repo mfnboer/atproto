@@ -1,3 +1,7 @@
+next
+====
+* Refactoring
+
 6.1
 ===
 * getListByName
