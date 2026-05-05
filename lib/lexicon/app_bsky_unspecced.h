@@ -29,16 +29,6 @@ struct TrendingTopic
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// app.bsky.unspecced.getTrendingTopics#output
-struct GetTrendingTopicsOutput
-{
-    TrendingTopic::List mTopics;
-    TrendingTopic::List mSuggested;
-
-    using SharedPtr = std::shared_ptr<GetTrendingTopicsOutput>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
 enum class TrendStatus
 {
     HOT,

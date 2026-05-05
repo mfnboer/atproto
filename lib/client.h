@@ -84,7 +84,6 @@ public:
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::SharedPtr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
-    using GetTrendingTopicsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendingTopicsOutput::SharedPtr)>;
     using GetTrendsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendsOutput::SharedPtr)>;
     using GetSuggestedStarterPacksCb = std::function<void(AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr)>;
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
@@ -565,6 +564,16 @@ public:
     void sendInteractions(const std::optional<QString>& feedUri, const AppBskyFeed::Interaction::List& interactions,
                           const QString& feedDid, const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief getSuggestedFeeds
+     * @param limit min=1 default=50 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getSuggestedFeeds(std::optional<int> limit, const std::optional<QString>& cursor,
+                           const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.draft
 
     /**
@@ -1018,15 +1027,6 @@ public:
                                   const GetPopularFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief getSuggestedFeeds
-     * @param limit min=1 default=10 max=25
-     * @param successCb
-     * @param errorCb
-     */
-    void getSuggestedFeeds(std::optional<int> limit,
-                           const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb);
-
-    /**
      * @brief getSuggestedStarterPacks
      * @param limit min=1 default=10 max=25
      * @param successCb
@@ -1034,16 +1034,6 @@ public:
      */
     void getSuggestedStarterPacks(std::optional<int> limit,
                                   const GetSuggestedStarterPacksCb& successCb, const ErrorCb& errorCb);
-
-    /**
-     * @brief getTrendingTopics
-     * @param viewer DID of the account making the request (not included for public/unauthenticated queries). Used to boost followed accounts in ranking.
-     * @param limit min=1 default=10 max=25
-     * @param successCb
-     * @param errorCb
-     */
-    void getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
-                           const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getTrends

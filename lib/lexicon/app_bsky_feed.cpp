@@ -824,6 +824,7 @@ GetFeedGeneratorsOutput::SharedPtr GetFeedGeneratorsOutput::fromJson(const QJson
     auto output = std::make_shared<GetFeedGeneratorsOutput>();
     const XJsonObject xjson(json);
     output->mFeeds = xjson.getRequiredVector<GeneratorView>("feeds");
+    output->mCursor = xjson.getOptionalString("cursor");
     return output;
 }
 

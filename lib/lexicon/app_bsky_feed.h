@@ -374,6 +374,7 @@ struct GetFeedGeneratorOutput
 struct GetFeedGeneratorsOutput
 {
     GeneratorView::List mFeeds;
+    std::optional<QString> mCursor;
 
     using SharedPtr = std::shared_ptr<GetFeedGeneratorsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

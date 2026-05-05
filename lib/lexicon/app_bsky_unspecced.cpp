@@ -25,15 +25,6 @@ TrendingTopic::SharedPtr TrendingTopic::fromJson(const QJsonObject& json)
     return output;
 }
 
-GetTrendingTopicsOutput::SharedPtr GetTrendingTopicsOutput::fromJson(const QJsonObject& json)
-{
-    auto output = std::make_shared<GetTrendingTopicsOutput>();
-    const XJsonObject xjson(json);
-    output->mTopics = xjson.getRequiredVector<TrendingTopic>("topics");
-    output->mSuggested = xjson.getRequiredVector<TrendingTopic>("suggested");
-    return output;
-}
-
 TrendStatus stringToTrendStatus(const QString& str)
 {
     static const std::unordered_map<QString, TrendStatus> mapping = {

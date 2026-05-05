@@ -2576,17 +2576,18 @@ void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::opti
         authToken());
 }
 
-void Client::getSuggestedFeeds(std::optional<int> limit,
+void Client::getSuggestedFeeds(std::optional<int> limit, const std::optional<QString>& cursor,
                        const GetFeedGeneratorsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params;
-    addOptionalIntParam(params, "limit", limit, 1, 25);
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
-    mXrpc->get("app.bsky.unspecced.getSuggestedFeeds", params, httpHeaders,
+    mXrpc->get("app.bsky.feed.getSuggestedFeeds", params, httpHeaders,
         [successCb](AppBskyFeed::GetFeedGeneratorsOutput::SharedPtr feed){
             qDebug() << "getSuggestedFeeds: ok";
 
@@ -2613,36 +2614,6 @@ void Client::getSuggestedStarterPacks(std::optional<int> limit,
 
             if (successCb)
                 successCb(std::move(output));
-        },
-        failure(errorCb),
-        authToken());
-}
-
-void Client::getTrendingTopics(const std::optional<QString>& viewer, std::optional<int> limit,
-                       const GetTrendingTopicsSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    Xrpc::NetworkThread::Params params;
-    addOptionalStringParam(params, "viewer", viewer);
-    addOptionalIntParam(params, "limit", limit, 1, 25);
-
-    Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
-
-    mXrpc->get("app.bsky.unspecced.getTrendingTopics", params, httpHeaders,
-        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
-            if (!presence)
-                return;
-
-            qDebug() << "getTrendingTopics:" << reply;
-
-            try {
-                auto output = AppBskyUnspecced::GetTrendingTopicsOutput::fromJson(reply.object());
-
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
         },
         failure(errorCb),
         authToken());
