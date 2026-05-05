@@ -1,6 +1,7 @@
 next
 ====
 * Refactoring
+* Determine if thread replies have reply from author.
 
 6.1
 ===

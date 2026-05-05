@@ -561,6 +561,21 @@ ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
     thread->mPost = xjson.getRequiredObject<PostView>("post");
     thread->mParent = xjson.getOptionalObject<ThreadElement>("parent");
     thread->mReplies = xjson.getOptionalVector<ThreadElement>("replies");
+
+    for (const auto& reply : thread->mReplies)
+    {
+        if (std::holds_alternative<ThreadViewPost::SharedPtr>(reply->mPost))
+        {
+            const auto& replyPost = std::get<ThreadViewPost::SharedPtr>(reply->mPost);
+
+            if (replyPost->mPost->mAuthor->mDid == thread->mPost->mAuthor->mDid)
+            {
+                thread->mHasReplyFromPostAuthor = true;
+                break;
+            }
+        }
+    }
+
     return thread;
 }
 

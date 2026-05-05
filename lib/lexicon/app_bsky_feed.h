@@ -233,6 +233,9 @@ struct ThreadViewPost
     std::shared_ptr<ThreadElement> mParent; // optional
     std::vector<std::shared_ptr<ThreadElement>> mReplies;
 
+    // Not an atproto field. Derived to make it easy to identify threads.
+    bool mHasReplyFromPostAuthor = false;
+
     using SharedPtr = std::shared_ptr<ThreadViewPost>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
