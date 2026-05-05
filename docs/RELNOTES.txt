@@ -3,6 +3,8 @@ next
 * Refactoring
 * Determine if thread replies have reply from author.
 * Check received DID from OAuth intialTokenRequest against expected DID.
+* Remove app.bsky.unspecced.getTrendingTopics
+* Replace app.bsky.unspecced.getSuggestedFeeds by app.bsky.feed.getSuggestedFeeds
 
 6.1
 ===
