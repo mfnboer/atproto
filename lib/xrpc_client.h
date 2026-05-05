@@ -33,6 +33,7 @@ public:
     ATProto::PlcDirectoryClient& getPlcDirectoryClient() { return mPlcDirectoryClient; }
     void setUserAgent(const QString& userAgent);
     const QString& getPDS() const { return mPDS; }
+    const QString& getDid() const { return mDid; }
     void setPDS(const QString& pds, const QString& did);
     void enableOAuth(bool enable);
     bool isOAuthEnabled() const { return mOAuthEnabled; }

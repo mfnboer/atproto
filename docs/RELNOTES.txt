@@ -2,6 +2,7 @@ next
 ====
 * Refactoring
 * Determine if thread replies have reply from author.
+* Check received DID from OAuth intialTokenRequest against expected DID.
 
 6.1
 ===

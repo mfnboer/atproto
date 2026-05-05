@@ -3161,8 +3161,22 @@ void Client::oauthLoginContinue(const QUrl& url,
 {
     mXrpc->oauthRequestInitialToken(url,
         [this, presence=getPresence(), successCb, errorCb](QString did, QString scope, QString accessToken, QString refreshToken){
-            if (presence)
-                oauthCreateSessionContinue(did, scope, accessToken, refreshToken, successCb, errorCb);
+            if (!presence)
+                return;
+
+            const QString& expectedDid = mXrpc->getDid();
+
+            if (!expectedDid.isEmpty() && expectedDid != did)
+            {
+                qWarning() << "DID mismatch, expected:" << expectedDid << "got:" << did;
+
+                if (errorCb)
+                    errorCb(ATProtoErrorMsg::INVALID_TOKEN, "DID mismatch");
+
+                return;
+            }
+
+            oauthCreateSessionContinue(did, scope, accessToken, refreshToken, successCb, errorCb);
         },
         errorCb);
 }
