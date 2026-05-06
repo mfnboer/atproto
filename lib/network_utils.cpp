@@ -1,6 +1,8 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #include "network_utils.h"
+#include "lexicon.h"
+#include "oauth.h"
 #include "xjson.h"
 #include <QJsonDocument>
 
@@ -103,6 +105,34 @@ static std::pair<QString, std::unordered_map<QString, QString>> parseWwwAuthenti
     return { scheme, params };
 }
 
+static bool hasError(const QByteArray& replyData, const std::function<bool(const QString&)>& errorCheck)
+{
+    const QJsonDocument json(QJsonDocument::fromJson(replyData));
+    qDebug() << "body:" << json;
+
+    if (json.isObject())
+    {
+        const auto jsonObject = json.object();
+        const XJsonObject xjson(jsonObject);
+        const auto errorField = xjson.getOptionalString("error");
+
+        if (errorField && errorCheck(*errorField))
+            return true;
+    }
+
+    return false;
+}
+
+static bool isTokenFailure(const QString& error)
+{
+    return ATProtoErrorMsg::isTokenFailure(error) || error == OAuth::ERROR_INVALID_TOKEN;
+}
+
+bool NetworkUtils::isInvalidTokenError(const QByteArray& replyData)
+{
+    return hasError(replyData, isTokenFailure);
+}
+
 static bool isDpopError(const QString& error)
 {
     return error == "use_dpop_nonce" || error == "invalid_dpop_proof";
@@ -130,20 +160,7 @@ bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data
             return true;
     }
 
-    const QJsonDocument json(QJsonDocument::fromJson(data));
-    qDebug() << "body:" << json;
-
-    if (json.isObject())
-    {
-        const auto jsonObject = json.object();
-        const XJsonObject xjson(jsonObject);
-        const auto errorField = xjson.getOptionalString("error");
-
-        if (errorField && isDpopError(*errorField))
-            return true;
-    }
-
-    return false;
+    return hasError(data, isDpopError);
 }
 
 bool NetworkUtils::hasDpopNonce(QNetworkReply* reply)

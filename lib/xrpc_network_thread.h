@@ -335,8 +335,11 @@ private:
     void setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
+    void setAccessJwt(const QString &jwt);
+    void updateSessionTokens(ATProto::ComATProtoServer::Session::SharedPtr session);
     void sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendRequest(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
+    bool resendRequestWithNewToken(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb);
     bool mustResend(QNetworkReply::NetworkError error) const;
     void invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType);
@@ -368,6 +371,7 @@ private:
     QString mOAuthState;
     QString mOAuthIssuer;
     QString mPdsDpopNonce;
+    QString mAccessJwt;
 };
 
 }

@@ -5,6 +5,7 @@ next
 * Check received DID from OAuth intialTokenRequest against expected DID.
 * Remove app.bsky.unspecced.getTrendingTopics
 * Replace app.bsky.unspecced.getSuggestedFeeds by app.bsky.feed.getSuggestedFeeds
+* Retry request with updated token on invalid_token
 
 6.1
 ===

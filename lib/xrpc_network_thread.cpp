@@ -36,6 +36,11 @@ NetworkThread::NetworkThread(int networkTransferTimeoutMs, const QString& pdsDpo
     mPdsDpopNonce(pdsDpopNonce)
 {
     qDebug() << "timeout:" << mNetworkTransferTimeoutMs << "video:" << mVideoHost << "pdsDpopNonce:" << mPdsDpopNonce;
+
+    connect(this, &NetworkThread::requestSuccessSession, this,
+        [this](ATProto::ComATProtoServer::Session::SharedPtr session, SuccessSessionCb){
+            updateSessionTokens(session);
+        });
 }
 
 void NetworkThread::setPDS(const QString& pds)
@@ -113,6 +118,18 @@ void NetworkThread::get(const QString& service, const Params& params, const Para
 
     setRawHeaders(request.mXrpcRequest, rawHeaders);
     sendRequest(request, successCb, errorCb);
+}
+
+void NetworkThread::setAccessJwt(const QString &jwt)
+{
+    qDebug() << "Access JWT:" << jwt;
+    mAccessJwt = jwt;
+}
+
+void NetworkThread::updateSessionTokens(ATProto::ComATProtoServer::Session::SharedPtr session)
+{
+    qDebug() << "Update session tokens:" << session->mAccessJwt;
+    setAccessJwt(session->mAccessJwt);
 }
 
 void NetworkThread::sendRequest(Request& request, const CallbackType& successCb, const ErrorCb& errorCb)
@@ -210,6 +227,11 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
 
             return;
         }
+        else if (ATProto::NetworkUtils::isInvalidTokenError(data))
+        {
+            if (resendRequestWithNewToken(request, successCb, errorCb))
+                return;
+        }
 
         QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(reply->errorString(), std::move(json), errorCb);
@@ -257,6 +279,11 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             }
 
             return;
+        }
+        else if (ATProto::NetworkUtils::isInvalidTokenError(data))
+        {
+            if (resendRequestWithNewToken(request, successCb, errorCb))
+                return;
         }
 
         if (errorCode == QNetworkReply::OperationCanceledError)
@@ -696,6 +723,21 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
     return true;
 }
 
+bool NetworkThread::resendRequestWithNewToken(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "New token resend:" << request.mXrpcRequest.url();
+
+    if (!mAccessJwt.isEmpty() && request.mAccessJwt == mAccessJwt)
+    {
+        qWarning() << "There is no new token:" << request.mXrpcRequest.url();
+        qDebug() << "Request:" << request.mXrpcRequest.url() << "token:" << request.mAccessJwt;
+        return false;
+    }
+
+    request.mAccessJwt = mAccessJwt;
+    return resendRequest(request, successCb, errorCb);
+}
+
 bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(!mPdsDpopNonce.isEmpty());
@@ -723,6 +765,7 @@ bool NetworkThread::mustResend(QNetworkReply::NetworkError error) const
     {
     case QNetworkReply::NoError: // Unknown error seems to happen sometimes since Qt6.9.2
         qWarning() << "Retry on unknown error";
+        return true;
     case QNetworkReply::ContentReSendError:
     case QNetworkReply::OperationCanceledError: // Timeout
     case QNetworkReply::RemoteHostClosedError:
@@ -902,7 +945,8 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
     mOAuth->initialTokenRequest(code, redirectUrl,
         [this, successCb](QString did, QString scope, QString accessToken, QString refreshToken){
             qDebug() << "Token sucess did:" << did << "scope:" << scope << "access:" << accessToken << "refresh:" << refreshToken;
-            oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);
+            setAccessJwt(accessToken);
+            emit oauthRequestInitialTokenSuccess(did, scope, accessToken, refreshToken, successCb);
         },
         [this, errorCb](QString code, QString error){
             qWarning() << "Token error:" << code << error;
@@ -918,6 +962,7 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
     mOAuth->refreshTokenRequest(refreshToken,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
+            setAccessJwt(newAccessToken);
             emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
         },
         [this, errorCb](QString code, QString error){
@@ -948,6 +993,7 @@ void NetworkThread::oauthResumeSession(const QString& clientId, const QString& r
     mOAuth->resumeSession(refreshToken,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Resumed session access:" << newAccessToken << "refresh:" << newRefreshToken;
+            setAccessJwt(newAccessToken);
             emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
         },
         [this, errorCb](QString code, QString error){
@@ -986,6 +1032,7 @@ void NetworkThread::oauthCleanup()
     mOAuthState.clear();
     mOAuthIssuer.clear();
     setPdsDpopNonce({});
+    mAccessJwt.clear();
 }
 
 #if defined(Q_OS_ANDROID) && defined(USE_ANDROID_KEYSTORE)

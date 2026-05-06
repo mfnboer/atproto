@@ -87,6 +87,7 @@ public:
     static constexpr char const* ERROR_INVALID_REQUEST = "invalid_request";
     static constexpr char const* ERROR_INVALID_CLIENT = "invalid_client";
     static constexpr char const* ERROR_INVALID_GRANT = "invalid_grant";
+    static constexpr char const* ERROR_INVALID_TOKEN = "invalid_token";
     static constexpr char const* ERROR_UNAUTHORIZED_CLIENT = "unauthorized_client";
     static constexpr char const* ERROR_UNSUPPORTED_GRANT_TYPE = "unsupported_grant_type";
     static constexpr char const* ERROR_INVALID_SCOPE = "invalid_scope";

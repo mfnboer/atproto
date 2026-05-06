@@ -10,6 +10,7 @@ class NetworkUtils
 {
 public:
     static bool isSafeUrl(const QUrl url);
+    static bool isInvalidTokenError(const QByteArray& replyData);
     static bool isDpopNonceError(QNetworkReply* reply, const QByteArray& data);
     static bool hasDpopNonce(QNetworkReply* reply);
     static QString getDpopNonce(QNetworkReply* reply);
