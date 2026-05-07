@@ -6,6 +6,7 @@ next
 * Remove app.bsky.unspecced.getTrendingTopics
 * Replace app.bsky.unspecced.getSuggestedFeeds by app.bsky.feed.getSuggestedFeeds
 * Retry request with updated token on invalid_token
+* Call com.atproto.identity.resolveHandle to resolve handle to DID
 
 6.1
 ===

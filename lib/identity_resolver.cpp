@@ -2,6 +2,7 @@
 // License: GPLv3
 #include "identity_resolver.h"
 #include "at_regex.h"
+#include "client.h"
 #include "xjson.h"
 #include <QJsonDocument>
 #include <QJsonObject>
@@ -20,11 +21,18 @@ IdentityResolver::IdentityResolver(QNetworkAccessManager* network) :
 
 void IdentityResolver::resolveHandle(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
+    resolveHandleBskyPublicApi(handle, successCb,
+        [this, presence=getPresence(), handle, successCb, errorCb](const QString& error){
+            if (!presence)
+                return;
+
+            qDebug() << "Failed bsky public API resolution:" << error;
 #ifdef Q_OS_ANDROID
-    resolveHandleDoh(DOH_PRIMARY, handle, successCb, errorCb);
+            resolveHandleDoh(DOH_PRIMARY, handle, successCb, errorCb);
 #else
-    resolveHandleQDns(handle, successCb, errorCb);
+            resolveHandleQDns(handle, successCb, errorCb);
 #endif
+        });
 }
 
 // QDnsLookup is not supported on Android
@@ -332,6 +340,26 @@ void IdentityResolver::handleHttpResponse(QNetworkReply* reply, const QString& h
 
     if (successCb)
         successCb(did);
+}
+
+void IdentityResolver::resolveHandleBskyPublicApi(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Resolve handle via bsky public API:" << handle;
+    Client::SharedPtr bsky = Client::createPublicApiClient(this);
+
+    bsky->resolveHandle(handle,
+        [handle, bsky, successCb](const QString& did){
+            qDebug() << "Resolved handle:" << handle << "did:" << did;
+
+            if (successCb)
+                successCb(did);
+        },
+        [handle, bsky, errorCb](const QString& error, const QString& message){
+            qWarning() << "Resolve handle:" << handle << "failed:" << error << "-" << message;
+
+            if (errorCb)
+                errorCb(message);
+        });
 }
 
 }

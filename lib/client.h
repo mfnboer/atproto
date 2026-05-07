@@ -139,6 +139,9 @@ public:
     static constexpr const char* SERVICE_CHAT = "did:web:api.bsky.chat#bsky_chat";
     static constexpr const char* SERVICE_VIDEO_DID = "did:web:video.bsky.app";
     static constexpr const char* SERVICE_VIDEO_HOST = "https://video.bsky.app";
+    static constexpr const char* PUBLIC_API_HOST = "https://public.api.bsky.app";
+
+    static SharedPtr createPublicApiClient(QObject* parent = nullptr);
 
     explicit Client(Xrpc::Client::Ptr&& xrpc, QObject* parent = nullptr);
 
@@ -291,6 +294,8 @@ public:
      * @param handle
      * @param successCb
      * @param errorCb
+     *
+     * Can be called on public API without auth
      */
     void resolveHandle(const QString& handle,
                        const ResolveHandleSuccessCb& successCb, const ErrorCb& errorCb);
@@ -333,6 +338,8 @@ public:
      * @param limit min=1 max=100 default=10
      * @param successCb
      * @param errorCb
+     *
+     * Can be called on public API without auth
      */
     void searchActorsTypeahead(const QString& q, std::optional<int> limit,
                                const SearchActorsTypeaheadSuccessCb& successCb, const ErrorCb& errorCb);

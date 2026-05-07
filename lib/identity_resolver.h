@@ -1,13 +1,14 @@
 // Copyright (C) 2025 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "presence.h"
 #include <QNetworkAccessManager>
 #include <QNetworkReply>
 #include <QDnsLookup>
 
 namespace ATProto {
 
-class IdentityResolver : public QObject
+class IdentityResolver : public QObject, public Presence
 {
 public:
     using Ptr = std::unique_ptr<IdentityResolver>;
@@ -32,6 +33,8 @@ private:
     QUrl getHttpUrl(const QString& handle) const;
     void httpGetDid(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError = {});
     void handleHttpResponse(QNetworkReply* reply, const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb, const QString& dnsError);
+
+    void resolveHandleBskyPublicApi(const QString& handle, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // QDnsLookup TXT queries not supported on Android
     std::unique_ptr<QDnsLookup> mDns;

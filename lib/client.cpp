@@ -59,6 +59,13 @@ static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QStr
         params.append({name, boolValue(*value)});
 }
 
+Client::SharedPtr Client::createPublicApiClient(QObject* parent)
+{
+    auto xrpc = std::make_unique<Xrpc::Client>(PUBLIC_API_HOST);
+    auto client = std::make_shared<Client>(std::move(xrpc), parent);
+    return client;
+}
+
 Client::Client(std::unique_ptr<Xrpc::Client>&& xrpc, QObject* parent) :
     QObject(parent),
     mXrpc(std::move(xrpc))
