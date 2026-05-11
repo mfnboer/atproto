@@ -248,6 +248,9 @@ QJsonObject ProfileAssociatedChat::toJson() const
     QJsonObject json;
     json.insert("allowIncoming", allowIncomingTypeToString(mAllowIncoming));
 
+    if (mAllowGroupInvites)
+        json.insert("allowGroupInvites", allowIncomingTypeToString(*mAllowGroupInvites));
+
     return json;
 }
 
@@ -257,6 +260,11 @@ ProfileAssociatedChat::SharedPtr ProfileAssociatedChat::fromJson(const QJsonObje
     XJsonObject xjson(json);
     const auto allowIncoming = xjson.getRequiredString("allowIncoming");
     associated->mAllowIncoming = stringToAllowIncomingType(allowIncoming);
+    const auto allowGroup = xjson.getOptionalString("allowGroupInvites");
+
+    if (allowGroup)
+        associated->mAllowGroupInvites = stringToAllowIncomingType(*allowGroup);
+
     return associated;
 }
 

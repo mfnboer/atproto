@@ -223,6 +223,9 @@ QJsonObject ExternalExternal::toJson() const
     if (mThumb)
         json.insert("thumb", mThumb->toJson());
 
+    if (mAssociatedRecord)
+        json.insert("associatedRecord", *mAssociatedRecord);
+
     return json;
 }
 
@@ -234,6 +237,7 @@ ExternalExternal::SharedPtr ExternalExternal::fromJson(const QJsonObject& json)
     external->mTitle = xjson.getRequiredString("title");
     external->mDescription = xjson.getRequiredString("description");
     external->mThumb = xjson.getOptionalObject<Blob>("thumb");
+    external->mAssociatedRecord = xjson.getOptionalString("associatedRecord");
     return external;
 }
 

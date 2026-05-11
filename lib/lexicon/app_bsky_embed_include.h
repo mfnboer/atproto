@@ -15,6 +15,10 @@ struct ExternalExternal
     Blob::SharedPtr mThumb; // optional: max 1,000,000 bytes mime: image/*
     static constexpr int MAX_BYTES_THUMB = 1'000'000;
 
+    // The URI of the Atmosphere record representing this external content, if it exists.
+    // Example: a site.standard.document record.
+    std::optional<QString> mAssociatedRecord; //at-uri
+
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ExternalExternal>;

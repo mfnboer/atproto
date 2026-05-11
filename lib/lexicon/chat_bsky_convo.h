@@ -4,6 +4,7 @@
 #include "app_bsky_embed.h"
 #include "app_bsky_richtext.h"
 #include "chat_bsky_actor.h"
+#include "chat_bsky_group.h"
 #include <QJsonDocument>
 
 namespace ATProto::ChatBskyConvo {
@@ -106,6 +107,185 @@ struct DeletedMessageView
     static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
+// TODO: unstable
+struct SystemMessageReferredUser
+{
+    QString mDid;
+
+    using SharedPtr = std::shared_ptr<SystemMessageReferredUser>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageReferredUser";
+};
+
+// TODO: unstable
+struct SystemMessageDataAddMember
+{
+    SystemMessageReferredUser::SharedPtr mMember;
+    QString mRawRole;
+    ChatBskyActor::MemberRole mRole;
+    SystemMessageReferredUser::SharedPtr mAddedBy;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataAddMember>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataAddMember";
+};
+
+// TODO: unstable
+struct SystemMessageDataRemoveMember
+{
+    SystemMessageReferredUser::SharedPtr mMember;
+    SystemMessageReferredUser::SharedPtr mRemovedBy;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataRemoveMember>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataRemoveMember";
+};
+
+// TODO: unstable
+struct SystemMessageDataMemberJoin
+{
+    SystemMessageReferredUser::SharedPtr mMember;
+    QString mRawRole;
+    ChatBskyActor::MemberRole mRole;
+    SystemMessageReferredUser::SharedPtr mApprovedBy; // optional
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataMemberJoin>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataMemberJoin";
+};
+
+// TODO: unstable
+struct SystemMessageDataMemberLeave
+{
+    SystemMessageReferredUser::SharedPtr mMember;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataMemberLeave>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataMemberLeave";
+};
+
+// TODO: unstable
+struct SystemMessageDataLockConvo
+{
+    SystemMessageReferredUser::SharedPtr mLockedBy;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataLockConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataLockConvo";
+};
+
+// TODO: unstable
+struct SystemMessageDataUnlockConvo
+{
+    SystemMessageReferredUser::SharedPtr mUnlockedBy;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataUnlockConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataUnlockConvo";
+};
+
+// TODO: unstable
+struct SystemMessageDataLockConvoPermanently
+{
+    SystemMessageReferredUser::SharedPtr mLockedBy;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataLockConvoPermanently>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataLockConvoPermanently";
+};
+
+// TODO: unstable
+struct SystemMessageDataEditGroup
+{
+    std::optional<QString> mOldName;
+    std::optional<QString> mNewName;
+
+    using SharedPtr = std::shared_ptr<SystemMessageDataEditGroup>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEditGroup";
+};
+
+// TODO: unstable
+struct SystemMessageDataCreateJoinLink
+{
+    using SharedPtr = std::shared_ptr<SystemMessageDataCreateJoinLink>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataCreateJoinLink";
+};
+
+// TODO: unstable
+struct SystemMessageDataEditJoinLink
+{
+    using SharedPtr = std::shared_ptr<SystemMessageDataEditJoinLink>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEditJoinLink";
+};
+
+// TODO: unstable
+struct SystemMessageDataEnableJoinLink
+{
+    using SharedPtr = std::shared_ptr<SystemMessageDataEnableJoinLink>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEnableJoinLink";
+};
+
+// TODO: unstable
+struct SystemMessageDataDisableJoinLink
+{
+    using SharedPtr = std::shared_ptr<SystemMessageDataDisableJoinLink>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataDisableJoinLink";
+};
+
+// TODO: unstable
+struct SystemMessageView
+{
+    QString mId;
+    QString mRev;
+    QDateTime mSentAt;
+
+    using DataType = std::variant<
+        SystemMessageDataAddMember::SharedPtr,
+        SystemMessageDataRemoveMember::SharedPtr,
+        SystemMessageDataMemberJoin::SharedPtr,
+        SystemMessageDataMemberLeave::SharedPtr,
+        SystemMessageDataLockConvo::SharedPtr,
+        SystemMessageDataUnlockConvo::SharedPtr,
+        SystemMessageDataLockConvoPermanently::SharedPtr,
+        SystemMessageDataEditGroup::SharedPtr,
+        SystemMessageDataCreateJoinLink::SharedPtr,
+        SystemMessageDataEditJoinLink::SharedPtr,
+        SystemMessageDataEnableJoinLink::SharedPtr,
+        SystemMessageDataDisableJoinLink::SharedPtr>;
+
+    DataType mData;
+
+    using SharedPtr = std::shared_ptr<SystemMessageView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageView";
+};
+
+// TODO: unstable
+enum class ConvoKind
+{
+    DIRECT,
+    GROUP,
+    UNKNOWN
+};
+
+ConvoKind stringToConvoKind(const QString& str);
+
+// TODO: unstable
+enum class ConvoLockStatus
+{
+    UNLOCKED,
+    LOCKED,
+    LOCKED_PERMANENTLY,
+    UNKNOWN
+};
+
+ConvoLockStatus stringToConvoLockStatus(const QString& str);
+
 enum class ConvoStatus
 {
     REQUEST,
@@ -116,11 +296,37 @@ enum class ConvoStatus
 ConvoStatus stringToConvoStatus(const QString& str);
 QString convoStatusToString(ConvoStatus status);
 
+// TODO: unstable
+struct DirectConvo
+{
+    using SharedPtr = std::shared_ptr<DirectConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#directConvo";
+};
+
+// TODO: unstable
+struct GroupConvo
+{
+    QString mName;
+    static constexpr int MAX_GRAPHEMES_NAME = 128;
+    static constexpr int MAX_BYTES_NAME = 1280;
+    int mMemberCount = 0;
+    QDate mCreatedAt;
+    ChatBskyGroup::JoinLinkView::SharedPtr mJoinLink; // optional
+    QString mRawLockStatus;
+    ConvoLockStatus mLockStatus;
+
+    using SharedPtr = std::shared_ptr<GroupConvo>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#groupConvo";
+};
+
 // chat.bsky.convo.defs#convoView
 struct ConvoView
 {
-    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>;
+    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, SystemMessageView::SharedPtr>;
     using ReactionType = std::variant<MessageAndReactionView::SharedPtr>;
+    using KindType = std::variant<DirectConvo::SharedPtr, GroupConvo::SharedPtr>;
 
     QString mId;
     QString mRev;
@@ -131,6 +337,9 @@ struct ConvoView
     std::optional<QString> mRawStatus;
     std::optional<ConvoStatus> mStatus;
     int mUnreadCount = 0;
+
+    // TODO: unstable
+    std::optional<KindType> mKind;
 
     using SharedPtr = std::shared_ptr<ConvoView>;
     using List = std::vector<SharedPtr>;
@@ -269,7 +478,7 @@ struct LogOutput
 
 struct GetMessagesOutput
 {
-    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr>;
+    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, SystemMessageView::SharedPtr>;
     using MessageList = std::vector<MessageType>;
 
     std::optional<QString> mCursor;

@@ -1,3 +1,7 @@
+next
+====
+* Group chat lexicons
+
 6.2
 ===
 * Refactoring

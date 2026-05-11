@@ -106,6 +106,156 @@ DeletedMessageView::SharedPtr DeletedMessageView::fromJson(const QJsonObject& js
     return view;
 }
 
+SystemMessageReferredUser::SharedPtr SystemMessageReferredUser::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto user = std::make_shared<SystemMessageReferredUser>();
+    user->mDid = xjson.getRequiredString("did");
+    return user;
+}
+
+SystemMessageDataAddMember::SharedPtr SystemMessageDataAddMember::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataAddMember>();
+    data->mMember = xjson.getRequiredObject<SystemMessageReferredUser>("member");
+    data->mRawRole = xjson.getRequiredString("role");
+    data->mRole = ChatBskyActor::stringToMemberRole(data->mRawRole);
+    data->mAddedBy = xjson.getRequiredObject<SystemMessageReferredUser>("addedBy");
+    return data;
+}
+
+SystemMessageDataRemoveMember::SharedPtr SystemMessageDataRemoveMember::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataRemoveMember>();
+    data->mMember = xjson.getRequiredObject<SystemMessageReferredUser>("member");
+    data->mRemovedBy = xjson.getRequiredObject<SystemMessageReferredUser>("removedBy");
+    return data;
+}
+
+SystemMessageDataMemberJoin::SharedPtr SystemMessageDataMemberJoin::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataMemberJoin>();
+    data->mMember = xjson.getRequiredObject<SystemMessageReferredUser>("member");
+    data->mRawRole = xjson.getRequiredString("role");
+    data->mRole = ChatBskyActor::stringToMemberRole(data->mRawRole);
+    data->mApprovedBy = xjson.getRequiredObject<SystemMessageReferredUser>("approvedBy");
+    return data;
+}
+
+SystemMessageDataMemberLeave::SharedPtr SystemMessageDataMemberLeave::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataMemberLeave>();
+    data->mMember = xjson.getRequiredObject<SystemMessageReferredUser>("member");
+    return data;
+}
+
+SystemMessageDataLockConvo::SharedPtr SystemMessageDataLockConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataLockConvo>();
+    data->mLockedBy = xjson.getRequiredObject<SystemMessageReferredUser>("lockedBy");
+    return data;
+}
+
+SystemMessageDataUnlockConvo::SharedPtr SystemMessageDataUnlockConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataUnlockConvo>();
+    data->mUnlockedBy = xjson.getRequiredObject<SystemMessageReferredUser>("unlockedBy");
+    return data;
+}
+
+SystemMessageDataLockConvoPermanently::SharedPtr SystemMessageDataLockConvoPermanently::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataLockConvoPermanently>();
+    data->mLockedBy = xjson.getRequiredObject<SystemMessageReferredUser>("lockedBy");
+    return data;
+}
+
+SystemMessageDataEditGroup::SharedPtr SystemMessageDataEditGroup::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto data = std::make_shared<SystemMessageDataEditGroup>();
+    data->mOldName = xjson.getOptionalString("oldName");
+    data->mNewName = xjson.getOptionalString("newName");
+    return data;
+}
+
+SystemMessageDataCreateJoinLink::SharedPtr SystemMessageDataCreateJoinLink::fromJson(const QJsonObject&)
+{
+    auto data = std::make_shared<SystemMessageDataCreateJoinLink>();
+    return data;
+}
+
+SystemMessageDataEditJoinLink::SharedPtr SystemMessageDataEditJoinLink::fromJson(const QJsonObject&)
+{
+    auto data = std::make_shared<SystemMessageDataEditJoinLink>();
+    return data;
+}
+
+SystemMessageDataEnableJoinLink::SharedPtr SystemMessageDataEnableJoinLink::fromJson(const QJsonObject&)
+{
+    auto data = std::make_shared<SystemMessageDataEnableJoinLink>();
+    return data;
+}
+
+SystemMessageDataDisableJoinLink::SharedPtr SystemMessageDataDisableJoinLink::fromJson(const QJsonObject&)
+{
+    auto data = std::make_shared<SystemMessageDataDisableJoinLink>();
+    return data;
+}
+
+SystemMessageView::SharedPtr SystemMessageView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<SystemMessageView>();
+    view->mId = xjson.getRequiredString("id");
+    view->mRev = xjson.getRequiredString("rev");
+    view->mSentAt = xjson.getRequiredDateTime("sentAt");
+
+    view->mData = xjson.getRequiredVariant<
+        SystemMessageDataAddMember,
+        SystemMessageDataRemoveMember,
+        SystemMessageDataMemberJoin,
+        SystemMessageDataMemberLeave,
+        SystemMessageDataLockConvo,
+        SystemMessageDataUnlockConvo,
+        SystemMessageDataLockConvoPermanently,
+        SystemMessageDataEditGroup,
+        SystemMessageDataCreateJoinLink,
+        SystemMessageDataEditJoinLink,
+        SystemMessageDataEnableJoinLink,
+        SystemMessageDataDisableJoinLink>("data");
+
+    return view;
+}
+
+ConvoKind stringToConvoKind(const QString& str)
+{
+    static const std::unordered_map<QString, ConvoKind> mapping = {
+        { "direct", ConvoKind::DIRECT },
+        { "group", ConvoKind::GROUP }
+    };
+
+    return stringToEnum(str, mapping, ConvoKind::UNKNOWN);
+}
+
+ConvoLockStatus stringToConvoLockStatus(const QString& str)
+{
+    static const std::unordered_map<QString, ConvoLockStatus> mapping = {
+        { "unlocked", ConvoLockStatus::UNLOCKED },
+        { "locked", ConvoLockStatus::LOCKED },
+        { "locked-permanently", ConvoLockStatus::LOCKED_PERMANENTLY }
+    };
+
+    return stringToEnum(str, mapping, ConvoLockStatus::UNKNOWN);
+}
+
 ConvoStatus stringToConvoStatus(const QString& str)
 {
     static const std::unordered_map<QString, ConvoStatus> mapping = {
@@ -126,6 +276,25 @@ QString convoStatusToString(ConvoStatus status)
     return enumToString(status, mapping);
 }
 
+DirectConvo::SharedPtr DirectConvo::fromJson(const QJsonObject&)
+{
+    auto convo = std::make_shared<DirectConvo>();
+    return convo;
+}
+
+GroupConvo::SharedPtr GroupConvo::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto convo = std::make_shared<GroupConvo>();
+    convo->mName = xjson.getRequiredString("name");
+    convo->mMemberCount = xjson.getRequiredInt("memberCount");
+    convo->mCreatedAt = xjson.getRequiredDate("createdAt");
+    convo->mJoinLink = xjson.getOptionalObject<ChatBskyGroup::JoinLinkView>("joinLink");
+    convo->mRawLockStatus = xjson.getRequiredString("lockStatus");
+    convo->mLockStatus = stringToConvoLockStatus(convo->mRawLockStatus);
+    return convo;
+}
+
 ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -133,7 +302,7 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
-    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView>("lastMessage");
+    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView, SystemMessageView>("lastMessage");
     view->mLastReaction = xjson.getOptionalVariant<MessageAndReactionView>("lastReaction");
     view->mMuted = xjson.getOptionalBool("muted", false);
     view->mRawStatus = xjson.getOptionalString("status");
@@ -142,6 +311,7 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
         view->mStatus = stringToConvoStatus(*view->mRawStatus);
 
     view->mUnreadCount = xjson.getRequiredInt("unreadCount");
+    view->mKind = xjson.getOptionalVariant<DirectConvo, GroupConvo>("kind");
     return view;
 }
 
@@ -258,7 +428,7 @@ GetMessagesOutput::SharedPtr GetMessagesOutput::fromJson(const QJsonObject& json
     XJsonObject xjson(json);
     auto output = std::make_shared<GetMessagesOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
-    output->mMessages = xjson.getRequiredVariantList<MessageView, DeletedMessageView>("messages");
+    output->mMessages = xjson.getRequiredVariantList<MessageView, DeletedMessageView, SystemMessageView>("messages");
     return output;
 }
 
