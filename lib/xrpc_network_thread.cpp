@@ -725,6 +725,9 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
 
 bool NetworkThread::resendRequestWithNewToken(Request request, const CallbackType& successCb, const ErrorCb& errorCb)
 {
+    // TODO: this scenario may never happen.
+    // The case I saw was due to suspend/resume issues causing a background worker not
+    // to stop.
     qDebug() << "New token resend:" << request.mXrpcRequest.url();
 
     if (!mAccessJwt.isEmpty() && request.mAccessJwt == mAccessJwt)
