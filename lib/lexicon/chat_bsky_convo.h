@@ -9,6 +9,18 @@
 
 namespace ATProto::ChatBskyConvo {
 
+struct ConvoRef
+{
+    QString mDid;
+    QString mConvoId;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ConvoRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#convoRef";
+};
+
 // chat.bsky.convo.defs#messageRef
 struct MessageRef
 {
