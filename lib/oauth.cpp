@@ -89,11 +89,13 @@ std::optional<QNetworkRequest> OAuth::createNetworkRequest(const QString& url) c
     request.setMaximumRedirectsAllowed(0);
     setUserAgentHeader(request);
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 11, 1)
     // HACK:
     // HTTP/2 does not work between Qt6.10.2 and Eurosky.
     const QString host = request.url().host();
     if (host.endsWith("eurosky.social"))
         request.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+#endif
 
     return request;
 }

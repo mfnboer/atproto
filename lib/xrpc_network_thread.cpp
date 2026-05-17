@@ -138,6 +138,7 @@ void NetworkThread::sendRequest(Request& request, const CallbackType& successCb,
     QNetworkReply* reply;
     const QString host = request.mXrpcRequest.url().host();
 
+#if QT_VERSION < QT_VERSION_CHECK(6, 11, 1)
     // HACK:
     // HTTP/2 does not work between Qt6.10.2 and Eurosky. Connection goes
     // stale after a while and then all requests time out for ~25s.
@@ -146,6 +147,7 @@ void NetworkThread::sendRequest(Request& request, const CallbackType& successCb,
 
     if (host.endsWith("eurosky.social"))
         request.mXrpcRequest.setAttribute(QNetworkRequest::Http2AllowedAttribute, false);
+#endif
 
     if (request.mIsPost)
     {
