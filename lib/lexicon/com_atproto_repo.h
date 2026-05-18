@@ -16,6 +16,7 @@ struct StrongRef
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StrongRef>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

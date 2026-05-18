@@ -223,9 +223,7 @@ QJsonObject ExternalExternal::toJson() const
     if (mThumb)
         json.insert("thumb", mThumb->toJson());
 
-    if (mAssociatedRecord)
-        json.insert("associatedRecord", *mAssociatedRecord);
-
+    XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "associatedRecords", mAssociatedRecords);
     return json;
 }
 
@@ -237,7 +235,7 @@ ExternalExternal::SharedPtr ExternalExternal::fromJson(const QJsonObject& json)
     external->mTitle = xjson.getRequiredString("title");
     external->mDescription = xjson.getRequiredString("description");
     external->mThumb = xjson.getOptionalObject<Blob>("thumb");
-    external->mAssociatedRecord = xjson.getOptionalString("associatedRecord");
+    external->mAssociatedRecords = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("associatedRecords");
     return external;
 }
 
