@@ -219,15 +219,15 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
         {
             if (hasDpopNonce)
             {
-                resendWithNewDpopNonce(request, successCb, errorCb);
+                if (resendWithNewDpopNonce(request, successCb, errorCb))
+                    return;
             }
             else
             {
                 qWarning() << "DPoP-Nonce missing";
                 emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
+                return;
             }
-
-            return;
         }
         else if (ATProto::NetworkUtils::isInvalidTokenError(data))
         {
@@ -272,15 +272,16 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             if (ATProto::NetworkUtils::hasDpopNonce(reply))
             {
                 setPdsDpopNonce(ATProto::NetworkUtils::getDpopNonce(reply));
-                resendWithNewDpopNonce(request, successCb, errorCb);
+
+                if (resendWithNewDpopNonce(request, successCb, errorCb))
+                    return;
             }
             else
             {
                 qWarning() << "DPoP-Nonce missing";
                 emit requestError(ATProto::ATProtoErrorMsg::DPOP_NONCE_MISSING, {}, errorCb);
+                return;
             }
-
-            return;
         }
         else if (ATProto::NetworkUtils::isInvalidTokenError(data))
         {

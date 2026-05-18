@@ -192,7 +192,7 @@ private:
                         std::optional<QString> errorCode = {}, const QString& errorMsg = {});
     void revokeToken(const QString& token, const QString& tokenType,
                      const SuccessCb& successCb, const ErrorCb& errorCb);
-    void resendWithNewDpopNonce(const OAuthRequest& request,
+    bool resendWithNewDpopNonce(const OAuthRequest& request,
                                 const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
     virtual bool resendRequest(OAuthRequest request, const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb) override;
 

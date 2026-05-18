@@ -473,15 +473,15 @@ void OAuth::replyFinished(const OAuthRequest& request, QNetworkReply* reply,
         {
             if (hasDpopNonce)
             {
-                resendWithNewDpopNonce(request, successCb, errorCb);
+                if (resendWithNewDpopNonce(request, successCb, errorCb))
+                    return;
             }
             else
             {
                 qWarning() << "DPoP-Nonce missing";
                 errorCb(ERROR_SERVER_ERROR, "DPoP-Nonce missing");
+                return;
             }
-
-            return;
         }
 
         reportError(reply, data, errorCb);
@@ -520,14 +520,16 @@ void OAuth::networkError(const OAuthRequest& request, QNetworkReply* reply, QNet
             if (NetworkUtils::hasDpopNonce(reply))
             {
                 setDpopNonce(NetworkUtils::getDpopNonce(reply));
-                resendWithNewDpopNonce(request, successCb, errorCb);
+
+                if (resendWithNewDpopNonce(request, successCb, errorCb))
+                    return;
             }
             else
             {
                 qWarning() << "DPoP-Nonce missing";
                 errorCb(ERROR_SERVER_ERROR, "DPoP-Nonce missing");
+                return;
             }
-            return;
         }
 
         reportError(reply, data, errorCb);
@@ -739,7 +741,7 @@ void OAuth::revokeToken(const QString& token, const QString& tokenType,
     );
 }
 
-void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
+bool OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
                             const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     Q_ASSERT(!mDpopNonce.isEmpty());
@@ -748,7 +750,7 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
     {
         qWarning() << "Max DPoP resends:" << request.mDpopResendCount;
         errorCb(ERROR_SERVER_ERROR, "Max DPoP resends");
-        return;
+        return false;
     }
 
     const QString postUrl = request.mNetworkRequest.url().toString();
@@ -760,6 +762,8 @@ void OAuth::resendWithNewDpopNonce(const OAuthRequest& request,
     qDebug() << "DPoP proof:" << dpopProof;
     newRequest.mNetworkRequest.setRawHeader("DPoP", dpopProof.toUtf8());
     sendRequest(newRequest, successCb, errorCb);
+
+    return true;
 }
 
 bool OAuth::resendRequest(OAuthRequest request, const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb)

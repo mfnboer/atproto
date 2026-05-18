@@ -1,6 +1,7 @@
 next
 ====
 * Disable HTTP/2 hack for Qt6.11.1
+* Bug fix: raise error if max resends is reached
 
 6.3
 ===
