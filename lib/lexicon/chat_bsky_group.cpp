@@ -38,14 +38,30 @@ JoinLinkView::SharedPtr JoinLinkView::fromJson(const QJsonObject& json)
     return view;
 }
 
-GroupPublicView::SharedPtr GroupPublicView::fromJson(const QJsonObject& json)
+JoinLinkViewerState::SharedPtr JoinLinkViewerState::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
-    auto view = std::make_shared<GroupPublicView>();
+    auto state = std::make_shared<JoinLinkViewerState>();
+    state->mRequestedAt = xjson.getOptionalDateTime("requestedAt");
+    return state;
+}
+
+JoinLinkPreviewView::SharedPtr JoinLinkPreviewView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<JoinLinkPreviewView>();
+    view->mCode = xjson.getRequiredString("code");
     view->mName = xjson.getRequiredString("name");
     view->mOwner = xjson.getRequiredObject<ChatBskyActor::ProfileViewBasic>("owner");
     view->mMemberCount = xjson.getRequiredInt("memberCount");
+    view->mMemberLimit = xjson.getRequiredInt("memberLimit");
     view->mRequireApproval = xjson.getRequiredBool("requireApproval");
+    view->mRawEnabledStatus = xjson.getRequiredString("enabledStatus");
+    view->mEnabledStatus = stringToLinkEnabledStatus(view->mRawEnabledStatus);
+    view->mRawJoinRule = xjson.getRequiredString("joinRule");
+    view->mJoinRule = stringToJoinRule(view->mRawJoinRule);
+    view->mConvo = xjson.getOptionalObject<ChatBskyConvo::ConvoView>("convo");
+    view->mViewer = xjson.getOptionalObject<JoinLinkViewerState>("viewer");
     return view;
 }
 
@@ -55,6 +71,19 @@ JoinRequestView::SharedPtr JoinRequestView::fromJson(const QJsonObject& json)
     auto view = std::make_shared<JoinRequestView>();
     view->mConvoId = xjson.getRequiredString("convoId");
     view->mRequestedBy = xjson.getRequiredObject<ChatBskyActor::ProfileViewBasic>("requestedBy");
+    view->mRequestedAt = xjson.getRequiredDateTime("requestedAt");
+    return view;
+}
+
+JoinRequestConvoView::SharedPtr JoinRequestConvoView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<JoinRequestConvoView>();
+    view->mConvoId = xjson.getRequiredString("convoId");
+    view->mName = xjson.getRequiredString("name");
+    view->mOwner = xjson.getRequiredObject<ChatBskyActor::ProfileViewBasic>("owner");
+    view->mMemberCount = xjson.getRequiredInt("memberCount");
+    view->mMemberLimit = xjson.getRequiredInt("memberLimit");
     view->mRequestedAt = xjson.getRequiredDateTime("requestedAt");
     return view;
 }

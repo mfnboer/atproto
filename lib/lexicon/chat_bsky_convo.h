@@ -4,7 +4,7 @@
 #include "app_bsky_embed.h"
 #include "app_bsky_richtext.h"
 #include "chat_bsky_actor.h"
-#include "chat_bsky_group.h"
+#include "chat_bsky_group_include.h"
 #include <QJsonDocument>
 
 namespace ATProto::ChatBskyConvo {
@@ -324,7 +324,9 @@ struct GroupConvo
     static constexpr int MAX_BYTES_NAME = 1280;
     int mMemberCount = 0;
     QDate mCreatedAt;
+    std::optional<int> mJoinRequestCount;
     ChatBskyGroup::JoinLinkView::SharedPtr mJoinLink; // optional
+    int mMemberLimit = 0;
     QString mRawLockStatus;
     ConvoLockStatus mLockStatus;
 

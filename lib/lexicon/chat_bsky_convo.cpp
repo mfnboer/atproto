@@ -307,7 +307,9 @@ GroupConvo::SharedPtr GroupConvo::fromJson(const QJsonObject& json)
     convo->mName = xjson.getRequiredString("name");
     convo->mMemberCount = xjson.getRequiredInt("memberCount");
     convo->mCreatedAt = xjson.getRequiredDate("createdAt");
+    convo->mJoinRequestCount = xjson.getOptionalInt("joinRequestCount");
     convo->mJoinLink = xjson.getOptionalObject<ChatBskyGroup::JoinLinkView>("joinLink");
+    convo->mMemberLimit = xjson.getRequiredInt("memberLimit");
     convo->mRawLockStatus = xjson.getRequiredString("lockStatus");
     convo->mLockStatus = stringToConvoLockStatus(convo->mRawLockStatus);
     return convo;

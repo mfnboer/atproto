@@ -1,3 +1,7 @@
+next
+====
+* Lexicon updates
+
 6.3.1
 =====
 * Disable HTTP/2 hack for Qt6.11.1

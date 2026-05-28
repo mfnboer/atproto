@@ -226,7 +226,7 @@ public:
 
     /**
      * @brief getServiceAuth
-     * @param aud
+     * @param aud The DID or `did#serviceId` reference of the service that the token will be used to authenticate with. (maxLength=2048)
      * @param expiry
      * @param lexiconMethod
      * @param successCb

@@ -19,6 +19,8 @@ struct ProfileViewBasic;
 struct VerificationView
 {
     QString mIssuer; // DID
+    std::optional<QString> mDisplayName; // issuer
+    std::optional<QString> mHandle; // issuer
     QString mUri; // at-uri of the verification record
     bool mIsValid;
     QDateTime mCreatedAt;
