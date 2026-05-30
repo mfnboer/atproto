@@ -4,6 +4,7 @@
 #include "app_bsky_embed.h"
 #include "app_bsky_richtext.h"
 #include "chat_bsky_actor.h"
+#include "chat_bsky_embed.h"
 #include "chat_bsky_group_include.h"
 #include <QJsonDocument>
 
@@ -40,7 +41,10 @@ struct MessageInput
 {
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::Facet::List mFacets;
-    ATProto::AppBskyEmbed::Record::SharedPtr mEmbed; // optional
+
+    // TODO: unstable
+    using EmbedType = std::variant<AppBskyEmbed::Record::SharedPtr, ChatBskyEmbed::JoinLink::SharedPtr>;
+    std::optional<EmbedType> mEmbed;
 
     QJsonObject toJson() const;
 
@@ -87,7 +91,10 @@ struct MessageView
     QString mRev;
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::Facet::List mFacets;
-    ATProto::AppBskyEmbed::RecordView::SharedPtr mEmbed; // optional
+
+    using EmbedType = std::variant<AppBskyEmbed::RecordView::SharedPtr, ChatBskyEmbed::JoinLinkView::SharedPtr>;
+    std::optional<EmbedType> mEmbed;
+
     ReactionView::List mReactions;
     MessageViewSender::SharedPtr mSender; // required
     QDateTime mSentAt;
@@ -325,6 +332,7 @@ struct GroupConvo
     int mMemberCount = 0;
     QDate mCreatedAt;
     std::optional<int> mJoinRequestCount;
+    std::optional<int> mUnreadJoinRequestCount;
     ChatBskyGroup::JoinLinkView::SharedPtr mJoinLink; // optional
     int mMemberLimit = 0;
     QString mRawLockStatus;

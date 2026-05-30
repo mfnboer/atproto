@@ -295,7 +295,7 @@ ExternalView::SharedPtr ExternalView::fromJson(const QJsonObject& json)
 QJsonObject Record::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "app.bsky.embed.record");
+    json.insert("$type", TYPE);
     json.insert("record", mRecord->toJson());
     return json;
 }

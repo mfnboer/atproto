@@ -269,6 +269,7 @@ struct Record
 
     using SharedPtr = std::shared_ptr<Record>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.record";
 };
 
 struct RecordViewRecord;

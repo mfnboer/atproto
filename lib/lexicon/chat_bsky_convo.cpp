@@ -49,7 +49,7 @@ QJsonObject MessageInput::toJson() const
     json.insert("$type", MessageInput::TYPE);
     json.insert("text", mText);
     json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
-    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Record>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
     return json;
 }
 
@@ -59,7 +59,7 @@ MessageInput::SharedPtr MessageInput::fromJson(const QJsonObject& json)
     auto msg = std::make_shared<MessageInput>();
     msg->mText = xjson.getRequiredString("text");
     msg->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-    msg->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Record>("embed");
+    msg->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::Record, ChatBskyEmbed::JoinLink>("embed");
     return msg;
 }
 
@@ -97,7 +97,7 @@ MessageView::SharedPtr MessageView::fromJson(const QJsonObject& json)
     view->mRev = xjson.getRequiredString("rev");
     view->mText = xjson.getRequiredString("text");
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
-    view->mEmbed = xjson.getOptionalObject<AppBskyEmbed::RecordView>("embed");
+    view->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::RecordView, ChatBskyEmbed::JoinLinkView>("embed");
     view->mReactions = xjson.getOptionalVector<ReactionView>("reactions");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
@@ -308,6 +308,7 @@ GroupConvo::SharedPtr GroupConvo::fromJson(const QJsonObject& json)
     convo->mMemberCount = xjson.getRequiredInt("memberCount");
     convo->mCreatedAt = xjson.getRequiredDate("createdAt");
     convo->mJoinRequestCount = xjson.getOptionalInt("joinRequestCount");
+    convo->mUnreadJoinRequestCount = xjson.getOptionalInt("unreadJoinRequestCount");
     convo->mJoinLink = xjson.getOptionalObject<ChatBskyGroup::JoinLinkView>("joinLink");
     convo->mMemberLimit = xjson.getRequiredInt("memberLimit");
     convo->mRawLockStatus = xjson.getRequiredString("lockStatus");
