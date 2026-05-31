@@ -1,6 +1,7 @@
 next
 ====
 * Lexicon updates
+* standard.site embeds
 
 6.3.1
 =====
