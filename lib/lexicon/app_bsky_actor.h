@@ -1,7 +1,6 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
-#include "app_bsky_embed_include.h"
 #include "app_bsky_feed_include.h"
 #include "app_bsky_graph_include.h"
 #include "app_bsky_notification_include.h"
@@ -11,7 +10,14 @@
 #include <QJsonDocument>
 #include <unordered_set>
 
-namespace ATProto::AppBskyActor {
+namespace ATProto {
+
+namespace AppBskyEmbed {
+struct External;
+struct ExternalView;
+}
+
+namespace AppBskyActor {
 
 struct ProfileViewBasic;
 
@@ -102,7 +108,7 @@ QString actorStatusToString(ActorStatus status, const QString& unknown);
 // app.bsky.actor.status
 struct Status
 {
-    using EmbedType = std::variant<AppBskyEmbed::External::SharedPtr>;
+    using EmbedType = std::variant<std::shared_ptr<AppBskyEmbed::External>>;
 
     QString mRawStatus;
     ActorStatus mStatus = ActorStatus::UNKNOWN;
@@ -121,7 +127,7 @@ struct Status
 // app.bsky.actor.defs#statusView
 struct StatusView
 {
-    using EmbedType = std::variant<AppBskyEmbed::ExternalView::SharedPtr>;
+    using EmbedType = std::variant<std::shared_ptr<AppBskyEmbed::ExternalView>>;
 
     QString mRawStatus;
     ActorStatus mStatus = ActorStatus::UNKNOWN;
@@ -662,4 +668,4 @@ struct GetSuggestedFollowsByActor
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-}
+}}

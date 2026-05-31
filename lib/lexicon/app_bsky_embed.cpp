@@ -223,7 +223,7 @@ QJsonObject ExternalExternal::toJson() const
     if (mThumb)
         json.insert("thumb", mThumb->toJson());
 
-    XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "associatedRecords", mAssociatedRecords);
+    XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "associatedRefs", mAssociatedRefs);
     return json;
 }
 
@@ -235,7 +235,7 @@ ExternalExternal::SharedPtr ExternalExternal::fromJson(const QJsonObject& json)
     external->mTitle = xjson.getRequiredString("title");
     external->mDescription = xjson.getRequiredString("description");
     external->mThumb = xjson.getOptionalObject<Blob>("thumb");
-    external->mAssociatedRecords = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("associatedRecords");
+    external->mAssociatedRefs = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("associatedRefs");
     return external;
 }
 
@@ -255,6 +255,77 @@ External::SharedPtr External::fromJson(const QJsonObject& json)
     return external;
 }
 
+QColor ColorRGB::toColor() const
+{
+    return QColor(mR, mG, mB);
+}
+
+QJsonObject ColorRGB::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("r", mR);
+    json.insert("g", mG);
+    json.insert("b", mB);
+    return json;
+}
+
+ColorRGB::SharedPtr ColorRGB::fromJson(const QJsonObject& json)
+{
+    auto rgb = std::make_shared<ColorRGB>();
+    const XJsonObject xjson(json);
+    rgb->mR = xjson.getRequiredInt("r");
+    rgb->mG = xjson.getRequiredInt("g");
+    rgb->mB = xjson.getRequiredInt("b");
+    return rgb;
+}
+
+QJsonObject ViewExternalSourceTheme::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    XJsonObject::insertOptionalJsonObject<ColorRGB>(json, "backgroundRGB", mBackgroundRGB);
+    XJsonObject::insertOptionalJsonObject<ColorRGB>(json, "foregroundRGB", mForegroundRGB);
+    XJsonObject::insertOptionalJsonObject<ColorRGB>(json, "accentRGB", mAccentRGB);
+    XJsonObject::insertOptionalJsonObject<ColorRGB>(json, "accentForegroundRGB", mAccentForegroundRGB);
+    return json;
+}
+
+ViewExternalSourceTheme::SharedPtr ViewExternalSourceTheme::fromJson(const QJsonObject& json)
+{
+    auto theme = std::make_shared<ViewExternalSourceTheme>();
+    const XJsonObject xjson(json);
+    theme->mBackgroundRGB = xjson.getOptionalObject<ColorRGB>("backgroundRGB");
+    theme->mForegroundRGB = xjson.getOptionalObject<ColorRGB>("foregroundRGB");
+    theme->mAccentRGB = xjson.getOptionalObject<ColorRGB>("accentRGB");
+    theme->mAccentForegroundRGB = xjson.getOptionalObject<ColorRGB>("accentForegroundRGB");
+    return theme;
+}
+
+QJsonObject ViewExternalSource::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    XJsonObject::insertOptionalJsonValue(json, "icon", mIcon);
+    json.insert("title", mTitle);
+    XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
+    XJsonObject::insertOptionalJsonObject<ViewExternalSourceTheme>(json, "theme", mTheme);
+    return json;
+}
+
+ViewExternalSource::SharedPtr ViewExternalSource::fromJson(const QJsonObject& json)
+{
+    auto source = std::make_shared<ViewExternalSource>();
+    const XJsonObject xjson(json);
+    source->mUri = xjson.getRequiredString("uri");
+    source->mIcon = xjson.getOptionalString("icon");
+    source->mTitle = xjson.getRequiredString("title");
+    source->mDescription = xjson.getOptionalString("description");
+    source->mTheme = xjson.getOptionalObject<ViewExternalSourceTheme>("theme");
+    return source;
+}
+
 QJsonObject ExternalViewExternal::toJson() const
 {
     QJsonObject json;
@@ -262,6 +333,13 @@ QJsonObject ExternalViewExternal::toJson() const
     json.insert("title", mTitle);
     json.insert("description", mDescription);
     XJsonObject::insertOptionalJsonValue(json, "thumb", mThumb);
+    XJsonObject::insertOptionalDateTime(json, "createdAt", mCreatedAt);
+    XJsonObject::insertOptionalDateTime(json, "updatedAt", mUpdatedAt);
+    XJsonObject::insertOptionalJsonValue(json, "readingTime", mReadingTime);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ViewExternalSource>(json, "source", mSource);
+    XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "associatedRefs", mAssociatedRefs);
+    XJsonObject::insertOptionalArray<AppBskyActor::ProfileViewBasic>(json, "associatedProfiles", mAssociatedProfiles);
     return json;
 }
 
@@ -273,6 +351,13 @@ ExternalViewExternal::SharedPtr ExternalViewExternal::fromJson(const QJsonObject
     viewExternal->mTitle = xjson.getRequiredString("title");
     viewExternal->mDescription = xjson.getRequiredString("description");
     viewExternal->mThumb = xjson.getOptionalString("thumb");
+    viewExternal->mCreatedAt = xjson.getOptionalDateTime("createdAt");
+    viewExternal->mUpdatedAt = xjson.getOptionalDateTime("updatedAt");
+    viewExternal->mReadingTime = xjson.getOptionalInt("readingTime");
+    viewExternal->mLabels = xjson.getOptionalVector<ComATProtoLabel::Label>("labels");
+    viewExternal->mSource = xjson.getOptionalObject<ViewExternalSource>("source");
+    viewExternal->mAssociatedRefs = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("associatedRefs");
+    viewExternal->mAssociatedProfiles = xjson.getOptionalVector<AppBskyActor::ProfileViewBasic>("associatedProfiles");
     return viewExternal;
 }
 
