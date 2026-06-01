@@ -934,6 +934,28 @@ void Client::getServices(const std::vector<QString>& dids, bool detailed,
         authToken());
 }
 
+void Client::getEmbedExternalView(const QString& url, const std::vector<QString> uris,
+                          const GetEmbedExternalViewCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"url", url}};
+
+    for (const auto& uri : uris)
+        params.append({"uris", uri});
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.embed.getEmbedExternalView", params, httpHeaders,
+        [successCb](AppBskyEmbed::GetEmbedExternalViewOutput::SharedPtr output){
+            qDebug() << "getEmbedExternalView: success";
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getAuthorFeed(const QString& user, std::optional<int> limit, const std::optional<QString>& cursor,
                            const std::optional<QString> filter, std::optional<bool> includePins,
                            const GetAuthorFeedSuccessCb& successCb, const ErrorCb& errorCb)

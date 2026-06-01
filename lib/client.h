@@ -89,6 +89,7 @@ public:
     using GetSuggestionsSuccessCb = std::function<void(AppBskyActor::GetSuggestionsOutput::SharedPtr)>;
     using GetSuggestedFollowsSuccessCb = std::function<void(AppBskyActor::GetSuggestedFollowsByActor::SharedPtr)>;
     using GetServicesSuccessCb = std::function<void(AppBskyLabeler::GetServicesOutput::SharedPtr)>;
+    using GetEmbedExternalViewCb = std::function<void(AppBskyEmbed::GetEmbedExternalViewOutput::SharedPtr)>;
     using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
     using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
@@ -394,6 +395,17 @@ public:
      */
     void getServices(const std::vector<QString>& dids, bool detailed,
                      const GetServicesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // app.bsky.embed
+    /**
+     * @brief getEmbedExternalView
+     * @param url https-url of site to embed
+     * @param uris AT-URIs of any Atmosphere records that can be resolved and used to construct #externalView views. Example: a site.standard.document and optionally its associated site.standard.publication.
+     * @param successCb
+     * @param errorCb
+     */
+    void getEmbedExternalView(const QString& url, const std::vector<QString> uris,
+                              const GetEmbedExternalViewCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.feed
     /**

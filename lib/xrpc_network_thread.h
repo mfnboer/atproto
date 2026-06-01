@@ -55,6 +55,9 @@ public:
     // app.bsky.labeler
     using SuccessGetServicesOutputCb = std::function<void(ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr)>;
 
+    // app.bsky.embed
+    using SuccessGetEmbedExternalViewOutputCb = std::function<void(ATProto::AppBskyEmbed::GetEmbedExternalViewOutput::SharedPtr)>;
+
     // app.bsky.feed
     using SuccessOutputFeedCb = std::function<void(ATProto::AppBskyFeed::OutputFeed::SharedPtr)>;
     using SuccessGetFeedGeneratorOutputCb = std::function<void(ATProto::AppBskyFeed::GetFeedGeneratorOutput::SharedPtr)>;
@@ -133,6 +136,9 @@ public:
 
         // app.bsky.labeler
         SuccessGetServicesOutputCb,
+
+        // app.bsky.embed
+        SuccessGetEmbedExternalViewOutputCb,
 
         // app.bsky.feed
         SuccessOutputFeedCb,
@@ -265,6 +271,9 @@ signals:
 
     // app.bsky.labeler
     void requestSuccessGetServicesOutput(ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr, SuccessGetServicesOutputCb);
+
+    // app.bsky.embed
+    void requestSuccessGetEmbedExternalViewOutput(ATProto::AppBskyEmbed::GetEmbedExternalViewOutput::SharedPtr, SuccessGetEmbedExternalViewOutputCb);
 
     // app.bsky.feed
     void requestSuccessOutputFeed(ATProto::AppBskyFeed::OutputFeed::SharedPtr, SuccessOutputFeedCb);

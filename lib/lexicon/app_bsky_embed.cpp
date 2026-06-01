@@ -774,4 +774,13 @@ RecordViewRecord::SharedPtr RecordViewRecord::fromJson(const QJsonObject& json)
     return viewRecord;
 }
 
+GetEmbedExternalViewOutput::SharedPtr GetEmbedExternalViewOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetEmbedExternalViewOutput>();
+    const XJsonObject xjson(json);
+    output->mView = xjson.getOptionalObject<ExternalView>("view");
+    output->mAssociatedRefs = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("associatedRefs");
+    return output;
+}
+
 }

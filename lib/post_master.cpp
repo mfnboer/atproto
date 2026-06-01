@@ -724,7 +724,9 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
 }
 
 void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QString& link,
-                               const QString& title, const QString& description, Blob::SharedPtr blob)
+                                   const QString& title, const QString& description,
+                                   Blob::SharedPtr blob,
+                                   const ComATProtoRepo::StrongRef::List& associatedRefs)
 {
     AppBskyEmbed::External* embed = nullptr;
 
@@ -758,6 +760,7 @@ void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QStrin
     embed->mExternal->mTitle = title;
     embed->mExternal->mDescription = description;
     embed->mExternal->mThumb = std::move(blob);
+    embed->mExternal->mAssociatedRefs = associatedRefs;
 }
 
 void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText, bool isGif)

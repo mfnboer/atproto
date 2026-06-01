@@ -434,6 +434,16 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 
+// app.bsky.embed
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetEmbedExternalViewOutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyEmbed::GetEmbedExternalViewOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetEmbedExternalViewOutput;
+};
+
+
 // app.bsky.feed
 
 template<typename T>

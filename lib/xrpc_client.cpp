@@ -69,6 +69,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs, const QString&
     // app.bsky.labeler
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetServicesOutput, this, &Client::doCallback<NetworkThread::SuccessGetServicesOutputCb, ATProto::AppBskyLabeler::GetServicesOutput::SharedPtr>);
 
+    // app.bsky.embed
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetEmbedExternalViewOutput, this, &Client::doCallback<NetworkThread::SuccessGetEmbedExternalViewOutputCb, ATProto::AppBskyEmbed::GetEmbedExternalViewOutput::SharedPtr>);
+
     // app.bsky.feed
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessOutputFeed, this, &Client::doCallback<NetworkThread::SuccessOutputFeedCb, ATProto::AppBskyFeed::OutputFeed::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetFeedGeneratorOutput, this, &Client::doCallback<NetworkThread::SuccessGetFeedGeneratorOutputCb, ATProto::AppBskyFeed::GetFeedGeneratorOutput::SharedPtr>);

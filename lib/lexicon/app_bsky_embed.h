@@ -494,4 +494,15 @@ struct RecordViewRecord
     static constexpr char const* TYPE = "app.bsky.embed.record#viewRecord";
 };
 
+// app.bsky.embed.getEmbedExternalView#output
+struct GetEmbedExternalViewOutput
+{
+    ExternalView::SharedPtr mView; // optional
+    ComATProtoRepo::StrongRef::List mAssociatedRefs;
+    // NOT IMPLEMENTED: associatedRecords
+
+    using SharedPtr = std::shared_ptr<GetEmbedExternalViewOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
