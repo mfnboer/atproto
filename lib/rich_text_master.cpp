@@ -124,23 +124,35 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const 
 
     for (const auto& facet : facets)
     {
-        if (facet->mFeatures.size() == 1 && facet->mFeatures.front().mType == ParsedMatch::Type::LINK)
+        if (facet->mFeatures.size() != 1)
+            continue;
+
+        const auto facetType = facet->mFeatures.front().mType;
+
+        if (facetType != ParsedMatch::Type::LINK && facetType != ParsedMatch::Type::MENTION)
+            continue;
+
+        const int start = facet->mIndex.mByteStart;
+        const int end = facet->mIndex.mByteEnd;
+        const int sliceSize = end - start;
+
+        if (start < 0 || end > bytes.size() || sliceSize < 0)
         {
-            const int start = facet->mIndex.mByteStart;
-            const int end = facet->mIndex.mByteEnd;
-            const int sliceSize = end - start;
+            qWarning() << "Invalid index in facet:" << QString(bytes);
+            continue;
+        }
 
-            if (start < 0 || end > bytes.size() || sliceSize < 0)
-            {
-                qWarning() << "Invalid index in facet:" << QString(bytes);
-                continue;
-            }
+        const auto linkText = QString(bytes.sliced(start, sliceSize));
 
-            const auto linkText = QString(bytes.sliced(start, sliceSize));
+        if (linkText.isEmpty())
+            continue;
 
-            if (linkText.isEmpty())
-                continue;
+        QString ref;
 
+        switch (facetType)
+        {
+        case ParsedMatch::Type::LINK:
+        {
             const auto feature = std::get<AppBskyRichtext::FacetLink::SharedPtr>(facet->mFeatures.front().mFeature);
             QUrl url(feature->mUri);
             qDebug() << "Link:" << linkText << "uri:" << url;
@@ -148,15 +160,32 @@ std::vector<RichTextMaster::ParsedMatch> RichTextMaster::getEmbeddedLinks(const 
             if (linkText.contains(url.host()))
                 continue;
 
-            ParsedMatch link;
-            link.mMatch = linkText;
-            link.mRef = feature->mUri;
-            link.mType = ParsedMatch::Type::LINK;
-            link.mStartIndex = convertUtf8IndexToIndex(start, bytes);
-            link.mEndIndex = convertUtf8IndexToIndex(end, bytes);
-
-            embeddedLinks.push_back(link);
+            ref = feature->mUri;
+            break;
         }
+        case ParsedMatch::Type::MENTION:
+        {
+            if (linkText.startsWith('@'))
+                continue;
+
+            const auto feature = std::get<AppBskyRichtext::FacetMention::SharedPtr>(facet->mFeatures.front().mFeature);
+            ref = feature->mDid;
+            break;
+        }
+        default:
+            qWarning() << "Unexpected facet type:" << (int)facetType;
+            continue;
+        }
+
+        Q_ASSERT(!ref.isEmpty());
+        ParsedMatch link;
+        link.mMatch = linkText;
+        link.mRef = ref;
+        link.mType = facetType;
+        link.mStartIndex = convertUtf8IndexToIndex(start, bytes);
+        link.mEndIndex = convertUtf8IndexToIndex(end, bytes);
+
+        embeddedLinks.push_back(link);
     }
 
     return embeddedLinks;
@@ -285,8 +314,12 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
 
             break;
         case ParsedMatch::Type::MENTION:
+        {
             // The @-character is not part of the handle!
-            mClient.resolveHandle(facet.mMatch.sliced(1),
+            // For an embedded mention @handle is put in mRef
+            const QString handle = facet.mRef.startsWith('@') ? facet.mRef.slice(1) : facet.mMatch.sliced(1);
+
+            mClient.resolveHandle(handle,
                 [this, presence=getPresence(), i, text, facets, shortenLinks, cb](const QString& did){
                     if (!presence)
                         return;
@@ -302,7 +335,9 @@ void RichTextMaster::resolveFacets(const QString& text, std::vector<ParsedMatch>
                     qWarning() << "Could not resolve handle:" << error << " - " << msg << "match:" << facets[i].mMatch;
                     resolveFacets(text, facets, i + 1, shortenLinks, cb);
                 });
+
             return;
+        }
         case ParsedMatch::Type::TAG:
             if (facet.mMatch.startsWith('#'))
             {
