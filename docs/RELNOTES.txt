@@ -1,3 +1,7 @@
+next
+====
+* Gallery embed
+
 6.4
 ===
 * Lexicon updates

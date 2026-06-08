@@ -19,6 +19,15 @@ bool isNullVariant(const Variant& variant)
     return value && !*value;
 }
 
+template<typename Variant>
+struct VariantWithType
+{
+    using List = std::vector<VariantWithType<Variant>>;
+
+    Variant mVariant;
+    QString mType; // ATProto lexicon $type
+};
+
 class InvalidContent : public QException
 {
 public:

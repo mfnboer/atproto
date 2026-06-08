@@ -81,6 +81,23 @@ DraftEmbedVideo::SharedPtr DraftEmbedVideo::fromJson(const QJsonObject& json)
     return video;
 }
 
+QJsonObject DraftEmbedGallery::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("items", XJsonObject::toVariantJsonArray(mItems));
+    return json;
+}
+
+DraftEmbedGallery::SharedPtr DraftEmbedGallery::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto gallery = std::make_shared<DraftEmbedGallery>();
+    gallery->mItems = xjson.getRequiredVariantList<DraftEmbedImage>("items");
+    gallery->mJson = json;
+    return gallery;
+}
+
 QJsonObject DraftEmbedExternal::toJson() const
 {
     QJsonObject json(mJson);
@@ -122,6 +139,7 @@ QJsonObject DraftPost::toJson() const
     json.insert("text", mText);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
     XJsonObject::insertOptionalArray<DraftEmbedImage>(json, "embedImages", mEmbedImages);
+    XJsonObject::insertOptionalJsonObject<DraftEmbedGallery>(json, "embedGallery", mEmbedGallery);
     XJsonObject::insertOptionalArray<DraftEmbedVideo>(json, "embedVideos", mEmbedVideos);
     XJsonObject::insertOptionalArray<DraftEmbedExternal>(json, "embedExternals", mEmbedExternals);
     XJsonObject::insertOptionalArray<DraftEmbedRecord>(json, "embedRecords", mEmbedRecords);
@@ -135,6 +153,7 @@ DraftPost::SharedPtr DraftPost::fromJson(const QJsonObject& json)
     post->mText = xjson.getRequiredString("text");
     post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
     post->mEmbedImages = xjson.getOptionalVector<DraftEmbedImage>("embedImages");
+    post->mEmbedGallery = xjson.getOptionalObject<DraftEmbedGallery>("embedGallery");
     post->mEmbedVideos = xjson.getOptionalVector<DraftEmbedVideo>("embedVideos");
     post->mEmbedExternals = xjson.getOptionalVector<DraftEmbedExternal>("embedExternals");
     post->mEmbedRecords = xjson.getOptionalVector<DraftEmbedRecord>("embedRecords");

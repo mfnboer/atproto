@@ -168,6 +168,7 @@ struct Images
     using SharedPtr = std::shared_ptr<Images>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr int MAX_IMAGES = 4;
+    static constexpr char const* TYPE = "app.bsky.embed.images";
 };
 
 // app.bsky.embed.images#viewImage
@@ -197,6 +198,65 @@ struct ImagesView
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.embed.images#view";
 };
+
+// app.bsky.embed.gallery#image
+struct GalleryImage
+{
+    Blob::SharedPtr mImage; // max 2,000,000 bytes mime: image/*
+    QString mAlt;
+    AspectRatio::SharedPtr mAspectRatio; // required!
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<GalleryImage>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_BYTES = 2'000'000;
+    static constexpr char const* TYPE = "app.bsky.embed.gallery#image";
+};
+
+// app.bsky.embed.gallery
+struct Gallery
+{
+    using ItemType = std::variant<GalleryImage::SharedPtr>;
+    std::vector<ItemType> mItems;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Gallery>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr int MAX_ITEMS = 20;
+    static constexpr char const* TYPE = "app.bsky.embed.gallery";
+};
+
+// app.bsky.gallery#viewImage
+struct GalleryViewImage
+{
+    QString mThumbnail;
+    QString mFullSize;
+    QString mAlt;
+    AspectRatio::SharedPtr mAspectRatio; // required!
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<GalleryViewImage>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.gallery#viewImage";
+};
+
+// app.bsky.gallery#view
+struct GalleryView
+{
+    using ItemType = std::variant<GalleryViewImage::SharedPtr>;
+    std::vector<ItemType> mItems;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<GalleryView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.embed.gallery#view";
+};
+
 
 // app.bsky.embed.video#caption
 struct VideoCaption
@@ -337,6 +397,7 @@ enum class EmbedType
 {
     IMAGES,
     VIDEO,
+    GALLERY,
     EXTERNAL,
     RECORD,
     RECORD_WITH_MEDIA,
@@ -349,9 +410,7 @@ EmbedType stringToEmbedType(const QString& str);
 struct RecordWithMedia
 {
     Record::SharedPtr mRecord;
-    std::variant<Images::SharedPtr, Video::SharedPtr, External::SharedPtr> mMedia;
-    EmbedType mMediaType = EmbedType::UNKNOWN;
-    QString mRawMediaType;
+    std::variant<Images::SharedPtr, Video::SharedPtr, Gallery::SharedPtr, External::SharedPtr> mMedia;
 
     QJsonObject toJson() const;
 
@@ -362,10 +421,12 @@ struct RecordWithMedia
 
 using EmbedUnion = std::variant<Images::SharedPtr,
                                 Video::SharedPtr,
+                                Gallery::SharedPtr,
                                 External::SharedPtr,
                                 Record::SharedPtr,
                                 RecordWithMedia::SharedPtr>;
 
+// TODO: refactor to VariantWithType
 struct Embed
 {
     EmbedUnion mEmbed;
@@ -382,6 +443,7 @@ enum class EmbedViewType
 {
     IMAGES_VIEW,
     VIDEO_VIEW,
+    GALLERY_VIEW,
     EXTERNAL_VIEW,
     RECORD_VIEW,
     RECORD_WITH_MEDIA_VIEW,
@@ -393,10 +455,10 @@ EmbedViewType stringToEmbedViewType(const QString& str);
 // app.bsky.embed.recordWithMedia#view
 struct RecordWithMediaView
 {
+    using MediaType = std::variant<ImagesView::SharedPtr, VideoView::SharedPtr, GalleryView::SharedPtr, ExternalView::SharedPtr>;
+
     RecordView::SharedPtr mRecord;
-    std::variant<ImagesView::SharedPtr, VideoView::SharedPtr, ExternalView::SharedPtr> mMedia;
-    EmbedViewType mMediaType = EmbedViewType::UNKNOWN;
-    QString mRawMediaType;
+    VariantWithType<MediaType> mMedia;
 
     QJsonObject toJson() const;
 
@@ -407,10 +469,12 @@ struct RecordWithMediaView
 
 using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
                                     VideoView::SharedPtr,
+                                    GalleryView::SharedPtr,
                                     ExternalView::SharedPtr,
                                     RecordView::SharedPtr,
                                     RecordWithMediaView::SharedPtr>;
 
+// TODO: refactor to VariantWithType
 struct EmbedView
 {
     EmbedViewUnion mEmbed;
@@ -484,7 +548,7 @@ struct RecordViewRecord
     RecordType mValueType = RecordType::UNKNOWN;
     QString mRawValueType;
     ComATProtoLabel::Label::List mLabels;
-    EmbedView::List mEmbeds;
+    VariantWithType<EmbedViewUnion>::List mEmbeds;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;

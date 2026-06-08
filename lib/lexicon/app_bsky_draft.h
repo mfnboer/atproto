@@ -72,6 +72,22 @@ struct DraftEmbedVideo
     static constexpr char const* TYPE = "app.bsky.draft.defs#draftEmbedVideo";
 };
 
+// app.bsky.draft.defs#draftEmbedGallery
+struct DraftEmbedGallery
+{
+    using ItemType = std::variant<DraftEmbedImage::SharedPtr>;
+    std::vector<ItemType> mItems;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<DraftEmbedGallery>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.draft.defs#draftEmbedGallery";
+};
+
+
 // app.bsky.draft.defs#draftEmbedExternal
 struct DraftEmbedExternal
 {
@@ -106,6 +122,7 @@ struct DraftPost
     QString mText;
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     DraftEmbedImage::List mEmbedImages; // optional max=4
+    DraftEmbedGallery::SharedPtr mEmbedGallery; // optional
     DraftEmbedVideo::List mEmbedVideos; // optional max=1
     DraftEmbedExternal::List mEmbedExternals; // optional max=1
     DraftEmbedRecord::List mEmbedRecords; // optional max=1
