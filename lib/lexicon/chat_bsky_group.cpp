@@ -50,18 +50,33 @@ JoinLinkPreviewView::SharedPtr JoinLinkPreviewView::fromJson(const QJsonObject& 
 {
     XJsonObject xjson(json);
     auto view = std::make_shared<JoinLinkPreviewView>();
+    view->mConvoId = xjson.getRequiredString("convoId");
     view->mCode = xjson.getRequiredString("code");
     view->mName = xjson.getRequiredString("name");
     view->mOwner = xjson.getRequiredObject<ChatBskyActor::ProfileViewBasic>("owner");
     view->mMemberCount = xjson.getRequiredInt("memberCount");
     view->mMemberLimit = xjson.getRequiredInt("memberLimit");
     view->mRequireApproval = xjson.getRequiredBool("requireApproval");
-    view->mRawEnabledStatus = xjson.getRequiredString("enabledStatus");
-    view->mEnabledStatus = stringToLinkEnabledStatus(view->mRawEnabledStatus);
     view->mRawJoinRule = xjson.getRequiredString("joinRule");
     view->mJoinRule = stringToJoinRule(view->mRawJoinRule);
     view->mConvo = xjson.getOptionalObject<ChatBskyConvo::ConvoView>("convo");
     view->mViewer = xjson.getOptionalObject<JoinLinkViewerState>("viewer");
+    return view;
+}
+
+DisabledJoinLinkPreviewView::SharedPtr DisabledJoinLinkPreviewView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<DisabledJoinLinkPreviewView>();
+    view->mCode = xjson.getRequiredString("code");
+    return view;
+}
+
+InvalidJoinLinkPreviewView::SharedPtr InvalidJoinLinkPreviewView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<InvalidJoinLinkPreviewView>();
+    view->mCode = xjson.getRequiredString("code");
     return view;
 }
 
@@ -84,7 +99,7 @@ JoinRequestConvoView::SharedPtr JoinRequestConvoView::fromJson(const QJsonObject
     view->mOwner = xjson.getRequiredObject<ChatBskyActor::ProfileViewBasic>("owner");
     view->mMemberCount = xjson.getRequiredInt("memberCount");
     view->mMemberLimit = xjson.getRequiredInt("memberLimit");
-    view->mRequestedAt = xjson.getRequiredDateTime("requestedAt");
+    view->mViewer = xjson.getRequiredObject<JoinLinkViewerState>("viewer");
     return view;
 }
 

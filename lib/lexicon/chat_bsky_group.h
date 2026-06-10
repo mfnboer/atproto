@@ -19,6 +19,7 @@ struct JoinLinkViewerState {
 
 struct JoinLinkPreviewView
 {
+    QString mConvoId;
     QString mCode;
     QString mName;
     ChatBskyActor::ProfileViewBasic::SharedPtr mOwner;
@@ -27,14 +28,30 @@ struct JoinLinkPreviewView
     bool mRequireApproval = false;
     QString mRawJoinRule;
     JoinRule mJoinRule;
-    QString mRawEnabledStatus;
-    LinkEnabledStatus mEnabledStatus;
     ChatBskyConvo::ConvoView::SharedPtr mConvo; // optional
     JoinLinkViewerState::SharedPtr mViewer; // optional
 
     using SharedPtr = std::shared_ptr<JoinLinkPreviewView>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.group.defs#joinLinkPreviewView";
+};
+
+struct DisabledJoinLinkPreviewView
+{
+    QString mCode;
+
+    using SharedPtr = std::shared_ptr<DisabledJoinLinkPreviewView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.group.defs#disabledJoinLinkPreviewView";
+};
+
+struct InvalidJoinLinkPreviewView
+{
+    QString mCode;
+
+    using SharedPtr = std::shared_ptr<InvalidJoinLinkPreviewView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.group.defs#invalidJoinLinkPreviewView";
 };
 
 struct JoinRequestView
@@ -55,7 +72,7 @@ struct JoinRequestConvoView
     ChatBskyActor::ProfileViewBasic::SharedPtr mOwner;
     int mMemberCount = 0;
     int mMemberLimit = 0;
-    QDateTime mRequestedAt;
+    JoinLinkViewerState::SharedPtr mViewer;
 
     using SharedPtr = std::shared_ptr<JoinRequestConvoView>;
     static SharedPtr fromJson(const QJsonObject& json);

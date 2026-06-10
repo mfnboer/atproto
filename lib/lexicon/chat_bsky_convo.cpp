@@ -313,6 +313,7 @@ GroupConvo::SharedPtr GroupConvo::fromJson(const QJsonObject& json)
     convo->mMemberLimit = xjson.getRequiredInt("memberLimit");
     convo->mRawLockStatus = xjson.getRequiredString("lockStatus");
     convo->mLockStatus = stringToConvoLockStatus(convo->mRawLockStatus);
+    convo->mLockStatusModerationOverride = xjson.getRequiredBool("lockStatusModerationOverride");
     return convo;
 }
 

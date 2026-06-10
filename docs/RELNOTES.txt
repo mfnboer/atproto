@@ -1,6 +1,7 @@
 next
 ====
 * Option to set secondary host in PlcDirectoryClient
+* Update chat lexicons
 
 6.5
 ===

@@ -337,6 +337,7 @@ struct GroupConvo
     int mMemberLimit = 0;
     QString mRawLockStatus;
     ConvoLockStatus mLockStatus;
+    bool mLockStatusModerationOverride = false;
 
     using SharedPtr = std::shared_ptr<GroupConvo>;
     static SharedPtr fromJson(const QJsonObject& json);

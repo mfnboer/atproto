@@ -26,7 +26,10 @@ JoinLinkView::SharedPtr JoinLinkView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto view = std::make_shared<JoinLinkView>();
-    view->mJoinLinkPreview = xjson.getRequiredObject<ChatBskyGroup::JoinLinkPreviewView>("joinLinkPreview");
+    view->mJoinLinkPreview = xjson.getRequiredVariant<
+            ChatBskyGroup::JoinLinkPreviewView,
+            ChatBskyGroup::DisabledJoinLinkPreviewView,
+            ChatBskyGroup::InvalidJoinLinkPreviewView>("joinLinkPreview");
     return view;
 }
 

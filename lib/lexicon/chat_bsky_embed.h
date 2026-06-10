@@ -9,6 +9,8 @@ namespace ATProto {
 
 namespace ChatBskyGroup {
 struct JoinLinkPreviewView;
+struct DisabledJoinLinkPreviewView;
+struct InvalidJoinLinkPreviewView;
 }
 
 namespace ChatBskyEmbed {
@@ -26,7 +28,13 @@ struct JoinLink
 
 struct JoinLinkView
 {
-    std::shared_ptr<ChatBskyGroup::JoinLinkPreviewView> mJoinLinkPreview;
+    using ViewType = std::variant<
+        std::shared_ptr<ChatBskyGroup::JoinLinkPreviewView>,
+        std::shared_ptr<ChatBskyGroup::DisabledJoinLinkPreviewView>,
+        std::shared_ptr<ChatBskyGroup::InvalidJoinLinkPreviewView>
+    >;
+
+    ViewType mJoinLinkPreview;
 
     using SharedPtr = std::shared_ptr<JoinLinkView>;
     static SharedPtr fromJson(const QJsonObject& json);
