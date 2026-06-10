@@ -1,3 +1,7 @@
+next
+====
+* Option to set secondary host in PlcDirectoryClient
+
 6.5
 ===
 * Gallery embed

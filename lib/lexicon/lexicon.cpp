@@ -116,7 +116,10 @@ DidDocument::SharedPtr DidDocument::fromJson(const QJsonObject& json)
             const QString id = serviceXJson.getOptionalString("id", "");
             const QString type = serviceXJson.getOptionalString("type", "");
 
-            if (type == "AtprotoPersonalDataServer" && id == "#atproto_pds") {
+            // Examples of valid id values:
+            // "id": "#atproto_pds"
+            // "id": "did:plc:ewvi7nxzyoun6zhxrhs64oiz#atproto_pds"
+            if (type == "AtprotoPersonalDataServer" && id.endsWith("#atproto_pds")) {
                 didDoc->mATProtoPDS = serviceXJson.getOptionalString("serviceEndpoint");
                 break;
             }

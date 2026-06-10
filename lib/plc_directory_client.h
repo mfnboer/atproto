@@ -30,9 +30,13 @@ public:
     using AuditLogSuccessCb = std::function<void(PlcAuditLog::SharedPtr)>;
     using FirstAppearanceSuccessCb = std::function<void(QDateTime)>;
 
-    static constexpr const char* PLC_DIRECTORY_HOST = "plc.directory";
+    static constexpr const char* PLC_DIRECTORY_PRIMARY_HOST = "plc.directory";
+    static constexpr const char* PLC_DIRECTORY_SECONDARY_HOST = "plc.eurosky.network";
 
-    explicit PlcDirectoryClient(QNetworkAccessManager* network, const QString host = PLC_DIRECTORY_HOST, QObject* parent = nullptr);
+    explicit PlcDirectoryClient(QNetworkAccessManager* network,
+                                const QString& primaryHost = PLC_DIRECTORY_PRIMARY_HOST,
+                                const QString& secondaryHost = PLC_DIRECTORY_SECONDARY_HOST,
+                                QObject* parent = nullptr);
 
     void getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb);
     void getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb);
@@ -42,6 +46,9 @@ public:
 
 private:
     using Request = PlcRequest;
+
+    bool getPdsContinue(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex = 0);
+    bool getAuditLogContinue(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex = 0);
 
     virtual void replyFinished(const Request& request, QNetworkReply* reply,
                        const SuccessJsonCb& successCb, const ErrorCb& errorCb,
@@ -55,7 +62,7 @@ private:
     void invalidJsonError(InvalidJsonException& e, const ErrorCb& cb);
     void invokeErrorCb(const QJsonDocument& jsonDoc, QNetworkReply* reply, QNetworkReply::NetworkError errorCode, const ErrorCb& errorCb);
 
-    QString mHost;
+    std::vector<QString> mHosts;
     QCache<QString, QDateTime> mFirstAppearanceCache; // DID -> datetime
     QCache<QString, QString> mPdsCache; // DID -> PDS
 };

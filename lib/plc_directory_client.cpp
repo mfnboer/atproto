@@ -19,14 +19,22 @@ static QString normalizeHost(const QString& host)
     return normalized;
 }
 
-PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network, const QString host, QObject* parent) :
+PlcDirectoryClient::PlcDirectoryClient(QNetworkAccessManager* network,
+                                       const QString& primaryHost,
+                                       const QString& secondaryHost,
+                                       QObject* parent) :
     NetworkClient<PlcRequest, PlcSuccessJsonCb, PlcErrorCb>(network, parent),
-    mHost(host),
     mFirstAppearanceCache(100),
     mPdsCache(100)
 {
     Q_ASSERT(mNetwork);
     Q_ASSERT(mNetwork->autoDeleteReplies());
+    Q_ASSERT(!primaryHost.isEmpty());
+
+    mHosts.push_back(primaryHost);
+
+    if (!secondaryHost.isEmpty())
+        mHosts.push_back(secondaryHost);
 }
 
 void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb)
@@ -42,10 +50,22 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
         return;
     }
 
+    getPdsContinue(did, successCb, errorCb);
+}
+
+bool PlcDirectoryClient::getPdsContinue(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex)
+{
+    if (hostIndex < 0 || hostIndex >= (int)mHosts.size())
+        return false;
+
+    const QString& host = mHosts[hostIndex];
+
     Request request;
-    QUrl url(QString("https://%1/%2").arg(mHost, did));
+    QUrl url(QString("https://%1/%2").arg(host, did));
     request.mNetworkRequest = QNetworkRequest(url);
     setUserAgentHeader(request.mNetworkRequest);
+
+    qDebug() << "Send:" << url;
 
     sendRequest(request,
         [this, presence=getPresence(), did, successCb, errorCb](const QJsonDocument& reply) {
@@ -76,19 +96,40 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
                 invalidJsonError(e, errorCb);
             }
         },
-        [errorCb](int errorCode, const QString& errorMsg) {
+        [this, presence=getPresence(), did, successCb, errorCb, hostIndex](int errorCode, const QString& errorMsg) {
+            if (!presence)
+                return;
+
             qWarning() << errorCode << "-" << errorMsg;
+
+            if (getPdsContinue(did, successCb, errorCb, hostIndex + 1))
+                return;
+
             if (errorCb)
                 errorCb(errorCode, errorMsg);
         });
+
+    return true;
 }
 
 void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    getAuditLogContinue(did, successCb, errorCb);
+}
+
+bool PlcDirectoryClient::getAuditLogContinue(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex)
+{
+    if (hostIndex < 0 || hostIndex >= (int)mHosts.size())
+        return false;
+
+    const QString& host = mHosts[hostIndex];
+
     Request request;
-    QUrl url(QString("https://%1/%2/log/audit").arg(mHost, did));
+    QUrl url(QString("https://%1/%2/log/audit").arg(host, did));
     request.mNetworkRequest = QNetworkRequest(url);
     setUserAgentHeader(request.mNetworkRequest);
+
+    qDebug() << "Send:" << url;
 
     sendRequest(request,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply) {
@@ -106,11 +147,20 @@ void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb
                 invalidJsonError(e, errorCb);
             }
         },
-        [errorCb](int errorCode, const QString& errorMsg) {
+        [this, presence=getPresence(), did, successCb, errorCb, hostIndex](int errorCode, const QString& errorMsg) {
+            if (!presence)
+                return;
+
             qDebug() << errorCode << "-" << errorMsg;
+
+            if (getAuditLogContinue(did, successCb, errorCb, hostIndex + 1))
+                return;
+
             if (errorCb)
                 errorCb(errorCode, errorMsg);
         });
+
+    return true;
 }
 
 void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppearanceSuccessCb& successCb, const ErrorCb& errorCb)
