@@ -82,7 +82,7 @@ struct PostView
     std::variant<Record::Post::SharedPtr> mRecord;
     RecordType mRecordType = RecordType::UNKNOWN;
     QString mRawRecordType;
-    AppBskyEmbed::EmbedView::SharedPtr mEmbed; // optional
+    std::optional<AppBskyEmbed::EmbedViewUnion> mEmbed;
     int mBookmarkCount = 0;
     int mReplyCount = 0;
     int mRepostCount = 0;

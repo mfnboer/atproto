@@ -570,24 +570,6 @@ RecordView::SharedPtr RecordView::fromJson(const QJsonObject& json)
     return view;
 }
 
-EmbedType stringToEmbedType(const QString& str)
-{
-    static const std::unordered_map<QString, EmbedType> mapping = {
-        { Images::TYPE, EmbedType::IMAGES },
-        { Video::TYPE, EmbedType::VIDEO },
-        { Gallery::TYPE, EmbedType::GALLERY },
-        { External::TYPE, EmbedType::EXTERNAL },
-        { Record::TYPE, EmbedType::RECORD },
-        { RecordWithMedia::TYPE, EmbedType::RECORD_WITH_MEDIA }
-    };
-
-    const auto it = mapping.find(str);
-    if (it != mapping.end())
-        return it->second;
-
-    return EmbedType::UNKNOWN;
-}
-
 QJsonObject RecordWithMedia::toJson() const
 {
     QJsonObject json;
@@ -606,70 +588,12 @@ RecordWithMedia::SharedPtr RecordWithMedia::fromJson(const QJsonObject& json)
     return recordMedia;
 }
 
-EmbedViewType stringToEmbedViewType(const QString& str)
-{
-    static const std::unordered_map<QString, EmbedViewType> mapping = {
-        { ImagesView::TYPE, EmbedViewType::IMAGES_VIEW },
-        { VideoView::TYPE, EmbedViewType::VIDEO_VIEW },
-        { GalleryView::TYPE, EmbedViewType::GALLERY_VIEW },
-        { ExternalView::TYPE, EmbedViewType::EXTERNAL_VIEW },
-        { RecordView::TYPE, EmbedViewType::RECORD_VIEW },
-        { RecordWithMediaView::TYPE, EmbedViewType::RECORD_WITH_MEDIA_VIEW }
-    };
-
-    const auto it = mapping.find(str);
-    if (it != mapping.end())
-        return it->second;
-
-    return EmbedViewType::UNKNOWN;
-}
-
-QJsonObject Embed::toJson() const
-{
-    return XJsonObject::variantToJsonObject<EmbedUnion>(mEmbed);
-}
-
-Embed::SharedPtr Embed::fromJson(const QJsonObject& json)
-{
-    auto embed = std::make_shared<Embed>();
-    const XJsonObject xjson(json);
-    embed->mRawType = xjson.getRequiredString("$type");
-    embed->mType = stringToEmbedType(embed->mRawType);
-
-    switch(embed->mType)
-    {
-    case EmbedType::IMAGES:
-        embed->mEmbed = Images::fromJson(json);
-        break;
-    case EmbedType::VIDEO:
-        embed->mEmbed = Video::fromJson(json);
-        break;
-    case EmbedType::GALLERY:
-        embed->mEmbed = Gallery::fromJson(json);
-        break;
-    case EmbedType::EXTERNAL:
-        embed->mEmbed = External::fromJson(json);
-        break;
-    case EmbedType::RECORD:
-        embed->mEmbed = Record::fromJson(json);
-        break;
-    case EmbedType::RECORD_WITH_MEDIA:
-        embed->mEmbed = RecordWithMedia::fromJson(json);
-        break;
-    case EmbedType::UNKNOWN:
-        qWarning() << "Unknown embed type:" << embed->mRawType;
-        break;
-    }
-
-    return embed;
-}
-
 QJsonObject RecordWithMediaView::toJson() const
 {
     QJsonObject json;
     json.insert("$type", TYPE);
     json.insert("record", mRecord->toJson());
-    json.insert("media", XJsonObject::variantToJsonObject(mMedia.mVariant));
+    json.insert("media", XJsonObject::variantToJsonObject(mMedia));
     return json;
 }
 
@@ -678,48 +602,13 @@ RecordWithMediaView::SharedPtr RecordWithMediaView::fromJson(const QJsonObject& 
     auto recordMediaView = std::make_shared<RecordWithMediaView>();
     const XJsonObject xjson(json);
     recordMediaView->mRecord = xjson.getRequiredObject<RecordView>("record");
-    recordMediaView->mMedia = xjson.getRequiredVariantWithType<ImagesView, VideoView, GalleryView, ExternalView>("media");
+    recordMediaView->mMedia = xjson.getRequiredVariant<
+        ImagesView,
+        VideoView,
+        GalleryView,
+        ExternalView,
+        UnknownVariant>("media");
     return recordMediaView;
-}
-
-QJsonObject EmbedView::toJson() const
-{
-    return XJsonObject::variantToJsonObject<EmbedViewUnion>(mEmbed);
-}
-
-EmbedView::SharedPtr EmbedView::fromJson(const QJsonObject& json)
-{
-    auto embed = std::make_shared<EmbedView>();
-    const XJsonObject xjson(json);
-    embed->mRawType = xjson.getRequiredString("$type");
-    embed->mType = stringToEmbedViewType(embed->mRawType);
-
-    switch(embed->mType)
-    {
-    case EmbedViewType::IMAGES_VIEW:
-        embed->mEmbed = ImagesView::fromJson(json);
-        break;
-    case EmbedViewType::VIDEO_VIEW:
-        embed->mEmbed = VideoView::fromJson(json);
-        break;
-    case EmbedViewType::GALLERY_VIEW:
-        embed->mEmbed = GalleryView::fromJson(json);
-        break;
-    case EmbedViewType::EXTERNAL_VIEW:
-        embed->mEmbed = ExternalView::fromJson(json);
-        break;
-    case EmbedViewType::RECORD_VIEW:
-        embed->mEmbed = RecordView::fromJson(json);
-        break;
-    case EmbedViewType::RECORD_WITH_MEDIA_VIEW:
-        embed->mEmbed = RecordWithMediaView::fromJson(json);
-        break;
-    case EmbedViewType::UNKNOWN:
-        qWarning() << "Unknown embed type:" << embed->mRawType;
-        break;
-    }
-
-    return embed;
 }
 
 QJsonObject RecordViewRecord::toJson() const
@@ -731,7 +620,7 @@ QJsonObject RecordViewRecord::toJson() const
     json.insert("author", mAuthor->toJson());
     json.insert("value", XJsonObject::variantToJsonObject(mValue));
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
-    XJsonObject::insertOptionalVariantWithTypeArray(json, "embeds", mEmbeds);
+    XJsonObject::insertOptionalVariantArray(json, "embeds", mEmbeds);
     json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
@@ -769,8 +658,14 @@ RecordViewRecord::SharedPtr RecordViewRecord::fromJson(const QJsonObject& json)
     }
 
     ComATProtoLabel::getLabels(viewRecord->mLabels, json);
-    viewRecord->mEmbeds = xjson.getOptionalVariantWithTypeList<
-        ImagesView, VideoView, GalleryView, ExternalView, RecordView, RecordWithMediaView>("embeds");
+    viewRecord->mEmbeds = xjson.getOptionalVariantList<
+        ImagesView,
+        VideoView,
+        GalleryView,
+        ExternalView,
+        RecordView,
+        RecordWithMediaView,
+        UnknownVariant>("embeds");
     viewRecord->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return viewRecord;
 }

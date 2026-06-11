@@ -393,19 +393,6 @@ struct RecordView
     static constexpr char const* TYPE = "app.bsky.embed.record#view";
 };
 
-enum class EmbedType
-{
-    IMAGES,
-    VIDEO,
-    GALLERY,
-    EXTERNAL,
-    RECORD,
-    RECORD_WITH_MEDIA,
-    UNKNOWN
-};
-
-EmbedType stringToEmbedType(const QString& str);
-
 // app.bsky.embed.recordWithMedia
 struct RecordWithMedia
 {
@@ -419,46 +406,18 @@ struct RecordWithMedia
     static constexpr char const* TYPE = "app.bsky.embed.recordWithMedia";
 };
 
-using EmbedUnion = std::variant<Images::SharedPtr,
-                                Video::SharedPtr,
-                                Gallery::SharedPtr,
-                                External::SharedPtr,
-                                Record::SharedPtr,
-                                RecordWithMedia::SharedPtr>;
-
-// TODO: refactor to VariantWithType
-struct Embed
-{
-    EmbedUnion mEmbed;
-    EmbedType mType;
-    QString mRawType;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<Embed>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
-enum class EmbedViewType
-{
-    IMAGES_VIEW,
-    VIDEO_VIEW,
-    GALLERY_VIEW,
-    EXTERNAL_VIEW,
-    RECORD_VIEW,
-    RECORD_WITH_MEDIA_VIEW,
-    UNKNOWN
-};
-
-EmbedViewType stringToEmbedViewType(const QString& str);
-
 // app.bsky.embed.recordWithMedia#view
 struct RecordWithMediaView
 {
-    using MediaType = std::variant<ImagesView::SharedPtr, VideoView::SharedPtr, GalleryView::SharedPtr, ExternalView::SharedPtr>;
+    using MediaType = std::variant<
+        ImagesView::SharedPtr,
+        VideoView::SharedPtr,
+        GalleryView::SharedPtr,
+        ExternalView::SharedPtr,
+        UnknownVariant::SharedPtr>;
 
     RecordView::SharedPtr mRecord;
-    VariantWithType<MediaType> mMedia;
+    MediaType mMedia;
 
     QJsonObject toJson() const;
 
@@ -472,21 +431,8 @@ using EmbedViewUnion = std::variant<ImagesView::SharedPtr,
                                     GalleryView::SharedPtr,
                                     ExternalView::SharedPtr,
                                     RecordView::SharedPtr,
-                                    RecordWithMediaView::SharedPtr>;
-
-// TODO: refactor to VariantWithType
-struct EmbedView
-{
-    EmbedViewUnion mEmbed;
-    EmbedViewType mType = EmbedViewType::UNKNOWN;
-    QString mRawType;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<EmbedView>;
-    using List = std::vector<SharedPtr>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
+                                    RecordWithMediaView::SharedPtr,
+                                    UnknownVariant::SharedPtr>;
 
 }
 
@@ -510,10 +456,19 @@ namespace Record {
 // app.bsky.feed.post
 struct Post
 {
+    using EmbedType = std::variant<
+        AppBskyEmbed::Images::SharedPtr,
+        AppBskyEmbed::Video::SharedPtr,
+        AppBskyEmbed::Gallery::SharedPtr,
+        AppBskyEmbed::External::SharedPtr,
+        AppBskyEmbed::Record::SharedPtr,
+        AppBskyEmbed::RecordWithMedia::SharedPtr,
+        UnknownVariant::SharedPtr>;
+
     QString mText; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::Facet::List mFacets;
     PostReplyRef::SharedPtr mReply; // optional
-    ATProto::AppBskyEmbed::Embed::SharedPtr mEmbed; // optional
+    std::optional<EmbedType> mEmbed;
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
     std::vector<QString> mLanguages;
     QDateTime mCreatedAt;
@@ -548,7 +503,7 @@ struct RecordViewRecord
     RecordType mValueType = RecordType::UNKNOWN;
     QString mRawValueType;
     ComATProtoLabel::Label::List mLabels;
-    VariantWithType<EmbedViewUnion>::List mEmbeds;
+    std::vector<EmbedViewUnion> mEmbeds;
     QDateTime mIndexedAt;
 
     QJsonObject toJson() const;

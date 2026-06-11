@@ -300,7 +300,7 @@ QJsonObject Record::Post::toJson() const
     json.insert("text", mText);
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "facets", mFacets);
     XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);
-    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::Embed>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
 
     if (!mLanguages.empty())
@@ -318,7 +318,14 @@ Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
     post->mText = xjson.getRequiredString("text");
     post->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     post->mReply = xjson.getOptionalObject<PostReplyRef>("reply");
-    post->mEmbed = xjson.getOptionalObject<AppBskyEmbed::Embed>("embed");
+    post->mEmbed = xjson.getOptionalVariant<
+        AppBskyEmbed::Images,
+        AppBskyEmbed::Video,
+        AppBskyEmbed::Gallery,
+        AppBskyEmbed::External,
+        AppBskyEmbed::Record,
+        AppBskyEmbed::RecordWithMedia,
+        UnknownVariant>("embed");
     post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
     post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
@@ -335,7 +342,7 @@ QJsonObject PostView::toJson() const
     json.insert("cid", mCid);
     XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "author", mAuthor);
     json.insert("record", XJsonObject::variantToJsonObject(mRecord));
-    XJsonObject::insertOptionalJsonObject<AppBskyEmbed::EmbedView>(json, "embed", mEmbed);
+    XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonValue(json, "bookmarkCount", mBookmarkCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "replyCount", mReplyCount, 0);
     XJsonObject::insertOptionalJsonValue(json, "repostCount", mRepostCount, 0);
@@ -366,7 +373,14 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
     else
         qWarning() << QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(postView->mRawRecordType);
     
-    postView->mEmbed = xjson.getOptionalObject<AppBskyEmbed::EmbedView>("embed");
+    postView->mEmbed = xjson.getOptionalVariant<
+        AppBskyEmbed::ImagesView,
+        AppBskyEmbed::VideoView,
+        AppBskyEmbed::GalleryView,
+        AppBskyEmbed::ExternalView,
+        AppBskyEmbed::RecordView,
+        AppBskyEmbed::RecordWithMediaView,
+        UnknownVariant>("embed");
     postView->mBookmarkCount = xjson.getOptionalInt("bookmarkCount", 0);
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);

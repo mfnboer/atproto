@@ -19,13 +19,17 @@ bool isNullVariant(const Variant& variant)
     return value && !*value;
 }
 
-template<typename Variant>
-struct VariantWithType
+// Must be the last element in a variant
+struct UnknownVariant
 {
-    using List = std::vector<VariantWithType<Variant>>;
+    QString mType;
+    QJsonObject mJson;
 
-    Variant mVariant;
-    QString mType; // ATProto lexicon $type
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<UnknownVariant>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "";
 };
 
 class InvalidContent : public QException

@@ -9,6 +9,20 @@
 
 namespace ATProto {
 
+QJsonObject UnknownVariant::toJson() const
+{
+    return mJson;
+}
+
+UnknownVariant::SharedPtr UnknownVariant::fromJson(const QJsonObject& json)
+{
+    auto unknown = std::make_shared<UnknownVariant>();
+    XJsonObject xjson(json);
+    unknown->mType = xjson.getRequiredString("$type");
+    unknown->mJson = json;
+    return unknown;
+}
+
 ATProtoError::SharedPtr ATProtoError::fromJson(const QJsonDocument& json)
 {
     auto error = std::make_shared<ATProtoError>();

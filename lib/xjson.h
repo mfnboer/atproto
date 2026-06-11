@@ -47,13 +47,7 @@ public:
     static QJsonArray toVariantJsonArray(const std::vector<VariantType>& list);
 
     template<class VariantType>
-    static QJsonArray toVariantWithTypeJsonArray(const std::vector<VariantWithType<VariantType>>& list);
-
-    template<class VariantType>
     static void insertOptionalVariantArray(QJsonObject& json, const QString& key, const std::vector<VariantType>& list);
-
-    template<class VariantType>
-    static void insertOptionalVariantWithTypeArray(QJsonObject& json, const QString& key, const std::vector<VariantWithType<VariantType>>& list);
 
     template<class VariantType>
     static QJsonObject variantToJsonObject(const VariantType& variant);
@@ -120,25 +114,13 @@ public:
     std::variant<typename Types::SharedPtr...> getRequiredVariant(const QString& key) const;
 
     template<typename... Types>
-    VariantWithType<std::variant<typename Types::SharedPtr...>> getRequiredVariantWithType(const QString& key) const;
-
-    template<typename... Types>
     std::optional<std::variant<typename Types::SharedPtr...>> getOptionalVariant(const QString& key) const;
-
-    template<typename... Types>
-    std::optional<VariantWithType<std::variant<typename Types::SharedPtr...>>> getOptionalVariantWithType(const QString& key) const;
 
     template<typename... Types>
     std::vector<std::variant<typename Types::SharedPtr...>> getRequiredVariantList(const QString& key) const;
 
     template<typename... Types>
-    VariantWithType<std::variant<typename Types::SharedPtr...>>::List getRequiredVariantWithTypeList(const QString& key) const;
-
-    template<typename... Types>
     std::vector<std::variant<typename Types::SharedPtr...>> getOptionalVariantList(const QString& key) const;
-
-    template<typename... Types>
-    VariantWithType<std::variant<typename Types::SharedPtr...>>::List getOptionalVariantWithTypeList(const QString& key) const;
 
 private:
     void checkField(const QString& key, QJsonValue::Type type) const;
@@ -266,7 +248,7 @@ std::vector<typename ElemType::SharedPtr> XJsonObject::getOptionalVector(const Q
     { \
         using T = typename std::tuple_element<i < sizeof...(Types) ? i : 0, std::tuple<Types...>>::type; \
         \
-        if (type == T::TYPE) \
+        if (type == T::TYPE || UNKNOWN_VARIANT_TYPE == T::TYPE) \
             return T::fromJson(objXJson.getObject()); \
         \
         break; \
@@ -276,6 +258,7 @@ template<typename... Types>
 std::variant<typename Types::SharedPtr...> XJsonObject::toVariant(const QJsonObject& json)
 {
     static_assert(sizeof...(Types) <= 12);
+    const QString UNKNOWN_VARIANT_TYPE = "";
     const XJsonObject objXJson(json);
     const QString type = objXJson.getRequiredString("$type");
 
@@ -314,21 +297,6 @@ std::variant<typename Types::SharedPtr...> XJsonObject::getRequiredVariant(const
 }
 
 template<typename... Types>
-VariantWithType<std::variant<typename Types::SharedPtr...>> XJsonObject::getRequiredVariantWithType(const QString& key) const
-{
-    const auto json = getRequiredJsonObject(key);
-    const XJsonObject xjson(json);
-    VariantWithType<std::variant<typename Types::SharedPtr...>> v;
-    v.mVariant = toVariant<Types...>(json);
-    v.mType = xjson.getRequiredString("$type");
-
-    if (isNullVariant(v.mVariant))
-        qWarning() << "Unknown type:" << v.mType << "key:" << key;
-
-    return v;
-}
-
-template<typename... Types>
 std::optional<std::variant<typename Types::SharedPtr...>> XJsonObject::getOptionalVariant(const QString& key) const
 {
     if (!mObject.contains(key))
@@ -337,20 +305,6 @@ std::optional<std::variant<typename Types::SharedPtr...>> XJsonObject::getOption
     auto v = getRequiredVariant<Types...>(key);
 
     if (isNullVariant(v))
-        return {};
-
-    return v;
-}
-
-template<typename... Types>
-std::optional<VariantWithType<std::variant<typename Types::SharedPtr...>>> XJsonObject::getOptionalVariantWithType(const QString& key) const
-{
-    if (!mObject.contains(key))
-        return {};
-
-    auto v = getRequiredVariantWithType<Types...>(key);
-
-    if (isNullVariant(v.mVariant))
         return {};
 
     return v;
@@ -378,40 +332,10 @@ std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getRequired
 }
 
 template<typename... Types>
-VariantWithType<std::variant<typename Types::SharedPtr...>>::List XJsonObject::getRequiredVariantWithTypeList(const QString& key) const
-{
-    typename VariantWithType<std::variant<typename Types::SharedPtr...>>::List variantList;
-    const auto& arrayJson = getRequiredArray(key);
-
-    for (const auto& arrayElem : arrayJson)
-    {
-        if (!arrayElem.isObject())
-            throw InvalidJsonException("Invalid array element: " + key);
-
-        const auto itemJson = arrayElem.toObject();
-        auto item = XJsonObject::toVariant<Types...>(itemJson);
-        const XJsonObject xjsonItem(itemJson);
-        const QString type = xjsonItem.getRequiredString("$type");
-        variantList.push_back({ item, type });
-    }
-
-    return variantList;
-}
-
-template<typename... Types>
 std::vector<std::variant<typename Types::SharedPtr...>> XJsonObject::getOptionalVariantList(const QString& key) const
 {
     if (mObject.contains(key))
         return getRequiredVariantList<Types...>(key);
-
-    return {};
-}
-
-template<typename... Types>
-VariantWithType<std::variant<typename Types::SharedPtr...>>::List XJsonObject::getOptionalVariantWithTypeList(const QString& key) const
-{
-    if (mObject.contains(key))
-        return getRequiredVariantWithTypeList<Types...>(key);
 
     return {};
 }
@@ -422,18 +346,10 @@ QJsonArray XJsonObject::toVariantJsonArray(const std::vector<VariantType>& list)
     QJsonArray jsonArray;
 
     for (const auto& elem : list)
-        std::visit([&jsonArray](auto&& x){ jsonArray.append(x->toJson()); }, elem);
-
-    return jsonArray;
-}
-
-template<class VariantType>
-QJsonArray XJsonObject::toVariantWithTypeJsonArray(const std::vector<VariantWithType<VariantType>>& list)
-{
-    QJsonArray jsonArray;
-
-    for (const auto& elem : list)
-        std::visit([&jsonArray](auto&& x){ jsonArray.append(x->toJson()); }, elem.mVariant);
+    {
+        if (!isNullVariant(elem))
+            std::visit([&jsonArray](auto&& x){ jsonArray.append(x->toJson()); }, elem);
+    }
 
     return jsonArray;
 }
@@ -448,17 +364,9 @@ void XJsonObject::insertOptionalVariantArray(QJsonObject& json, const QString& k
 }
 
 template<class VariantType>
-void XJsonObject::insertOptionalVariantWithTypeArray(QJsonObject& json, const QString& key, const std::vector<VariantWithType<VariantType>>& list)
-{
-    if (list.empty())
-        json.remove(key);
-    else
-        json.insert(key, toVariantWithTypeJsonArray(list));
-}
-
-template<class VariantType>
 QJsonObject XJsonObject::variantToJsonObject(const VariantType& variant)
 {
+    Q_ASSERT(!isNullVariant(variant));
     return std::visit([](auto&& x){ return x->toJson(); }, variant);
 }
 
@@ -467,6 +375,8 @@ void XJsonObject::insertOptionalVariant(QJsonObject& json, const QString& key, c
 {
     if (!value)
         json.remove(key);
+    else if (isNullVariant(*value))
+        qWarning() << "NULL variant:" << key;
     else
         json.insert(key, variantToJsonObject(*value));
 }
