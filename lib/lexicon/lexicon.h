@@ -12,11 +12,28 @@ namespace ATProto {
 // Variant types in the lexicon are like this variant<T:Ptr, U:Ptr, ...>
 // The default constructor constructs a variant with the first alternative set
 // to its default value, i.e. nullptr
-template<typename Variant>
-bool isNullVariant(const Variant& variant)
+template<class... Types>
+bool isNullVariant(const std::variant<Types...>& variant)
 {
     auto* value = std::get_if<0>(&variant);
     return value && !*value;
+}
+
+template<class T, class... Types>
+bool holdsNonNull(const std::variant<Types...>& variant)
+{
+    if (!std::holds_alternative<T>(variant))
+        return false;
+
+    const auto& value = std::get<T>(variant);
+
+    if (!value)
+    {
+        qWarning() << "Variant holds null pointer";
+        return false;
+    }
+
+    return true;
 }
 
 // Must be the last element in a variant

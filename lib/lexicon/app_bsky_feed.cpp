@@ -66,7 +66,7 @@ bool PostgateEmbeddingRules::getDisableEmbedding(const QJsonObject& json, const 
 
     for (const auto& rule : rules)
     {
-        if (std::holds_alternative<PostgateDisableRule::SharedPtr>(rule))
+        if (ATProto::holdsNonNull<PostgateDisableRule::SharedPtr>(rule))
             return true;
     }
 
@@ -578,7 +578,7 @@ ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
 
     for (const auto& reply : thread->mReplies)
     {
-        if (std::holds_alternative<ThreadViewPost::SharedPtr>(reply->mPost))
+        if (ATProto::holdsNonNull<ThreadViewPost::SharedPtr>(reply->mPost))
         {
             const auto& replyPost = std::get<ThreadViewPost::SharedPtr>(reply->mPost);
 

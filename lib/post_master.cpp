@@ -681,7 +681,7 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
     {
         post.mEmbed = std::make_shared<AppBskyEmbed::Images>();
     }
-    else if (std::holds_alternative<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed))
+    else if (ATProto::holdsNonNull<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed))
     {
         auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed);
         auto ref = std::move(record->mRecord);
@@ -702,13 +702,13 @@ void PostMaster::addImageToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
 
     AppBskyEmbed::Images* images = nullptr;
 
-    if (std::holds_alternative<AppBskyEmbed::Images::SharedPtr>(*post.mEmbed))
+    if (ATProto::holdsNonNull<AppBskyEmbed::Images::SharedPtr>(*post.mEmbed))
     {
         images = std::get<AppBskyEmbed::Images::SharedPtr>(*post.mEmbed).get();
     }
     else
     {
-        Q_ASSERT(std::holds_alternative<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed));
+        Q_ASSERT(ATProto::holdsNonNull<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed));
         auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed);
         images = std::get<AppBskyEmbed::Images::SharedPtr>(recordWithMedia->mMedia).get();
     }
@@ -723,7 +723,7 @@ void PostMaster::addGalleryImageToPost(AppBskyFeed::Record::Post& post, Blob::Sh
     {
         post.mEmbed = std::make_shared<AppBskyEmbed::Gallery>();
     }
-    else if (std::holds_alternative<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed))
+    else if (ATProto::holdsNonNull<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed))
     {
         auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed);
         auto ref = std::move(record->mRecord);
@@ -744,13 +744,13 @@ void PostMaster::addGalleryImageToPost(AppBskyFeed::Record::Post& post, Blob::Sh
 
     AppBskyEmbed::Gallery* gallery = nullptr;
 
-    if (std::holds_alternative<AppBskyEmbed::Gallery::SharedPtr>(*post.mEmbed))
+    if (ATProto::holdsNonNull<AppBskyEmbed::Gallery::SharedPtr>(*post.mEmbed))
     {
         gallery = std::get<AppBskyEmbed::Gallery::SharedPtr>(*post.mEmbed).get();
     }
     else
     {
-        Q_ASSERT(std::holds_alternative<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed));
+        Q_ASSERT(ATProto::holdsNonNull<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed));
         auto& recordWithMedia = std::get<AppBskyEmbed::RecordWithMedia::SharedPtr>(*post.mEmbed);
         gallery = std::get<AppBskyEmbed::Gallery::SharedPtr>(recordWithMedia->mMedia).get();
     }
@@ -773,7 +773,7 @@ void PostMaster::addExternalToPost(AppBskyFeed::Record::Post& post, const QStrin
     }
     else
     {
-        Q_ASSERT(std::holds_alternative<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed));
+        Q_ASSERT(ATProto::holdsNonNull<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed));
         auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed);
         auto ref = std::move(record->mRecord);
         post.mEmbed = std::make_shared<AppBskyEmbed::RecordWithMedia>();
@@ -807,7 +807,7 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
     }
     else
     {
-        Q_ASSERT(std::holds_alternative<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed));
+        Q_ASSERT(ATProto::holdsNonNull<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed));
         auto& record = std::get<AppBskyEmbed::Record::SharedPtr>(*post.mEmbed);
         auto ref = std::move(record->mRecord);
         post.mEmbed = std::make_shared<AppBskyEmbed::RecordWithMedia>();

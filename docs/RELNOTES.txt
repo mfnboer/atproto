@@ -1,5 +1,6 @@
-next
-====
+6.6
+===
+* Variant type refactoring (more needs to be done)
 * Option to set secondary host in PlcDirectoryClient
 * Update chat lexicons
 
