@@ -36,6 +36,18 @@ struct MessageRef
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageRef";
 };
 
+// chat.bsky.convo.defs#replyRef
+struct ReplyRef
+{
+    QString mMessageId;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ReplyRef>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#replyRef";
+};
+
 // chat.bsky.convo.defs#messageInput
 struct MessageInput
 {
@@ -45,6 +57,8 @@ struct MessageInput
     // TODO: unstable
     using EmbedType = std::variant<AppBskyEmbed::Record::SharedPtr, ChatBskyEmbed::JoinLink::SharedPtr>;
     std::optional<EmbedType> mEmbed;
+
+    ReplyRef::SharedPtr mReplyTo; // optional
 
     QJsonObject toJson() const;
 
@@ -84,6 +98,18 @@ struct MessageViewSender
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+struct DeletedMessageView
+{
+    QString mId;
+    QString mRev;
+    MessageViewSender::SharedPtr mSender; // required
+    QDateTime mSentAt;
+
+    using SharedPtr = std::shared_ptr<DeletedMessageView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
+};
+
 // chat.bsky.convo.defs#messageView
 struct MessageView
 {
@@ -96,6 +122,10 @@ struct MessageView
     std::optional<EmbedType> mEmbed;
 
     ReactionView::List mReactions;
+
+    using ReplyType = std::variant<std::shared_ptr<MessageView>, DeletedMessageView::SharedPtr>;
+    std::optional<ReplyType> mReplyTo;
+
     MessageViewSender::SharedPtr mSender; // required
     QDateTime mSentAt;
 
@@ -112,18 +142,6 @@ struct MessageAndReactionView {
     using SharedPtr = std::shared_ptr<MessageAndReactionView>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageAndReactionView";
-};
-
-struct DeletedMessageView
-{
-    QString mId;
-    QString mRev;
-    MessageViewSender::SharedPtr mSender; // required
-    QDateTime mSentAt;
-
-    using SharedPtr = std::shared_ptr<DeletedMessageView>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
 // TODO: unstable

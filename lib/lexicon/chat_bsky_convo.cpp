@@ -43,6 +43,22 @@ MessageRef::SharedPtr MessageRef::fromJson(const QJsonObject& json)
     return ref;
 }
 
+QJsonObject ReplyRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("messageId", mMessageId);
+    return json;
+}
+
+ReplyRef::SharedPtr ReplyRef::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto ref = std::make_shared<ReplyRef>();
+    ref->mMessageId = xjson.getRequiredString("messageId");
+    return ref;
+}
+
 QJsonObject MessageInput::toJson() const
 {
     QJsonObject json;
@@ -50,6 +66,7 @@ QJsonObject MessageInput::toJson() const
     json.insert("text", mText);
     json.insert("facets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mFacets));
     XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
+    XJsonObject::insertOptionalJsonObject<ReplyRef>(json, "replyTo", mReplyTo);
     return json;
 }
 
@@ -60,6 +77,7 @@ MessageInput::SharedPtr MessageInput::fromJson(const QJsonObject& json)
     msg->mText = xjson.getRequiredString("text");
     msg->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     msg->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::Record, ChatBskyEmbed::JoinLink>("embed");
+    msg->mReplyTo = xjson.getOptionalObject<ReplyRef>("replyTo");
     return msg;
 }
 
@@ -99,6 +117,7 @@ MessageView::SharedPtr MessageView::fromJson(const QJsonObject& json)
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     view->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::RecordView, ChatBskyEmbed::JoinLinkView>("embed");
     view->mReactions = xjson.getOptionalVector<ReactionView>("reactions");
+    view->mReplyTo = xjson.getOptionalVariant<MessageView, DeletedMessageView>("replyTo");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
     return view;
