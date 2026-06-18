@@ -44,6 +44,13 @@ void ChatMaster::createMessage(const QString& text, const std::vector<RichTextMa
         });
 }
 
+void ChatMaster::addReplyToRefToMessage(ChatBskyConvo::MessageInput& message, const QString& replyToMessageId)
+{
+    auto ref = std::make_shared<ChatBskyConvo::ReplyRef>();
+    ref->mMessageId = replyToMessageId;
+    message.mReplyTo = std::move(ref);
+}
+
 void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid)
 {
     auto ref = std::make_shared<ComATProtoRepo::StrongRef>();

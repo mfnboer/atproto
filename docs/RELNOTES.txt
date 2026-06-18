@@ -1,6 +1,7 @@
 next
 ====
 * Group chat updates
+* Message reply
 
 6.6
 ===

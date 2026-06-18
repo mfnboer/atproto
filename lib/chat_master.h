@@ -24,6 +24,7 @@ public:
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void createMessage(const QString& text, const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks, const MessageCreatedCb& cb);
+    static void addReplyToRefToMessage(ChatBskyConvo::MessageInput& message, const QString& replyToMessageId);
     static void addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid);
 
 private:
