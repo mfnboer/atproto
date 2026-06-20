@@ -325,7 +325,7 @@ GroupConvo::SharedPtr GroupConvo::fromJson(const QJsonObject& json)
     auto convo = std::make_shared<GroupConvo>();
     convo->mName = xjson.getRequiredString("name");
     convo->mMemberCount = xjson.getRequiredInt("memberCount");
-    convo->mCreatedAt = xjson.getRequiredDate("createdAt");
+    convo->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     convo->mJoinRequestCount = xjson.getOptionalInt("joinRequestCount");
     convo->mUnreadJoinRequestCount = xjson.getOptionalInt("unreadJoinRequestCount");
     convo->mJoinLink = xjson.getOptionalObject<ChatBskyGroup::JoinLinkView>("joinLink");

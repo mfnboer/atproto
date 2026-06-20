@@ -348,7 +348,7 @@ struct GroupConvo
     static constexpr int MAX_GRAPHEMES_NAME = 128;
     static constexpr int MAX_BYTES_NAME = 1280;
     int mMemberCount = 0;
-    QDate mCreatedAt;
+    QDateTime mCreatedAt;
     std::optional<int> mJoinRequestCount;
     std::optional<int> mUnreadJoinRequestCount;
     ChatBskyGroup::JoinLinkView::SharedPtr mJoinLink; // optional
