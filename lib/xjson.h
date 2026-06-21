@@ -257,7 +257,7 @@ std::vector<typename ElemType::SharedPtr> XJsonObject::getOptionalVector(const Q
 template<typename... Types>
 std::variant<typename Types::SharedPtr...> XJsonObject::toVariant(const QJsonObject& json)
 {
-    static_assert(sizeof...(Types) <= 12);
+    static_assert(sizeof...(Types) <= 13);
     const QString UNKNOWN_VARIANT_TYPE = "";
     const XJsonObject objXJson(json);
     const QString type = objXJson.getRequiredString("$type");
@@ -278,6 +278,7 @@ std::variant<typename Types::SharedPtr...> XJsonObject::toVariant(const QJsonObj
             VARIANT_CASE(9)
             VARIANT_CASE(10)
             VARIANT_CASE(11)
+            VARIANT_CASE(12)
         };
     }
 

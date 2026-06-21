@@ -293,7 +293,8 @@ struct SystemMessageView
         SystemMessageDataCreateJoinLink::SharedPtr,
         SystemMessageDataEditJoinLink::SharedPtr,
         SystemMessageDataEnableJoinLink::SharedPtr,
-        SystemMessageDataDisableJoinLink::SharedPtr>;
+        SystemMessageDataDisableJoinLink::SharedPtr,
+        UnknownVariant::SharedPtr>;
 
     DataType mData;
 
@@ -365,7 +366,10 @@ struct GroupConvo
 // chat.bsky.convo.defs#convoView
 struct ConvoView
 {
-    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, SystemMessageView::SharedPtr>;
+    using MessageType = std::variant<MessageView::SharedPtr,
+                                     DeletedMessageView::SharedPtr,
+                                     SystemMessageView::SharedPtr,
+                                     UnknownVariant::SharedPtr>;
     using ReactionType = std::variant<MessageAndReactionView::SharedPtr>;
     using KindType = std::variant<DirectConvo::SharedPtr, GroupConvo::SharedPtr>;
 
@@ -519,7 +523,7 @@ struct LogOutput
 
 struct GetMessagesOutput
 {
-    using MessageType = std::variant<MessageView::SharedPtr, DeletedMessageView::SharedPtr, SystemMessageView::SharedPtr>;
+    using MessageType = ConvoView::MessageType;
     using MessageList = std::vector<MessageType>;
 
     std::optional<QString> mCursor;

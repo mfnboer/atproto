@@ -267,7 +267,8 @@ SystemMessageView::SharedPtr SystemMessageView::fromJson(const QJsonObject& json
         SystemMessageDataCreateJoinLink,
         SystemMessageDataEditJoinLink,
         SystemMessageDataEnableJoinLink,
-        SystemMessageDataDisableJoinLink>("data");
+        SystemMessageDataDisableJoinLink,
+        UnknownVariant>("data");
 
     return view;
 }
@@ -343,7 +344,10 @@ ConvoView::SharedPtr ConvoView::fromJson(const QJsonObject& json)
     view->mId = xjson.getRequiredString("id");
     view->mRev = xjson.getRequiredString("rev");
     view->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
-    view->mLastMessage = xjson.getOptionalVariant<MessageView, DeletedMessageView, SystemMessageView>("lastMessage");
+    view->mLastMessage = xjson.getOptionalVariant<MessageView,
+                                                  DeletedMessageView,
+                                                  SystemMessageView,
+                                                  UnknownVariant>("lastMessage");
     view->mLastReaction = xjson.getOptionalVariant<MessageAndReactionView>("lastReaction");
     view->mMuted = xjson.getOptionalBool("muted", false);
     view->mRawStatus = xjson.getOptionalString("status");
@@ -469,7 +473,10 @@ GetMessagesOutput::SharedPtr GetMessagesOutput::fromJson(const QJsonObject& json
     XJsonObject xjson(json);
     auto output = std::make_shared<GetMessagesOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
-    output->mMessages = xjson.getRequiredVariantList<MessageView, DeletedMessageView, SystemMessageView>("messages");
+    output->mMessages = xjson.getRequiredVariantList<MessageView,
+                                                     DeletedMessageView,
+                                                     SystemMessageView,
+                                                     UnknownVariant>("messages");
     return output;
 }
 
