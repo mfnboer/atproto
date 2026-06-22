@@ -12,6 +12,7 @@
 #include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
+#include "lexicon/chat_bsky_group.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/com_atproto_server.h"
 #include <QJsonDocument>
@@ -99,9 +100,16 @@ public:
     using SuccessGetUploadLimitsOutputCb = std::function<void(ATProto::AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
 
     // chat.bsky.convo
+    using SuccessGetConvoMembersOutputCb = std::function<void(ATProto::ChatBskyConvo::GetConvoMembersOutput::SharedPtr)>;
     using SuccessGetMessagesOutputCb = std::function<void(ATProto::ChatBskyConvo::GetMessagesOutput::SharedPtr)>;
+    using SuccessConvoUnreadCountsOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoUnreadCountsOutput::SharedPtr)>;
     using SuccessConvoListOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr)>;
+    using SuccessConvoRequestListOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoRequestListOutput::SharedPtr)>;
     using SuccessConvoOutputCb = std::function<void(ATProto::ChatBskyConvo::ConvoOutput::SharedPtr)>;
+
+    // chat.bsky.group
+    using SuccessJoinLinkPreviewsOutputCb = std::function<void(ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr)>;
+    using SuccessJoinRequestsOutputCb = std::function<void(ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr)>;
 
     // oauth
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // alias only set on Androids
@@ -181,9 +189,16 @@ public:
         SuccessGetUploadLimitsOutputCb,
 
         // chat.bsky.convo
+        SuccessGetConvoMembersOutputCb,
         SuccessGetMessagesOutputCb,
+        SuccessConvoUnreadCountsOutputCb,
         SuccessConvoListOutputCb,
-        SuccessConvoOutputCb
+        SuccessConvoRequestListOutputCb,
+        SuccessConvoOutputCb,
+
+        // chat.bsky.group
+        SuccessJoinLinkPreviewsOutputCb,
+        SuccessJoinRequestsOutputCb
     >;
 
     struct Request
@@ -316,9 +331,16 @@ signals:
     void requestSuccessGetUploadLimitsOutput(ATProto::AppBskyVideo::GetUploadLimitsOutput::SharedPtr, SuccessGetUploadLimitsOutputCb);
 
     // chat.bsky.convo
+    void requestSuccessGetConvoMembersOutput(ATProto::ChatBskyConvo::GetConvoMembersOutput::SharedPtr, SuccessGetConvoMembersOutputCb);
     void requestSuccessGetMessagesOutput(ATProto::ChatBskyConvo::GetMessagesOutput::SharedPtr, SuccessGetMessagesOutputCb);
+    void requestSuccessConvoUnreadCountsOutput(ATProto::ChatBskyConvo::ConvoUnreadCountsOutput::SharedPtr, SuccessConvoUnreadCountsOutputCb);
     void requestSuccessConvoListOutput(ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr, SuccessConvoListOutputCb);
+    void requestSuccessConvoRequestListOutput(ATProto::ChatBskyConvo::ConvoRequestListOutput::SharedPtr, SuccessConvoRequestListOutputCb);
     void requestSuccessConvoOutput(ATProto::ChatBskyConvo::ConvoOutput::SharedPtr, SuccessConvoOutputCb);
+
+    // chat.bsky.group
+    void requestSuccessJoinLinkPreviewsOutput(ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr, SuccessJoinLinkPreviewsOutputCb);
+    void requestSuccessJoinRequestsOutput(ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr, SuccessJoinRequestsOutputCb);
 
     void requestError(QString error, QJsonDocument json, ErrorCb cb);
     void requestInvalidJsonError(QString exceptionMsg, ErrorCb cb);

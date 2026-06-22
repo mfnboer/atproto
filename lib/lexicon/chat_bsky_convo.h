@@ -312,6 +312,7 @@ enum class ConvoKind
 };
 
 ConvoKind stringToConvoKind(const QString& str);
+QString convoKindToString(ConvoKind kind);
 
 // TODO: unstable
 enum class ConvoLockStatus
@@ -323,6 +324,7 @@ enum class ConvoLockStatus
 };
 
 ConvoLockStatus stringToConvoLockStatus(const QString& str);
+QString convoLockStatusToString(ConvoLockStatus status);
 
 enum class ConvoStatus
 {
@@ -389,6 +391,7 @@ struct ConvoView
     using SharedPtr = std::shared_ptr<ConvoView>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#convoView";
 };
 
 // chat.bsky.convo.defs#logBeginConvo
@@ -502,12 +505,35 @@ struct ConvoAvailabilityOuput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+struct ConvoUnreadCountsOutput
+{
+    int mUnreadAcceptedConvos = 0;
+    int mUnreadRequestConvos = 0;
+
+    using SharedPtr = std::shared_ptr<ConvoUnreadCountsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 struct ConvoListOutput
 {
     std::optional<QString> mCursor;
     ConvoView::List mConvos;
 
     using SharedPtr = std::shared_ptr<ConvoListOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct ConvoRequestListOutput
+{
+    using RequestType = std::variant<ChatBskyConvo::ConvoView::SharedPtr,
+                                     ChatBskyGroup::JoinRequestConvoView::SharedPtr,
+                                     UnknownVariant::SharedPtr>;
+    using RequestList = std::vector<RequestType>;
+
+    std::optional<QString> mCursor;
+    RequestList mRequests;
+
+    using SharedPtr = std::shared_ptr<ConvoRequestListOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
@@ -554,6 +580,14 @@ struct MessageOutput {
     MessageView::SharedPtr mMessage; // required
 
     using SharedPtr = std::shared_ptr<MessageOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct GetConvoMembersOutput {
+    std::optional<QString> mCursor;
+    ChatBskyActor::ProfileViewBasic::List mMembers;
+
+    using SharedPtr = std::shared_ptr<GetConvoMembersOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

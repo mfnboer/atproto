@@ -8,7 +8,7 @@ namespace ATProto::ChatBskyEmbed {
 
 QJsonObject JoinLink::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
     json.insert("$type", JoinLink::TYPE);
     json.insert("code", mCode);
     return json;
@@ -19,6 +19,7 @@ JoinLink::SharedPtr JoinLink::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto joinLink = std::make_shared<JoinLink>();
     joinLink->mCode = xjson.getRequiredString("joinLink");
+    joinLink->mJson = json;
     return joinLink;
 }
 
@@ -29,7 +30,8 @@ JoinLinkView::SharedPtr JoinLinkView::fromJson(const QJsonObject& json)
     view->mJoinLinkPreview = xjson.getRequiredVariant<
             ChatBskyGroup::JoinLinkPreviewView,
             ChatBskyGroup::DisabledJoinLinkPreviewView,
-            ChatBskyGroup::InvalidJoinLinkPreviewView>("joinLinkPreview");
+            ChatBskyGroup::InvalidJoinLinkPreviewView,
+            UnknownVariant>("joinLinkPreview");
     return view;
 }
 

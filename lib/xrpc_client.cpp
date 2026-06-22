@@ -113,9 +113,16 @@ Client::Client(const QString& host, int networkTransferTimeoutMs, const QString&
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetUploadLimitsOutput, this, &Client::doCallback<NetworkThread::SuccessGetUploadLimitsOutputCb, ATProto::AppBskyVideo::GetUploadLimitsOutput::SharedPtr>);
 
     // chat.bsky.convo
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetConvoMembersOutput, this, &Client::doCallback<NetworkThread::SuccessGetConvoMembersOutputCb, ATProto::ChatBskyConvo::GetConvoMembersOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetMessagesOutput, this, &Client::doCallback<NetworkThread::SuccessGetMessagesOutputCb, ATProto::ChatBskyConvo::GetMessagesOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoUnreadCountsOutput, this, &Client::doCallback<NetworkThread::SuccessConvoUnreadCountsOutputCb, ATProto::ChatBskyConvo::ConvoUnreadCountsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoListOutput, this, &Client::doCallback<NetworkThread::SuccessConvoListOutputCb, ATProto::ChatBskyConvo::ConvoListOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoRequestListOutput, this, &Client::doCallback<NetworkThread::SuccessConvoRequestListOutputCb, ATProto::ChatBskyConvo::ConvoRequestListOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessConvoOutput, this, &Client::doCallback<NetworkThread::SuccessConvoOutputCb, ATProto::ChatBskyConvo::ConvoOutput::SharedPtr>);
+
+    // chat.bsky.group
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessJoinLinkPreviewsOutput, this, &Client::doCallback<NetworkThread::SuccessJoinLinkPreviewsOutputCb, ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessJoinRequestsOutput, this, &Client::doCallback<NetworkThread::SuccessJoinRequestsOutputCb, ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr>);
 
     // oauth
     connect(mNetworkThread.get(), &NetworkThread::oauthLoginRedirect, this,

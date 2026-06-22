@@ -9,14 +9,6 @@
 // TODO: unstable
 namespace ATProto::ChatBskyGroup {
 
-struct JoinLinkViewerState {
-    std::optional<QDateTime> mRequestedAt;
-
-    using SharedPtr = std::shared_ptr<JoinLinkViewerState>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.group.defs#joinLinkViewerState";
-};
-
 struct JoinLinkPreviewView
 {
     QString mConvoId;
@@ -61,22 +53,73 @@ struct JoinRequestView
     QDateTime mRequestedAt;
 
     using SharedPtr = std::shared_ptr<JoinRequestView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.group.defs#joinRequestView";
 };
 
-struct JoinRequestConvoView
+// chat.bsky.group.addMembers#output
+struct AddMembersOutput
 {
-    QString mConvoId;
-    QString mName;
-    ChatBskyActor::ProfileViewBasic::SharedPtr mOwner;
-    int mMemberCount = 0;
-    int mMemberLimit = 0;
-    JoinLinkViewerState::SharedPtr mViewer;
+    ChatBskyConvo::ConvoView::SharedPtr mConvo;
+    ChatBskyActor::ProfileViewBasic::List mAddedMebers;
 
-    using SharedPtr = std::shared_ptr<JoinRequestConvoView>;
+    using SharedPtr = std::shared_ptr<AddMembersOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.group.defs#joinRequestConvoView";
+};
+
+// chat.bsky.group.createJoinLink#output
+struct JoinLinkOutput
+{
+    JoinLinkView::SharedPtr mJoinLink;
+
+    using SharedPtr = std::shared_ptr<JoinLinkOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// chat.bsky.group.getJoinLinkPreviews#output
+struct JoinLinkPreviewsOutput
+{
+    using ViewType = std::variant<
+        std::shared_ptr<ChatBskyGroup::JoinLinkPreviewView>,
+        std::shared_ptr<ChatBskyGroup::DisabledJoinLinkPreviewView>,
+        std::shared_ptr<ChatBskyGroup::InvalidJoinLinkPreviewView>,
+        UnknownVariant::SharedPtr>;
+    using ViewList = std::vector<ViewType>;
+
+    ViewList mJoinLinkPreviews;
+
+    using SharedPtr = std::shared_ptr<JoinLinkPreviewsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// chat.bsky.group.listJoinRequests#output
+struct JoinRequestsOutput
+{
+    JoinRequestView::List mRequests;
+
+    using SharedPtr = std::shared_ptr<JoinRequestsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+enum class RequestJoinStatus
+{
+    JOINED,
+    PENDING,
+    UNKNOWN
+};
+
+RequestJoinStatus stringToRequesJoinStatus(const QString& str);
+
+// chat.bsky.group.requestJoin#output
+struct RequestJoinOutput
+{
+    QString mRawStatus;
+    RequestJoinStatus mStatus;
+    ChatBskyConvo::ConvoView::SharedPtr mConvo; // optional
+
+    using SharedPtr = std::shared_ptr<RequestJoinOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
 };
 
 }

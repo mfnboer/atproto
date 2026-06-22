@@ -25,6 +25,16 @@ JoinRule stringToJoinRule(const QString& str)
     return stringToEnum(str, mapping, JoinRule::UNKNOWN);
 }
 
+QString joinRuleToString(JoinRule rule)
+{
+    static const std::unordered_map<JoinRule, QString> mapping ={
+        { JoinRule::ANYONE, "anyone" },
+        { JoinRule::FOLLOWED_BY_OWNER, "followedByOwner" }
+    };
+
+    return enumToString(rule, mapping);
+}
+
 JoinLinkView::SharedPtr JoinLinkView::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
@@ -101,6 +111,63 @@ JoinRequestConvoView::SharedPtr JoinRequestConvoView::fromJson(const QJsonObject
     view->mMemberLimit = xjson.getRequiredInt("memberLimit");
     view->mViewer = xjson.getRequiredObject<JoinLinkViewerState>("viewer");
     return view;
+}
+
+AddMembersOutput::SharedPtr AddMembersOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<AddMembersOutput>();
+    output->mConvo = xjson.getRequiredObject<ChatBskyConvo::ConvoView>("convo");
+    output->mAddedMebers = xjson.getOptionalVector<ChatBskyActor::ProfileViewBasic>("addedMembers");
+    return output;
+}
+
+JoinLinkOutput::SharedPtr JoinLinkOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<JoinLinkOutput>();
+    output->mJoinLink = xjson.getRequiredObject<JoinLinkView>("joinLink");
+    return output;
+}
+
+JoinLinkPreviewsOutput::SharedPtr JoinLinkPreviewsOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<JoinLinkPreviewsOutput>();
+    output->mJoinLinkPreviews = xjson.getRequiredVariantList<
+        ChatBskyGroup::JoinLinkPreviewView,
+        ChatBskyGroup::DisabledJoinLinkPreviewView,
+        ChatBskyGroup::InvalidJoinLinkPreviewView,
+        UnknownVariant>("joinLinkPreviews");
+    return output;
+}
+
+JoinRequestsOutput::SharedPtr JoinRequestsOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<JoinRequestsOutput>();
+    output->mRequests = xjson.getRequiredVector<JoinRequestView>("requests");
+    return output;
+}
+
+RequestJoinStatus stringToRequesJoinStatus(const QString& str)
+{
+    static const std::unordered_map<QString, RequestJoinStatus> mapping = {
+        { "joined", RequestJoinStatus::JOINED },
+        { "pending", RequestJoinStatus::PENDING }
+    };
+
+    return stringToEnum(str, mapping, RequestJoinStatus::UNKNOWN);
+}
+
+RequestJoinOutput::SharedPtr RequestJoinOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<RequestJoinOutput>();
+    output->mRawStatus = xjson.getRequiredString("status");
+    output->mStatus = stringToRequesJoinStatus(output->mRawStatus);
+    output->mConvo = xjson.getOptionalObject<ChatBskyConvo::ConvoView>("convo");
+    return output;
 }
 
 }

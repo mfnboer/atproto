@@ -15,6 +15,7 @@
 #include "lexicon/app_bsky_unspecced.h"
 #include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
+#include "lexicon/chat_bsky_group.h"
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
@@ -101,13 +102,22 @@ public:
     using AcceptConvoSuccessCb = std::function<void(ChatBskyConvo::AcceptConvoOutput::SharedPtr)>;
     using ConvoSuccessCb = std::function<void(ChatBskyConvo::ConvoOutput::SharedPtr)>;
     using ConvoAvailabilitySuccessCb = std::function<void(ChatBskyConvo::ConvoAvailabilityOuput::SharedPtr)>;
+    using GetConvoMembersSuccessCb = std::function<void(ChatBskyConvo::GetConvoMembersOutput::SharedPtr)>;
     using ConvoListSuccessCb = std::function<void(ChatBskyConvo::ConvoListOutput::SharedPtr)>;
+    using ConvoRequestListSuccessCb = std::function<void(ChatBskyConvo::ConvoRequestListOutput::SharedPtr)>;
     using ConvoLogSuccessCb = std::function<void(ChatBskyConvo::LogOutput::SharedPtr)>;
     using GetMessagesSuccessCb = std::function<void(ChatBskyConvo::GetMessagesOutput::SharedPtr)>;
+    using ConvoUnreadCountsSuccessCb  = std::function<void(ChatBskyConvo::ConvoUnreadCountsOutput::SharedPtr)>;
     using LeaveConvoSuccessCb = std::function<void(ChatBskyConvo::LeaveConvoOutput::SharedPtr)>;
     using MessageSuccessCb = std::function<void(ChatBskyConvo::MessageView::SharedPtr)>;
     using UpdateAllReadSuccessCb = std::function<void(ChatBskyConvo::UpdateAllReadOutput::SharedPtr)>;
     using ReactionSuccessCb = std::function<void(ChatBskyConvo::MessageOutput::SharedPtr)>;
+
+    using AddMembersSuccessCb = std::function<void(ChatBskyGroup::AddMembersOutput::SharedPtr)>;
+    using JoinLinkSuccessCb = std::function<void(ChatBskyGroup::JoinLinkOutput::SharedPtr)>;
+    using JoinLinkPreviewsSuccessCb = std::function<void(ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr)>;
+    using JoinRequestsSuccessCb = std::function<void(ChatBskyGroup::JoinRequestsOutput::SharedPtr)>;
+    using RequestJoinSuccessCb = std::function<void(ChatBskyGroup::RequestJoinOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1102,6 +1112,18 @@ public:
                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief getConvoMembers
+     * @param convoId
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvoMembers(const QString& convoId, std::optional<int> limit,
+                         const std::optional<QString>& cursor,
+                         const GetConvoMembersSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief getConvoAvailability Get whether the requester and the other members can chat. If an existing convo is found for these members, it is returned.
      * @param members list of DID's (min=1 max=10)
      * @param successCb
@@ -1132,6 +1154,15 @@ public:
                      const GetMessagesSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
+     * @brief getConvoUnreadCounts
+     * @param includesGroupChats
+     * @param successCb
+     * @param errorCb
+     */
+    void getConvoUnreadCounts(bool includeGroupChats,
+                              const ConvoUnreadCountsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
      * @brief leaveConvo
      * @param convoId
      * @param successCb
@@ -1145,14 +1176,37 @@ public:
      * @param limit min=1, max=100, default=50
      * @param onlyUnread
      * @param status
+     * @param kind
+     * @param lockStatus
      * @param cursor
      * @param successCb
      * @param errorCb
      */
     void listConvos(std::optional<int> limit, bool onlyUnread,
                     std::optional<ChatBskyConvo::ConvoStatus> status,
+                    std::optional<ChatBskyConvo::ConvoKind> kind,
+                    std::optional<ChatBskyConvo::ConvoLockStatus> lockStatus,
                     const std::optional<QString>& cursor,
                     const ConvoListSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief listConvoRequests
+     * @param limit min=1, max=100, default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void listConvoRequests(std::optional<int> limit, const std::optional<QString>& cursor,
+                           const ConvoRequestListSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief lockConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void lockConvo(const QString& convoId,
+                   const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief muteConvo
@@ -1172,6 +1226,15 @@ public:
      */
     void sendMessage(const QString& convoId, const ChatBskyConvo::MessageInput& message,
                      const MessageSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief unlockConvo
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void unlockConvo(const QString& convoId,
+                     const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief unmuteConvo
@@ -1213,6 +1276,175 @@ public:
                      const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
     void removeReaction(const QString& convoId, const QString& messageId, const QString& value,
                         const ReactionSuccessCb& successCb, const ErrorCb& errorCb);
+
+    // chat.bsky.group
+
+    /**
+     * @brief addMembers
+     * @param convoId
+     * @param members list of DIDs, min=1
+     * @param successCb
+     * @param errorCb
+     */
+    void addMembers(const QString& convoId, const std::vector<QString>& members,
+                    const AddMembersSuccessCb& successCb, const ErrorCb& errorCb);
+
+
+    /**
+     * @brief approveJoinRequest
+     * @param convoId
+     * @param member DID
+     * @param successCb
+     * @param errorCb
+     */
+    void approveJoinRequest(const QString& convoId, const QString& member,
+                            const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    static constexpr int MAX_GROUP_MEMBERS = 49; // excluding the group creater
+    static constexpr int MAX_GRAPHEMES_GROUP_NAME = 128;
+    static constexpr int MAX_BYTES_GROUP_NAME = 1280;
+    static constexpr int MIN_BYTES_GROUP_NAME = 1;
+
+    /**
+     * @brief createGroup
+     * @param members list of DIDs, max=MAX_GROUP_MEMBERS
+     * @param name
+     * @param successCb
+     * @param errorCb
+     */
+    void createGroup(const std::vector<QString>& members, const QString& name,
+                     const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief createJoinLink
+     * @param convoId
+     * @param requireApproval
+     * @param joinRule
+     * @param successCb
+     * @param errorCb
+     */
+    void createJoinLink(const QString& convoId, bool requireApproval, ChatBskyGroup::JoinRule joinRule,
+                        const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief disableJoinLink
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void disableJoinLink(const QString& convoId,
+                         const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief editGroup
+     * @param convoId
+     * @param name
+     * @param successCb
+     * @param errorCb
+     */
+    void editGroup(const QString& convoId, const QString& name,
+                   const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief editJoinLink
+     * @param convoId
+     * @param requireApproval
+     * @param joinRule
+     * @param successCb
+     * @param errorCb
+     */
+    void editJoinLink(const QString& convoId, std::optional<bool> requireApproval,
+                      std::optional<ChatBskyGroup::JoinRule> joinRule,
+                      const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief enableJoinLink
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void enableJoinLink(const QString& convoId,
+                        const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb);
+
+    static constexpr int MIN_JOIN_LINK_PREVIEWS_CODES = 1;
+    static constexpr int MAX_JOIN_LINK_PREVIEWS_CODES = 50;
+
+    /**
+     * @brief getJoinLinkPreviews
+     * @param codes
+     * @param successCb
+     * @param errorCb
+     */
+    void getJoinLinkPreviews(const std::vector<QString>& codes,
+                             const JoinLinkPreviewsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief listJoinRequests
+     * @param convoId
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void listJoinRequests(const QString& convoId, std::optional<int> limit, const std::optional<QString>& cursor,
+                          const JoinRequestsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief listMutualGroups
+     * @param subject DID
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void listMutualGroups(const QString& subject, std::optional<int> limit, const std::optional<QString>& cursor,
+                          const ConvoListSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief rejectJoinRequest
+     * @param convoId
+     * @param member DID
+     * @param successCb
+     */
+    void rejectJoinRequest(const QString& convoId, const QString& member,
+                           const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief removeMembers
+     * @param convoId
+     * @param members DID list
+     * @param successCb
+     * @param errorCb
+     */
+    void removeMembers(const QString& convoId, const std::vector<QString>& members,
+                       const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief requestJoin
+     * @param code
+     * @param successCb
+     * @param errorCb
+     */
+    void requestJoin(const QString& code,
+                     const RequestJoinSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief updateJoinRequestsRead
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void updateJoinRequestsRead(const QString& convoId,
+                                const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief withdrawJoinRequest
+     * @param convoId
+     * @param successCb
+     * @param errorCb
+     */
+    void withdrawJoinRequest(const QString& convoId,
+                             const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // oauth
 

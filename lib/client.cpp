@@ -2790,6 +2790,29 @@ void Client::getConvoForMembers(const std::vector<QString>& members,
         authToken());
 }
 
+void Client::getConvoMembers(const QString& convoId, std::optional<int> limit,
+                     const std::optional<QString>& cursor,
+                     const GetConvoMembersSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{ "convoId", convoId }};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.convo.getConvoMembers", params, httpHeaders,
+        [successCb](ChatBskyConvo::GetConvoMembersOutput::SharedPtr output){
+            qDebug() << "Members:" << output->mMembers.size();
+
+            if (successCb)
+                successCb(output);
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::getConvoAvailability(const std::vector<QString>& members,
                                   const ConvoAvailabilitySuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -2875,6 +2898,25 @@ void Client::getMessages(const QString& convoId, std::optional<int> limit,
         authToken());
 }
 
+void Client::getConvoUnreadCounts(bool includeGroupChats,
+                          const ConvoUnreadCountsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"includeGroupChats", boolValue(includeGroupChats)}};
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.convo.getUnreadCounts", params, httpHeaders,
+        [successCb](ChatBskyConvo::ConvoUnreadCountsOutput::SharedPtr output){
+            qDebug() << "Convo unread:" << output->mUnreadAcceptedConvos << "request:" << output->mUnreadRequestConvos;
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::leaveConvo(const QString& convoId,
                         const LeaveConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -2906,6 +2948,8 @@ void Client::leaveConvo(const QString& convoId,
 
 void Client::listConvos(std::optional<int> limit, bool onlyUnread,
                         std::optional<ChatBskyConvo::ConvoStatus> status,
+                        std::optional<ChatBskyConvo::ConvoKind> kind,
+                        std::optional<ChatBskyConvo::ConvoLockStatus> lockStatus,
                         const std::optional<QString>& cursor,
                         const ConvoListSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -2918,6 +2962,12 @@ void Client::listConvos(std::optional<int> limit, bool onlyUnread,
 
     if (status)
         params.append(QPair<QString, QString>{"status", ChatBskyConvo::convoStatusToString(*status)});
+
+    if (kind)
+        params.append(QPair<QString, QString>{"kind", ChatBskyConvo::convoKindToString(*kind)});
+
+    if (lockStatus)
+        params.append(QPair<QString, QString>{"lockStatus", ChatBskyConvo::convoLockStatusToString(*lockStatus)});
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -2934,6 +2984,58 @@ void Client::listConvos(std::optional<int> limit, bool onlyUnread,
         authToken());
 }
 
+void Client::listConvoRequests(std::optional<int> limit, const std::optional<QString>& cursor,
+                       const ConvoRequestListSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.convo.listConvoRequests", params, httpHeaders,
+        [successCb](ChatBskyConvo::ConvoRequestListOutput::SharedPtr output){
+            qDebug() << "List convo requests:" << output->mRequests.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::lockConvo(const QString& convoId,
+                       const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.convo.lockConvo", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Lock convo:" << reply;
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::muteConvo(const QString& convoId,
                        const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -2941,6 +3043,7 @@ void Client::muteConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.muteConvo", QJsonDocument(json), httpHeaders,
@@ -2993,6 +3096,36 @@ void Client::sendMessage(const QString& convoId, const ChatBskyConvo::MessageInp
         authToken());
 }
 
+void Client::unlockConvo(const QString& convoId,
+                         const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.convo.unlockConvo", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Unlock convo:" << reply;
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::unmuteConvo(const QString& convoId,
                          const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -3000,6 +3133,7 @@ void Client::unmuteConvo(const QString& convoId,
     json.insert("convoId", convoId);
 
     Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, mServiceChat);
 
     mXrpc->post("chat.bsky.convo.unmuteConvo", QJsonDocument(json), httpHeaders,
@@ -3131,6 +3265,450 @@ void Client::removeReaction(const QString& convoId, const QString& messageId, co
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::addMembers(const QString& convoId, const std::vector<QString>& members,
+                        const AddMembersSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    for (const auto& member: members)
+        json.insert("members", member);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.addMembers", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Added members";
+
+            try {
+                auto output = ChatBskyGroup::AddMembersOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::approveJoinRequest(const QString& convoId, const QString& member,
+                        const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("member", member);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.approveJoinRequest", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Approved join request";
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::createGroup(const std::vector<QString>& members, const QString& name,
+                         const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("name", name);
+
+    for (const auto& member : members)
+        json.insert("members", member);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.createGroup", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Created group";
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::createJoinLink(const QString& convoId, bool requireApproval, ChatBskyGroup::JoinRule joinRule,
+                            const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("requireApproval", boolValue(requireApproval));
+    json.insert("joinRule", ChatBskyGroup::joinRuleToString(joinRule));
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.createJoinLink", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Created join link";
+
+            try {
+                auto output = ChatBskyGroup::JoinLinkOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::disableJoinLink(const QString& convoId,
+                             const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.disableJoinLink", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Disabled join link";
+
+            try {
+                auto output = ChatBskyGroup::JoinLinkOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::editGroup(const QString& convoId, const QString& name,
+                       const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("name", name);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.editGroup", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Created group";
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::editJoinLink(const QString& convoId, std::optional<bool> requireApproval,
+                          std::optional<ChatBskyGroup::JoinRule> joinRule,
+                          const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    if (requireApproval)
+        json.insert("requireApproval", boolValue(*requireApproval));
+
+    if (joinRule)
+        json.insert("joinRule", ChatBskyGroup::joinRuleToString(*joinRule));
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.editJoinLink", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Edited join link";
+
+            try {
+                auto output = ChatBskyGroup::JoinLinkOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::enableJoinLink(const QString& convoId,
+                            const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.enableJoinLink", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Enabled join link";
+
+            try {
+                auto output = ChatBskyGroup::JoinLinkOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getJoinLinkPreviews(const std::vector<QString>& codes,
+                                 const JoinLinkPreviewsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+
+    for (const auto& code : codes)
+        params.append({"codes", code});
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.group.getJoinLinkPreviews", params, httpHeaders,
+        [successCb](ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr output){
+            qDebug() << "Get join link previews:" << output->mJoinLinkPreviews.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::listJoinRequests(const QString& convoId, std::optional<int> limit, const std::optional<QString>& cursor,
+                              const JoinRequestsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{ "convoId", convoId }};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.group.listJoinRequests", params, httpHeaders,
+        [successCb](ChatBskyGroup::JoinRequestsOutput::SharedPtr output){
+            qDebug() << "List join requests:" << output->mRequests.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::listMutualGroups(const QString& subject, std::optional<int> limit, const std::optional<QString>& cursor,
+                              const ConvoListSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{ "subject", subject }};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.group.listMutualGroups", params, httpHeaders,
+        [successCb](ChatBskyConvo::ConvoListOutput::SharedPtr output){
+            qDebug() << "List mutual groups:" << output->mConvos.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::rejectJoinRequest(const QString& convoId, const QString& member,
+                               const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+    json.insert("member", member);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.rejectJoinRequest", QJsonDocument(json), httpHeaders,
+        [successCb](const QJsonDocument&){
+            qDebug() << "Rejected join request";
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::removeMembers(const QString& convoId, const std::vector<QString>& members,
+                           const ConvoSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    for (const auto& member: members)
+        json.insert("members", member);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.removeMembers", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Removed members";
+
+            try {
+                auto output = ChatBskyConvo::ConvoOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::requestJoin(const QString& code,
+                         const RequestJoinSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("code", code);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.requestJoin", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Requested join";
+
+            try {
+                auto output = ChatBskyGroup::RequestJoinOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::updateJoinRequestsRead(const QString& convoId,
+                                    const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.updateJoinRequestsRead", QJsonDocument(json), httpHeaders,
+        [successCb](const QJsonDocument&){
+            qDebug() << "Updated join requests read";
+
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::withdrawJoinRequest(const QString& convoId,
+                                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("convoId", convoId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.group.withdrawJoinRequest", QJsonDocument(json), httpHeaders,
+        [successCb](const QJsonDocument&){
+            qDebug() << "Updated join requests read";
+
+            if (successCb)
+                successCb();
         },
         failure(errorCb),
         authToken());

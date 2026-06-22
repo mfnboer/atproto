@@ -1,6 +1,7 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "chat_bsky_actor.h"
 #include <QDateTime>
 #include <QJsonDocument>
 #include <QString>
@@ -25,6 +26,15 @@ enum class JoinRule
 };
 
 JoinRule stringToJoinRule(const QString& str);
+QString joinRuleToString(JoinRule rule);
+
+struct JoinLinkViewerState {
+    std::optional<QDateTime> mRequestedAt;
+
+    using SharedPtr = std::shared_ptr<JoinLinkViewerState>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.group.defs#joinLinkViewerState";
+};
 
 struct JoinLinkView
 {
@@ -39,6 +49,20 @@ struct JoinLinkView
     using SharedPtr = std::shared_ptr<JoinLinkView>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.group.defs#joinLinkView";
+};
+
+struct JoinRequestConvoView
+{
+    QString mConvoId;
+    QString mName;
+    ChatBskyActor::ProfileViewBasic::SharedPtr mOwner;
+    int mMemberCount = 0;
+    int mMemberLimit = 0;
+    JoinLinkViewerState::SharedPtr mViewer;
+
+    using SharedPtr = std::shared_ptr<JoinRequestConvoView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.group.defs#joinRequestConvoView";
 };
 
 }

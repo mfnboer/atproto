@@ -660,10 +660,24 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 // chat.bsky.convo
 
 template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetConvoMembersOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::GetConvoMembersOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetConvoMembersOutput;
+};
+
+template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetMessagesOutputCb>>>
 {
     using ReplyType = ATProto::ChatBskyConvo::GetMessagesOutput;
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetMessagesOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessConvoUnreadCountsOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::ConvoUnreadCountsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessConvoUnreadCountsOutput;
 };
 
 template<typename T>
@@ -674,10 +688,33 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessConvoRequestListOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyConvo::ConvoRequestListOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessConvoRequestListOutput;
+};
+
+template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessConvoOutputCb>>>
 {
     using ReplyType = ATProto::ChatBskyConvo::ConvoOutput;
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessConvoOutput;
+};
+
+// chat.bsky.group
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessJoinLinkPreviewsOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyGroup::JoinLinkPreviewsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessJoinLinkPreviewsOutput;
+};
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessJoinRequestsOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyGroup::JoinRequestsOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessJoinRequestsOutput;
 };
 
 void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType)

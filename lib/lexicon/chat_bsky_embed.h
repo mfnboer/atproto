@@ -1,7 +1,8 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #pragma once
-#include <QJsonDocument>
+#include "lexicon.h"
+#include <QJsonObject>
 #include <QString>
 
 // TODO: unstable
@@ -18,6 +19,7 @@ namespace ChatBskyEmbed {
 struct JoinLink
 {
     QString mCode;
+    QJsonObject mJson;
 
     QJsonObject toJson() const;
 
@@ -31,7 +33,8 @@ struct JoinLinkView
     using ViewType = std::variant<
         std::shared_ptr<ChatBskyGroup::JoinLinkPreviewView>,
         std::shared_ptr<ChatBskyGroup::DisabledJoinLinkPreviewView>,
-        std::shared_ptr<ChatBskyGroup::InvalidJoinLinkPreviewView>
+        std::shared_ptr<ChatBskyGroup::InvalidJoinLinkPreviewView>,
+        UnknownVariant::SharedPtr
     >;
 
     ViewType mJoinLinkPreview;

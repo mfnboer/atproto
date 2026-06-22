@@ -283,6 +283,16 @@ ConvoKind stringToConvoKind(const QString& str)
     return stringToEnum(str, mapping, ConvoKind::UNKNOWN);
 }
 
+QString convoKindToString(ConvoKind kind)
+{
+    static const std::unordered_map<ConvoKind, QString> mapping = {
+        { ConvoKind::DIRECT, "direct" },
+        { ConvoKind::GROUP, "group" }
+    };
+
+    return enumToString(kind, mapping);
+}
+
 ConvoLockStatus stringToConvoLockStatus(const QString& str)
 {
     static const std::unordered_map<QString, ConvoLockStatus> mapping = {
@@ -292,6 +302,17 @@ ConvoLockStatus stringToConvoLockStatus(const QString& str)
     };
 
     return stringToEnum(str, mapping, ConvoLockStatus::UNKNOWN);
+}
+
+QString convoLockStatusToString(ConvoLockStatus status)
+{
+    static const std::unordered_map<ConvoLockStatus, QString> mapping = {
+        { ConvoLockStatus::UNLOCKED, "unlocked" },
+        { ConvoLockStatus::LOCKED, "locked" },
+        { ConvoLockStatus::LOCKED_PERMANENTLY, "locked-permanently" }
+    };
+
+    return enumToString(status, mapping);
 }
 
 ConvoStatus stringToConvoStatus(const QString& str)
@@ -451,12 +472,32 @@ ConvoAvailabilityOuput::SharedPtr ConvoAvailabilityOuput::fromJson(const QJsonOb
     return output;
 }
 
+ConvoUnreadCountsOutput::SharedPtr ConvoUnreadCountsOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<ConvoUnreadCountsOutput>();
+    output->mUnreadAcceptedConvos = xjson.getRequiredInt("unreadAcceptedConvos");
+    output->mUnreadRequestConvos = xjson.getRequiredInt("unreadRequestConvos");
+    return output;
+}
+
 ConvoListOutput::SharedPtr ConvoListOutput::fromJson(const QJsonObject& json)
 {
     XJsonObject xjson(json);
     auto output = std::make_shared<ConvoListOutput>();
     output->mCursor = xjson.getOptionalString("cursor");
     output->mConvos = xjson.getRequiredVector<ConvoView>("convos");
+    return output;
+}
+
+ConvoRequestListOutput::SharedPtr ConvoRequestListOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<ConvoRequestListOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mRequests = xjson.getRequiredVariantList<ChatBskyConvo::ConvoView,
+                                                     ChatBskyGroup::JoinRequestConvoView,
+                                                     UnknownVariant>("requests");
     return output;
 }
 
@@ -502,6 +543,15 @@ MessageOutput::SharedPtr MessageOutput::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto output = std::make_shared<MessageOutput>();
     output->mMessage = xjson.getRequiredObject<MessageView>("message");
+    return output;
+}
+
+GetConvoMembersOutput::SharedPtr GetConvoMembersOutput::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto output = std::make_shared<GetConvoMembersOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mMembers = xjson.getRequiredVector<ChatBskyActor::ProfileViewBasic>("members");
     return output;
 }
 
