@@ -77,7 +77,11 @@ ProfileViewBasic::SharedPtr ProfileViewBasic::fromJson(const QJsonObject& json)
     profileViewBasic->mCreatedAt = root.getOptionalDateTime("createdAt");
     profileViewBasic->mChatDisabled = root.getOptionalBool("chatDisabled", false);
     profileViewBasic->mVerification = root.getOptionalObject<AppBskyActor::VerificationState>("verification");
-    profileViewBasic->mKind = root.getOptionalVariant<DirectConvoMember, GroupConvoMember, PastGroupConvoMember>("kind");
+    profileViewBasic->mKind = root.getOptionalVariant<
+        DirectConvoMember,
+        GroupConvoMember,
+        PastGroupConvoMember,
+        UnknownVariant>("kind");
     return profileViewBasic;
 }
 

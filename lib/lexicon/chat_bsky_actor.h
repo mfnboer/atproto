@@ -79,7 +79,10 @@ struct ProfileViewBasic
     bool mChatDisabled = false;
     AppBskyActor::VerificationState::SharedPtr mVerification; // optional
 
-    using KindType = std::variant<DirectConvoMember::SharedPtr, GroupConvoMember::SharedPtr, PastGroupConvoMember::SharedPtr>;
+    using KindType = std::variant<DirectConvoMember::SharedPtr,
+                                  GroupConvoMember::SharedPtr,
+                                  PastGroupConvoMember::SharedPtr,
+                                  UnknownVariant::SharedPtr>;
     std::optional<KindType> mKind;
 
     using SharedPtr = std::shared_ptr<ProfileViewBasic>;
