@@ -3275,9 +3275,7 @@ void Client::addMembers(const QString& convoId, const std::vector<QString>& memb
 {
     QJsonObject json;
     json.insert("convoId", convoId);
-
-    for (const auto& member: members)
-        json.insert("members", member);
+    json.insert("members", XJsonObject::toJsonArray(members));
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -3339,9 +3337,7 @@ void Client::createGroup(const std::vector<QString>& members, const QString& nam
 {
     QJsonObject json;
     json.insert("name", name);
-
-    for (const auto& member : members)
-        json.insert("members", member);
+    json.insert("members", XJsonObject::toJsonArray(members));
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -3616,9 +3612,7 @@ void Client::removeMembers(const QString& convoId, const std::vector<QString>& m
 {
     QJsonObject json;
     json.insert("convoId", convoId);
-
-    for (const auto& member: members)
-        json.insert("members", member);
+    json.insert("members", XJsonObject::toJsonArray(members));
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
