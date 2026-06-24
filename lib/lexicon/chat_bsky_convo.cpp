@@ -117,7 +117,11 @@ MessageView::SharedPtr MessageView::fromJson(const QJsonObject& json)
     view->mFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("facets");
     view->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::RecordView, ChatBskyEmbed::JoinLinkView>("embed");
     view->mReactions = xjson.getOptionalVector<ReactionView>("reactions");
-    view->mReplyTo = xjson.getOptionalVariant<MessageView, DeletedMessageView>("replyTo");
+    view->mReplyTo = xjson.getOptionalVariant<
+        MessageView,
+        DeletedMessageView,
+        MessageBeforeUserJoinedGroupView,
+        UnknownVariant>("replyTo");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
     return view;
@@ -140,6 +144,12 @@ DeletedMessageView::SharedPtr DeletedMessageView::fromJson(const QJsonObject& js
     view->mRev = xjson.getRequiredString("rev");
     view->mSender = xjson.getRequiredObject<MessageViewSender>("sender");
     view->mSentAt = xjson.getRequiredDateTime("sentAt");
+    return view;
+}
+
+MessageBeforeUserJoinedGroupView::SharedPtr MessageBeforeUserJoinedGroupView::fromJson(const QJsonObject&)
+{
+    auto view = std::make_shared<MessageBeforeUserJoinedGroupView>();
     return view;
 }
 

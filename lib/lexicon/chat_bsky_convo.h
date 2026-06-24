@@ -110,6 +110,12 @@ struct DeletedMessageView
     static constexpr char const* TYPE = "chat.bsky.convo.defs#deletedMessageView";
 };
 
+struct MessageBeforeUserJoinedGroupView {
+    using SharedPtr = std::shared_ptr<MessageBeforeUserJoinedGroupView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#,essageBeforeUserJoinedGroupView";
+};
+
 // chat.bsky.convo.defs#messageView
 struct MessageView
 {
@@ -123,7 +129,11 @@ struct MessageView
 
     ReactionView::List mReactions;
 
-    using ReplyType = std::variant<std::shared_ptr<MessageView>, DeletedMessageView::SharedPtr>;
+    using ReplyType = std::variant<std::shared_ptr<MessageView>,
+                                   DeletedMessageView::SharedPtr,
+                                   MessageBeforeUserJoinedGroupView::SharedPtr,
+                                   UnknownVariant::SharedPtr>;
+
     std::optional<ReplyType> mReplyTo;
 
     MessageViewSender::SharedPtr mSender; // required
