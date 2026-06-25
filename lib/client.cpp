@@ -31,8 +31,12 @@ static void addOptionalIntParam(Xrpc::NetworkThread::Params& params, const QStri
 {
     if (value)
     {
-        if (*value < min || * value > max)
+        if (*value < min || *value > max)
+        {
+            qWarning() << "Out of range:" << name << "value:" << * value << "min:" << min << "max:" << max;
+            Q_ASSERT(false);
             throw InvalidRequest(QString("Invalid %1 value %2").arg(name, *value));
+        }
 
         params.append({name, QString::number(*value)});
     }
