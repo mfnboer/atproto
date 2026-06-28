@@ -42,6 +42,7 @@ JoinLinkView::SharedPtr JoinLinkView::fromJson(const QJsonObject& json)
     view->mCode = xjson.getRequiredString("code");
     view->mRawEnabledStatus = xjson.getRequiredString("enabledStatus");
     view->mEnabledStatus = stringToLinkEnabledStatus(view->mRawEnabledStatus);
+    view->mRequireApproval = xjson.getRequiredBool("requireApproval");
     view->mRawJoinRule = xjson.getRequiredString("joinRule");
     view->mJoinRule = stringToJoinRule(view->mRawJoinRule);
     view->mCreatedAt = xjson.getRequiredDateTime("createdAt");

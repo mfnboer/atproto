@@ -3372,7 +3372,7 @@ void Client::createJoinLink(const QString& convoId, bool requireApproval, ChatBs
 {
     QJsonObject json;
     json.insert("convoId", convoId);
-    json.insert("requireApproval", boolValue(requireApproval));
+    json.insert("requireApproval", requireApproval);
     json.insert("joinRule", ChatBskyGroup::joinRuleToString(joinRule));
 
     Xrpc::NetworkThread::Params httpHeaders;
@@ -3466,7 +3466,7 @@ void Client::editJoinLink(const QString& convoId, std::optional<bool> requireApp
     json.insert("convoId", convoId);
 
     if (requireApproval)
-        json.insert("requireApproval", boolValue(*requireApproval));
+        json.insert("requireApproval", *requireApproval);
 
     if (joinRule)
         json.insert("joinRule", ChatBskyGroup::joinRuleToString(*joinRule));

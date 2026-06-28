@@ -358,8 +358,8 @@ struct DirectConvo
 struct GroupConvo
 {
     QString mName;
-    static constexpr int MAX_GRAPHEMES_NAME = 128;
-    static constexpr int MAX_BYTES_NAME = 1280;
+    static constexpr int MAX_GRAPHEMES_NAME = 50;
+    static constexpr int MAX_BYTES_NAME = 500;
     int mMemberCount = 0;
     QDateTime mCreatedAt;
     std::optional<int> mJoinRequestCount;

@@ -1301,9 +1301,9 @@ public:
                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
     static constexpr int MAX_GROUP_MEMBERS = 49; // excluding the group creater
-    static constexpr int MAX_CREATE_GRAPHEMES_GROUP_NAME = 50;
-    static constexpr int MAX_CREATE_BYTES_GROUP_NAME = 500;
-    static constexpr int MIN_CREATE_BYTES_GROUP_NAME = 1;
+    static constexpr int MAX_GRAPHEMES_GROUP_NAME = 50;
+    static constexpr int MAX_BYTES_GROUP_NAME = 500;
+    static constexpr int MIN_BYTES_GROUP_NAME = 1;
 
     /**
      * @brief createGroup
@@ -1334,10 +1334,6 @@ public:
      */
     void disableJoinLink(const QString& convoId,
                          const JoinLinkSuccessCb& successCb, const ErrorCb& errorCb);
-
-    static constexpr int MAX_EDIT_GRAPHEMES_GROUP_NAME = 128;
-    static constexpr int MAX_EDIT_BYTES_GROUP_NAME = 1280;
-    static constexpr int MIN_EDIT_BYTES_GROUP_NAME = 1;
 
     /**
      * @brief editGroup
