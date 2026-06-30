@@ -47,6 +47,7 @@ struct JoinLinkView
     QDateTime mCreatedAt;
 
     using SharedPtr = std::shared_ptr<JoinLinkView>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "chat.bsky.group.defs#joinLinkView";
 };

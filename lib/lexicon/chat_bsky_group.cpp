@@ -147,6 +147,7 @@ JoinRequestsOutput::SharedPtr JoinRequestsOutput::fromJson(const QJsonObject& js
 {
     XJsonObject xjson(json);
     auto output = std::make_shared<JoinRequestsOutput>();
+    output->mCursor = xjson.getOptionalString("cursor");
     output->mRequests = xjson.getRequiredVector<JoinRequestView>("requests");
     return output;
 }

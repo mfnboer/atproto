@@ -96,6 +96,7 @@ struct JoinLinkPreviewsOutput
 // chat.bsky.group.listJoinRequests#output
 struct JoinRequestsOutput
 {
+    std::optional<QString> mCursor;
     JoinRequestView::List mRequests;
 
     using SharedPtr = std::shared_ptr<JoinRequestsOutput>;
