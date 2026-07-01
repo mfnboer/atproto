@@ -188,7 +188,7 @@ SystemMessageDataMemberJoin::SharedPtr SystemMessageDataMemberJoin::fromJson(con
     data->mMember = xjson.getRequiredObject<SystemMessageReferredUser>("member");
     data->mRawRole = xjson.getRequiredString("role");
     data->mRole = ChatBskyActor::stringToMemberRole(data->mRawRole);
-    data->mApprovedBy = xjson.getRequiredObject<SystemMessageReferredUser>("approvedBy");
+    data->mApprovedBy = xjson.getOptionalObject<SystemMessageReferredUser>("approvedBy");
     return data;
 }
 
