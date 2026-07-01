@@ -54,7 +54,6 @@ struct MessageInput
     QString mText; // max 1000 graphemes, 10000 bytes
     AppBskyRichtext::Facet::List mFacets;
 
-    // TODO: unstable
     using EmbedType = std::variant<AppBskyEmbed::Record::SharedPtr, ChatBskyEmbed::JoinLink::SharedPtr>;
     std::optional<EmbedType> mEmbed;
 
@@ -154,7 +153,6 @@ struct MessageAndReactionView {
     static constexpr char const* TYPE = "chat.bsky.convo.defs#messageAndReactionView";
 };
 
-// TODO: unstable
 struct SystemMessageReferredUser
 {
     QString mDid;
@@ -164,7 +162,6 @@ struct SystemMessageReferredUser
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageReferredUser";
 };
 
-// TODO: unstable
 struct SystemMessageDataAddMember
 {
     SystemMessageReferredUser::SharedPtr mMember;
@@ -177,7 +174,6 @@ struct SystemMessageDataAddMember
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataAddMember";
 };
 
-// TODO: unstable
 struct SystemMessageDataRemoveMember
 {
     SystemMessageReferredUser::SharedPtr mMember;
@@ -188,7 +184,6 @@ struct SystemMessageDataRemoveMember
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataRemoveMember";
 };
 
-// TODO: unstable
 struct SystemMessageDataMemberJoin
 {
     SystemMessageReferredUser::SharedPtr mMember;
@@ -201,7 +196,6 @@ struct SystemMessageDataMemberJoin
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataMemberJoin";
 };
 
-// TODO: unstable
 struct SystemMessageDataMemberLeave
 {
     SystemMessageReferredUser::SharedPtr mMember;
@@ -211,7 +205,6 @@ struct SystemMessageDataMemberLeave
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataMemberLeave";
 };
 
-// TODO: unstable
 struct SystemMessageDataLockConvo
 {
     SystemMessageReferredUser::SharedPtr mLockedBy;
@@ -221,7 +214,6 @@ struct SystemMessageDataLockConvo
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataLockConvo";
 };
 
-// TODO: unstable
 struct SystemMessageDataUnlockConvo
 {
     SystemMessageReferredUser::SharedPtr mUnlockedBy;
@@ -231,7 +223,6 @@ struct SystemMessageDataUnlockConvo
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataUnlockConvo";
 };
 
-// TODO: unstable
 struct SystemMessageDataLockConvoPermanently
 {
     SystemMessageReferredUser::SharedPtr mLockedBy;
@@ -241,7 +232,6 @@ struct SystemMessageDataLockConvoPermanently
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataLockConvoPermanently";
 };
 
-// TODO: unstable
 struct SystemMessageDataEditGroup
 {
     std::optional<QString> mOldName;
@@ -252,7 +242,6 @@ struct SystemMessageDataEditGroup
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEditGroup";
 };
 
-// TODO: unstable
 struct SystemMessageDataCreateJoinLink
 {
     using SharedPtr = std::shared_ptr<SystemMessageDataCreateJoinLink>;
@@ -260,7 +249,6 @@ struct SystemMessageDataCreateJoinLink
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataCreateJoinLink";
 };
 
-// TODO: unstable
 struct SystemMessageDataEditJoinLink
 {
     using SharedPtr = std::shared_ptr<SystemMessageDataEditJoinLink>;
@@ -268,7 +256,6 @@ struct SystemMessageDataEditJoinLink
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEditJoinLink";
 };
 
-// TODO: unstable
 struct SystemMessageDataEnableJoinLink
 {
     using SharedPtr = std::shared_ptr<SystemMessageDataEnableJoinLink>;
@@ -276,7 +263,6 @@ struct SystemMessageDataEnableJoinLink
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataEnableJoinLink";
 };
 
-// TODO: unstable
 struct SystemMessageDataDisableJoinLink
 {
     using SharedPtr = std::shared_ptr<SystemMessageDataDisableJoinLink>;
@@ -284,7 +270,6 @@ struct SystemMessageDataDisableJoinLink
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageDataDisableJoinLink";
 };
 
-// TODO: unstable
 struct SystemMessageView
 {
     QString mId;
@@ -313,7 +298,6 @@ struct SystemMessageView
     static constexpr char const* TYPE = "chat.bsky.convo.defs#systemMessageView";
 };
 
-// TODO: unstable
 enum class ConvoKind
 {
     DIRECT,
@@ -324,7 +308,6 @@ enum class ConvoKind
 ConvoKind stringToConvoKind(const QString& str);
 QString convoKindToString(ConvoKind kind);
 
-// TODO: unstable
 enum class ConvoLockStatus
 {
     UNLOCKED,
@@ -346,7 +329,6 @@ enum class ConvoStatus
 ConvoStatus stringToConvoStatus(const QString& str);
 QString convoStatusToString(ConvoStatus status);
 
-// TODO: unstable
 struct DirectConvo
 {
     using SharedPtr = std::shared_ptr<DirectConvo>;
@@ -354,7 +336,6 @@ struct DirectConvo
     static constexpr char const* TYPE = "chat.bsky.convo.defs#directConvo";
 };
 
-// TODO: unstable
 struct GroupConvo
 {
     QString mName;
@@ -395,7 +376,6 @@ struct ConvoView
     std::optional<ConvoStatus> mStatus;
     int mUnreadCount = 0;
 
-    // TODO: unstable
     std::optional<KindType> mKind;
 
     using SharedPtr = std::shared_ptr<ConvoView>;

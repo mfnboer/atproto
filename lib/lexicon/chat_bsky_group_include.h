@@ -6,7 +6,6 @@
 #include <QJsonDocument>
 #include <QString>
 
-// TODO: unstable
 namespace ATProto::ChatBskyGroup {
 
 enum class LinkEnabledStatus

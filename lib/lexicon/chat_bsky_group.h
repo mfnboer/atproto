@@ -6,7 +6,6 @@
 #include "chat_bsky_convo.h"
 #include <QJsonDocument>
 
-// TODO: unstable
 namespace ATProto::ChatBskyGroup {
 
 struct JoinLinkPreviewView

@@ -5,7 +5,6 @@
 #include <QJsonObject>
 #include <QString>
 
-// TODO: unstable
 namespace ATProto {
 
 namespace ChatBskyGroup {

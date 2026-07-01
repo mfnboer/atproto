@@ -10,7 +10,7 @@ namespace ATProto::ChatBskyActor {
 struct Declaration
 {
     AppBskyActor::AllowIncomingType mAllowIncoming;
-    std::optional<AppBskyActor::AllowIncomingType> mAllowGroupInvites; // TODO: unstable
+    std::optional<AppBskyActor::AllowIncomingType> mAllowGroupInvites;
     QJsonObject mJson;
 
     QJsonObject toJson() const;
@@ -20,7 +20,6 @@ struct Declaration
     static constexpr char const* TYPE = "chat.bsky.actor.declaration";
 };
 
-// TODO: unstable
 // chat.bsky.actor.defs#memberRole
 enum class MemberRole
 {
@@ -31,7 +30,6 @@ enum class MemberRole
 
 MemberRole stringToMemberRole(const QString& str);
 
-// TODO: unstable
 // chat.bsky.actor.defs#directConvoMember
 struct DirectConvoMember
 {
@@ -42,7 +40,6 @@ struct DirectConvoMember
 
 struct ProfileViewBasic;
 
-// TODO: unstable
 // chat.bsky.actor.defs#groupConvoMember
 struct GroupConvoMember
 {
@@ -56,7 +53,6 @@ struct GroupConvoMember
     static constexpr char const* TYPE = "chat.bsky.actor.defs#groupConvoMember";
 };
 
-// TODO: unstable
 // chat.bsky.actor.defs#pastGroupConvoMember
 struct PastGroupConvoMember
 {

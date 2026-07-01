@@ -63,4 +63,12 @@ void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const Q
     message.mEmbed = std::move(record);
 }
 
+void ChatMaster::addJoinLinkCodeToMessage(ChatBskyConvo::MessageInput& message, const QString& code)
+{
+    Q_ASSERT(!message.mEmbed);
+    auto joinLink = std::make_shared<ChatBskyEmbed::JoinLink>();
+    joinLink->mCode = code;
+    message.mEmbed = std::move(joinLink);
+}
+
 }

@@ -156,7 +156,7 @@ QString allowIncomingTypeToString(AllowIncomingType allowIncoming);
 struct ProfileAssociatedChat
 {
     AppBskyActor::AllowIncomingType mAllowIncoming = AllowIncomingType::FOLLOWING;
-    std::optional<AppBskyActor::AllowIncomingType> mAllowGroupInvites; // TODO: unstable
+    std::optional<AppBskyActor::AllowIncomingType> mAllowGroupInvites;
 
     QJsonObject toJson() const;
 
