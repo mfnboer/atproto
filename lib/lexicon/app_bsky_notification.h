@@ -31,31 +31,6 @@ struct RecordDeleted
     static constexpr char const* TYPE = "app.bsky.notification.defs#recordDeleted";
 };
 
-// app.bsky.notification.defs#chatPreference
-struct ChatPreference
-{
-    enum class IncludeType
-    {
-        ALL,
-        ACCEPTED,
-        UNKNOWN
-    };
-
-    static IncludeType stringToIncludeType(const QString& str);
-    static QString includeTypeToString(IncludeType include, const QString& unknown);
-
-    QString mRawInclude;
-    IncludeType mInclude = IncludeType::UNKNOWN;
-    bool mPush;
-    QJsonObject mJson;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<ChatPreference>;
-    static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "app.bsky.notification.defs#chatPreference";
-};
-
 // app.bsky.notification.defs#filterablePreference
 struct FilterablePreference
 {
@@ -99,7 +74,6 @@ struct Preference
 // app.bsky.notification.defs#preferences
 struct Preferences
 {
-    ChatPreference::SharedPtr mChat;
     FilterablePreference::SharedPtr mFollow;
     FilterablePreference::SharedPtr mLike;
     FilterablePreference::SharedPtr mLikeViaRepost;

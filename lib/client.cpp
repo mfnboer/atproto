@@ -1970,7 +1970,6 @@ void Client::putNotificationPreferencesV2(const AppBskyNotification::Preferences
 {
     QJsonDocument json;
     QJsonObject paramsJson;
-    XJsonObject::insertOptionalJsonObject<AppBskyNotification::ChatPreference>(paramsJson, "chat", prefs.mChat);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "follow", prefs.mFollow);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "like", prefs.mLike);
     XJsonObject::insertOptionalJsonObject<AppBskyNotification::FilterablePreference>(paramsJson, "likeViaRepost", prefs.mLikeViaRepost);
@@ -3707,6 +3706,53 @@ void Client::withdrawJoinRequest(const QString& convoId,
 
             if (successCb)
                 successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::getChatNotificationPreferences(const ChatNotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->get("chat.bsky.notification.getPreferences", {}, httpHeaders,
+        [successCb](ChatBskyNotification::GetPreferencesOutput::SharedPtr output){
+            qDebug() << "getChatPreferences ok";
+
+            if (successCb)
+                successCb(output);
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::putChatNotificationPreferences(const ChatBskyNotification::ChatPreference::SharedPtr& chat,
+                        const ChatBskyNotification::ChatPreference::SharedPtr& chatRequest,
+                        const ChatNotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+
+    if (chat)
+        json.insert("chat", chat->toJson());
+    if (chatRequest)
+        json.insert("chatRequest", chatRequest->toJson());
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("chat.bsky.notification.putPreferences", QJsonDocument(json), httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "putPreferences ok";
+
+            try {
+                auto output = ChatBskyNotification::GetPreferencesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
         failure(errorCb),
         authToken());

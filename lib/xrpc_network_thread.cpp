@@ -717,6 +717,15 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessJoinRequestsOutput;
 };
 
+// chat.bsky.notification
+
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessChatNotificationPreferencesOutputCb>>>
+{
+    using ReplyType = ATProto::ChatBskyNotification::GetPreferencesOutput;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessChatNotificationPreferencesOutput;
+};
+
 void NetworkThread::invokeCallback(CallbackType successCb, const ErrorCb& errorCb, QByteArray data, const QString& contentType)
 {
     std::visit(

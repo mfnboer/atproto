@@ -124,6 +124,9 @@ Client::Client(const QString& host, int networkTransferTimeoutMs, const QString&
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessJoinLinkPreviewsOutput, this, &Client::doCallback<NetworkThread::SuccessJoinLinkPreviewsOutputCb, ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessJoinRequestsOutput, this, &Client::doCallback<NetworkThread::SuccessJoinRequestsOutputCb, ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr>);
 
+    // chat.bsky.notification
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessChatNotificationPreferencesOutput, this, &Client::doCallback<NetworkThread::SuccessChatNotificationPreferencesOutputCb, ATProto::ChatBskyNotification::GetPreferencesOutput::SharedPtr>);
+
     // oauth
     connect(mNetworkThread.get(), &NetworkThread::oauthLoginRedirect, this,
         [](QUrl url, QString alias, NetworkThread::OAuthLoginSuccessCb cb){ cb(std::move(url), std::move(alias)); });

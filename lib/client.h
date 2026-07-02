@@ -16,6 +16,7 @@
 #include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
 #include "lexicon/chat_bsky_group.h"
+#include "lexicon/chat_bsky_notification.h"
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
@@ -118,6 +119,8 @@ public:
     using JoinLinkPreviewsSuccessCb = std::function<void(ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr)>;
     using JoinRequestsSuccessCb = std::function<void(ChatBskyGroup::JoinRequestsOutput::SharedPtr)>;
     using RequestJoinSuccessCb = std::function<void(ChatBskyGroup::RequestJoinOutput::SharedPtr)>;
+
+    using ChatNotificationPreferencesSuccessCb = std::function<void(ChatBskyNotification::GetPreferencesOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1445,6 +1448,25 @@ public:
      */
     void withdrawJoinRequest(const QString& convoId,
                              const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    // chat.bsky.notification
+
+    /**
+     * @brief getChatNotificationPreferences
+     * @param successCb
+     */
+    void getChatNotificationPreferences(const ChatNotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief putChatNotificationPreferences only provides prefs will be updated
+     * @param chat <optional>
+     * @param chatRequest <optional>
+     * @param successCb
+     * @param errorCb
+     */
+    void putChatNotificationPreferences(const ChatBskyNotification::ChatPreference::SharedPtr& chat,
+                            const ChatBskyNotification::ChatPreference::SharedPtr& chatRequest,
+                            const ChatNotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb);
 
     // oauth
 

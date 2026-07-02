@@ -126,6 +126,8 @@ qt_add_qml_module(libatproto
         SOURCES lexicon/chat_bsky_group_include.h
         SOURCES lexicon/chat_bsky_embed.h
         SOURCES lexicon/chat_bsky_embed.cpp
+        SOURCES lexicon/chat_bsky_notification.h
+        SOURCES lexicon/chat_bsky_notification.cpp
 )
 
 if (ANDROID)

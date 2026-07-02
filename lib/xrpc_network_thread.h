@@ -13,6 +13,7 @@
 #include "lexicon/app_bsky_video.h"
 #include "lexicon/chat_bsky_convo.h"
 #include "lexicon/chat_bsky_group.h"
+#include "lexicon/chat_bsky_notification.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/com_atproto_server.h"
 #include <QJsonDocument>
@@ -111,6 +112,9 @@ public:
     using SuccessJoinLinkPreviewsOutputCb = std::function<void(ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr)>;
     using SuccessJoinRequestsOutputCb = std::function<void(ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr)>;
 
+    // chat.bsky.notification
+    using SuccessChatNotificationPreferencesOutputCb = std::function<void(ATProto::ChatBskyNotification::GetPreferencesOutput::SharedPtr)>;
+
     // oauth
     using OAuthLoginSuccessCb = std::function<void(QUrl redirectUrl, QString dpopKeyAlias)>; // alias only set on Androids
     using OAuthInitalTokenSuccessCb = std::function<void(QString did, QString scope, QString accessToken, QString refreshToken)>;
@@ -198,7 +202,10 @@ public:
 
         // chat.bsky.group
         SuccessJoinLinkPreviewsOutputCb,
-        SuccessJoinRequestsOutputCb
+        SuccessJoinRequestsOutputCb,
+
+        // chat.bsky.notification
+        SuccessChatNotificationPreferencesOutputCb
     >;
 
     struct Request
@@ -341,6 +348,9 @@ signals:
     // chat.bsky.group
     void requestSuccessJoinLinkPreviewsOutput(ATProto::ChatBskyGroup::JoinLinkPreviewsOutput::SharedPtr, SuccessJoinLinkPreviewsOutputCb);
     void requestSuccessJoinRequestsOutput(ATProto::ChatBskyGroup::JoinRequestsOutput::SharedPtr, SuccessJoinRequestsOutputCb);
+
+    // chat.bsky.notificaion
+    void requestSuccessChatNotificationPreferencesOutput(ATProto::ChatBskyNotification::GetPreferencesOutput::SharedPtr, SuccessChatNotificationPreferencesOutputCb);
 
     void requestError(QString error, QJsonDocument json, ErrorCb cb);
     void requestInvalidJsonError(QString exceptionMsg, ErrorCb cb);

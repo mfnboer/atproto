@@ -23,46 +23,6 @@ Declaration::SharedPtr Declaration::fromJson(const QJsonObject& json)
     return declaration;
 }
 
-ChatPreference::IncludeType ChatPreference::stringToIncludeType(const QString& str)
-{
-    static const std::unordered_map<QString, IncludeType> mapping = {
-        { "all", IncludeType::ALL },
-        { "accepted", IncludeType::ACCEPTED }
-    };
-
-    return stringToEnum(str, mapping, IncludeType::UNKNOWN);
-}
-
-QString ChatPreference::includeTypeToString(IncludeType include, const QString& unknown)
-{
-    static const std::unordered_map<IncludeType, QString> mapping = {
-        { IncludeType::ALL, "all" },
-        { IncludeType::ACCEPTED, "accepted" }
-    };
-
-    return enumToString(include, mapping, unknown);
-}
-
-QJsonObject ChatPreference::toJson() const
-{
-    QJsonObject json{mJson};
-    json.insert("$type", TYPE);
-    json.insert("include", includeTypeToString(mInclude, mRawInclude));
-    json.insert("push", mPush);
-    return json;
-}
-
-ChatPreference::SharedPtr ChatPreference::fromJson(const QJsonObject& json)
-{
-    auto pref = std::make_shared<ChatPreference>();
-    XJsonObject xjson(json);
-    pref->mRawInclude = xjson.getRequiredString("include");
-    pref->mInclude = stringToIncludeType(pref->mRawInclude);
-    pref->mPush = xjson.getRequiredBool("push");
-    pref->mJson = json;
-    return pref;
-}
-
 FilterablePreference::IncludeType FilterablePreference::stringToIncludeType(const QString& str)
 {
     static const std::unordered_map<QString, IncludeType> mapping = {
@@ -128,7 +88,6 @@ QJsonObject Preferences::toJson() const
 {
     QJsonObject json{mJson};
     json.insert("$type", TYPE);
-    json.insert("chat", mChat->toJson());
     json.insert("follow", mFollow->toJson());
     json.insert("like", mLike->toJson());
     json.insert("likeViaRepost", mLikeViaRepost->toJson());
@@ -148,7 +107,6 @@ Preferences::SharedPtr Preferences::fromJson(const QJsonObject& json)
 {
     auto prefs = std::make_shared<Preferences>();
     XJsonObject xjson(json);
-    prefs->mChat = xjson.getRequiredObject<ChatPreference>("chat");
     prefs->mFollow = xjson.getRequiredObject<FilterablePreference>("follow");
     prefs->mLike = xjson.getRequiredObject<FilterablePreference>("like");
     prefs->mLikeViaRepost = xjson.getRequiredObject<FilterablePreference>("likeViaRepost");
