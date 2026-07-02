@@ -24,6 +24,7 @@ public:
         QString mRef;
     };
 
+    static bool hasContinuousWhitespace(const QString& text);
     static void setHtmlCleanup(const HtmlCleanupFun& cleanup);
     static QString toCleanedHtml(const QString& text);
     static QString plainToHtml(const QString& text);

@@ -14,6 +14,28 @@ static constexpr int MAX_CASHTAG_LEN = 6; // including $-symbol
 
 RichTextMaster::HtmlCleanupFun RichTextMaster::sHtmlCleanup;
 
+bool RichTextMaster::hasContinuousWhitespace(const QString& text)
+{
+    int spaceLen = 0;
+
+    for (auto character : text)
+    {
+        if (spaceLen < 2)
+        {
+            if (character.isSpace())
+                ++spaceLen;
+            else
+                spaceLen = 0;
+        }
+        else
+        {
+            return false;
+        }
+    }
+
+    return spaceLen >= 2;
+}
+
 void RichTextMaster::setHtmlCleanup(const HtmlCleanupFun& cleanup)
 {
     sHtmlCleanup = cleanup;
@@ -39,7 +61,10 @@ QString RichTextMaster::plainToHtml(const QString& text)
     const QString html = toCleanedHtml(text);
 
     // Preserve white space
-    return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
+    if (hasContinuousWhitespace(text))
+        return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(html);
+
+    return html;
 }
 
 QString RichTextMaster::getFormattedPostText(const ATProto::AppBskyFeed::Record::Post& post, const QString& linkColor,
@@ -225,9 +250,10 @@ std::vector<QString> RichTextMaster::getFacetLinks(const AppBskyFeed::Record::Po
 
 QString RichTextMaster::linkiFy(const QString& text, const std::vector<ParsedMatch>& embeddedLinks, const QString& colorName)
 {
+    const bool continuousWhitespace = hasContinuousWhitespace(text);
     auto facets = RichTextMaster::parseFacets(text);
     insertEmbeddedLinksToFacets(embeddedLinks, facets);
-    QString linkified = "<span style=\"white-space: pre-wrap\">";
+    QString linkified = continuousWhitespace ? "<span style=\"white-space: pre-wrap\">" : "";
 
     int pos = 0;
 
@@ -260,7 +286,10 @@ QString RichTextMaster::linkiFy(const QString& text, const std::vector<ParsedMat
     }
 
     linkified.append(toCleanedHtml(text.sliced(pos)));
-    linkified.append("</span>");
+
+    if (continuousWhitespace)
+        linkified.append("</span>");
+
     return linkified;
 }
 

@@ -266,7 +266,11 @@ QString applyFacets(const QString& text, const Facet::List& facets, const QStrin
     }
 
     result.append(RichTextMaster::toCleanedHtml(QString(bytes.sliced(bytePos))));
-    return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(result);
+
+    if (RichTextMaster::hasContinuousWhitespace(text))
+        return QString("<span style=\"white-space: pre-wrap\">%1</span>").arg(result);
+
+    return result;
 }
 
 }
