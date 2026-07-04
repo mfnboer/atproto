@@ -250,9 +250,11 @@ public:
 
     // invalid_grant error will be mapped to InvalidToken error to make it the same as atproto.
     void oauthRefreshToken(const QString& refreshToken,
+                           const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                            const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
 
     void oauthResumeSession(const QString& clientId, const QString& refreshToken,
+                            const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                             const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb,
                             const QString& authDpopNonce = {});
     void oauthLogout(const QString& accessToken, const QString& refreshToken,

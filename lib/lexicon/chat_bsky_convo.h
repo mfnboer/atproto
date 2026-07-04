@@ -112,7 +112,7 @@ struct DeletedMessageView
 struct MessageBeforeUserJoinedGroupView {
     using SharedPtr = std::shared_ptr<MessageBeforeUserJoinedGroupView>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr char const* TYPE = "chat.bsky.convo.defs#,essageBeforeUserJoinedGroupView";
+    static constexpr char const* TYPE = "chat.bsky.convo.defs#messageBeforeUserJoinedGroupView";
 };
 
 // chat.bsky.convo.defs#messageView

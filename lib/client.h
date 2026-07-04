@@ -1502,6 +1502,7 @@ public:
     /**
      * @brief oauthResumeSession refresh the tokens from the session and resume
      * @param session
+     * * @param scopeCheck optional check on presence of scope, if not present "invalid_token" with error is raised
      * @param successCb
      * @param errorCb
      * @param authDpopNonce last received nonce from previous session (OPTIONAL)
@@ -1509,6 +1510,7 @@ public:
      * PDS will be resolved from the session DID
      */
     void oauthResumeSession(const QString& clientId, const ComATProtoServer::Session& session,
+                            const std::optional<OAuth::ScopeCheck>& scopeCheck,
                             const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
                             const QString& authDpopNonce = {});
 
@@ -1566,6 +1568,7 @@ private:
         const OAuthInitalTokenSuccessCb& successCb, const OAuthErrorCb& errorCb);
     void oautResumeSessionContinue(
         const QString& clientId, const ComATProtoServer::Session& session,
+        const std::optional<OAuth::ScopeCheck>& scopeCheck,
         const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
         const QString& authDpopNonce);
     void deleteSessionOAuth(const SuccessCb& successCb);

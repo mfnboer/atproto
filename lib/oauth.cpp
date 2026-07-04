@@ -600,7 +600,7 @@ void OAuth::initialTokenRequest(const QString& code, const QString& redirectUrl,
     body.addQueryItem("code_verifier", mPkceVerifier);
 
     authServerPost(mAuthorizationServerMeta->mTokenEndpoint, body,
-        [presence=getPresence(), successCb, errorCb](QJsonDocument resp){
+        [this, presence=getPresence(), successCb, errorCb](QJsonDocument resp){
             if (!presence)
                 return;
 
@@ -613,7 +613,9 @@ void OAuth::initialTokenRequest(const QString& code, const QString& redirectUrl,
                 const QString scope = xjson.getRequiredString("scope");
                 const QString accessToken = xjson.getRequiredString("access_token");
                 const QString refreshToken = xjson.getRequiredString("refresh_token");
-                successCb(sub, scope, accessToken, refreshToken);
+
+                if (checkScope(scope, {}, errorCb))
+                    successCb(sub, scope, accessToken, refreshToken);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
                 errorCb(ERROR_SERVER_ERROR, e.msg());
@@ -626,7 +628,7 @@ void OAuth::initialTokenRequest(const QString& code, const QString& redirectUrl,
     );
 }
 
-void OAuth::refreshTokenRequest(const QString& refreshToken,
+void OAuth::refreshTokenRequest(const QString& refreshToken, const std::optional<ScopeCheck>& scopeCheck,
                                 const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Q_ASSERT(mAuthorizationServerMeta);
@@ -637,7 +639,7 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
     body.addQueryItem("refresh_token", refreshToken);
 
     authServerPost(mAuthorizationServerMeta->mTokenEndpoint, body,
-        [presence=getPresence(), successCb, errorCb](QJsonDocument resp){
+        [this, presence=getPresence(), scopeCheck, successCb, errorCb](QJsonDocument resp){
             if (!presence)
                 return;
 
@@ -648,7 +650,10 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
                 XJsonObject xjson(json);
                 const QString accessToken = xjson.getRequiredString("access_token");
                 const QString refreshToken = xjson.getRequiredString("refresh_token");
-                successCb(accessToken, refreshToken);
+                const auto scope = xjson.getOptionalString("scope");
+
+                if (checkScope(scope.value_or(""), scopeCheck, errorCb))
+                    successCb(accessToken, refreshToken);
             } catch (InvalidJsonException& e) {
                 qWarning() << e.msg();
                 errorCb(ERROR_SERVER_ERROR, e.msg());
@@ -661,7 +666,37 @@ void OAuth::refreshTokenRequest(const QString& refreshToken,
     );
 }
 
-void OAuth::resumeSession(const QString& refreshToken,
+bool OAuth::checkScope(const QString& scope, const std::optional<ScopeCheck>& scopeCheck, const ErrorCb& errorCb) const
+{
+    // ATProto makes scope mandatory
+    if (scope.isEmpty())
+    {
+        qWarning() << "Server did not return mandatory scope";
+        errorCb(ERROR_INVALID_GRANT, "Server did not return mandatory scope");
+        return false;
+    }
+
+    const QStringList scopeList = scope.split(' ');
+
+    // ATProto mandate "atproto" scope
+    if (!scopeList.contains("atproto"))
+    {
+        qWarning() << "'atproto' scope missing";
+        errorCb(ERROR_INVALID_GRANT, "'atproto' scope missing");
+        return false;
+    }
+
+    if (scopeCheck && !scopeList.contains(scopeCheck->mScope))
+    {
+        qWarning() << "Missing scope:" << scopeCheck->mScope;
+        errorCb(ERROR_INVALID_GRANT, scopeCheck->mError);
+        return false;
+    }
+
+    return true;
+}
+
+void OAuth::resumeSession(const QString& refreshToken, const std::optional<ScopeCheck>& scopeCheck,
                           const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb,
                           const QString& dpopNonce)
 {
@@ -669,9 +704,9 @@ void OAuth::resumeSession(const QString& refreshToken,
     setDpopNonce(dpopNonce);
 
     getServerMetaData(
-        [this, presence=getPresence(), refreshToken, successCb, errorCb]{
+        [this, presence=getPresence(), refreshToken, scopeCheck, successCb, errorCb]{
             if (presence)
-                refreshTokenRequest(refreshToken, successCb, errorCb);
+                refreshTokenRequest(refreshToken, scopeCheck, successCb, errorCb);
         },
         errorCb);
 }

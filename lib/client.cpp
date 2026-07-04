@@ -503,7 +503,7 @@ void Client::refreshSession(const SuccessCb& successCb, const ErrorCb& errorCb)
 
 void Client::refreshSessionOAuth(const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->oauthRefreshToken(mSession->mRefreshJwt,
+    mXrpc->oauthRefreshToken(mSession->mRefreshJwt, {},
         [this, presence=getPresence(), successCb](QString accessToken, QString refreshToken){
             if (!presence)
                 return;
@@ -3823,23 +3823,24 @@ void Client::oauthCreateSessionContinue(
 void Client::oauthRefreshToken(const QString& refreshToken,
                        const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
-    mXrpc->oauthRefreshToken(refreshToken, successCb, errorCb);
+    mXrpc->oauthRefreshToken(refreshToken, {}, successCb, errorCb);
 }
 
 void Client::oauthResumeSession(const QString& clientId,
                                 const ComATProtoServer::Session& session,
+                                const std::optional<OAuth::ScopeCheck>& scopeCheck,
                                 const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
                                 const QString& authDpopNonce)
 {
     qDebug() << "Resume:" << session.mDid;
 
     mXrpc->setPDSFromDid(session.mDid,
-        [this, presence=getPresence(), clientId, session, successCb, errorCb, authDpopNonce]{
+        [this, presence=getPresence(), clientId, session, scopeCheck, successCb, errorCb, authDpopNonce]{
             if (!presence)
                 return;
 
             mXrpc->enableOAuth(true);
-            oautResumeSessionContinue(clientId, session, successCb, errorCb, authDpopNonce);
+            oautResumeSessionContinue(clientId, session, scopeCheck, successCb, errorCb, authDpopNonce);
         },
         [session, errorCb](const QString& error){
             if (errorCb)
@@ -3849,10 +3850,11 @@ void Client::oauthResumeSession(const QString& clientId,
 
 void Client::oautResumeSessionContinue(
     const QString& clientId, const ComATProtoServer::Session& session,
+    const std::optional<OAuth::ScopeCheck>& scopeCheck,
     const SuccessCb& successCb, const OAuthResumeSessionErrorCb& errorCb,
     const QString& authDpopNonce)
 {
-    mXrpc->oauthResumeSession(clientId, session.mRefreshJwt,
+    mXrpc->oauthResumeSession(clientId, session.mRefreshJwt, scopeCheck,
         [this, presence=getPresence(), session, successCb, errorCb](QString newAccessToken, QString newRefreshToken){
             if (!presence)
                 return;

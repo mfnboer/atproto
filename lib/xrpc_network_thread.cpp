@@ -1018,10 +1018,11 @@ void NetworkThread::oauthRequestInitialToken(const QUrl& url,
 }
 
 void NetworkThread::oauthRefreshToken(const QString& refreshToken,
+                                      const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                                       const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
     qDebug() << "Refresh token";
-    mOAuth->refreshTokenRequest(refreshToken,
+    mOAuth->refreshTokenRequest(refreshToken, scopeCheck,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
             setAccessJwt(newAccessToken);
@@ -1038,6 +1039,7 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
 }
 
 void NetworkThread::oauthResumeSession(const QString& clientId, const QString& refreshToken,
+                                       const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                                        const OAuthRefreshTokenSuccessCb& successCb, const OAuthErrorCb& errorCb,
                                        const QString& authDpopNonce)
 {
@@ -1052,7 +1054,7 @@ void NetworkThread::oauthResumeSession(const QString& clientId, const QString& r
 
     enableOAuth(clientId);
 
-    mOAuth->resumeSession(refreshToken,
+    mOAuth->resumeSession(refreshToken, scopeCheck,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Resumed session access:" << newAccessToken << "refresh:" << newRefreshToken;
             setAccessJwt(newAccessToken);

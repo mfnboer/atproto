@@ -1,5 +1,7 @@
 next
 ====
+* OAuth: reject token response is atproto scope is missing
+* OAuth: optional scope check
 * Chat notification preferences
 * Group chat updates
 * Message reply

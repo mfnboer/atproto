@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "identity_resolver.h"
+#include "oauth.h"
 #include "plc_directory_client.h"
 #include "presence.h"
 #include "xrpc_network_thread.h"
@@ -77,8 +78,10 @@ signals:
     void oauthRequestInitialToken(const QUrl& url,
                                   const NetworkThread::OAuthInitalTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthRefreshToken(const QString& refreshToken,
+                           const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                            const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb);
     void oauthResumeSession(const QString& clientId, const QString& refreshToken,
+                            const std::optional<ATProto::OAuth::ScopeCheck>& scopeCheck,
                             const NetworkThread::OAuthRefreshTokenSuccessCb& successCb, const NetworkThread::OAuthErrorCb& errorCb,
                             const QString& authDpopNonce = {});
     void oauthLogout(const QString& accessToken, const QString& refreshToken,

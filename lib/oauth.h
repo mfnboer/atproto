@@ -130,12 +130,26 @@ public:
     void initialTokenRequest(const QString& code, const QString& redirectUrl,
                              const InitialTokenSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void refreshTokenRequest(const QString& refreshToken,
+    struct ScopeCheck
+    {
+        QString mScope;
+        QString mError; // Error message when scope is not available
+    };
+
+    /**
+     * @brief refreshTokenRequest
+     * @param refreshToken
+     * @param scopeCheck optional check on presence of scope, if not present "invalid_grant" with error is raised
+     * @param successCb
+     * @param errorCb
+     */
+    void refreshTokenRequest(const QString& refreshToken, const std::optional<ScopeCheck>& scopeCheck,
                              const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief resumeSession get meta data and refresh
      * @param refreshToken
+     * @param scopeCheck optional check on presence of scope, if not present "invalid_grant" with error is raised
      * @param successCb
      * @param errorCb
      * @param dpopNonce last received nonce from previous session (OPTIONAL)
@@ -143,7 +157,7 @@ public:
      * Gets meta data for the authorizaion server.
      *
      */
-    void resumeSession(const QString& refreshToken,
+    void resumeSession(const QString& refreshToken, const std::optional<ScopeCheck>& scopeCheck,
                        const RefreshTokenSuccessCb& successCb, const ErrorCb& errorCb,
                        const QString& dpopNonce = {});
 
@@ -173,6 +187,8 @@ private:
     void handleAuthorizatonServerResponse(QNetworkReply* reply, const SuccessCb& successCb, const ErrorCb& errorCb, int resendCount);
 
     QString getAuthorizationServer() const;
+
+    bool checkScope(const QString& scope, const std::optional<ScopeCheck>& scopeCheck, const ErrorCb& errorCb) const;
 
     void authServerPost(const QString& postUrl, const QUrlQuery& postData,
                         const AuthServerSuccessCb& successCb, const OAuthErrorCb& errorCb);
