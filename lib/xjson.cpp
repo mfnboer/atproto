@@ -4,6 +4,20 @@
 
 namespace ATProto {
 
+static QString& removeBidiControlChars(QString& s)
+{
+    static const std::unordered_set<QChar> bidiControls = {
+        QChar(0x200E), QChar(0x200F), // LRM, RLM
+        QChar(0x202A), QChar(0x202B), QChar(0x202C), QChar(0x202D), QChar(0x202E), // LRE,RLE,PDF,LRO,RLO
+        QChar(0x2066), QChar(0x2067), QChar(0x2068), QChar(0x2069), // LRI,RLI,FSI,PDI
+        QChar(0x061C) // ALM
+    };
+
+    return s.removeIf([](QChar c){
+        return bidiControls.contains(c);
+    });
+}
+
 InvalidJsonException::InvalidJsonException(const QString& msg) :
     mMsg(msg)
 {
@@ -58,7 +72,8 @@ XJsonObject::XJsonObject(const QJsonObject& obj) :
 QString XJsonObject::getRequiredString(const QString& key) const
 {
     checkField(key, QJsonValue::String);
-    return mObject[key].toString();
+    QString s = mObject[key].toString();
+    return removeBidiControlChars(s);
 }
 
 int XJsonObject::getRequiredInt(const QString& key) const
@@ -146,7 +161,10 @@ std::vector<QString> XJsonObject::getOptionalStringVector(const QString& key) co
 std::optional<QString> XJsonObject::getOptionalString(const QString& key) const
 {
     if (mObject.contains(key))
-        return mObject[key].toString();
+    {
+        QString s = mObject[key].toString();
+        return removeBidiControlChars(s);
+    }
 
     return {};
 }

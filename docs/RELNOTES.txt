@@ -3,6 +3,7 @@ next
 * Chat notification preferences
 * Group chat updates
 * Message reply
+* Remove bidi control chars from strings
 
 6.6
 ===
