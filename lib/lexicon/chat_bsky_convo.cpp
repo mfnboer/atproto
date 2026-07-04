@@ -544,7 +544,7 @@ UpdateAllReadOutput::SharedPtr UpdateAllReadOutput::fromJson(const QJsonObject& 
 {
     XJsonObject xjson(json);
     auto output = std::make_shared<UpdateAllReadOutput>();
-    output->mUpdateCount = xjson.getRequiredInt("updateCount");
+    output->mUpdatedCount = xjson.getRequiredInt("updatedCount");
     return output;
 }
 

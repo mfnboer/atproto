@@ -560,7 +560,7 @@ struct LeaveConvoOutput
 
 struct UpdateAllReadOutput
 {
-    int mUpdateCount;
+    int mUpdatedCount;
 
     using SharedPtr = std::shared_ptr<UpdateAllReadOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
