@@ -108,29 +108,25 @@ private:
         }
     }
 
-    void logEmbed(const AppBskyEmbed::EmbedView& embed)
+    void logEmbed(const AppBskyEmbed::EmbedViewUnion& embed)
     {
-        switch (embed.mType)
+        if (holdsNonNull<AppBskyEmbed::ImagesView::SharedPtr>(embed))
         {
-        case AppBskyEmbed::EmbedViewType::IMAGES_VIEW:
-        {
-            const auto& view = std::get<AppBskyEmbed::ImagesView::SharedPtr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::ImagesView::SharedPtr>(embed);
             for (const auto& image : view->mImages)
             {
                 qDebug() << "Image:" << image->mFullSize;
                 qDebug() << "Alt:" << image->mAlt;
             }
-            break;
         }
-        case AppBskyEmbed::EmbedViewType::EXTERNAL_VIEW:
+        else if (holdsNonNull<AppBskyEmbed::ExternalView::SharedPtr>(embed))
         {
-            const auto& view = std::get<AppBskyEmbed::ExternalView::SharedPtr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::ExternalView::SharedPtr>(embed);
             qDebug() << "External:" << view->mExternal->mTitle;
-            break;
         }
-        case AppBskyEmbed::EmbedViewType::RECORD_VIEW:
+        else if (holdsNonNull<AppBskyEmbed::RecordView::SharedPtr>(embed))
         {
-            const auto& view = std::get<AppBskyEmbed::RecordView::SharedPtr>(embed.mEmbed);
+            const auto& view = std::get<AppBskyEmbed::RecordView::SharedPtr>(embed);
             switch (view->mRecordType)
             {
             case RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD:
@@ -146,12 +142,10 @@ private:
                 qDebug() << "UNKNOW RECORD";
                 break;
             }
-
-            break;
         }
-        default:
+        else
+        {
             qDebug() << "Other embed";
-            break;
         }
     }
 
