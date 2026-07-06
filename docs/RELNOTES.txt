@@ -1,3 +1,7 @@
+next
+====
+* Bug fix: continuous space detection
+
 6.7
 ===
 * OAuth: reject token response is atproto scope is missing

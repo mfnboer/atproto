@@ -29,7 +29,7 @@ bool RichTextMaster::hasContinuousWhitespace(const QString& text)
         }
         else
         {
-            return false;
+            return true;
         }
     }
 
