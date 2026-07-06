@@ -173,6 +173,10 @@ public:
 
     void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
 
+    // The callback function will be called immediately after receiving new
+    // tokens from then network thread
+    void setOAuthNewTokensCb(const Xrpc::NetworkThread::NewTokensCb& cb);
+
     Xrpc::Client* getXrpcClient() const { return mXrpc.get(); }
     const QString& getPDS() const { return mXrpc->getPDS(); }
     const ComATProtoServer::Session* getSession() const { return mSession.get(); }

@@ -176,6 +176,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs, const QString&
     connect(this, &Client::dpopNoncesChanged, mNetworkThread.get(), &NetworkThread::setDpopNonces, Qt::QueuedConnection);
     connect(this, &Client::userAgentChanged, mNetworkThread.get(), &NetworkThread::setUserAgent, Qt::QueuedConnection);
     connect(this, &Client::videoHostChanged, mNetworkThread.get(), &NetworkThread::setVideoHost, Qt::QueuedConnection);
+    connect(this, &Client::oauthNewTokensCbChanged, mNetworkThread.get(), &NetworkThread::setOAuthNewTokensCb, Qt::QueuedConnection);
 
     connect(this, &Client::oauthLogin, mNetworkThread.get(), &NetworkThread::oauthLogin, Qt::QueuedConnection);
     connect(this, &Client::oauthRequestInitialToken, mNetworkThread.get(), &NetworkThread::oauthRequestInitialToken, Qt::QueuedConnection);
@@ -218,6 +219,11 @@ void Client::setUserAgent(const QString& userAgent)
 void Client::setVideoHost(const QString& host)
 {
     emit videoHostChanged(host);
+}
+
+void Client::setOAuthNewTokensCb(const NetworkThread::NewTokensCb& cb)
+{
+    emit oauthNewTokensCbChanged(cb);
 }
 
 void Client::enableOAuth(bool enable)

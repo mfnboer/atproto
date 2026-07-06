@@ -934,6 +934,11 @@ void NetworkThread::setDpopNonces(const QString& pdsDpopNonce, const QString& au
         mOAuth->setDpopNonce(authDpopNonce);
 }
 
+void NetworkThread::setOAuthNewTokensCb(const NewTokensCb& cb)
+{
+    mOAuthNewTokensCb = cb;
+}
+
 void NetworkThread::oauthLogin(const QString& user, const QString& clientId,
                                const QString& redirectUrl, const QStringList& scope,
                                const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
@@ -1026,6 +1031,10 @@ void NetworkThread::oauthRefreshToken(const QString& refreshToken,
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Token refreshed access:" << newAccessToken << "refresh:" << newRefreshToken;
             setAccessJwt(newAccessToken);
+
+            if (mOAuthNewTokensCb)
+                mOAuthNewTokensCb(newAccessToken, newRefreshToken);
+
             emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
         },
         [this, errorCb](QString code, QString error){
@@ -1058,6 +1067,10 @@ void NetworkThread::oauthResumeSession(const QString& clientId, const QString& r
         [this, successCb](QString newAccessToken, QString newRefreshToken){
             qDebug() << "Resumed session access:" << newAccessToken << "refresh:" << newRefreshToken;
             setAccessJwt(newAccessToken);
+
+            if (mOAuthNewTokensCb)
+                mOAuthNewTokensCb(newAccessToken, newRefreshToken);
+
             emit oauthRefreshTokenSucces(newAccessToken, newRefreshToken, successCb);
         },
         [this, errorCb](QString code, QString error){

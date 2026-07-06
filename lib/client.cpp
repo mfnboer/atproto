@@ -111,6 +111,11 @@ void Client::setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopN
     mXrpc->setDpopNonces(pdsDpopNonce, authDpopNonce);
 }
 
+void Client::setOAuthNewTokensCb(const Xrpc::NetworkThread::NewTokensCb& cb)
+{
+    mXrpc->setOAuthNewTokensCb(cb);
+}
+
 bool Client::setLabelerDids(const std::unordered_set<QString>& dids)
 {
     if (dids.size() > MAX_LABELERS)

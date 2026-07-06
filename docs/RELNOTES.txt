@@ -1,6 +1,7 @@
 next
 ====
 * Bug fix: continuous space detection
+* Callback function to process new tokens
 
 6.7
 ===

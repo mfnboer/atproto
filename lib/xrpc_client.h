@@ -39,8 +39,8 @@ public:
     void enableOAuth(bool enable);
     bool isOAuthEnabled() const { return mOAuthEnabled; }
     void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
-
     void setVideoHost(const QString& host);
+    void setOAuthNewTokensCb(const NetworkThread::NewTokensCb& cb);
 
     void setPDSFromSession(const ATProto::ComATProtoServer::Session& session);
     void setPDSFromDid(const QString& did, const SetPdsSuccessCb& successCb, const SetPdsErrorCb& errorCb);
@@ -72,6 +72,7 @@ signals:
     void dpopNoncesChanged(const QString& pdsDpopNonce, const QString& authDpopNonce);
     void userAgentChanged(const QString& userAgent);
     void videoHostChanged(const QString& host);
+    void oauthNewTokensCbChanged(const NetworkThread::NewTokensCb& cb);
 
     void oauthLogin(const QString& user, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                     const NetworkThread::OAuthLoginSuccessCb& successCb, const NetworkThread::OAuthErrorCb);

@@ -33,6 +33,7 @@ public:
     using ErrorCb = std::function<void(const QString& err, const QJsonDocument& json)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;
     using SuccessBytesCb = std::function<void(const QByteArray& bytes, const QString& contentType)>;
+    using NewTokensCb = std::function<void(const QString& accessToken, const QString& refreshToken)>;
 
     // com.atproto.server
     using SuccessSessionCb = std::function<void(ATProto::ComATProtoServer::Session::SharedPtr)>;
@@ -242,6 +243,8 @@ public:
     void enableOAuth(const QString& clientId);
     void disableOAuth();
     void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
+    void setOAuthNewTokensCb(const NewTokensCb& cb);
+
     void oauthLogin(const QString& user, const QString& clientId,
                     const QString& redirectUrl, const QStringList& scope,
                     const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb);
@@ -415,6 +418,7 @@ private:
     QString mOAuthIssuer;
     QString mPdsDpopNonce;
     QString mAccessJwt;
+    NewTokensCb mOAuthNewTokensCb;
 };
 
 }
