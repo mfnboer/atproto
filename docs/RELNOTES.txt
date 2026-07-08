@@ -1,5 +1,6 @@
 next
 ====
+* Bug fix: issuerDisplayName and issuerHandle on verificationView
 * Bug fix: continuous space detection
 * Callback function to process new tokens
 

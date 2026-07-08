@@ -90,8 +90,8 @@ QJsonObject VerificationView::toJson() const
 {
     QJsonObject json;
     json.insert("issuer", mIssuer);
-    XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
-    XJsonObject::insertOptionalJsonValue(json, "handle", mHandle);
+    XJsonObject::insertOptionalJsonValue(json, "displayName", mIssuerDisplayName);
+    XJsonObject::insertOptionalJsonValue(json, "handle", mIssuerHandle);
     json.insert("uri", mUri);
     json.insert("isValid", mIsValid);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
@@ -103,8 +103,8 @@ VerificationView::SharedPtr VerificationView::fromJson(const QJsonObject& json)
     auto view = std::make_shared<VerificationView>();
     XJsonObject xjson(json);
     view->mIssuer = xjson.getRequiredString("issuer");
-    view->mDisplayName = xjson.getOptionalString("displayName");
-    view->mHandle = xjson.getOptionalString("handle");
+    view->mIssuerDisplayName = xjson.getOptionalString("issuerDisplayName");
+    view->mIssuerHandle = xjson.getOptionalString("issuerHandle");
     view->mUri = xjson.getRequiredString("uri");
     view->mIsValid = xjson.getRequiredBool("isValid");
     view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
