@@ -352,20 +352,6 @@ void PostMaster::getReposts(const AppBskyActor::ProfileViewBasic::SharedPtr& aut
                 return;
             }
 
-            std::vector<AppBskyFeed::Repost::SharedPtr> reposts;
-
-            for (const auto& record : output->mRecords)
-            {
-                try {
-                    auto repost = AppBskyFeed::Repost::fromJson(record->mValue);
-                    reposts.push_back(repost);
-                } catch (InvalidJsonException& e) {
-                    qWarning() << "Invalid repost:" << e.msg();
-                    qInfo() << record->mValue;
-                    continue;
-                }
-            }
-
             getRepostsContinue(author, output->mRecords, output->mCursor, successCb, errorCb);
         },
         [errorCb](const QString& err, const QString& msg){
@@ -394,7 +380,7 @@ void PostMaster::getRepostsContinue(const AppBskyActor::ProfileViewBasic::Shared
             repostMap[uri] = repost;
         } catch (InvalidJsonException& e) {
             qWarning() << "Invalid repost:" << e.msg();
-            qInfo() << record->mValue;
+            qDebug() << record->mValue;
             continue;
         }
     }
@@ -433,7 +419,7 @@ void PostMaster::getRepostsContinue(const AppBskyActor::ProfileViewBasic::Shared
 
                 if (repostIt == repostMap.end())
                 {
-                    qWarning() << "URI missing om repostMap:" << post->mUri;
+                    qWarning() << "URI missing in repostMap:" << post->mUri;
                     continue;
                 }
 

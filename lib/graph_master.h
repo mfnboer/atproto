@@ -14,13 +14,24 @@ namespace ATProto {
 class GraphMaster : public Presence
 {
 public:
+    struct VerificationsOuput
+    {
+        AppBskyActor::ProfileViewDetailed::List mVerifiedUsers;
+        std::optional<QString> mCursor;
+
+        using SharedPtr = std::shared_ptr<VerificationsOuput>;
+    };
+
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using CreateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using GetListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using GetVerificationsSuccessCb = std::function<void(VerificationsOuput::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
+
+    static constexpr int MAX_GET_VERIFICATIONS = 25;
 
     explicit GraphMaster(Client& client);
 
@@ -57,6 +68,20 @@ public:
                        const GetListSuccessCb& successCb, const ErrorCb& errorCb,
                        int maxPages = 10);
 
+    /**
+     * @brief getVerifications
+     * @param issuerDid
+     * @param limit min=1 max=25 default=25
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     * The verification state of the returned profile will have the verification as the last
+     * entry in the verification list.
+     */
+    void getVerifications(const QString& issuerDid,
+                          std::optional<int> limit, const std::optional<QString>& cursor,
+                          const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     void createList(const AppBskyGraph::List& list, const QString& rKey, const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(AppBskyGraph::List::SharedPtr list, const QString& rkey, const QString& description,
@@ -64,6 +89,10 @@ private:
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void getVerificationsContinue(const QString& issuerDid,
+                                  const ATProto::ComATProtoRepo::Record::List& verificationRecords,
+                                  const std::optional<QString>& cursor,
+                                  const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb);
 
     template<class RecordType>
     void createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb);

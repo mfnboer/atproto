@@ -320,6 +320,131 @@ void GraphMaster::getListByName(const QString& did, const QString& name, AppBsky
         errorCb);
 }
 
+void GraphMaster::getVerifications(const QString& issuerDid,
+                      std::optional<int> limit, const std::optional<QString>& cursor,
+                      const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get verifications issuer:" << issuerDid << "limit:" << limit << "cursor:" << cursor;
+    if (!limit)
+        limit = MAX_GET_VERIFICATIONS;
+
+    if (limit < 1 || limit > MAX_GET_VERIFICATIONS)
+    {
+        qWarning() << "Invalid limit:" << *limit;
+        return;
+    }
+
+    mClient.listRecords(issuerDid, AppBskyGraph::Verification::TYPE, limit, cursor,
+        [this, issuerDid, successCb, errorCb](ComATProtoRepo::ListRecordsOutput::SharedPtr output){
+            if (output->mRecords.empty())
+            {
+                qDebug() << "No verifications:" << issuerDid;
+
+                if (successCb)
+                {
+                    auto feed = std::make_shared<VerificationsOuput>();
+                    feed->mCursor = output->mCursor;
+                    successCb(feed);
+                }
+
+                return;
+            }
+
+            getVerificationsContinue(issuerDid, output->mRecords, output->mCursor, successCb, errorCb);
+        },
+        [errorCb](const QString& err, const QString& msg){
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
+void GraphMaster::getVerificationsContinue(const QString& issuerDid,
+                              const ATProto::ComATProtoRepo::Record::List& verificationRecords,
+                              const std::optional<QString>& cursor,
+                              const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    std::vector<QString> dids;
+    dids.reserve(verificationRecords.size());
+    std::unordered_map<QString, ATProto::ComATProtoRepo::Record::SharedPtr> recordMap;
+    std::unordered_map<QString, AppBskyGraph::Verification::SharedPtr> verificationMap;
+
+    for (const auto& record : verificationRecords)
+    {
+        try {
+            auto verification = AppBskyGraph::Verification::fromJson(record->mValue);
+            const QString& did = verification->mSubject;
+            dids.push_back(did);
+            recordMap[did] = record;
+            verificationMap[did] = verification;
+        } catch (InvalidJsonException& e) {
+            qWarning() << "Invalid verification:" << e.msg();
+            qDebug() << record->mValue;
+            continue;
+        }
+    }
+
+    if (dids.empty())
+    {
+        qWarning() << "No DIDs";
+
+        if (successCb)
+        {
+            auto feed = std::make_shared<VerificationsOuput>();
+            feed->mCursor = cursor;
+            successCb(feed);
+        }
+
+        return;
+    }
+
+    mClient.getProfiles(dids,
+        [recordMap, verificationMap, issuerDid, cursor, successCb](AppBskyActor::ProfileViewDetailed::List profiles){
+            if (!successCb)
+                return;
+
+            auto feed = std::make_shared<VerificationsOuput>();
+            feed->mCursor = cursor;
+
+            for (auto& profile : profiles)
+            {
+                const auto verificationIt = verificationMap.find(profile->mDid);
+
+                if (verificationIt == verificationMap.end())
+                {
+                    qWarning() << "DID missing in verificationMap:" << profile->mDid;
+                    continue;
+                }
+
+                const auto recordIt = recordMap.find(profile->mDid);
+
+                if (recordIt == recordMap.end())
+                {
+                    qWarning() << "DID missing in recordMap:" << profile->mDid;
+                    continue;
+                }
+
+                auto& verification = verificationIt->second;
+                auto verificationView = std::make_shared<AppBskyActor::VerificationView>();
+                verificationView->mIssuer = issuerDid;
+                verificationView->mUri = recordIt->second->mUri;
+                verificationView->mIsValid = false;
+                verificationView->mCreatedAt = verification->mCreatedAt;
+
+                if (!profile->mVerification)
+                    profile->mVerification = std::make_shared<AppBskyActor::VerificationState>();
+
+                profile->mVerification->mVerifications.push_back(verificationView);
+                feed->mVerifiedUsers.push_back(profile);
+            }
+
+            successCb(feed);
+        },
+        [errorCb](const QString& err, const QString& msg){
+            if (errorCb)
+                errorCb(err, msg);
+        });
+}
+
 template<class RecordType>
 void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
