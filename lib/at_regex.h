@@ -11,8 +11,11 @@ public:
     static const QRegularExpression HANDLE;
     static const QRegularExpression RKEY;
     static const QRegularExpression DID;
+    static const QRegularExpression DID_WEB;
 
     static bool isValidDid(const QString& did);
+    static bool isWebDid(const QString& did);
+    static QString getDomainFromWebDid(const QString& did);
     static bool isValidAtprotoProxy(const QString& value);
 };
 

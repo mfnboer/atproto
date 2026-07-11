@@ -48,6 +48,8 @@ private:
     using Request = PlcRequest;
 
     bool getPdsContinue(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex = 0);
+    bool getPdsForWebDid(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb);
+    void getPdsRequest(const QString& did, const QUrl& url, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex = -1);
     bool getAuditLogContinue(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex = 0);
 
     virtual void replyFinished(const Request& request, QNetworkReply* reply,

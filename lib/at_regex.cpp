@@ -7,11 +7,24 @@ namespace ATProto {
 const QRegularExpression ATRegex::HANDLE{ R"(([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)" };
 const QRegularExpression ATRegex::RKEY{ R"([a-zA-Z0-9\.\-_~:]{1,512})" };
 const QRegularExpression ATRegex::DID{ R"(did:[a-z]+:[a-zA-Z0-9\-\.:_]+)"};
+const QRegularExpression ATRegex::DID_WEB{ R"(did:web:(?<domain>[a-zA-Z0-9\-\.:_]+))"};
 
 bool ATRegex::isValidDid(const QString& did)
 {
     auto match = DID.matchView(did);
     return match.hasMatch();
+}
+
+bool ATRegex::isWebDid(const QString& did)
+{
+    auto match = DID_WEB.matchView(did);
+    return match.hasMatch();
+}
+
+QString ATRegex::getDomainFromWebDid(const QString& did)
+{
+    auto match = DID_WEB.matchView(did);
+    return match.captured("domain");
 }
 
 bool ATRegex::isValidAtprotoProxy(const QString& value)

@@ -1,6 +1,7 @@
 // Copyright (C) 2024 Michel de Boer
 // License: GPLv3
 #include "plc_directory_client.h"
+#include "at_regex.h"
 #include "lexicon.h"
 #include <QJsonObject>
 
@@ -50,18 +51,50 @@ void PlcDirectoryClient::getPds(const QString& did, const PdsSuccessCb& successC
         return;
     }
 
-    getPdsContinue(did, successCb, errorCb);
+    if (!getPdsContinue(did, successCb, errorCb))
+    {
+        if (errorCb)
+            errorCb(404, "Cannot resolve PDS");
+
+        return;
+    }
 }
 
 bool PlcDirectoryClient::getPdsContinue(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex)
 {
+    if (ATRegex::isWebDid(did))
+        return getPdsForWebDid(did, successCb, errorCb);
+
     if (hostIndex < 0 || hostIndex >= (int)mHosts.size())
         return false;
 
     const QString& host = mHosts[hostIndex];
-
-    Request request;
     QUrl url(QString("https://%1/%2").arg(host, did));
+    getPdsRequest(did, url, successCb, errorCb, hostIndex);
+
+    return true;
+}
+
+bool PlcDirectoryClient::getPdsForWebDid(const QString& did, const PdsSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get PDS for web DID:" << did;
+    const QString domain = ATRegex::getDomainFromWebDid(did);
+
+    if (domain.isEmpty())
+    {
+        qWarning() << "Failed to get domain from:" << did;
+        return false;
+    }
+
+    QUrl url(QString("https://%1/.well-known/did.json").arg(domain));
+    getPdsRequest(did, url, successCb, errorCb);
+
+    return true;
+}
+
+void PlcDirectoryClient::getPdsRequest(const QString& did, const QUrl& url, const PdsSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex)
+{
+    Request request;
     request.mNetworkRequest = QNetworkRequest(url);
     setUserAgentHeader(request.mNetworkRequest);
 
@@ -102,14 +135,12 @@ bool PlcDirectoryClient::getPdsContinue(const QString& did, const PdsSuccessCb& 
 
             qWarning() << errorCode << "-" << errorMsg;
 
-            if (getPdsContinue(did, successCb, errorCb, hostIndex + 1))
+            if (hostIndex >= 0 && getPdsContinue(did, successCb, errorCb, hostIndex + 1))
                 return;
 
             if (errorCb)
                 errorCb(errorCode, errorMsg);
         });
-
-    return true;
 }
 
 void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb)
@@ -119,6 +150,12 @@ void PlcDirectoryClient::getAuditLog(const QString& did, const AuditLogSuccessCb
 
 bool PlcDirectoryClient::getAuditLogContinue(const QString& did, const AuditLogSuccessCb& successCb, const ErrorCb& errorCb, int hostIndex)
 {
+    if (ATRegex::isWebDid(did))
+    {
+        qDebug() << "No first appearance for web DID:" << did;
+        return false;
+    }
+
     if (hostIndex < 0 || hostIndex >= (int)mHosts.size())
         return false;
 
@@ -165,6 +202,16 @@ bool PlcDirectoryClient::getAuditLogContinue(const QString& did, const AuditLogS
 
 void PlcDirectoryClient::getFirstAppearance(const QString& did, const FirstAppearanceSuccessCb& successCb, const ErrorCb& errorCb)
 {
+    if (ATRegex::isWebDid(did))
+    {
+        qDebug() << "No first appearance for web DID:" << did;
+
+        if (errorCb)
+            errorCb(-1, "No first appearance available for web DID");
+
+        return;
+    }
+
     if (mFirstAppearanceCache.contains(did))
     {
         const QDateTime* appearance = mFirstAppearanceCache[did];
