@@ -320,7 +320,7 @@ void GraphMaster::getListByName(const QString& did, const QString& name, AppBsky
         errorCb);
 }
 
-void GraphMaster::getVerifications(const QString& issuerDid,
+void GraphMaster::getVerifications(const QString& issuerDid, bool addVerificationsAsValid,
                       std::optional<int> limit, const std::optional<QString>& cursor,
                       const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -335,7 +335,7 @@ void GraphMaster::getVerifications(const QString& issuerDid,
     }
 
     mClient.listRecords(issuerDid, AppBskyGraph::Verification::TYPE, limit, cursor,
-        [this, issuerDid, successCb, errorCb](ComATProtoRepo::ListRecordsOutput::SharedPtr output){
+        [this, issuerDid, addVerificationsAsValid, successCb, errorCb](ComATProtoRepo::ListRecordsOutput::SharedPtr output){
             if (output->mRecords.empty())
             {
                 qDebug() << "No verifications:" << issuerDid;
@@ -350,7 +350,8 @@ void GraphMaster::getVerifications(const QString& issuerDid,
                 return;
             }
 
-            getVerificationsContinue(issuerDid, output->mRecords, output->mCursor, successCb, errorCb);
+            getVerificationsContinue(issuerDid, addVerificationsAsValid,
+                                     output->mRecords, output->mCursor, successCb, errorCb);
         },
         [errorCb](const QString& err, const QString& msg){
             if (errorCb)
@@ -358,7 +359,7 @@ void GraphMaster::getVerifications(const QString& issuerDid,
         });
 }
 
-void GraphMaster::getVerificationsContinue(const QString& issuerDid,
+void GraphMaster::getVerificationsContinue(const QString& issuerDid, bool addVerificationsAsValid,
                               const ATProto::ComATProtoRepo::Record::List& verificationRecords,
                               const std::optional<QString>& cursor,
                               const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb)
@@ -398,7 +399,7 @@ void GraphMaster::getVerificationsContinue(const QString& issuerDid,
     }
 
     mClient.getProfiles(dids,
-        [recordMap, verificationMap, issuerDid, cursor, successCb](AppBskyActor::ProfileViewDetailed::List profiles){
+        [recordMap, verificationMap, issuerDid, addVerificationsAsValid, cursor, successCb](AppBskyActor::ProfileViewDetailed::List profiles){
             if (!successCb)
                 return;
 
@@ -427,7 +428,7 @@ void GraphMaster::getVerificationsContinue(const QString& issuerDid,
                 auto verificationView = std::make_shared<AppBskyActor::VerificationView>();
                 verificationView->mIssuer = issuerDid;
                 verificationView->mUri = recordIt->second->mUri;
-                verificationView->mIsValid = false;
+                verificationView->mIsValid = addVerificationsAsValid;
                 verificationView->mCreatedAt = verification->mCreatedAt;
 
                 if (!profile->mVerification)

@@ -71,14 +71,15 @@ public:
     /**
      * @brief getVerifications
      * @param issuerDid
+     * @param addVerificationsAsValid value of the isValid flag in the VerificationView added
      * @param limit min=1 max=25 default=25
      * @param cursor
      * @param successCb
      * @param errorCb
      * The verification state of the returned profile will have the verification as the last
-     * entry in the verification list.
+     * entry in the VerificationView list.
      */
-    void getVerifications(const QString& issuerDid,
+    void getVerifications(const QString& issuerDid, bool addVerificationsAsValid,
                           std::optional<int> limit, const std::optional<QString>& cursor,
                           const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -89,7 +90,7 @@ private:
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
-    void getVerificationsContinue(const QString& issuerDid,
+    void getVerificationsContinue(const QString& issuerDid, bool addVerificationsAsValid,
                                   const ATProto::ComATProtoRepo::Record::List& verificationRecords,
                                   const std::optional<QString>& cursor,
                                   const GetVerificationsSuccessCb& successCb, const ErrorCb& errorCb);
