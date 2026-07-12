@@ -1,5 +1,5 @@
-next
-====
+6.8
+===
 * did:web resolution
 * Get verifications from a DID
 * Bug fix: issuerDisplayName and issuerHandle on verificationView
