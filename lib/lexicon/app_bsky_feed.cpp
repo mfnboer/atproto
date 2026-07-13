@@ -728,6 +728,17 @@ SearchPostsOutput::SharedPtr SearchPostsOutput::fromJson(const QJsonObject& json
     return output;
 }
 
+SearchPostsV2Output::SharedPtr SearchPostsV2Output::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<SearchPostsV2Output>();
+    const XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
+    output->mPosts = xjson.getRequiredVector<PostView>("posts");
+    output->mDetectedQueryLanguages = xjson.getOptionalStringVector("detectedQueryLanguages");
+    return output;
+}
+
 QJsonObject GeneratorViewerState::toJson() const
 {
     QJsonObject json;

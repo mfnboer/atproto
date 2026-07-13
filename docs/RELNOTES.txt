@@ -1,3 +1,7 @@
+next
+====
+* searchPostsV2
+
 6.8
 ===
 * did:web resolution

@@ -63,6 +63,13 @@ static void addOptionalBoolParam(Xrpc::NetworkThread::Params& params, const QStr
         params.append({name, boolValue(*value)});
 }
 
+static void addStringListParam(Xrpc::NetworkThread::Params& params, const QString& name,
+                               const QStringList& list)
+{
+    for (const auto& str : list)
+        params.append({name, str});
+}
+
 Client::SharedPtr Client::createPublicApiClient(QObject* parent)
 {
     auto xrpc = std::make_unique<Xrpc::Client>(PUBLIC_API_HOST);
@@ -1243,19 +1250,196 @@ void Client::searchPosts(const QString& q, std::optional<int> limit, const std::
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
     mXrpc->get("app.bsky.feed.searchPosts", params, httpHeaders,
-        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
-            if (!presence)
-                return;
+        [successCb](AppBskyFeed::SearchPostsOutput::SharedPtr output){
+            qDebug() << "searchPosts:" << output->mPosts.size();
 
-            qDebug() << "searchPosts: ok";
-            try {
-                auto output = AppBskyFeed::SearchPostsOutput::fromJson(reply.object());
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
 
-                if (successCb)
-                    successCb(std::move(output));
-            } catch (InvalidJsonException& e) {
-                invalidJsonError(e, errorCb);
-            }
+Client::SearchParams& Client::SearchParams::setSort(const QString& sort)
+{
+    mParams.push_back({"sort", sort});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addAuthors(const QStringList& authors)
+{
+    addStringListParam(mParams, "authors", authors);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addMentions(const QStringList& mentions)
+{
+    addStringListParam(mParams, "mentions", mentions);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addDomains(const QStringList& domains)
+{
+    addStringListParam(mParams, "domains", domains);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addUrls(const QStringList& urls)
+{
+    addStringListParam(mParams, "urls", urls);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addEmbedAtUris(const QStringList& atUris)
+{
+    addStringListParam(mParams, "embeddedAtUris", atUris);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addHashtags(const QStringList& hashtags)
+{
+    addStringListParam(mParams, "hashtags", hashtags);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeAuthors(const QStringList& authors)
+{
+    addStringListParam(mParams, "excludeAuthors", authors);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeMentions(const QStringList& mentions)
+{
+    addStringListParam(mParams, "excludeMentions", mentions);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeDomains(const QStringList& domains)
+{
+    addStringListParam(mParams, "excludeDomains", domains);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeUrls(const QStringList& urls)
+{
+    addStringListParam(mParams, "excludeUrls", urls);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeEmbedAtUris(const QStringList& atUris)
+{
+    addStringListParam(mParams, "excludeEmbeddedAtUris", atUris);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeHashtags(const QStringList& hashtags)
+{
+    addStringListParam(mParams, "excludeHashtags", hashtags);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setSince(const QDateTime& since)
+{
+    mParams.append({"since", since.toUTC().toString(Qt::ISODateWithMs)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setUntil(const QDateTime& until)
+{
+    mParams.append({"until", until.toUTC().toString(Qt::ISODateWithMs)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setAllTime(bool allTime)
+{
+    mParams.append({"allTime", boolValue(allTime)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addLanguages(const QStringList& languages)
+{
+    addStringListParam(mParams, "languages", languages);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::addExcludeLanguages(const QStringList& languages)
+{
+    addStringListParam(mParams, "excludeLanguages", languages);
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setHasMedia(bool hasMedia)
+{
+    mParams.append({"hasMedia", boolValue(hasMedia)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setHasVideo(bool hasVideo)
+{
+    mParams.append({"hasVideo", boolValue(hasVideo)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setReplyParentUri(const QString& uri)
+{
+    mParams.append({"replyParentUri", uri});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setThreadRootUri(const QString& uri)
+{
+    mParams.append({"threadRootUri", uri});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setExcludeReplies(bool excludeReplies)
+{
+    mParams.append({"excludeReplies", boolValue(excludeReplies)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setRepliesOnly(bool repliesOnly)
+{
+    mParams.append({"repliesOnly", boolValue(repliesOnly)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setFollowing(bool following)
+{
+    mParams.append({"following", boolValue(following)});
+    return *this;
+}
+
+Client::SearchParams& Client::SearchParams::setQueryLanguage(const QString& language)
+{
+    mParams.append({"queryLanguage", language});
+    return *this;
+}
+
+const Xrpc::NetworkThread::Params& Client::SearchParams::getParams() const
+{
+    return mParams;
+}
+
+void Client::searchPostsV2(const QString& query, std::optional<int> limit, const std::optional<QString>& cursor,
+                   const SearchParams& searchParams,
+                   const SearchPostsV2SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"query", query}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+    params.append(searchParams.getParams());
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.feed.searchPostsV2", params, httpHeaders,
+        [successCb](AppBskyFeed::SearchPostsV2Output::SharedPtr output){
+            qDebug() << "searchPostsV2:" << output->mPosts.size();
+
+            if (successCb)
+                successCb(std::move(output));
         },
         failure(errorCb),
         authToken());

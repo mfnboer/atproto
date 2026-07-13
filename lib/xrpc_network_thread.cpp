@@ -503,6 +503,13 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
 };
 
 template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSearchPostsV2OutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyFeed::SearchPostsV2Output;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSearchPostsV2Output;
+};
+
+template<typename T>
 struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessGetLikesOutputCb>>>
 {
     using ReplyType = ATProto::AppBskyFeed::GetLikesOutput;

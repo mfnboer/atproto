@@ -70,6 +70,7 @@ public:
     using SuccessGetPostsOutputCb = std::function<void(ATProto::AppBskyFeed::GetPostsOutput::SharedPtr)>;
     using SuccessGetQuotesOutputCb = std::function<void(ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr)>;
     using SuccessSearchPostsOutputCb = std::function<void(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr)>;
+    using SuccessSearchPostsV2OutputCb = std::function<void(ATProto::AppBskyFeed::SearchPostsV2Output::SharedPtr)>;
     using SuccessGetLikesOutputCb = std::function<void(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr)>;
     using SuccessGetRepostedByOutputCb = std::function<void(ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr)>;
 
@@ -162,6 +163,7 @@ public:
         SuccessGetPostsOutputCb,
         SuccessGetQuotesOutputCb,
         SuccessSearchPostsOutputCb,
+        SuccessSearchPostsV2OutputCb,
         SuccessGetLikesOutputCb,
         SuccessGetRepostedByOutputCb,
 
@@ -311,6 +313,7 @@ signals:
     void requestSuccessGetPostsOutput(ATProto::AppBskyFeed::GetPostsOutput::SharedPtr, SuccessGetPostsOutputCb);
     void requestSuccessGetQuotesOutput(ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr, SuccessGetQuotesOutputCb);
     void requestSuccessSearchPostsOutput(ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr, SuccessSearchPostsOutputCb);
+    void requestSuccessSearchPostsV2Output(ATProto::AppBskyFeed::SearchPostsV2Output::SharedPtr, SuccessSearchPostsV2OutputCb);
     void requestSuccessGetLikesOutput(ATProto::AppBskyFeed::GetLikesOutput::SharedPtr, SuccessGetLikesOutputCb);
     void requestSuccessGetRepostedByOutput(ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr, SuccessGetRepostedByOutputCb);
 

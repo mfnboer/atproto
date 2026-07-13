@@ -320,7 +320,8 @@ struct SearchSortOrder : public QObject
 
 public:
     SHARED_CONST(QString, TOP, QStringLiteral("top"));
-    SHARED_CONST(QString, LATEST, QStringLiteral("latest"));
+    SHARED_CONST(QString, LATEST, QStringLiteral("latest")); // TODO: DEPRECATED
+    SHARED_CONST(QString, RECENT, QStringLiteral("recent"));
 };
 
 struct AuthorFeedFilter : public QObject
@@ -358,6 +359,18 @@ struct SearchPostsOutput
     PostView::List mPosts;
 
     using SharedPtr = std::shared_ptr<SearchPostsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.feed.searchPostsV2#output
+struct SearchPostsV2Output
+{
+    std::optional<QString> mCursor;
+    std::optional<int> mHitsTotal;
+    PostView::List mPosts;
+    std::vector<QString> mDetectedQueryLanguages;
+
+    using SharedPtr = std::shared_ptr<SearchPostsV2Output>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

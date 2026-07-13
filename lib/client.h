@@ -85,6 +85,7 @@ public:
     using SearchActorsSuccessCb = std::function<void(AppBskyActor::SearchActorsOutput::SharedPtr)>;
     using SearchActorsTypeaheadSuccessCb = std::function<void(AppBskyActor::SearchActorsTypeaheadOutput::SharedPtr)>;
     using SearchPostsSuccessCb = std::function<void(AppBskyFeed::SearchPostsOutput::SharedPtr)>;
+    using SearchPostsV2SuccessCb = std::function<void(AppBskyFeed::SearchPostsV2Output::SharedPtr)>;
     using GetPopularFeedGeneratorsSuccessCb = std::function<void(AppBskyUnspecced::GetPopularFeedGeneratorsOutput::SharedPtr)>;
     using GetTrendsSuccessCb = std::function<void(AppBskyUnspecced::GetTrendsOutput::SharedPtr)>;
     using GetSuggestedStarterPacksCb = std::function<void(AppBskyUnspecced::GetSuggestedStarterPacksOutput::SharedPtr)>;
@@ -561,11 +562,52 @@ public:
      * @param successCb
      * @param errorCb
      */
+    // TODO: DEPRECATED
     void searchPosts(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
                      const std::optional<QString>& sort, const std::optional<QString>& author,
                      const std::optional<QString>& mentions, const std::optional<QDateTime>& since,
                      const std::optional<QDateTime>& until, const std::optional<QString>& lang,
                      const SearchPostsSuccessCb& successCb, const ErrorCb& errorCb);
+
+    class SearchParams
+    {
+    public:
+        SearchParams& setSort(const QString& sort); // AppBskyFeed::SearchOrder
+        SearchParams& addAuthors(const QStringList& authors);
+        SearchParams& addMentions(const QStringList& mentions);
+        SearchParams& addDomains(const QStringList& domains);
+        SearchParams& addUrls(const QStringList& urls);
+        SearchParams& addEmbedAtUris(const QStringList& atUris);
+        SearchParams& addHashtags(const QStringList& hashtags);
+        SearchParams& addExcludeAuthors(const QStringList& authors);
+        SearchParams& addExcludeMentions(const QStringList& mentions);
+        SearchParams& addExcludeDomains(const QStringList& domains);
+        SearchParams& addExcludeUrls(const QStringList& urls);
+        SearchParams& addExcludeEmbedAtUris(const QStringList& atUris);
+        SearchParams& addExcludeHashtags(const QStringList& hashtags);
+        SearchParams& setSince(const QDateTime& since);
+        SearchParams& setUntil(const QDateTime& until);
+        SearchParams& setAllTime(bool allTime);
+        SearchParams& addLanguages(const QStringList& languages);
+        SearchParams& addExcludeLanguages(const QStringList& languages);
+        SearchParams& setHasMedia(bool hasMedia);
+        SearchParams& setHasVideo(bool hasVideo);
+        SearchParams& setReplyParentUri(const QString& uri);
+        SearchParams& setThreadRootUri(const QString& uri);
+        SearchParams& setExcludeReplies(bool excludeReplies);
+        SearchParams& setRepliesOnly(bool repliesOnly);
+        SearchParams& setFollowing(bool following);
+        SearchParams& setQueryLanguage(const QString& language);
+
+        const Xrpc::NetworkThread::Params& getParams() const;
+
+    private:
+        Xrpc::NetworkThread::Params mParams;
+    };
+
+    void searchPostsV2(const QString& query, std::optional<int> limit, const std::optional<QString>& cursor,
+                       const SearchParams& searchParams,
+                       const SearchPostsV2SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getLikes

@@ -81,6 +81,7 @@ Client::Client(const QString& host, int networkTransferTimeoutMs, const QString&
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetPostsOutput, this, &Client::doCallback<NetworkThread::SuccessGetPostsOutputCb, ATProto::AppBskyFeed::GetPostsOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetQuotesOutput, this, &Client::doCallback<NetworkThread::SuccessGetQuotesOutputCb, ATProto::AppBskyFeed::GetQuotesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessSearchPostsOutput, this, &Client::doCallback<NetworkThread::SuccessSearchPostsOutputCb, ATProto::AppBskyFeed::SearchPostsOutput::SharedPtr>);
+    connect(mNetworkThread.get(), &NetworkThread::requestSuccessSearchPostsV2Output, this, &Client::doCallback<NetworkThread::SuccessSearchPostsV2OutputCb, ATProto::AppBskyFeed::SearchPostsV2Output::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetLikesOutput, this, &Client::doCallback<NetworkThread::SuccessGetLikesOutputCb, ATProto::AppBskyFeed::GetLikesOutput::SharedPtr>);
     connect(mNetworkThread.get(), &NetworkThread::requestSuccessGetRepostedByOutput, this, &Client::doCallback<NetworkThread::SuccessGetRepostedByOutputCb, ATProto::AppBskyFeed::GetRepostedByOutput::SharedPtr>);
 
