@@ -1,6 +1,7 @@
 next
 ====
 * searchPostsV2
+* Bug fixes
 
 6.8
 ===

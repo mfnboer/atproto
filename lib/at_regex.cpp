@@ -11,19 +11,21 @@ const QRegularExpression ATRegex::DID_WEB{ R"(did:web:(?<domain>[a-zA-Z0-9\-\.:_
 
 bool ATRegex::isValidDid(const QString& did)
 {
-    auto match = DID.matchView(did);
+    static const QRegularExpression RE_DID(QString(R"(^%1$)").arg(DID.pattern()));
+    auto match = RE_DID.matchView(did);
     return match.hasMatch();
 }
 
 bool ATRegex::isWebDid(const QString& did)
 {
-    auto match = DID_WEB.matchView(did);
+    static const QRegularExpression RE_DID_WEB(QString(R"(^%1$)").arg(DID_WEB.pattern()));
+    auto match = RE_DID_WEB.matchView(did);
     return match.hasMatch();
 }
 
 bool ATRegex::isHandle(const QString& handle)
 {
-    static QRegularExpression RE_HANDLE(QString(R"(^%1$)").arg(HANDLE.pattern()));
+    static const QRegularExpression RE_HANDLE(QString(R"(^%1$)").arg(HANDLE.pattern()));
     auto match = RE_HANDLE.matchView(handle);
     return match.hasMatch();
 }
