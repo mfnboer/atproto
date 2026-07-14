@@ -15,6 +15,7 @@ public:
 
     static bool isValidDid(const QString& did);
     static bool isWebDid(const QString& did);
+    static bool isHandle(const QString& handle);
     static QString getDomainFromWebDid(const QString& did);
     static bool isValidAtprotoProxy(const QString& value);
 };

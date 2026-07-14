@@ -106,6 +106,8 @@ public:
 
     std::vector<QString> getRequiredStringVector(const QString& key) const;
     std::vector<QString> getOptionalStringVector(const QString& key) const;
+    QStringList getRequiredStringList(const QString& key) const;
+    QStringList getOptionalStringList(const QString& key) const;
 
     template<typename... Types>
     static std::variant<typename Types::SharedPtr...> toVariant(const QJsonObject& json);

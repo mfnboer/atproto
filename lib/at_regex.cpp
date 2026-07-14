@@ -21,6 +21,13 @@ bool ATRegex::isWebDid(const QString& did)
     return match.hasMatch();
 }
 
+bool ATRegex::isHandle(const QString& handle)
+{
+    static QRegularExpression RE_HANDLE(QString(R"(^%1$)").arg(HANDLE.pattern()));
+    auto match = RE_HANDLE.matchView(handle);
+    return match.hasMatch();
+}
+
 QString ATRegex::getDomainFromWebDid(const QString& did)
 {
     auto match = DID_WEB.matchView(did);
