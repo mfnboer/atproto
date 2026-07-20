@@ -412,7 +412,7 @@ struct PersonalDetailsPref
     std::optional<QDateTime> mBirthDate;
     QJsonObject mJson;
 
-    QJsonObject toJson() const { return mJson; } // TODO: encoding
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<PersonalDetailsPref>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -444,7 +444,7 @@ struct ThreadViewPref
     bool mPrioritizeFollowedUsers = false;
     QJsonObject mJson;
 
-    QJsonObject toJson() const { return mJson; } // TODO: encoding
+    QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ThreadViewPref>;
     static SharedPtr fromJson(const QJsonObject& json);
@@ -571,59 +571,36 @@ struct VerificationPrefs {
 // we can send it back unmodified for preference updates.
 struct UnknownPref
 {
+    QString mType;
     QJsonObject mJson;
 
     QJsonObject toJson() const { return mJson; }
 
     using SharedPtr = std::shared_ptr<UnknownPref>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "";
 };
 
-enum class PreferenceType
-{
-    ADULT_CONTENT,
-    CONTENT_LABEL,
-    SAVED_FEEDS,
-    SAVED_FEEDS_V2,
-    PERSONAL_DETAILS,
-    FEED_VIEW,
-    THREAD_VIEW,
-    MUTED_WORDS,
-    LABELERS,
-    POST_INTERACTION_SETTINGS,
-    VERIFICATION,
-    UNKNOWN
-};
-PreferenceType stringToPreferenceType(const QString& str);
+using PreferenceItem = std::variant<
+    AdultContentPref::SharedPtr,
+    ContentLabelPref::SharedPtr,
+    SavedFeedsPref::SharedPtr,
+    SavedFeedsPrefV2::SharedPtr,
+    PersonalDetailsPref::SharedPtr,
+    FeedViewPref::SharedPtr,
+    ThreadViewPref::SharedPtr,
+    MutedWordsPref::SharedPtr,
+    LabelersPref::SharedPtr,
+    PostInteractionSettingsPref::SharedPtr,
+    VerificationPrefs::SharedPtr,
+    UnknownPref::SharedPtr>;
 
-using PreferenceItem = std::variant<AdultContentPref::SharedPtr,
-                                    ContentLabelPref::SharedPtr,
-                                    SavedFeedsPref::SharedPtr,
-                                    SavedFeedsPrefV2::SharedPtr,
-                                    PersonalDetailsPref::SharedPtr,
-                                    FeedViewPref::SharedPtr,
-                                    ThreadViewPref::SharedPtr,
-                                    MutedWordsPref::SharedPtr,
-                                    LabelersPref::SharedPtr,
-                                    PostInteractionSettingsPref::SharedPtr,
-                                    VerificationPrefs::SharedPtr,
-                                    UnknownPref::SharedPtr>;
-
-struct Preference
-{
-    PreferenceItem mItem;
-    PreferenceType mType = PreferenceType::UNKNOWN;
-    QString mRawType;  
-
-    using SharedPtr = std::shared_ptr<Preference>;
-    using List = std::vector<SharedPtr>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
+using PreferenceList = std::vector<PreferenceItem>;
 
 // app.bsky.actor.getPreferences#output
 struct GetPreferencesOutput
 {
-    Preference::List mPreferences;
+    PreferenceList mPreferences;
 
     QJsonObject toJson() const;
 

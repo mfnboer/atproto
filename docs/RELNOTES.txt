@@ -1,3 +1,7 @@
+next
+====
+* Refactoring variant types
+
 6.9
 ===
 * searchPostsV2

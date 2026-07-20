@@ -4,94 +4,80 @@
 
 namespace ATProto {
 
-UserPreferences::UserPreferences(const AppBskyActor::Preference::List& preferences)
+UserPreferences::UserPreferences(const AppBskyActor::PreferenceList& preferences)
 {
     setPrefs(preferences);
 }
 
-void UserPreferences::setPrefs(const AppBskyActor::Preference::List& preferences)
+void UserPreferences::setPrefs(const AppBskyActor::PreferenceList& preferences)
 {
     for (const auto& pref : preferences)
     {
-        switch (pref->mType)
+        if (holdsNonNull<AppBskyActor::AdultContentPref::SharedPtr>(pref))
         {
-        case AppBskyActor::PreferenceType::ADULT_CONTENT:
-        {
-            const auto& adultContent = std::get<AppBskyActor::AdultContentPref::SharedPtr>(pref->mItem);
+            const auto& adultContent = std::get<AppBskyActor::AdultContentPref::SharedPtr>(pref);
             mAdultContent = adultContent->mEnabled;
-            break;
         }
-        case AppBskyActor::PreferenceType::CONTENT_LABEL:
+        else if (holdsNonNull<AppBskyActor::ContentLabelPref::SharedPtr>(pref))
         {
-            const auto& contentLabel = std::get<AppBskyActor::ContentLabelPref::SharedPtr>(pref->mItem);
+            const auto& contentLabel = std::get<AppBskyActor::ContentLabelPref::SharedPtr>(pref);
 
             if (contentLabel->mVisibility != LabelVisibility::UNKNOWN)
             {
                 const QString did = contentLabel->mLabelerDid.value_or("");
                 mContentLabelPrefs[did][contentLabel->mLabel] = contentLabel->mVisibility;
             }
-
-            break;
         }
-        case AppBskyActor::PreferenceType::SAVED_FEEDS:
+        else if (holdsNonNull<AppBskyActor::SavedFeedsPref::SharedPtr>(pref))
         {
-            const auto& savedFeed = std::get<AppBskyActor::SavedFeedsPref::SharedPtr>(pref->mItem);
+            const auto& savedFeed = std::get<AppBskyActor::SavedFeedsPref::SharedPtr>(pref);
             mSavedFeedsPref = *savedFeed;
-            break;
         }
-        case ATProto::AppBskyActor::PreferenceType::SAVED_FEEDS_V2:
+        else if (holdsNonNull<AppBskyActor::SavedFeedsPrefV2::SharedPtr>(pref))
         {
-            const auto& savedFeedsV2 = std::get<AppBskyActor::SavedFeedsPrefV2::SharedPtr>(pref->mItem);
+            const auto& savedFeedsV2 = std::get<AppBskyActor::SavedFeedsPrefV2::SharedPtr>(pref);
             mSavedFeedsPrefV2 = *savedFeedsV2;
-            break;
         }
-        case AppBskyActor::PreferenceType::PERSONAL_DETAILS:
+        else if (holdsNonNull<AppBskyActor::PersonalDetailsPref::SharedPtr>(pref))
         {
-            const auto& personal = std::get<AppBskyActor::PersonalDetailsPref::SharedPtr>(pref->mItem);
+            const auto& personal = std::get<AppBskyActor::PersonalDetailsPref::SharedPtr>(pref);
             mPersonalDetailsPref = *personal;
             mBirthDate = personal->mBirthDate;
-            break;
         }
-        case AppBskyActor::PreferenceType::FEED_VIEW:
+        else if (holdsNonNull<AppBskyActor::FeedViewPref::SharedPtr>(pref))
         {
-            const auto& feedView = std::get<AppBskyActor::FeedViewPref::SharedPtr>(pref->mItem);
+            const auto& feedView = std::get<AppBskyActor::FeedViewPref::SharedPtr>(pref);
             mFeedViewPrefs[feedView->mFeed] = *feedView;
-            break;
         }
-        case AppBskyActor::PreferenceType::THREAD_VIEW:
+        else if (holdsNonNull<AppBskyActor::ThreadViewPref::SharedPtr>(pref))
         {
-            const auto& threadView = std::get<AppBskyActor::ThreadViewPref::SharedPtr>(pref->mItem);
+            const auto& threadView = std::get<AppBskyActor::ThreadViewPref::SharedPtr>(pref);
             mThreadViewPref = *threadView;
-            break;
         }
-        case AppBskyActor::PreferenceType::MUTED_WORDS:
+        else if (holdsNonNull<AppBskyActor::MutedWordsPref::SharedPtr>(pref))
         {
-            const auto& mutedWords = std::get<AppBskyActor::MutedWordsPref::SharedPtr>(pref->mItem);
+            const auto& mutedWords = std::get<AppBskyActor::MutedWordsPref::SharedPtr>(pref);
             mMutedWordsPref = *mutedWords;
-            break;
         }
-        case AppBskyActor::PreferenceType::LABELERS:
+        else if (holdsNonNull<AppBskyActor::LabelersPref::SharedPtr>(pref))
         {
-            const auto& labelers = std::get<AppBskyActor::LabelersPref::SharedPtr>(pref->mItem);
+            const auto& labelers = std::get<AppBskyActor::LabelersPref::SharedPtr>(pref);
             mLabelersPref = *labelers;
-            break;
         }
-        case AppBskyActor::PreferenceType::POST_INTERACTION_SETTINGS:
+        else if (holdsNonNull<AppBskyActor::PostInteractionSettingsPref::SharedPtr>(pref))
         {
-            const auto& postInteractionSettings = std::get<AppBskyActor::PostInteractionSettingsPref::SharedPtr>(pref->mItem);
+            const auto& postInteractionSettings = std::get<AppBskyActor::PostInteractionSettingsPref::SharedPtr>(pref);
             mPostInteractionSettingsPref = *postInteractionSettings;
-            break;
         }
-        case AppBskyActor::PreferenceType::VERIFICATION:
+        else if (holdsNonNull<AppBskyActor::VerificationPrefs::SharedPtr>(pref))
         {
-            const auto& verification = std::get<AppBskyActor::VerificationPrefs::SharedPtr>(pref->mItem);
+            const auto& verification = std::get<AppBskyActor::VerificationPrefs::SharedPtr>(pref);
             mVerificationPrefs = *verification;
-            break;
         }
-        case AppBskyActor::PreferenceType::UNKNOWN:
-            const auto& unknowPref = std::get<AppBskyActor::UnknownPref::SharedPtr>(pref->mItem);
+        else if (holdsNonNull<AppBskyActor::UnknownPref::SharedPtr>(pref))
+        {
+            const auto& unknowPref = std::get<AppBskyActor::UnknownPref::SharedPtr>(pref);
             mUnknownPrefs.push_back(*unknowPref);
-            break;
         }
     }
 }
@@ -106,17 +92,14 @@ std::unordered_set<QString> UserPreferences::getLabelerDids() const
     return dids;
 }
 
-AppBskyActor::Preference::List UserPreferences::toPreferenceList() const
+AppBskyActor::PreferenceList UserPreferences::toPreferenceList() const
 {
-    AppBskyActor::Preference::SharedPtr pref;
-    AppBskyActor::Preference::List preferences;
+    AppBskyActor::PreferenceItem pref;
+    AppBskyActor::PreferenceList preferences;
 
     auto adultContentPref = std::make_shared<AppBskyActor::AdultContentPref>();
     adultContentPref->mEnabled = mAdultContent;
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(adultContentPref);
-    pref->mType = AppBskyActor::PreferenceType::ADULT_CONTENT;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(adultContentPref));
 
     for (const auto& [did, visibilityMap] : mContentLabelPrefs)
     {
@@ -129,77 +112,49 @@ AppBskyActor::Preference::List UserPreferences::toPreferenceList() const
 
             contentLabelPref->mLabel = label;
             contentLabelPref->mVisibility = visibility;
-            pref = std::make_shared<AppBskyActor::Preference>();
-            pref->mItem = std::move(contentLabelPref);
-            pref->mType = AppBskyActor::PreferenceType::CONTENT_LABEL;
-            preferences.push_back(std::move(pref));
+            preferences.push_back(std::move(contentLabelPref));
         }
     }
 
     auto savedFeedsPref = std::make_shared<AppBskyActor::SavedFeedsPref>(mSavedFeedsPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(savedFeedsPref);
-    pref->mType = AppBskyActor::PreferenceType::SAVED_FEEDS;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(savedFeedsPref));
 
     auto savedFeedsPrefV2 = std::make_shared<AppBskyActor::SavedFeedsPrefV2>(mSavedFeedsPrefV2);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(savedFeedsPrefV2);
-    pref->mType = AppBskyActor::PreferenceType::SAVED_FEEDS_V2;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(savedFeedsPrefV2));
 
-    auto personalDetails = std::make_shared<AppBskyActor::PersonalDetailsPref>(mPersonalDetailsPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(personalDetails);
-    pref->mType = AppBskyActor::PreferenceType::PERSONAL_DETAILS;
-    preferences.push_back(std::move(pref));
+    // With OAuth we do not get personal details and are not allowed to write them.
+    // With a password we get them and must write them back or they get lost!
+    if (!mPersonalDetailsPref.mJson.empty())
+    {
+        auto personalDetails = std::make_shared<AppBskyActor::PersonalDetailsPref>(mPersonalDetailsPref);
+        preferences.push_back(std::move(personalDetails));
+    }
 
     for (const auto& [_, feed] : mFeedViewPrefs)
     {
         auto feedViewPref = std::make_shared<AppBskyActor::FeedViewPref>(feed);
-        pref = std::make_shared<AppBskyActor::Preference>();
-        pref->mItem = std::move(feedViewPref);
-        pref->mType = AppBskyActor::PreferenceType::FEED_VIEW;
-        preferences.push_back(std::move(pref));
+        preferences.push_back(std::move(feedViewPref));
     }
 
     auto threadView = std::make_shared<AppBskyActor::ThreadViewPref>(mThreadViewPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(threadView);
-    pref->mType = AppBskyActor::PreferenceType::THREAD_VIEW;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(threadView));
 
     auto mutedWords = std::make_shared<AppBskyActor::MutedWordsPref>(mMutedWordsPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(mutedWords);
-    pref->mType = AppBskyActor::PreferenceType::MUTED_WORDS;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(mutedWords));
 
     auto labelers = std::make_shared<AppBskyActor::LabelersPref>(mLabelersPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(labelers);
-    pref->mType = AppBskyActor::PreferenceType::LABELERS;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(labelers));
 
     auto postInteractionSettings = std::make_shared<AppBskyActor::PostInteractionSettingsPref>(mPostInteractionSettingsPref);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(postInteractionSettings);
-    pref->mType = AppBskyActor::PreferenceType::POST_INTERACTION_SETTINGS;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(postInteractionSettings));
 
     auto verification = std::make_shared<AppBskyActor::VerificationPrefs>(mVerificationPrefs);
-    pref = std::make_shared<AppBskyActor::Preference>();
-    pref->mItem = std::move(verification);
-    pref->mType = AppBskyActor::PreferenceType::VERIFICATION;
-    preferences.push_back(std::move(pref));
+    preferences.push_back(std::move(verification));
 
     for (const auto& unknown : mUnknownPrefs)
     {
         auto unknownPref = std::make_shared<AppBskyActor::UnknownPref>(unknown);
-        pref = std::make_shared<AppBskyActor::Preference>();
-        pref->mItem = std::move(unknownPref);
-        pref->mType = AppBskyActor::PreferenceType::UNKNOWN;
-        preferences.push_back(std::move(pref));
+        preferences.push_back(std::move(unknownPref));
     }
 
     return preferences;

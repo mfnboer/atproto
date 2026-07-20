@@ -605,6 +605,14 @@ SavedFeedsPrefV2::SharedPtr SavedFeedsPrefV2::fromJson(const QJsonObject& json)
     return pref;
 }
 
+QJsonObject PersonalDetailsPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    XJsonObject::insertOptionalDateTime(json, "birthDate", mBirthDate);
+    return json;
+}
+
 PersonalDetailsPref::SharedPtr PersonalDetailsPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_shared<PersonalDetailsPref>();
@@ -639,6 +647,15 @@ FeedViewPref::SharedPtr FeedViewPref::fromJson(const QJsonObject& json)
     pref->mHideQuotePosts = xjson.getOptionalBool("hideQuotePosts", false);
     pref->mJson = json;
     return pref;
+}
+
+QJsonObject ThreadViewPref::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    XJsonObject::insertOptionalJsonValue(json, "sort", mSort);
+    json.insert("prioritizeFollowedUsers", mPrioritizeFollowedUsers);
+    return json;
 }
 
 ThreadViewPref::SharedPtr ThreadViewPref::fromJson(const QJsonObject& json)
@@ -883,98 +900,16 @@ VerificationPrefs::SharedPtr VerificationPrefs::fromJson(const QJsonObject& json
 UnknownPref::SharedPtr UnknownPref::fromJson(const QJsonObject& json)
 {
     auto pref = std::make_shared<UnknownPref>();
+    XJsonObject xjson(json);
+    pref->mType = xjson.getRequiredString("$type");
     pref->mJson = json;
-    return pref;
-}
-
-PreferenceType stringToPreferenceType(const QString& str)
-{
-    static const std::unordered_map<QString, PreferenceType> mapping = {
-        { AdultContentPref::TYPE, PreferenceType::ADULT_CONTENT },
-        { ContentLabelPref::TYPE, PreferenceType::CONTENT_LABEL },
-        { SavedFeedsPref::TYPE, PreferenceType::SAVED_FEEDS },
-        { SavedFeedsPrefV2::TYPE, PreferenceType::SAVED_FEEDS_V2 },
-        { PersonalDetailsPref::TYPE, PreferenceType::PERSONAL_DETAILS },
-        { FeedViewPref::TYPE, PreferenceType::FEED_VIEW },
-        { ThreadViewPref::TYPE, PreferenceType::THREAD_VIEW },
-        { MutedWordsPref::TYPE, PreferenceType::MUTED_WORDS },
-        { LabelersPref::TYPE, PreferenceType::LABELERS },
-        { PostInteractionSettingsPref::TYPE, PreferenceType::POST_INTERACTION_SETTINGS },
-        { VerificationPrefs::TYPE, PreferenceType::VERIFICATION }
-    };
-
-    const auto it = mapping.find(str);
-    if (it != mapping.end())
-        return it->second;
-
-    qDebug() << "Unknown preference type:" << str;
-    return PreferenceType::UNKNOWN;
-}
-
-Preference::SharedPtr Preference::fromJson(const QJsonObject& json)
-{
-    auto pref = std::make_shared<Preference>();
-    const XJsonObject xjson(json);
-    pref->mRawType = xjson.getRequiredString("$type");
-    pref->mType = stringToPreferenceType(pref->mRawType);
-
-    switch (pref->mType) {
-    case PreferenceType::ADULT_CONTENT:
-        pref->mItem = AdultContentPref::fromJson(json);
-        break;
-    case PreferenceType::CONTENT_LABEL:
-        pref->mItem = ContentLabelPref::fromJson(json);
-        break;
-    case PreferenceType::SAVED_FEEDS:
-        pref->mItem = SavedFeedsPref::fromJson(json);
-        break;
-    case PreferenceType::SAVED_FEEDS_V2:
-        pref->mItem = SavedFeedsPrefV2::fromJson(json);
-        break;
-    case PreferenceType::PERSONAL_DETAILS:
-        pref->mItem = PersonalDetailsPref::fromJson(json);
-        break;
-    case PreferenceType::FEED_VIEW:
-        pref->mItem = FeedViewPref::fromJson(json);
-        break;
-    case PreferenceType::THREAD_VIEW:
-        pref->mItem = ThreadViewPref::fromJson(json);
-        break;
-    case PreferenceType::MUTED_WORDS:
-        pref->mItem = MutedWordsPref::fromJson(json);
-        break;
-    case PreferenceType::LABELERS:
-        pref->mItem = LabelersPref::fromJson(json);
-        break;
-    case PreferenceType::POST_INTERACTION_SETTINGS:
-        pref->mItem = PostInteractionSettingsPref::fromJson(json);
-        break;
-    case PreferenceType::VERIFICATION:
-        pref->mItem = VerificationPrefs::fromJson(json);
-        break;
-    case PreferenceType::UNKNOWN:
-        pref->mItem = UnknownPref::fromJson(json);
-        break;
-    }
-
     return pref;
 }
 
 QJsonObject GetPreferencesOutput::toJson() const
 {
-    QJsonArray jsonArray;
-
-    for (const auto& pref : mPreferences)
-    {
-        QJsonObject prefJson;
-        std::visit([&prefJson](auto&& x){ prefJson = x->toJson(); }, pref->mItem);
-
-        if (!prefJson.empty())
-            jsonArray.append(prefJson);
-    }
-
     QJsonObject json;
-    json.insert("preferences", jsonArray);
+    json.insert("preferences", XJsonObject::toVariantJsonArray(mPreferences));
     return json;
 }
 
@@ -982,7 +917,20 @@ GetPreferencesOutput::SharedPtr GetPreferencesOutput::fromJson(const QJsonObject
 {
     auto output = std::make_shared<GetPreferencesOutput>();
     const XJsonObject xjson(json);
-    output->mPreferences = xjson.getRequiredVector<Preference>("preferences");
+    output->mPreferences =xjson.getRequiredVariantList<
+        AdultContentPref,
+        ContentLabelPref,
+        SavedFeedsPref,
+        SavedFeedsPrefV2,
+        PersonalDetailsPref,
+        FeedViewPref,
+        ThreadViewPref,
+        MutedWordsPref,
+        LabelersPref,
+        PostInteractionSettingsPref,
+        VerificationPrefs,
+        UnknownPref>("preferences");
+
     return output;
 }
 
