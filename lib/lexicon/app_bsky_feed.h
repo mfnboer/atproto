@@ -79,9 +79,7 @@ struct PostView
     QString mUri; // at-uri
     QString mCid;
     AppBskyActor::ProfileViewBasic::SharedPtr mAuthor; // required
-    std::variant<Record::Post::SharedPtr> mRecord;
-    RecordType mRecordType = RecordType::UNKNOWN;
-    QString mRawRecordType;
+    std::variant<Record::Post::SharedPtr, UnknownVariant::SharedPtr> mRecord;
     std::optional<AppBskyEmbed::EmbedViewUnion> mEmbed;
     int mBookmarkCount = 0;
     int mReplyCount = 0;

@@ -530,42 +530,16 @@ RecordView::SharedPtr RecordView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_shared<RecordView>();
     const XJsonObject xjson(json);
-    const auto recordJson = xjson.getRequiredJsonObject("record");
-    const XJsonObject recordXJson(recordJson);
-    const QString type = recordXJson.getRequiredString("$type");
-    view->mRecordType = stringToRecordType(type);
-
-    switch (view->mRecordType)
-    {
-    case RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD:
-        view->mRecord = RecordViewRecord::fromJson(recordJson);
-        break;
-    case RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND:
-        view->mRecord = RecordViewNotFound::fromJson(recordJson);
-        break;
-    case RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED:
-        view->mRecord = RecordViewBlocked::fromJson(recordJson);
-        break;
-    case RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED:
-        view->mRecord = RecordViewDetached::fromJson(recordJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
-        view->mRecord = AppBskyFeed::GeneratorView::fromJson(recordJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_GRAPH_LIST_VIEW:
-        view->mRecord = AppBskyGraph::ListView::fromJson(recordJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC:
-        view->mRecord = AppBskyGraph::StarterPackViewBasic::fromJson(recordJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_LABELER_VIEW:
-        view->mRecord = AppBskyLabeler::LabelerView::fromJson(recordJson);
-        break;
-    default:
-        qWarning() << "Unsupported record type in app.bsky.embed.record#view:" << type << json;
-        view->mUnsupportedType = type;
-        break;
-    }
+    view->mRecord = xjson.getRequiredVariant<
+        RecordViewRecord,
+        RecordViewNotFound,
+        RecordViewBlocked,
+        RecordViewDetached,
+        AppBskyFeed::GeneratorView,
+        AppBskyGraph::ListView,
+        AppBskyGraph::StarterPackViewBasic,
+        AppBskyLabeler::LabelerView,
+        ATProto::UnknownVariant>("record");
 
     return view;
 }
@@ -632,32 +606,16 @@ RecordViewRecord::SharedPtr RecordViewRecord::fromJson(const QJsonObject& json)
     viewRecord->mUri = xjson.getRequiredString("uri");
     viewRecord->mCid = xjson.getRequiredString("cid");
     viewRecord->mAuthor = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("author");
-    const auto valueJson = xjson.getRequiredJsonObject("value");
-    const XJsonObject valueXJson(valueJson);
-    viewRecord->mRawValueType = valueXJson.getRequiredString("$type");
-    viewRecord->mValueType = stringToRecordType(viewRecord->mRawValueType);
 
-    switch (viewRecord->mValueType)
-    {
-    case RecordType::APP_BSKY_FEED_POST:
-        viewRecord->mValue = AppBskyFeed::Record::Post::fromJson(valueJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_FEED_GENERATOR_VIEW:
-        viewRecord->mValue = AppBskyFeed::GeneratorView::fromJson(valueJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_GRAPH_LIST_VIEW:
-        viewRecord->mValue = AppBskyGraph::ListView::fromJson(valueJson);
-        break;
-    case ATProto::RecordType::APP_BSKY_LABELER_VIEW:
-        viewRecord->mValue = AppBskyLabeler::LabelerView::fromJson(valueJson);
-        break;
-    default:
-        qWarning() << "Unsupported value type in app.bsky.embed.record#viewRecord:"
-                   << viewRecord->mRawValueType;
-        break;
-    }
+    viewRecord->mValue = xjson.getRequiredVariant<
+        AppBskyFeed::Record::Post,
+        AppBskyFeed::GeneratorView,
+        AppBskyGraph::ListView,
+        AppBskyLabeler::LabelerView,
+        ATProto::UnknownVariant>("value");
 
     ComATProtoLabel::getLabels(viewRecord->mLabels, json);
+
     viewRecord->mEmbeds = xjson.getOptionalVariantList<
         ImagesView,
         VideoView,
@@ -666,6 +624,7 @@ RecordViewRecord::SharedPtr RecordViewRecord::fromJson(const QJsonObject& json)
         RecordView,
         RecordWithMediaView,
         UnknownVariant>("embeds");
+
     viewRecord->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return viewRecord;
 }

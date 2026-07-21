@@ -69,49 +69,6 @@ QJsonObject Blob::toJson() const
     return json;
 }
 
-RecordType stringToRecordType(const QString& str)
-{
-    static const std::unordered_map<QString, RecordType> recordMapping = {
-        { AppBskyFeed::Record::Post::TYPE, RecordType::APP_BSKY_FEED_POST },
-        { ATProto::AppBskyFeed::GeneratorView::TYPE, RecordType::APP_BSKY_FEED_GENERATOR_VIEW },
-        { ATProto::AppBskyGraph::ListView::TYPE, RecordType::APP_BSKY_GRAPH_LIST_VIEW },
-        { AppBskyGraph::StarterPackViewBasic::TYPE, RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC },
-        { AppBskyLabeler::LabelerView::TYPE, RecordType::APP_BSKY_LABELER_VIEW },
-        { AppBskyEmbed::RecordViewBlocked::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED },
-        { AppBskyEmbed::RecordViewNotFound::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND },
-        { AppBskyEmbed::RecordViewDetached::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED },
-        { AppBskyEmbed::RecordViewRecord::TYPE, RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD }
-    };
-
-    const auto it = recordMapping.find(str);
-    if (it != recordMapping.end())
-        return it->second;
-
-    qWarning() << "Unknown record type:" << str;
-    return RecordType::UNKNOWN;
-};
-
-QString recordTypeToString(RecordType recordType)
-{
-    static const std::unordered_map<RecordType, QString> mapping = {
-        { RecordType::APP_BSKY_FEED_POST, AppBskyFeed::Record::Post::TYPE },
-        { RecordType::APP_BSKY_FEED_GENERATOR_VIEW, ATProto::AppBskyFeed::GeneratorView::TYPE },
-        { RecordType::APP_BSKY_GRAPH_LIST_VIEW, ATProto::AppBskyGraph::ListView::TYPE },
-        { RecordType::APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC, AppBskyGraph::StarterPackViewBasic::TYPE },
-        { RecordType::APP_BSKY_LABELER_VIEW, AppBskyLabeler::LabelerView::TYPE },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_BLOCKED, AppBskyEmbed::RecordViewBlocked::TYPE },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND, AppBskyEmbed::RecordViewNotFound::TYPE },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_DETACHED, AppBskyEmbed::RecordViewDetached::TYPE },
-        { RecordType::APP_BSKY_EMBED_RECORD_VIEW_RECORD, AppBskyEmbed::RecordViewRecord::TYPE },
-    };
-
-    const auto it = mapping.find(recordType);
-    if (it != mapping.end())
-        return it->second;
-
-    return {};
-}
-
 DidDocument::SharedPtr DidDocument::fromJson(const QJsonObject& json)
 {
     const XJsonObject xjson(json);

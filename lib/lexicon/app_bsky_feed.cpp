@@ -363,15 +363,7 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
     postView->mUri = xjson.getRequiredString("uri");
     postView->mCid = xjson.getRequiredString("cid");
     postView->mAuthor = AppBskyActor::ProfileViewBasic::fromJson(json["author"].toObject());
-    const auto recordObj = xjson.getRequiredJsonObject("record");
-    const XJsonObject record(recordObj);
-    postView->mRawRecordType = record.getRequiredString("$type");
-    postView->mRecordType = stringToRecordType(postView->mRawRecordType);
-
-    if (postView->mRecordType == RecordType::APP_BSKY_FEED_POST)
-        postView->mRecord = Record::Post::fromJson(record.getObject());
-    else
-        qWarning() << QString("Unsupported record type in app.bsky.feed.defs#postView: %1").arg(postView->mRawRecordType);
+    postView->mRecord = xjson.getRequiredVariant<Record::Post, UnknownVariant>("record");
     
     postView->mEmbed = xjson.getOptionalVariant<
         AppBskyEmbed::ImagesView,
@@ -381,6 +373,7 @@ PostView::SharedPtr PostView::fromJson(const QJsonObject& json)
         AppBskyEmbed::RecordView,
         AppBskyEmbed::RecordWithMediaView,
         UnknownVariant>("embed");
+
     postView->mBookmarkCount = xjson.getOptionalInt("bookmarkCount", 0);
     postView->mReplyCount = xjson.getOptionalInt("replyCount", 0);
     postView->mRepostCount = xjson.getOptionalInt("repostCount", 0);

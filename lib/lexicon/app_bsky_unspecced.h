@@ -42,6 +42,7 @@ struct TrendView
 {
     QString mTopic;
     QString mDisplayName;
+    std::optional<QString> mDescription;
     QString mLink;
     QDateTime mStartedAt;
     std::optional<QString> mRawStatus;

@@ -11,6 +11,10 @@
 #include "lexicon.h"
 #include <QJsonDocument>
 
+namespace ATProto {
+struct UnknownVariant;
+}
+
 namespace ATProto::AppBskyFeed {
 
 // app.bsky.feed.defs#generatorViewerState
@@ -381,10 +385,8 @@ struct RecordView
                  AppBskyFeed::GeneratorView::SharedPtr,
                  AppBskyGraph::ListView::SharedPtr,
                  AppBskyGraph::StarterPackViewBasic::SharedPtr,
-                 AppBskyLabeler::LabelerView::SharedPtr> mRecord;
-    RecordType mRecordType = RecordType::UNKNOWN;
-
-    QString mUnsupportedType; // not part of the spec
+                 AppBskyLabeler::LabelerView::SharedPtr,
+                 std::shared_ptr<ATProto::UnknownVariant>> mRecord;
 
     QJsonObject toJson() const;
 
@@ -499,9 +501,8 @@ struct RecordViewRecord
     std::variant<AppBskyFeed::Record::Post::SharedPtr,
                  AppBskyFeed::GeneratorView::SharedPtr,
                  AppBskyGraph::ListView::SharedPtr,
-                 AppBskyLabeler::LabelerView::SharedPtr> mValue;
-    RecordType mValueType = RecordType::UNKNOWN;
-    QString mRawValueType;
+                 AppBskyLabeler::LabelerView::SharedPtr,
+                 ATProto::UnknownVariant::SharedPtr> mValue;
     ComATProtoLabel::Label::List mLabels;
     std::vector<EmbedViewUnion> mEmbeds;
     QDateTime mIndexedAt;

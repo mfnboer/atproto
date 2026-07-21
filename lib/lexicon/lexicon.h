@@ -155,25 +155,6 @@ struct Blob {
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-enum class RecordType
-{
-    APP_BSKY_EMBED_RECORD_VIEW_NOT_FOUND,
-    APP_BSKY_EMBED_RECORD_VIEW_BLOCKED,
-    APP_BSKY_EMBED_RECORD_VIEW_DETACHED,
-    APP_BSKY_EMBED_RECORD_VIEW_RECORD,
-
-    APP_BSKY_FEED_POST,
-    APP_BSKY_FEED_GENERATOR_VIEW,
-    APP_BSKY_GRAPH_LIST_VIEW,
-    APP_BSKY_GRAPH_STARTER_PACK_VIEW_BASIC,
-    APP_BSKY_LABELER_VIEW,
-
-    UNKNOWN
-};
-
-RecordType stringToRecordType(const QString& str);
-QString recordTypeToString(RecordType recordType);
-
 struct DidDocument {
     std::optional<QString> mATProtoPDS;
     QJsonObject mJson;
