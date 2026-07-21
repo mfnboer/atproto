@@ -40,6 +40,7 @@ TrendView::SharedPtr TrendView::fromJson(const QJsonObject& json)
     const XJsonObject xjson(json);
     view->mTopic = xjson.getRequiredString("topic");
     view->mDisplayName = xjson.getRequiredString("displayName");
+    view->mDescription = xjson.getOptionalString("description");
     view->mLink = xjson.getRequiredString("link");
     view->mStartedAt = xjson.getRequiredDateTime("startedAt");
     view->mPostCount = xjson.getRequiredInt("postCount");
