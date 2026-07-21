@@ -59,6 +59,7 @@ struct TrendView
 struct GetTrendsOutput
 {
     TrendView::List mTrends;
+    std::optional<QString> mRecIdStr;
 
     using SharedPtr = std::shared_ptr<GetTrendsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);

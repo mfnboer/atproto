@@ -58,6 +58,7 @@ GetTrendsOutput::SharedPtr GetTrendsOutput::fromJson(const QJsonObject& json)
     auto output = std::make_shared<GetTrendsOutput>();
     const XJsonObject xjson(json);
     output->mTrends = xjson.getRequiredVector<TrendView>("trends");
+    output->mRecIdStr = xjson.getOptionalString("recIdStr");
     return output;
 }
 
