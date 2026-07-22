@@ -36,12 +36,14 @@ static ATUri fromHttpsUri(const QString& uri, const QRegularExpression& reHandle
 ATUri ATUri::fromHttpsPostUri(const QString& uri)
 {
     static const QRegularExpression reHandleHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/post/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::HANDLE.pattern(),
             ATRegex::RKEY.pattern()));
 
     static const QRegularExpression reDidHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/post/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/post/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::DID.pattern(),
             ATRegex::RKEY.pattern()));
 
@@ -51,12 +53,14 @@ ATUri ATUri::fromHttpsPostUri(const QString& uri)
 ATUri ATUri::fromHttpsFeedUri(const QString& uri)
 {
     static const QRegularExpression reHandleHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/feed/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/feed/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::HANDLE.pattern(),
             ATRegex::RKEY.pattern()));
 
     static const QRegularExpression reDidHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/feed/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/feed/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::DID.pattern(),
             ATRegex::RKEY.pattern()));
 
@@ -66,12 +70,14 @@ ATUri ATUri::fromHttpsFeedUri(const QString& uri)
 ATUri ATUri::fromHttpsListUri(const QString& uri)
 {
     static const QRegularExpression reHandleHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/lists/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/lists/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::HANDLE.pattern(),
             ATRegex::RKEY.pattern()));
 
     static const QRegularExpression reDidHttps(
-        QString(R"(^https://bsky.app/profile/(?<authority>%1)/lists/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/profile/(?<authority>%2)/lists/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::DID.pattern(),
             ATRegex::RKEY.pattern()));
 
@@ -81,12 +87,14 @@ ATUri ATUri::fromHttpsListUri(const QString& uri)
 ATUri ATUri::fromHttpsStarterPackUri(const QString& uri)
 {
     static const QRegularExpression reHandleHttps(
-        QString(R"(^https://bsky.app/starter-pack/(?<authority>%1)/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/starter-pack/(?<authority>%2)/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::HANDLE.pattern(),
             ATRegex::RKEY.pattern()));
 
     static const QRegularExpression reDidHttps(
-        QString(R"(^https://bsky.app/starter-pack/(?<authority>%1)/(?<rkey>%2)$)").arg(
+        QString(R"(^https://%1/starter-pack/(?<authority>%2)/(?<rkey>%3)$)").arg(
+            ATRegex::DOMAIN.pattern(), // e.g. bksy.app or mu.social
             ATRegex::DID.pattern(),
             ATRegex::RKEY.pattern()));
 

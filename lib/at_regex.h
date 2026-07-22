@@ -9,6 +9,7 @@ namespace ATProto {
 class ATRegex {
 public:
     static const QRegularExpression HANDLE;
+    static const QRegularExpression DOMAIN;
     static const QRegularExpression RKEY;
     static const QRegularExpression DID;
     static const QRegularExpression DID_WEB;

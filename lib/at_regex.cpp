@@ -5,6 +5,7 @@
 namespace ATProto {
 
 const QRegularExpression ATRegex::HANDLE{ R"(([a-zA-Z0-9]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?\.)+[a-zA-Z]([a-zA-Z0-9\-]{0,61}[a-zA-Z0-9])?)" };
+const QRegularExpression ATRegex::DOMAIN = ATRegex::HANDLE; // a handle is a domain!
 const QRegularExpression ATRegex::RKEY{ R"([a-zA-Z0-9\.\-_~:]{1,512})" };
 const QRegularExpression ATRegex::DID{ R"(did:[a-z]+:[a-zA-Z0-9\-\.:_]+)"};
 const QRegularExpression ATRegex::DID_WEB{ R"(did:web:(?<domain>[a-zA-Z0-9\-\.:_]+))"};

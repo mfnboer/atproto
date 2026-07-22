@@ -2,6 +2,7 @@ next
 ====
 * Refactoring variant types
 * getTrends lexicon update
+* Intercept mu.social and other app links
 
 6.9
 ===
