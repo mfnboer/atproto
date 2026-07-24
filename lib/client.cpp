@@ -1597,12 +1597,14 @@ void Client::updateDraft(const AppBskyDraft::DraftWithId::SharedPtr& draft,
         authToken());
 }
 
-void Client::getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::getFollows(const QString& actor, std::optional<int> limit,
+                        const std::optional<QString>& cursor, const std::optional<QString>& sort,
                         const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"actor", actor}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "sort", sort);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -1619,12 +1621,14 @@ void Client::getFollows(const QString& actor, std::optional<int> limit, const st
         authToken());
 }
 
-void Client::getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::getFollowers(const QString& actor, std::optional<int> limit,
+                          const std::optional<QString>& cursor, const std::optional<QString>& sort,
                           const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"actor", actor}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "sort", sort);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);

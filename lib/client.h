@@ -697,10 +697,12 @@ public:
      * @param actor handle or did
      * @param limit min=1 default=50 max=100
      * @param cursor
+     * @param sort "top", "latest" default="latest"
      * @param successCb
      * @param errorCb
      */
-    void getFollows(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+    void getFollows(const QString& actor, std::optional<int> limit,
+                    const std::optional<QString>& cursor, const std::optional<QString>& sort,
                     const GetFollowsSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -711,8 +713,10 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void getFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
+    void getFollowers(const QString& actor, std::optional<int> limit,
+                      const std::optional<QString>& cursor, const std::optional<QString>& sort,
                       const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
+
     void getKnownFollowers(const QString& actor, std::optional<int> limit, const std::optional<QString>& cursor,
                            const GetFollowersSuccessCb& successCb, const ErrorCb& errorCb);
 

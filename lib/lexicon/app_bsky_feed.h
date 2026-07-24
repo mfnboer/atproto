@@ -318,7 +318,6 @@ struct SearchSortOrder : public QObject
 
 public:
     SHARED_CONST(QString, TOP, QStringLiteral("top"));
-    SHARED_CONST(QString, LATEST, QStringLiteral("latest")); // TODO: DEPRECATED
     SHARED_CONST(QString, RECENT, QStringLiteral("recent"));
 };
 

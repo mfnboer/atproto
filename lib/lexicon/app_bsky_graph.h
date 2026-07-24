@@ -9,6 +9,18 @@
 
 namespace ATProto::AppBskyGraph {
 
+struct SortOrder : public QObject
+{
+    Q_OBJECT
+    QML_UNCREATABLE("Class only exposes constants to QML.")
+    QML_ELEMENT
+    QML_SINGLETON
+
+public:
+    SHARED_CONST(QString, TOP, QStringLiteral("top"));
+    SHARED_CONST(QString, RECENT, QStringLiteral("latest"));
+};
+
 // app.bsky.graph.getFollows#output
 struct GetFollowsOutput
 {

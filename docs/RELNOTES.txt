@@ -1,6 +1,7 @@
 next
 ====
 * Refactoring variant types
+* Sort in getFollows, getFollowers
 * getTrends lexicon update
 * Intercept mu.social and other app links
 
