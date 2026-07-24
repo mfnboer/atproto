@@ -27,6 +27,7 @@ public:
     using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using GetListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using RenameListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using GetVerificationsSuccessCb = std::function<void(VerificationsOuput::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
@@ -52,7 +53,7 @@ public:
                     Blob::SharedPtr avatar, const QString& rKey,
                     const CreateListSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void updateList(const QString& listUri, const QString& name, const QString& description,
+    void updateList(const QString& listUri, const QString& name, const std::optional<QString>& description,
                     const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
                     Blob::SharedPtr avatar, bool updateAvatar,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
@@ -67,6 +68,12 @@ public:
                        const std::optional<QString>& cursor,
                        const GetListSuccessCb& successCb, const ErrorCb& errorCb,
                        int maxPages = 10);
+
+    // Find a list by its old name and change the name to new name.
+    void renameListByName(const QString& did, const QString& oldName, const QString& newName,
+                          AppBskyGraph::ListPurpose purpose, const std::optional<QString>& cursor,
+                          const RenameListSuccessCb& successCb, const ErrorCb& errorCb,
+                          int maxPages = 10);
 
     /**
      * @brief getVerifications

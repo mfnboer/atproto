@@ -104,7 +104,7 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey
         });
 }
 
-void GraphMaster::updateList(const QString& listUri, const QString& name, const QString& description,
+void GraphMaster::updateList(const QString& listUri, const QString& name, const std::optional<QString>& description,
                              const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
                              Blob::SharedPtr avatar, bool updateAvatar,
                              const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
@@ -131,8 +131,8 @@ void GraphMaster::updateList(const QString& listUri, const QString& name, const 
                     mRKeyBlobMap.erase(atUri.getRkey());
                 }
 
-                if (list->mDescription.value_or("") != description)
-                    updateList(std::move(list), atUri.getRkey(), description, embeddedLinks, successCb, errorCb);
+                if (description && list->mDescription.value_or("") != *description)
+                    updateList(std::move(list), atUri.getRkey(), *description, embeddedLinks, successCb, errorCb);
                 else
                     updateList(*list, atUri.getRkey(), successCb, errorCb);
             } catch (InvalidJsonException& e) {
@@ -318,6 +318,25 @@ void GraphMaster::getListByName(const QString& did, const QString& name, AppBsky
                 errorCb(ATProtoErrorMsg::NOT_FOUND, "List not found");
         },
         errorCb);
+}
+
+void GraphMaster::renameListByName(const QString& did, const QString& oldName, const QString& newName,
+                      AppBskyGraph::ListPurpose purpose, const std::optional<QString>& cursor,
+                      const RenameListSuccessCb& successCb, const ErrorCb& errorCb,
+                      int maxPages)
+{
+    qDebug() << "Rename list:" << oldName << "new:" << newName << "purpose:" << (int)purpose << "did:" << did << "cursor:" << cursor << "maxPages:" << maxPages;
+
+    getListByName(did, oldName, purpose, cursor,
+        [this, presence=getPresence(), newName, successCb, errorCb](const QString& uri, const QString&){
+            if (!presence)
+                return;
+
+            qDebug() << "Found list:" << uri << "rename to:" << newName;
+            updateList(uri, newName, {}, {}, nullptr, false, successCb, errorCb);
+        },
+        errorCb,
+        maxPages);
 }
 
 void GraphMaster::getVerifications(const QString& issuerDid, bool addVerificationsAsValid,
