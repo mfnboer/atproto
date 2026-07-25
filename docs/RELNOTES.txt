@@ -1,4 +1,4 @@
-next
+6.10
 ====
 * Refactoring variant types
 * Sort in getFollows, getFollowers
