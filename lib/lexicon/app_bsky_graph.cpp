@@ -48,7 +48,7 @@ GetMutesOutput::SharedPtr GetMutesOutput::fromJson(const QJsonObject& json)
 QJsonObject Follow::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.graph.follow");
+    json.insert("$type", TYPE);
     json.insert("subject", mSubject);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "via", mVia);

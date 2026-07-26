@@ -1,3 +1,8 @@
+next
+====
+* Add starterPack to listNotifications
+* Refactoring variant types
+
 6.10
 ====
 * Refactoring variant types

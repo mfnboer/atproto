@@ -75,6 +75,7 @@ struct Follow
 
     using SharedPtr = std::shared_ptr<Follow>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.follow";
 };
 
 // app.bsky.graph.block

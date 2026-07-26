@@ -166,8 +166,9 @@ struct Notification
                  AppBskyGraph::Follow::SharedPtr,
                  AppBskyGraph::StarterPack::SharedPtr,
                  AppBskyGraph::Verification::SharedPtr,
-                 RecordDeleted::SharedPtr> mRecord;
-    QString mRawRecordType;
+                 RecordDeleted::SharedPtr,
+                 UnknownVariant::SharedPtr> mRecord;
+    AppBskyGraph::StarterPackViewBasic::SharedPtr mStarterPack; // optional
     bool mIsRead;
     QDateTime mIndexedAt;
     ComATProtoLabel::Label::List mLabels;
