@@ -59,31 +59,17 @@ struct LabelerViewDetailed
 
     using SharedPtr = std::shared_ptr<LabelerViewDetailed>;
     static SharedPtr fromJson(const QJsonObject& json);
-};
-
-struct GetServicesOutputView
-{
-    enum class ViewType
-    {
-        VIEW,
-        VIEW_DETAILED,
-        UNKNOWN
-    };
-    static ViewType stringToViewType(const QString& str);
-
-    std::variant<LabelerView::SharedPtr, LabelerViewDetailed::SharedPtr> mView;
-    ViewType mViewType = ViewType::UNKNOWN;
-    QString mRawViewType;
-
-    using SharedPtr = std::shared_ptr<GetServicesOutputView>;
-    using List = std::vector<SharedPtr>;
-    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.labeler.defs#labelerViewDetailed";
 };
 
 // app.bsky.labeler.getServices#output
 struct GetServicesOutput
 {
-    GetServicesOutputView::List mViews;
+    using ViewType = std::variant<LabelerView::SharedPtr,
+                                  LabelerViewDetailed::SharedPtr,
+                                  UnknownVariant::SharedPtr>;
+
+    std::vector<ViewType> mViews;
 
     using SharedPtr = std::shared_ptr<GetServicesOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
