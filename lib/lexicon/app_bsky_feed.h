@@ -132,33 +132,16 @@ struct BlockedPost
     static constexpr char const* TYPE = "app.bsky.feed.defs#blockedPost";
 };
 
-enum class PostElementType
-{
-    NOT_FOUND_POST,
-    BLOCKED_POST,
-    THREAD_VIEW_POST,
-    POST_VIEW,
-    UNKNOWN
-};
-PostElementType stringToPostElementType(const QString& str);
-
-struct ReplyElement
-{
-    PostElementType mType = PostElementType::UNKNOWN;
-    QString mUnsupportedType;
-    std::variant<PostView::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
-
-    QJsonObject toJson() const;
-
-    using SharedPtr = std::shared_ptr<ReplyElement>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
 // app.bsky.feed.defs#replyRef
 struct ReplyRef
 {
-    ReplyElement::SharedPtr mRoot; // required
-    ReplyElement::SharedPtr mParent; // required
+    using ReplyElementType = std::variant<PostView::SharedPtr,
+                                          NotFoundPost::SharedPtr,
+                                          BlockedPost::SharedPtr,
+                                          UnknownVariant::SharedPtr>;
+
+    ReplyElementType mRoot; // required
+    ReplyElementType mParent; // required
     AppBskyActor::ProfileViewBasic::SharedPtr mGrandparentAuthor; // optional
 
     QJsonObject toJson() const;
@@ -222,36 +205,32 @@ struct OutputFeed
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-struct ThreadElement;
+struct ThreadViewPost;
+
+using ThreadElementType = std::variant<std::shared_ptr<ThreadViewPost>,
+                                       NotFoundPost::SharedPtr,
+                                       BlockedPost::SharedPtr,
+                                       UnknownVariant::SharedPtr>;
 
 // app.bsky.feed.defs#threadViewPost
 struct ThreadViewPost
 {
     PostView::SharedPtr mPost; // required
-    std::shared_ptr<ThreadElement> mParent; // optional
-    std::vector<std::shared_ptr<ThreadElement>> mReplies;
+    std::optional<ThreadElementType> mParent; // optional
+    std::vector<ThreadElementType> mReplies; // optional
 
     // Not an atproto field. Derived to make it easy to identify threads.
     bool mHasReplyFromPostAuthor = false;
 
     using SharedPtr = std::shared_ptr<ThreadViewPost>;
     static SharedPtr fromJson(const QJsonObject& json);
-};
-
-struct ThreadElement
-{
-    PostElementType mType;
-    QString mUnsupportedType;
-    std::variant<ThreadViewPost::SharedPtr, NotFoundPost::SharedPtr, BlockedPost::SharedPtr> mPost;
-
-    using SharedPtr = std::shared_ptr<ThreadElement>;
-    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.defs#threadViewPost";
 };
 
 // app.bsky.feed.getPostThread/output
 struct PostThread
 {
-    ThreadElement::SharedPtr mThread; // required
+    ThreadElementType mThread; // required
     ThreadgateView::SharedPtr mThreadgate; // optional
 
     using SharedPtr = std::shared_ptr<PostThread>;

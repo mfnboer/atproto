@@ -394,44 +394,11 @@ GetPostsOutput::SharedPtr GetPostsOutput::fromJson(const QJsonObject& json)
     return output;
 }
 
-QJsonObject ReplyElement::toJson() const
-{
-    return XJsonObject::variantToJsonObject(mPost);
-}
-
-ReplyElement::SharedPtr ReplyElement::fromJson(const QJsonObject& json)
-{
-    auto element = std::make_shared<ReplyElement>();
-    const XJsonObject xjson(json);
-    const auto typeString = xjson.getRequiredString("$type");
-    element->mType = stringToPostElementType(typeString);
-
-    switch (element->mType)
-    {
-    case PostElementType::NOT_FOUND_POST:
-        element->mPost = NotFoundPost::fromJson(json);
-        break;
-    case PostElementType::BLOCKED_POST:
-        element->mPost = BlockedPost::fromJson(json);
-        break;
-    case PostElementType::POST_VIEW:
-        element->mPost = PostView::fromJson(json);
-        break;
-    case PostElementType::THREAD_VIEW_POST:
-    case PostElementType::UNKNOWN:
-        qWarning() << "Unsupported thread element type:" << typeString << "json:" << json;
-        element->mUnsupportedType = typeString;
-        break;
-    }
-
-    return element;
-}
-
 QJsonObject ReplyRef::toJson() const
 {
     QJsonObject json;
-    json.insert("root", mRoot->toJson());
-    json.insert("parent", mParent->toJson());
+    json.insert("root", XJsonObject::variantToJsonObject(mRoot));
+    json.insert("parent", XJsonObject::variantToJsonObject(mParent));
     XJsonObject::insertOptionalJsonObject<AppBskyActor::ProfileViewBasic>(json, "grandparentAuthor", mGrandparentAuthor);
     return json;
 }
@@ -440,8 +407,16 @@ ReplyRef::SharedPtr ReplyRef::fromJson(const QJsonObject& json)
 {
     auto replyRef = std::make_shared<ReplyRef>();
     XJsonObject xjson(json);
-    replyRef->mRoot = xjson.getRequiredObject<ReplyElement>("root");
-    replyRef->mParent = xjson.getRequiredObject<ReplyElement>("parent");
+    replyRef->mRoot = xjson.getRequiredVariant<
+        PostView,
+        NotFoundPost,
+        BlockedPost,
+        UnknownVariant>("root");
+    replyRef->mParent = xjson.getRequiredVariant<
+        PostView,
+        NotFoundPost,
+        BlockedPost,
+        UnknownVariant>("parent");
     replyRef->mGrandparentAuthor = xjson.getOptionalObject<AppBskyActor::ProfileViewBasic>("grandparentAuthor");
     return replyRef;
 }
@@ -566,14 +541,22 @@ ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
     auto thread = std::make_shared<ThreadViewPost>();
     const XJsonObject xjson(json);
     thread->mPost = xjson.getRequiredObject<PostView>("post");
-    thread->mParent = xjson.getOptionalObject<ThreadElement>("parent");
-    thread->mReplies = xjson.getOptionalVector<ThreadElement>("replies");
+    thread->mParent = xjson.getOptionalVariant<
+        ThreadViewPost,
+        NotFoundPost,
+        BlockedPost,
+        UnknownVariant>("parent");
+    thread->mReplies = xjson.getOptionalVariantList<
+        ThreadViewPost,
+        NotFoundPost,
+        BlockedPost,
+        UnknownVariant>("replies");
 
     for (const auto& reply : thread->mReplies)
     {
-        if (ATProto::holdsNonNull<ThreadViewPost::SharedPtr>(reply->mPost))
+        if (ATProto::holdsNonNull<ThreadViewPost::SharedPtr>(reply))
         {
-            const auto& replyPost = std::get<ThreadViewPost::SharedPtr>(reply->mPost);
+            const auto& replyPost = std::get<ThreadViewPost::SharedPtr>(reply);
 
             if (replyPost->mPost->mAuthor->mDid == thread->mPost->mAuthor->mDid)
             {
@@ -586,55 +569,15 @@ ThreadViewPost::SharedPtr ThreadViewPost::fromJson(const QJsonObject& json)
     return thread;
 }
 
-PostElementType stringToPostElementType(const QString& str)
-{
-    static const std::unordered_map<QString, PostElementType> mapping = {
-        { PostView::TYPE, PostElementType::POST_VIEW },
-        { "app.bsky.feed.defs#threadViewPost", PostElementType::THREAD_VIEW_POST },
-        { NotFoundPost::TYPE, PostElementType::NOT_FOUND_POST },
-        { BlockedPost::TYPE, PostElementType::BLOCKED_POST }
-    };
-
-    const auto it = mapping.find(str);
-    if (it != mapping.end())
-        return it->second;
-
-    return PostElementType::UNKNOWN;
-}
-
-ThreadElement::SharedPtr ThreadElement::fromJson(const QJsonObject& json)
-{
-    auto element = std::make_shared<ThreadElement>();
-    const XJsonObject xjson(json);
-    const auto typeString = xjson.getRequiredString("$type");
-    element->mType = stringToPostElementType(typeString);
-
-    switch (element->mType)
-    {
-    case PostElementType::NOT_FOUND_POST:
-        element->mPost = NotFoundPost::fromJson(json);
-        break;
-    case PostElementType::BLOCKED_POST:
-        element->mPost = BlockedPost::fromJson(json);
-        break;
-    case PostElementType::THREAD_VIEW_POST:
-        element->mPost = ThreadViewPost::fromJson(json);
-        break;
-    case PostElementType::POST_VIEW:
-    case PostElementType::UNKNOWN:
-        qWarning() << "Unsupported thread element type:" << typeString << "json:" << json;
-        element->mUnsupportedType = typeString;
-        break;
-    }
-
-    return element;
-}
-
 PostThread::SharedPtr PostThread::fromJson(const QJsonObject& json)
 {
     auto postThread = std::make_shared<PostThread>();
     const XJsonObject xjson(json);
-    postThread->mThread = xjson.getRequiredObject<ThreadElement>("thread");
+    postThread->mThread = xjson.getRequiredVariant<
+        ThreadViewPost,
+        NotFoundPost,
+        BlockedPost,
+        UnknownVariant>("thread");
     postThread->mThreadgate = xjson.getOptionalObject<ThreadgateView>("threadgate");
     return postThread;
 }
