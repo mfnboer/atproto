@@ -1711,10 +1711,17 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
         authToken());
 }
 
-void Client::muteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::muteActor(const QString& actor, bool onlyReposts, bool onlyQuotePosts, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject jsonObj;
     jsonObj.insert("actor", actor);
+
+    if (onlyReposts)
+        jsonObj.insert("onlyReposts", boolValue(true));
+
+    if (onlyQuotePosts)
+        jsonObj.insert("onlyQuoteposts", boolValue(true));
+
     QJsonDocument json(jsonObj);
 
     Xrpc::NetworkThread::Params httpHeaders;

@@ -1,5 +1,6 @@
 next
 ====
+* Add mutedOnlyReposts, mutedOnlyQuoteposts
 * Add starterPack to listNotifications
 * Refactoring variant types
 

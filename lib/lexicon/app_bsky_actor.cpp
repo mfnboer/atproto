@@ -154,6 +154,8 @@ QJsonObject ViewerState::toJson() const
 {
     QJsonObject json;
     XJsonObject::insertOptionalJsonValue(json, "muted", mMuted, false);
+    XJsonObject::insertOptionalJsonValue(json, "mutedOnlyReposts", mMutedOnlyReposts, false);
+    XJsonObject::insertOptionalJsonValue(json, "mutedOnlyQuoteposts", mMutedOnlyQuotePosts, false);
     XJsonObject::insertOptionalJsonValue(json, "blockedBy", mBlockedBy, false);
     XJsonObject::insertOptionalJsonValue(json, "blocking", mBlocking);
     XJsonObject::insertOptionalJsonValue(json, "following", mFollowing);
@@ -171,6 +173,8 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     auto viewerState = std::make_shared<ViewerState>();
     XJsonObject xjson(json);
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
+    viewerState->mMutedOnlyReposts = xjson.getOptionalBool("mutedOnlyReposts", false);
+    viewerState->mMutedOnlyQuotePosts = xjson.getOptionalBool("mutedOnlyQuoteposts", false);
     viewerState->mBlockedBy = xjson.getOptionalBool("blockedBy", false);
     viewerState->mBlocking = xjson.getOptionalString("blocking");
     viewerState->mFollowing = xjson.getOptionalString("following");

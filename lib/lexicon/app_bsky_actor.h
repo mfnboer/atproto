@@ -82,6 +82,8 @@ struct KnownFollowers
 struct ViewerState
 {
     bool mMuted = false;
+    bool mMutedOnlyReposts = false;
+    bool mMutedOnlyQuotePosts = false;
     bool mBlockedBy = false;
     std::optional<QString> mBlocking;
     std::optional<QString> mFollowing;
