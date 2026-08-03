@@ -1353,7 +1353,7 @@ public:
     void approveJoinRequest(const QString& convoId, const QString& member,
                             const ConvoSuccessCb& successCb, const ErrorCb& errorCb);
 
-    static constexpr int MAX_GROUP_MEMBERS = 49; // excluding the group creater
+    static constexpr int MAX_GROUP_MEMBERS = 9999; // excluding the group creater
     static constexpr int MAX_GRAPHEMES_GROUP_NAME = 50;
     static constexpr int MAX_BYTES_GROUP_NAME = 500;
     static constexpr int MIN_BYTES_GROUP_NAME = 1;
