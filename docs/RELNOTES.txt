@@ -1,3 +1,7 @@
+next
+====
+* Recognize URL having !
+
 6.11
 ====
 * Max convo group members = 10,000
