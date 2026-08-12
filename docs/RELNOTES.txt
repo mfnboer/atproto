@@ -1,4 +1,4 @@
-next
+6.12
 ====
 * Recognize URL having !
 * Change muteActor signature
