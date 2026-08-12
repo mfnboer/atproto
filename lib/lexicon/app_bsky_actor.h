@@ -21,6 +21,19 @@ namespace AppBskyActor {
 
 struct ProfileViewBasic;
 
+// app.bsky.actor.contentVisibilityDeclaration
+struct ContentVisibilityDeclaration
+{
+    bool mHideFromAlgorithmicRecommendations = false;
+
+    using SharedPtr = std::shared_ptr<ContentVisibilityDeclaration>;
+
+    QJsonObject toJson() const;
+
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.contentVisibilityDeclaration";
+};
+
 // app.bsky.actor.defs#verificationView
 struct VerificationView
 {

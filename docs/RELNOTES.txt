@@ -1,3 +1,7 @@
+next
+====
+* app.bsky.actor.contentVisibilityDeclaration
+
 6.12
 ====
 * Recognize URL having !

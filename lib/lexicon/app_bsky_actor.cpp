@@ -86,6 +86,21 @@ QString verifiedStatusToString(VerifiedStatus status, const QString& unknown)
     return enumToString(status, mapping, unknown);
 }
 
+QJsonObject ContentVisibilityDeclaration::toJson() const
+{
+    QJsonObject json;
+    json.insert("hideFromAlgorithmicRecommendations", mHideFromAlgorithmicRecommendations);
+    return json;
+}
+
+ContentVisibilityDeclaration::SharedPtr ContentVisibilityDeclaration::fromJson(const QJsonObject& json)
+{
+    auto declaration = std::make_shared<ContentVisibilityDeclaration>();
+    XJsonObject xjson(json);
+    declaration->mHideFromAlgorithmicRecommendations = xjson.getRequiredBool("hideFromAlgorithmicRecommendations");
+    return declaration;
+}
+
 QJsonObject VerificationView::toJson() const
 {
     QJsonObject json;
