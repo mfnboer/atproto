@@ -725,7 +725,7 @@ public:
     void getMutes(std::optional<int> limit, const std::optional<QString>& cursor,
                   const GetMutesSuccessCb& successCb, const ErrorCb& errorCb);
 
-    void muteActor(const QString& actor, bool onlyReposts, bool onlyQuotePosts, const SuccessCb& successCb, const ErrorCb& errorCb);
+    void muteActor(const QString& actor, std::optional<bool> onlyReposts, std::optional<bool> onlyQuotePosts, const SuccessCb& successCb, const ErrorCb& errorCb);
     void unmuteActor(const QString& actor, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**

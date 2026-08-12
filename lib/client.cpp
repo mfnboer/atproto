@@ -1711,16 +1711,16 @@ void Client::getMutes(std::optional<int> limit, const std::optional<QString>& cu
         authToken());
 }
 
-void Client::muteActor(const QString& actor, bool onlyReposts, bool onlyQuotePosts, const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::muteActor(const QString& actor, std::optional<bool> onlyReposts, std::optional<bool> onlyQuotePosts, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject jsonObj;
     jsonObj.insert("actor", actor);
 
     if (onlyReposts)
-        jsonObj.insert("onlyReposts", boolValue(true));
+        jsonObj.insert("onlyReposts", *onlyReposts);
 
     if (onlyQuotePosts)
-        jsonObj.insert("onlyQuoteposts", boolValue(true));
+        jsonObj.insert("onlyQuoteposts", *onlyQuotePosts);
 
     QJsonDocument json(jsonObj);
 

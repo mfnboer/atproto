@@ -51,10 +51,9 @@ void GraphMaster::undo(const QString& uri,
 {
     qDebug() << "Undo:" << uri;
     const auto atUri = ATUri::createAtUri(uri, mPresence, errorCb);
-    if (!atUri.isValid())
-        return;
 
-    mRepoMaster.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), successCb, errorCb);
+    if (atUri.isValid())
+        mRepoMaster.deleteRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), successCb, errorCb);
 }
 
 void GraphMaster::createList(AppBskyGraph::ListPurpose purpose, const QString& name,
@@ -269,6 +268,84 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
             if (errorCb)
                 errorCb(error, msg);
         });
+}
+
+void GraphMaster::batchDeleteAllUsersFromList(const QString& listUri,
+                                 const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Delete all users from list:" << listUri;
+    batchDeleteListUsers(listUri, {}, successCb, errorCb);
+}
+
+void GraphMaster::batchDeleteListUsers(const QString& listUri, const std::optional<QString>& cursor,
+                                       const SuccessCb& successCb, const ErrorCb& errorCb, int page)
+{
+    qDebug() << "Batch delete list users:" << listUri << "cursor:" << cursor << "page:" << page;
+
+    if (page > 9)
+    {
+        qWarning() << "Max pages reached, loop??";
+
+        if (errorCb)
+            errorCb(ATProtoErrorMsg::INVALID_REQUEST, "Max pages reached (loop)");
+
+        return;
+    }
+
+    mClient.getList(listUri, {}, cursor,
+        [this, presence=getPresence(), listUri, successCb, errorCb, page](AppBskyGraph::GetListOutput::SharedPtr output){
+            if (!presence)
+                return;
+
+            ATProto::ComATProtoRepo::ApplyWritesList writes;
+
+            for (const auto& listItem : output->mItems)
+            {
+                const ATProto::ATUri atUri(listItem->mUri);
+
+                if (!atUri.isValid())
+                {
+                    qWarning() << "Invalid list item URI:" << listItem->mUri;
+                    continue;
+                }
+
+                auto deleteRecord = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesDelete>();
+                deleteRecord->mCollection = atUri.getCollection();
+                deleteRecord->mRKey = atUri.getRkey();
+                writes.push_back(std::move(deleteRecord));
+            }
+
+            const auto newCursor = output->mCursor;
+
+            if (writes.empty())
+            {
+                qDebug() << "No list items to delete";
+
+                if (newCursor)
+                    batchDeleteListUsers(listUri, newCursor, successCb, errorCb, page + 1);
+                else if (successCb)
+                    successCb();
+
+                return;
+            }
+
+            const QString repo = mClient.getSessionDid();
+
+            mClient.applyWrites(repo, writes, false,
+                [this, presence=getPresence(), listUri, newCursor, successCb, errorCb, page]{
+                    if (!presence)
+                        return;
+
+                    qDebug() << "Deleted list items";
+
+                    if (newCursor)
+                        batchDeleteListUsers(listUri, newCursor, successCb, errorCb, page + 1);
+                    else if (successCb)
+                        successCb();
+                },
+                errorCb);
+        },
+        errorCb);
 }
 
 void GraphMaster::getListByName(const QString& did, const QString& name, AppBskyGraph::ListPurpose purpose,

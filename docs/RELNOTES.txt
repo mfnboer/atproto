@@ -1,6 +1,8 @@
 next
 ====
 * Recognize URL having !
+* Change muteActor signature
+* Max video embed 300'000'000 bytes
 
 6.11
 ====

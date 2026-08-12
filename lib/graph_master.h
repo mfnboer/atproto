@@ -64,6 +64,9 @@ public:
     void batchAddUsersToList(const QString& listUri, const QStringList& dids,
                              const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    void batchDeleteAllUsersFromList(const QString& listUri,
+                                     const SuccessCb& successCb, const ErrorCb& errorCb);
+
     void getListByName(const QString& did, const QString& name, AppBskyGraph::ListPurpose purpose,
                        const std::optional<QString>& cursor,
                        const GetListSuccessCb& successCb, const ErrorCb& errorCb,
@@ -97,6 +100,8 @@ private:
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void updateList(const AppBskyGraph::List& list, const QString& rkey,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void batchDeleteListUsers(const QString& listUri, const std::optional<QString>& cursor,
+                              const SuccessCb& successCb, const ErrorCb& errorCb, int page = 0);
     void getVerificationsContinue(const QString& issuerDid, bool addVerificationsAsValid,
                                   const ATProto::ComATProtoRepo::Record::List& verificationRecords,
                                   const std::optional<QString>& cursor,

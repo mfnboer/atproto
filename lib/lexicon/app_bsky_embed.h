@@ -301,7 +301,7 @@ struct Video
 
     using SharedPtr = std::shared_ptr<Video>;
     static SharedPtr fromJson(const QJsonObject& json);
-    static constexpr int MAX_BYTES = 100'000'000;
+    static constexpr int MAX_BYTES = 300'000'000;
     static constexpr char const* TYPE = "app.bsky.embed.video";
 };
 
