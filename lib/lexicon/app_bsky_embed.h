@@ -292,7 +292,7 @@ struct Video
 {
     Blob::SharedPtr mVideo; // mime: video/mp4
     VideoCaption::List mCaptions;
-    std::optional<QString> mAlt; // max 1000 graphemes, 10,000 bytes
+    std::optional<QString> mAlt;
     AspectRatio::SharedPtr mAspectRatio; // optional
     std::optional<QString> mRawPresentation;
     std::optional<VideoPresentation> mPresentation;
