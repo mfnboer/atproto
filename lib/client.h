@@ -96,6 +96,7 @@ public:
     using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
     using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
+    using VideoStartUploadOputCb = std::function<void(AppBskyVideo::StartUploadOutput::SharedPtr)>;
     using GetBookmarksSuccessCb = std::function<void(AppBskyBookmark::GetBookmarksOutput::SharedPtr)>;
     using GetDraftsSuccessCb = std::function<void(AppBskyDraft::GetDraftsOutput::SharedPtr)>;
     using CreateDraftSuccessCb = std::function<void(AppBskyDraft::CreateDraftOutput::SharedPtr)>;
@@ -948,6 +949,27 @@ public:
     void uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
     void uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief videoStartUpload
+     * @param sizeInBytes
+     * @param mimeType
+     * @param name
+     * @param durationMs
+     * @param width
+     * @param height
+     * @param successCb
+     * @param errorCb
+     */
+    void videoStartUpload(int sizeInBytes, const QString& mimeType,
+                          const std::optional<QString>& name, std::optional<int> durationMs,
+                          std::optional<int> width, std::optional<int> height,
+                          const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
+    void videoStartUpload(const QString& serviceAuthToken,
+                          int sizeInBytes, const QString& mimeType,
+                          const std::optional<QString>& name, std::optional<int> durationMs,
+                          std::optional<int> width, std::optional<int> height,
+                          const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
+
     // com.atproto.repo
 
     /**
@@ -1609,6 +1631,8 @@ private:
     void getBlobContinue(const QString& did, const QString& cid,
                          const GetBlobSuccessCb& successCb, const ErrorCb& errorCb,
                          const QString& pds = {});
+
+    void getServiceAuthForVideoUpload(const ErrorCb& errorCb, std::function<void(const QString& token)> uploadFunc);
 
     void resolvePds(const QString& repo, const ErrorCb& errorCb, std::function<void(const QString& repo, const ErrorCb&, const QString& pds)> continueFunc);
     void setPdsFromUser(const QString& user, const SuccessCb& successCb, const ErrorCb& errorCb);

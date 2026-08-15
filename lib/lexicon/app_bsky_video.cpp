@@ -22,6 +22,24 @@ JobStatusState stringToJobStatusState(const QString& str)
     return JobStatusState::JOB_STATE_INPROG;
 }
 
+JobStatusFailure stringToJobStatusFailure(const QString& str)
+{
+    static const std::unordered_map<QString, JobStatusFailure> mapping = {
+        { "validation_failure", JobStatusFailure::JOB_FAILURE_VALIDATION },
+        { "encoding_failure", JobStatusFailure::JOB_FAILURE_ENCODING },
+        { "pds_upload_failure", JobStatusFailure::JOB_FAILURE_PDS_UPLOAD },
+        { "pds_upload_unsupported_blob_size", JobStatusFailure::JOB_FAILURE_PDS_UPLOAD_UNSUPPORTED_BLOB_SIZE },
+        { "generic_failure", JobStatusFailure::JOB_FAILURE_GENERIC },
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown job status failure:" << str;
+    return JobStatusFailure::JOB_FAILURE_UNKNOWN;
+}
+
 JobStatus::SharedPtr JobStatus::fromJson(const QJsonObject& json)
 {
     auto jobStatus = std::make_shared<JobStatus>();
@@ -33,6 +51,11 @@ JobStatus::SharedPtr JobStatus::fromJson(const QJsonObject& json)
     jobStatus->mProgress = xjson.getOptionalInt("progress");
     jobStatus->mBlob = xjson.getOptionalObject<Blob>("blob");
     jobStatus->mError = xjson.getOptionalString("error");
+    jobStatus->mRawFailureCode = xjson.getOptionalString("failureCode");
+
+    if (jobStatus->mRawFailureCode)
+        jobStatus->mFailureCode = stringToJobStatusFailure(*jobStatus->mRawFailureCode);
+
     jobStatus->mMessage = xjson.getOptionalString("message");
     return jobStatus;
 }
@@ -54,6 +77,17 @@ GetUploadLimitsOutput::SharedPtr GetUploadLimitsOutput::fromJson(const QJsonObje
     output->mRemainingDailyBytes = xjson.getOptionalInt64("remainingDailyBytes");
     output->mError = xjson.getOptionalString("error");
     output->mMessage = xjson.getOptionalString("message");
+    return output;
+}
+
+StartUploadOutput::SharedPtr StartUploadOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<StartUploadOutput>();
+    const XJsonObject xjson(json);
+    output->mJobId = xjson.getRequiredString("jobId");
+    output->mPartSizeBytes = xjson.getRequiredInt("partSizeBytes");
+    output->mPartCount = xjson.getRequiredInt("partCount");
+    output->mExpiresAt = xjson.getRequiredDateTime("expiresAt");
     return output;
 }
 

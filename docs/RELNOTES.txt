@@ -1,6 +1,7 @@
 next
 ====
 * app.bsky.actor.contentVisibilityDeclaration
+* video upload parts
 
 6.12
 ====

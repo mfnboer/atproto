@@ -15,6 +15,18 @@ enum class JobStatusState
 
 JobStatusState stringToJobStatusState(const QString& str);
 
+enum class JobStatusFailure
+{
+    JOB_FAILURE_VALIDATION,
+    JOB_FAILURE_ENCODING,
+    JOB_FAILURE_PDS_UPLOAD,
+    JOB_FAILURE_PDS_UPLOAD_UNSUPPORTED_BLOB_SIZE,
+    JOB_FAILURE_GENERIC,
+    JOB_FAILURE_UNKNOWN
+};
+
+JobStatusFailure stringToJobStatusFailure(const QString& str);
+
 // app.bsky.video.defs#jobStatus
 struct JobStatus
 {
@@ -25,6 +37,8 @@ struct JobStatus
     std::optional<int> mProgress; // [0, 100]
     Blob::SharedPtr mBlob; // optional
     std::optional<QString> mError;
+    std::optional<JobStatusFailure> mFailureCode;
+    std::optional<QString> mRawFailureCode;
     std::optional<QString> mMessage;
 
     using SharedPtr = std::shared_ptr<JobStatus>;
@@ -51,6 +65,18 @@ struct GetUploadLimitsOutput
     std::optional<QString> mMessage;
 
     using SharedPtr = std::shared_ptr<GetUploadLimitsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.video.startUpload#output
+struct StartUploadOutput
+{
+    QString mJobId;
+    int mPartSizeBytes = 0;
+    int mPartCount = 0;
+    QDateTime mExpiresAt;
+
+    using SharedPtr = std::shared_ptr<StartUploadOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

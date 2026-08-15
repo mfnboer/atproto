@@ -2329,21 +2329,28 @@ void Client::getVideoUploadLimits(const QString& serviceAuthToken, const GetVide
         serviceAuthToken, true);
 }
 
-void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+
+void Client::getServiceAuthForVideoUpload(const ErrorCb& errorCb, std::function<void(const QString& token)> uploadFunc)
 {
     QUrl url(mXrpc->getPDS());
     QString aud = "did:web:" + url.host();
     QDateTime expiry = QDateTime::currentDateTimeUtc().addSecs(30 * 60);
 
     getServiceAuth(aud, expiry, "com.atproto.repo.uploadBlob",
-        [this, presence=getPresence(), blob, successCb, errorCb](auto output){
+        [presence=getPresence(), errorCb, uploadFunc](auto output){
             if (presence)
-                uploadVideo(blob, output->mToken, successCb, errorCb);
+                uploadFunc(output->mToken);
         },
-        [errorCb](const QString& error, const QString& msg){
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
+}
+
+void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+{
+    auto uploadFunc = [this, blob, successCb, errorCb](const QString& token){
+        uploadVideo(blob, token, successCb, errorCb);
+    };
+
+    getServiceAuthForVideoUpload(errorCb, uploadFunc);
 }
 
 void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
@@ -2409,6 +2416,56 @@ void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const
                 requestFailed(err, reply, errorCb);
             }
         },
+        serviceAuthToken, true);
+}
+
+void Client::videoStartUpload(int sizeInBytes, const QString& mimeType,
+                      const std::optional<QString>& name, std::optional<int> durationMs,
+                      std::optional<int> width, std::optional<int> height,
+                      const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb)
+{
+    auto uploadFunc = [this, sizeInBytes, mimeType, name, durationMs, width, height, successCb, errorCb]
+        (const QString& token){
+            videoStartUpload(token, sizeInBytes, mimeType, name, durationMs, width, height, successCb, errorCb);
+        };
+
+    getServiceAuthForVideoUpload(errorCb, uploadFunc);
+}
+
+void Client::videoStartUpload(const QString& serviceAuthToken,
+                      int sizeInBytes, const QString& mimeType,
+                      const std::optional<QString>& name, std::optional<int> durationMs,
+                      std::optional<int> width, std::optional<int> height,
+                      const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("sizeInBytes", sizeInBytes);
+    json.insert("mimeType", mimeType);
+    XJsonObject::insertOptionalJsonValue(json, "name", name);
+    XJsonObject::insertOptionalJsonValue(json, "durationMs", durationMs);
+    XJsonObject::insertOptionalJsonValue(json, "width", width);
+    XJsonObject::insertOptionalJsonValue(json, "height", height);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceChat);
+
+    mXrpc->post("app.bsky.video.startUpload", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), serviceAuthToken, successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Upload started:" << reply;
+
+            try {
+                auto output = AppBskyVideo::StartUploadOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
         serviceAuthToken, true);
 }
 
