@@ -1,3 +1,7 @@
+next
+====
+* Do not proxy getPreferences and putPreferences
+
 6.13
 ====
 * app.bsky.actor.contentVisibilityDeclaration

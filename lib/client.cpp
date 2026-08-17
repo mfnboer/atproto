@@ -748,10 +748,8 @@ void Client::getProfiles(const std::vector<QString>& users, const GetProfilesSuc
 
 void Client::getPreferences(const UserPrefsSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
-
-    mXrpc->get("app.bsky.actor.getPreferences", {}, httpHeaders,
+    // Do not proxy to AppView as preferences live on the PDS
+    mXrpc->get("app.bsky.actor.getPreferences", {}, {},
         [successCb](AppBskyActor::GetPreferencesOutput::SharedPtr prefs){
             qDebug() << "getPreferences ok";
 
@@ -770,10 +768,8 @@ void Client::putPreferences(const UserPreferences& userPrefs,
     auto json = prefs.toJson();
     qDebug() << "PREFS:" << json;
 
-    Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
-
-    mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json), httpHeaders,
+    // Do not proxy to AppView as preferences live on the PDS
+    mXrpc->post("app.bsky.actor.putPreferences", QJsonDocument(json), {},
         [successCb](const QJsonDocument& reply){
             qDebug() << "putPreferences:" << reply;
             if (successCb)
