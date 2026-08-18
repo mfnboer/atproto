@@ -1,5 +1,5 @@
-next
-====
+6.13.1
+======
 * Do not proxy getPreferences and putPreferences
 
 6.13
