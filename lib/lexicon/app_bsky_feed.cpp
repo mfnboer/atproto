@@ -8,6 +8,23 @@
 
 namespace ATProto::AppBskyFeed {
 
+QJsonObject KnownLikers::toJson() const
+{
+    QJsonObject json;
+    json.insert("count", mCount);
+    json.insert("actors", XJsonObject::toJsonArray<AppBskyActor::ProfileViewBasic>(mActors));
+    return json;
+}
+
+KnownLikers::SharedPtr KnownLikers::fromJson(const QJsonObject& json)
+{
+    auto likers = std::make_shared<KnownLikers>();
+    XJsonObject xjson(json);
+    likers->mCount = xjson.getRequiredInt("count");
+    likers->mActors = xjson.getRequiredVector<AppBskyActor::ProfileViewBasic>("actors");
+    return likers;
+}
+
 QJsonObject ViewerState::toJson() const
 {
     QJsonObject json;
@@ -18,6 +35,7 @@ QJsonObject ViewerState::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "replyDisabled", mReplyDisabled, false);
     XJsonObject::insertOptionalJsonValue(json, "embeddingDisabled", mEmbeddingDisabled,false);
     XJsonObject::insertOptionalJsonValue(json, "pinned", mPinned, false);
+    XJsonObject::insertOptionalJsonObject<KnownLikers>(json, "knownLikers", mKnownLikers);
     return json;
 }
 
@@ -32,6 +50,7 @@ ViewerState::SharedPtr ViewerState::fromJson(const QJsonObject& json)
     viewerState->mReplyDisabled = xjson.getOptionalBool("replyDisabled", false);
     viewerState->mEmbeddingDisabled = xjson.getOptionalBool("embeddingDisabled", false);
     viewerState->mPinned = xjson.getOptionalBool("pinned", false);
+    viewerState->mKnownLikers = xjson.getOptionalObject<KnownLikers>("knownLikers");
     return viewerState;
 }
 

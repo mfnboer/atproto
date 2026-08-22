@@ -10,6 +10,18 @@
 
 namespace ATProto::AppBskyFeed {
 
+// app.bsky.feed.defs#knownLikers
+struct KnownLikers
+{
+    int mCount = 0;
+    AppBskyActor::ProfileViewBasic::List mActors;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<KnownLikers>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.feed.defs#viewerState
 struct ViewerState
 {
@@ -20,6 +32,7 @@ struct ViewerState
     bool mReplyDisabled = false;
     bool mEmbeddingDisabled = false;
     bool mPinned = false;
+    KnownLikers::SharedPtr mKnownLikers; // optional
 
     QJsonObject toJson() const;
 
