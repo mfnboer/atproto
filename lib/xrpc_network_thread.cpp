@@ -74,13 +74,14 @@ void NetworkThread::run()
     exec();
 }
 
-void NetworkThread::postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
+void NetworkThread::postData(const QString& service, const NetworkThread::Params& params,
+              const DataType& data, const QString& mimeType, const Params& rawHeaders,
               const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
               bool isServiceAuthToken)
 {
     Request request;
     request.mIsPost = true;
-    request.mXrpcRequest = QNetworkRequest(buildUrl(service));
+    request.mXrpcRequest = QNetworkRequest(buildUrl(service, params));
     setUserAgentHeader(request.mXrpcRequest);
 
     if (!accessJwt.isNull())
@@ -101,7 +102,7 @@ void NetworkThread::postJson(const QString& service, const QJsonDocument& json, 
               bool isServiceAuthToken)
 {
     const QByteArray data(json.toJson(QJsonDocument::Compact));
-    postData(service, data, "application/json", rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
+    postData(service, {}, data, "application/json", rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
 void NetworkThread::get(const QString& service, const Params& params, const Params& rawHeaders,
@@ -868,10 +869,11 @@ QUrl NetworkThread::buildUrl(const QString& service, const QString& pds) const
 QUrl NetworkThread::buildUrl(const QString& service, const Params& params, const QString& pds) const
 {
     QUrl url = buildUrl(service, pds);
-    QUrlQuery query;
 
     if (!params.isEmpty())
     {
+        QUrlQuery query;
+
         for (const auto& kv : params)
             query.addQueryItem(kv.first, QUrl::toPercentEncoding(kv.second));
 

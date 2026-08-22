@@ -1,6 +1,7 @@
 next
 ====
 * KnownLikers
+* Multipart video upload requests
 
 6.13.1
 ======

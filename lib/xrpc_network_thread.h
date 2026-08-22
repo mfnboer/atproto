@@ -228,7 +228,8 @@ public:
     void setUserAgent(const QString& userAgent);
     void setVideoHost(const QString& host);
 
-    void postData(const QString& service, const DataType& data, const QString& mimeType, const Params& rawHeaders,
+    void postData(const QString& service, const NetworkThread::Params& params,
+                  const DataType& data, const QString& mimeType, const Params& rawHeaders,
                   const CallbackType& successCb, const ErrorCb& errorCb, const QString& accessJwt,
                   bool isServiceAuthToken);
     void postJson(const QString& service, const QJsonDocument& json, const Params& rawHeaders,

@@ -91,4 +91,50 @@ StartUploadOutput::SharedPtr StartUploadOutput::fromJson(const QJsonObject& json
     return output;
 }
 
+UploadPartOutput::SharedPtr UploadPartOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<UploadPartOutput>();
+    const XJsonObject xjson(json);
+    output->mPartNumnber = xjson.getRequiredInt("partNumber");
+    output->mSizeInBytes = xjson.getRequiredInt("sizeInBytes");
+    return output;
+}
+
+FinishUploadOutput::SharedPtr FinishUploadOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<FinishUploadOutput>();
+    const XJsonObject xjson(json);
+    output->mCompletedJobId = xjson.getRequiredString("completedJobId");
+    output->mJobStatus = xjson.getRequiredObject<JobStatus>("jobStatus");
+    return output;
+}
+
+AbortState stringToAbortState(const QString& str)
+{
+    static const std::unordered_map<QString, AbortState> mapping = {
+        { "aborted", AbortState::ABORTED },
+        { "completed", AbortState::COMPLETED },
+        { "failed", AbortState::FAILED },
+        { "expired", AbortState::EXPIRED }
+    };
+
+    const auto it = mapping.find(str);
+    if (it != mapping.end())
+        return it->second;
+
+    qDebug() << "Unknown abort state:" << str;
+    return AbortState::UNKNOWN;
+}
+
+AbortUploadOutput::SharedPtr AbortUploadOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<AbortUploadOutput>();
+    const XJsonObject xjson(json);
+    output->mRawState = xjson.getRequiredString("state");
+    output->mState = stringToAbortState(output->mRawState);
+    output->mCompletedJobId = xjson.getOptionalString("completedJobId");
+    output->mFailureReason = xjson.getOptionalString("failureReason");
+    return output;
+}
+
 }

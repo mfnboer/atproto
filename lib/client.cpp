@@ -2351,15 +2351,15 @@ void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, 
 
 void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Upload video:" << blob->size();
     const QString name = QUuid::createUuid().toString(QUuid::WithoutBraces);
-    const QString service = QString("app.bsky.video.uploadVideo?did=%1&name=%2.mp4").arg(QUrl::toPercentEncoding(mSession->mDid), name);
-    qDebug() << "Service:" << service;
+    qDebug() << "Upload video:" << name << "size:" << blob->size();
+    Xrpc::NetworkThread::Params params{{"did", mSession->mDid},
+                                       {"name", QString("%1.mp4").arg(name)}};
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
-    mXrpc->post(service, blob, "video/mp4", httpHeaders,
+    mXrpc->post("app.bsky.video.uploadVideo", params, blob, "video/mp4", httpHeaders,
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
             if (!presence)
                 return;
@@ -2456,6 +2456,97 @@ void Client::videoStartUpload(const QString& serviceAuthToken,
                 auto output = AppBskyVideo::StartUploadOutput::fromJson(reply.object());
 
                 if (successCb)
+                    successCb(std::move(output), serviceAuthToken);
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        serviceAuthToken, true);
+}
+
+void Client::videoUploadPart(QIODevice* blob,
+                             const QString& serviceAuthToken, const QString& jobId, int partNumber,
+                             const VideoUploadPartOutputCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Upload part:" << partNumber << "jobId:" << jobId << "size:" << blob->size();
+    Xrpc::NetworkThread::Params params{{"jobId", jobId},
+                                       {"partNumber", QString::number(partNumber)}};
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.video.uploadPart", params, blob, "application/octet-stream", httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Upload part:" << reply;
+
+            try {
+                auto output = AppBskyVideo::UploadPartOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        serviceAuthToken, true);
+}
+
+void Client::videoFinishUpload(const QString& serviceAuthToken, const QString& jobId,
+                               const VideoFinishUploadOutputCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Finish upload:" << jobId;
+    QJsonObject json;
+    json.insert("jobId", jobId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.video.finishUpload", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Upload finished:" << reply;
+
+            try {
+                auto output = AppBskyVideo::FinishUploadOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        serviceAuthToken, true);
+}
+
+void Client::videoAbortUpload(const QString& serviceAuthToken, const QString& jobId,
+                               const VideoAbortUploadOutputCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Aboort upload:" << jobId;
+    QJsonObject json;
+    json.insert("jobId", jobId);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->post("app.bsky.video.abortUpload", QJsonDocument(json), httpHeaders,
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
+            qDebug() << "Upload aborted:" << reply;
+
+            try {
+                auto output = AppBskyVideo::AbortUploadOutput::fromJson(reply.object());
+
+                if (successCb)
                     successCb(std::move(output));
             } catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
@@ -2468,7 +2559,7 @@ void Client::videoStartUpload(const QString& serviceAuthToken,
 void Client::uploadBlob(const QByteArray& blob, const QString& mimeType,
                         const UploadBlobSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mXrpc->post("com.atproto.repo.uploadBlob", blob, mimeType, {},
+    mXrpc->post("com.atproto.repo.uploadBlob", {}, blob, mimeType, {},
         [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){\
             if (!presence)
                 return;

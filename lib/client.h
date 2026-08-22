@@ -96,7 +96,10 @@ public:
     using VideoJobStatusOutputCb = std::function<void(AppBskyVideo::JobStatusOutput::SharedPtr)>;
     using VideoUploadOutputCb = std::function<void(AppBskyVideo::JobStatus::SharedPtr)>;
     using GetVideoUploadLimitsCb = std::function<void(AppBskyVideo::GetUploadLimitsOutput::SharedPtr)>;
-    using VideoStartUploadOputCb = std::function<void(AppBskyVideo::StartUploadOutput::SharedPtr)>;
+    using VideoStartUploadOputCb = std::function<void(AppBskyVideo::StartUploadOutput::SharedPtr, QString serviceAuthToken)>;
+    using VideoUploadPartOutputCb = std::function<void(AppBskyVideo::UploadPartOutput::SharedPtr)>;
+    using VideoFinishUploadOutputCb = std::function<void(AppBskyVideo::FinishUploadOutput::SharedPtr)>;
+    using VideoAbortUploadOutputCb = std::function<void(AppBskyVideo::AbortUploadOutput::SharedPtr)>;
     using GetBookmarksSuccessCb = std::function<void(AppBskyBookmark::GetBookmarksOutput::SharedPtr)>;
     using GetDraftsSuccessCb = std::function<void(AppBskyDraft::GetDraftsOutput::SharedPtr)>;
     using CreateDraftSuccessCb = std::function<void(AppBskyDraft::CreateDraftOutput::SharedPtr)>;
@@ -964,11 +967,22 @@ public:
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
+
     void videoStartUpload(const QString& serviceAuthToken,
                           int sizeInBytes, const QString& mimeType,
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
+
+    void videoUploadPart(QIODevice* blob,
+                         const QString& serviceAuthToken, const QString& jobId, int partNumber,
+                         const VideoUploadPartOutputCb& successCb, const ErrorCb& errorCb);
+
+    void videoFinishUpload(const QString& serviceAuthToken, const QString& jobId,
+                           const VideoFinishUploadOutputCb& successCb, const ErrorCb& errorCb);
+
+    void videoAbortUpload(const QString& serviceAuthToken, const QString& jobId,
+                          const VideoAbortUploadOutputCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.repo
 

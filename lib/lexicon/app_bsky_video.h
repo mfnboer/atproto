@@ -80,4 +80,47 @@ struct StartUploadOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.video.uploadPart#output
+struct UploadPartOutput
+{
+    int mPartNumnber = 0;
+    int mSizeInBytes = 0;
+
+    using SharedPtr = std::shared_ptr<UploadPartOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// app.bsky.video.finishUpload#output
+struct FinishUploadOutput
+{
+    QString mCompletedJobId;
+    JobStatus::SharedPtr mJobStatus;
+
+    using SharedPtr = std::shared_ptr<FinishUploadOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+enum class AbortState
+{
+    ABORTED,
+    COMPLETED,
+    FAILED,
+    EXPIRED,
+    UNKNOWN
+};
+
+AbortState stringToAbortState(const QString& str);
+
+// app.bsky.video.abortUpload#output
+struct AbortUploadOutput
+{
+    AbortState mState;
+    QString mRawState;
+    std::optional<QString> mCompletedJobId;
+    std::optional<QString> mFailureReason;
+
+    using SharedPtr = std::shared_ptr<AbortUploadOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }

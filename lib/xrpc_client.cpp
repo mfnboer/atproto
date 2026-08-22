@@ -349,7 +349,7 @@ void Client::post(const QString& service, const QJsonDocument& json, const Netwo
     emit postJsonToNetwork(service, json, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
-void Client::post(const QString& service, const NetworkThread::DataType& data,
+void Client::post(const QString& service, const NetworkThread::Params& params, const NetworkThread::DataType& data,
                   const QString& mimeType, const NetworkThread::Params& rawHeaders,
                   const NetworkThread::SuccessJsonCb& successCb, const NetworkThread::ErrorCb& errorCb,
                   const QString& accessJwt, bool isServiceAuthToken)
@@ -357,7 +357,7 @@ void Client::post(const QString& service, const NetworkThread::DataType& data,
     Q_ASSERT(!service.isEmpty());
     Q_ASSERT(successCb);
     Q_ASSERT(errorCb);
-    emit postDataToNetwork(service, data, mimeType, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
+    emit postDataToNetwork(service, params, data, mimeType, rawHeaders, successCb, errorCb, accessJwt, isServiceAuthToken);
 }
 
 void Client::get(const QString& service, const NetworkThread::Params& params, const NetworkThread::Params& rawHeaders,
