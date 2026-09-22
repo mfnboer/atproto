@@ -2033,12 +2033,11 @@ void Client::unmuteActorList(const QString& listUri, const SuccessCb& successCb,
         authToken());
 }
 
-void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
+void Client::getUnreadNotificationCount(const std::optional<QDateTime>& seenAt,
                                         const UnreadCountSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params;
     addOptionalDateTimeParam(params, "seenAt", seenAt);
-    addOptionalBoolParam(params, "priority", priority);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
@@ -2083,7 +2082,7 @@ void Client::updateNotificationSeen(const QDateTime& dateTime,
 }
 
 void Client::listNotifications(std::optional<int> limit, const std::optional<QString>& cursor,
-                               const std::optional<QDateTime>& seenAt, std::optional<bool> priority,
+                               const std::optional<QDateTime>& seenAt,
                                const std::vector<AppBskyNotification::NotificationReason> reasons,
                                const NotificationsSuccessCb& successCb, const ErrorCb& errorCb,
                                bool updateSeen)
@@ -2092,7 +2091,6 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
     addOptionalDateTimeParam(params, "seenAt", seenAt);
-    addOptionalBoolParam(params, "priority", priority);
 
     for (const auto reason : reasons)
     {
@@ -2120,27 +2118,6 @@ void Client::listNotifications(std::optional<int> limit, const std::optional<QSt
 
             if (updateSeen)
                 updateNotificationSeen(now, {}, {});
-        },
-        failure(errorCb),
-        authToken());
-}
-
-void Client::putNotificationPreferences(bool priority,
-                                        const SuccessCb& successCb, const ErrorCb& errorCb)
-{
-    QJsonDocument json;
-    QJsonObject paramsJson;
-    paramsJson.insert("priority", priority);
-    json.setObject(paramsJson);
-
-    Xrpc::NetworkThread::Params httpHeaders;
-    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
-
-    mXrpc->post("app.bsky.notification.putPreferences", json, httpHeaders,
-        [successCb](const QJsonDocument& reply){
-            qDebug() << "Put notification preferences:" << reply;
-            if (successCb)
-                successCb();
         },
         failure(errorCb),
         authToken());
@@ -2693,14 +2670,14 @@ void Client::listRecordsContinue(const QString& repo, const QString& collection,
 }
 
 void Client::createRecord(const QString& repo, const QString& collection, const QString& rkey,
-                          const QJsonObject& record, bool validate,
+                          const QJsonObject& record, std::optional<bool> validate,
                           const CreateRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject root;
     root.insert("repo", repo);
     root.insert("collection", collection);
     root.insert("record", record);
-    root.insert("validate", validate);
+    XJsonObject::insertOptionalJsonValue(root, "validate", validate);
 
     if (!rkey.isEmpty())
         root.insert("rkey", rkey);
@@ -2730,7 +2707,7 @@ void Client::createRecord(const QString& repo, const QString& collection, const 
 }
 
 void Client::putRecord(const QString& repo, const QString& collection, const QString& rkey,
-                       const QJsonObject& record, bool validate,
+                       const QJsonObject& record, std::optional<bool> validate,
                        const PutRecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject root;
@@ -2738,7 +2715,7 @@ void Client::putRecord(const QString& repo, const QString& collection, const QSt
     root.insert("collection", collection);
     root.insert("record", record);
     root.insert("rkey", rkey);
-    root.insert("validate", validate);
+    XJsonObject::insertOptionalJsonValue(root, "validate", validate);
 
     QJsonDocument json(root);
 
@@ -2786,12 +2763,13 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
         authToken());
 }
 
-void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes, bool validate,
+void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes,
+                         std::optional<bool> validate,
                          const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
     json.insert("repo", repo);
-    json.insert("validate", validate);
+    XJsonObject::insertOptionalJsonValue(json, "validate", validate);
     QJsonArray writesArray;
 
     for (const auto& write : writes)

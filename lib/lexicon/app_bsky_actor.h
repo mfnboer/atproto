@@ -25,6 +25,7 @@ struct ProfileViewBasic;
 struct ContentVisibilityDeclaration
 {
     bool mHideFromAlgorithmicRecommendations = false;
+    QJsonObject mJson;
 
     using SharedPtr = std::shared_ptr<ContentVisibilityDeclaration>;
 
@@ -318,6 +319,7 @@ struct Profile
 
     using SharedPtr = std::shared_ptr<Profile>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.profile";
 };
 
 // For the user preferences we store the received json object.

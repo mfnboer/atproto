@@ -123,6 +123,7 @@ struct ListItemView
 {
     QString mUri;
     AppBskyActor::ProfileView::SharedPtr mSubject; // required
+    bool mSubjectOptedOut = false;
 
     using SharedPtr = std::shared_ptr<ListItemView>;
     using List = std::vector<SharedPtr>;
@@ -147,6 +148,7 @@ struct List
 
     using SharedPtr = std::shared_ptr<List>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.list";
 };
 
 // app.bsky.graph.listBlock
@@ -160,6 +162,7 @@ struct ListBlock
 
     using SharedPtr = std::shared_ptr<ListBlock>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.listblock";
 };
 
 // app.bsky.graph.listitem
@@ -175,6 +178,20 @@ struct ListItem
     using SharedPtr = std::shared_ptr<ListItem>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.graph.listitem";
+};
+
+// app.bsky.graph.referencelistoptout
+struct ReferenceListOptOut
+{
+    QString mSubject; // at-uri
+    QDateTime mCreatedAt;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ReferenceListOptOut>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.graph.referencelistoptout";
 };
 
 // app.bsky.graph.getList#output

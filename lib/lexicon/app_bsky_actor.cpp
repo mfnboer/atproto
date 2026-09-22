@@ -88,7 +88,8 @@ QString verifiedStatusToString(VerifiedStatus status, const QString& unknown)
 
 QJsonObject ContentVisibilityDeclaration::toJson() const
 {
-    QJsonObject json;
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
     json.insert("hideFromAlgorithmicRecommendations", mHideFromAlgorithmicRecommendations);
     return json;
 }
@@ -98,6 +99,7 @@ ContentVisibilityDeclaration::SharedPtr ContentVisibilityDeclaration::fromJson(c
     auto declaration = std::make_shared<ContentVisibilityDeclaration>();
     XJsonObject xjson(json);
     declaration->mHideFromAlgorithmicRecommendations = xjson.getRequiredBool("hideFromAlgorithmicRecommendations");
+    declaration->mJson = json;
     return declaration;
 }
 
@@ -223,6 +225,7 @@ QString actorStatusToString(ActorStatus status, const QString& unknown)
 QJsonObject Status::toJson() const
 {
     QJsonObject json(mJson);
+    json.insert("$type", TYPE);
     json.insert("status", actorStatusToString(mStatus, mRawStatus));
     XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
     XJsonObject::insertOptionalJsonValue(json, "durationMinutes", mDurationMinutes);
@@ -440,6 +443,7 @@ GetProfilesOutput::SharedPtr GetProfilesOutput::fromJson(const QJsonObject& json
 QJsonObject Profile::toJson() const
 {
     QJsonObject json(mJson);
+    json.insert("$type", TYPE);
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     XJsonObject::insertOptionalJsonValue(json, "pronouns", mPronouns);

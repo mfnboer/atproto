@@ -17,10 +17,11 @@ public:
     static constexpr char const* BSKY_APP_URL = "https://bsky.app";
     static constexpr char const* COLLECTION_FEED_GENERATOR = "app.bsky.feed.generator";
     static constexpr char const* COLLECTION_FEED_POST = AppBskyFeed::Record::Post::TYPE;
-    static constexpr char const* COLLECTION_GRAPH_LIST = "app.bsky.graph.list";
+    static constexpr char const* COLLECTION_GRAPH_LIST = AppBskyGraph::List::TYPE;
     static constexpr char const* COLLECTION_GRAPH_STARTERPACK = AppBskyGraph::StarterPack::TYPE;
+    static constexpr char const* COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION = AppBskyActor::ContentVisibilityDeclaration::TYPE;
     static constexpr char const* COLLECTION_ACTOR_STATUS = AppBskyActor::Status::TYPE;
-    static constexpr char const* COLLECTION_ACTOR_PROFILE = "app.bsky.actor.profile";
+    static constexpr char const* COLLECTION_ACTOR_PROFILE = AppBskyActor::Profile::TYPE;
     static constexpr char const* COLLECTION_CHAT_ACTOR_DECLARATION = ChatBskyActor::Declaration::TYPE;
     
     static ATUri fromHttpsPostUri(const QString& uri);

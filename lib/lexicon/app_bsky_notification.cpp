@@ -266,7 +266,6 @@ ListNotificationsOutput::SharedPtr ListNotificationsOutput::fromJson(const QJson
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mNotifications = xjson.getRequiredVector<Notification>("notifications");
-    output->mPriority = xjson.getOptionalBool("priority", false);
     output->mSeenAt = xjson.getOptionalDateTime("seenAt");
     return output;
 }

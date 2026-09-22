@@ -13,6 +13,7 @@ struct ListViewerState
 {
     bool mMuted = false;
     std::optional<QString> mBlocked; // at-uri
+    std::optional<QString> mReferenceListOutput; // at-uri
 
     QJsonObject toJson() const;
 

@@ -130,6 +130,7 @@ ListViewerState::SharedPtr ListViewerState::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     viewerState->mMuted = xjson.getOptionalBool("muted", false);
     viewerState->mBlocked = xjson.getOptionalString("blocked");
+    viewerState->mReferenceListOutput = xjson.getOptionalString("referenceListOptOut");
     return viewerState;
 }
 
@@ -207,13 +208,14 @@ ListItemView::SharedPtr ListItemView::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     listItemView->mUri = xjson.getRequiredString("uri");
     listItemView->mSubject = xjson.getRequiredObject<AppBskyActor::ProfileView>("subject");
+    listItemView->mSubjectOptedOut = xjson.getOptionalBool("subjectOptedOut", false);
     return listItemView;
 }
 
 QJsonObject List::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.graph.list");
+    json.insert("$type", TYPE);
 
     if (mPurpose != ListPurpose::UNKNOWN)
         json.insert("purpose", listPurposeToString(mPurpose));
@@ -248,7 +250,7 @@ List::SharedPtr List::fromJson(const QJsonObject& json)
 QJsonObject ListBlock::toJson() const
 {
     QJsonObject json(mJson);
-    json.insert("$type", "app.bsky.graph.listblock");
+    json.insert("$type", TYPE);
     json.insert("subject", mSubject);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
@@ -283,6 +285,25 @@ ListItem::SharedPtr ListItem::fromJson(const QJsonObject& json)
     listItem->mList = xjson.getRequiredString("list");
     listItem->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return listItem;
+}
+
+QJsonObject ReferenceListOptOut::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("subject", mSubject);
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
+    return json;
+}
+
+ReferenceListOptOut::SharedPtr ReferenceListOptOut::fromJson(const QJsonObject& json)
+{
+    auto optOut = std::make_shared<ReferenceListOptOut>();
+    XJsonObject xjson(json);
+    optOut->mJson = json;
+    optOut->mSubject = xjson.getRequiredString("subject");
+    optOut->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return optOut;
 }
 
 GetListOutput::SharedPtr GetListOutput::fromJson(const QJsonObject& json)

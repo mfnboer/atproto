@@ -183,7 +183,6 @@ struct ListNotificationsOutput
 {
     std::optional<QString> mCursor;
     Notification::List mNotifications;
-    bool mPriority = false;
     std::optional<QDateTime> mSeenAt;
 
     using SharedPtr = std::shared_ptr<ListNotificationsOutput>;

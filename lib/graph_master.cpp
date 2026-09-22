@@ -92,7 +92,7 @@ void GraphMaster::createList(const AppBskyGraph::List& list, const QString& rKey
     const QString& repo = mClient.getSessionDid();
     const QString collection = listJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, rKey, listJson, true,
+    mClient.createRecord(repo, collection, rKey, listJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -197,7 +197,7 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
     const QString& repo = mClient.getSessionDid();
     const QString collection = listJson["$type"].toString();
 
-    mClient.putRecord(repo, collection, rkey, listJson, true,
+    mClient.putRecord(repo, collection, rkey, listJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -220,7 +220,7 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
     const QString& repo = mClient.getSessionDid();
     const QString collection = AppBskyGraph::ListItem::TYPE;
 
-    mClient.createRecord(repo, collection, {}, recordJson, true,
+    mClient.createRecord(repo, collection, {}, recordJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -251,7 +251,7 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
 
     const QString& repo = mClient.getSessionDid();
 
-    mClient.applyWrites(repo, writes, false,
+    mClient.applyWrites(repo, writes, {},
         [successCb, presence=getPresence()] {
             if (!presence)
                 return;
@@ -553,7 +553,7 @@ void GraphMaster::createRecord(const QString& subject, const RecordSuccessCb& su
     const QString& repo = mClient.getSessionDid();
     const QString collection = recordJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, recordJson, true,
+    mClient.createRecord(repo, collection, {}, recordJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);

@@ -67,7 +67,7 @@ inline void RepoMaster::updateRecord(const QString& repo, const QString& collect
                                      const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Update record:" << repo << "collection:" << collection << "rkey:" << rkey;
-    mClient.putRecord(repo, collection, rkey, entity.toJson(), true,
+    mClient.putRecord(repo, collection, rkey, entity.toJson(), {},
         [successCb](auto){
             if (successCb)
                 successCb();

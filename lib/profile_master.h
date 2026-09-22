@@ -14,6 +14,7 @@ public:
     using ProfileCb = std::function<void(AppBskyActor::Profile::SharedPtr)>;
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using StatusCb = std::function<void(AppBskyActor::Status::SharedPtr)>;
+    using ContentVisibilityDeclarationCb = std::function<void(AppBskyActor::ContentVisibilityDeclaration::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -46,6 +47,10 @@ public:
     void updateStatus(const QString& did, const AppBskyActor::Status& status,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
     void deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    void getContentVisibilityDeclaration(const QString& did, const ContentVisibilityDeclarationCb& successCb, const ErrorCb& errorCb);
+    void updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
+                           const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     bool addLabel(AppBskyActor::Profile& profile, const QString& label) const;

@@ -2,6 +2,8 @@ next
 ====
 * KnownLikers
 * Multipart video upload requests
+* Lexicon updates
+* Option to leave validate unset for record create/update
 
 6.13.1
 ======

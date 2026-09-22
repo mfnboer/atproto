@@ -8,6 +8,7 @@ namespace ATProto {
 namespace {
 constexpr char const* PROFILE_KEY = "self";
 constexpr char const* STATUS_KEY = "self";
+constexpr char const* CONTENT_VISIBILITY_DECLARATION_KEY = "self";
 constexpr char const* LOGGED_OUT_VISIBILITY_LABEL = "!no-unauthenticated";
 }
 
@@ -279,6 +280,21 @@ void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status&
 void ProfileMaster::deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     mRepoMaster.deleteRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, successCb, errorCb);
+}
+
+void ProfileMaster::getContentVisibilityDeclaration(const QString& did, const ContentVisibilityDeclarationCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Get content visibility declatration" << did;
+    mRepoMaster.getRecord<AppBskyActor::ContentVisibilityDeclaration>(
+        did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
+        CONTENT_VISIBILITY_DECLARATION_KEY, {}, successCb, errorCb);
+}
+
+void ProfileMaster::updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
+                                        const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
+                             CONTENT_VISIBILITY_DECLARATION_KEY, declaration, successCb, errorCb);
 }
 
 }

@@ -31,7 +31,7 @@ void PostMaster::post(const ATProto::AppBskyFeed::Record::Post& post,
     const QString& repo = mClient.getSessionDid();
     const QString collection = postJson["$type"].toString();
 
-    mClient.createRecord(repo, collection, {}, postJson, true,
+    mClient.createRecord(repo, collection, {}, postJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -56,7 +56,7 @@ void PostMaster::addThreadgate(const QString& uri, bool allowMention, bool allow
     const QString& repo = mClient.getSessionDid();
     const QString collection = threadgateJson["$type"].toString();
 
-    mClient.putRecord(repo, collection, atUri.getRkey(), threadgateJson, true,
+    mClient.putRecord(repo, collection, atUri.getRkey(), threadgateJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -80,7 +80,7 @@ void PostMaster::addPostgate(const QString& uri, bool disableEmbedding, const QS
     const QString& repo = mClient.getSessionDid();
     const QString collection = postgateJson["$type"].toString();
 
-    mClient.putRecord(repo, collection, atUri.getRkey(), postgateJson, true,
+    mClient.putRecord(repo, collection, atUri.getRkey(), postgateJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -205,7 +205,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
     const auto repostJson = repost.toJson();
     const QString& repo = mClient.getSessionDid();
 
-    mClient.createRecord(repo, AppBskyFeed::Repost::TYPE, {}, repostJson, true,
+    mClient.createRecord(repo, AppBskyFeed::Repost::TYPE, {}, repostJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
@@ -240,7 +240,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
     const auto likeJson = like.toJson();
     const QString& repo = mClient.getSessionDid();
 
-    mClient.createRecord(repo, AppBskyFeed::Like::TYPE, {}, likeJson, true,
+    mClient.createRecord(repo, AppBskyFeed::Like::TYPE, {}, likeJson, {},
         [successCb](auto strongRef){
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
