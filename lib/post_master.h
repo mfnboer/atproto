@@ -115,10 +115,6 @@ public:
                                   const ComATProtoRepo::StrongRef::List& associatedRefs = {});
 
     static void addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr blob, int width, int height, const QString& altText, bool isGif);
-    void addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus, int width, int height, const QString& altText,
-                        bool isGif, const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
-    void checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, int width, int height, const QString& altText,
-                                bool isGif, const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb);
 
     void sendInteractionShowMoreLikeThis(const QString& postUri, const std::optional<QString>& feedUri, const QString& feedDid, const QString& feedContext,
                                          const SuccessCb& successCb, const ErrorCb& errorCb);

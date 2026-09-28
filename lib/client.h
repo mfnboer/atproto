@@ -949,7 +949,7 @@ public:
 
     /**
      * @brief videoStartUpload
-     * @param sizeInBytes
+     * @param sizeBytes
      * @param mimeType
      * @param name
      * @param durationMs
@@ -958,13 +958,13 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void videoStartUpload(int sizeInBytes, const QString& mimeType,
+    void videoStartUpload(qint64 sizeBytes, const QString& mimeType,
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
 
     void videoStartUpload(const QString& serviceAuthToken,
-                          int sizeInBytes, const QString& mimeType,
+                          qint64 sizeBytes, const QString& mimeType,
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);

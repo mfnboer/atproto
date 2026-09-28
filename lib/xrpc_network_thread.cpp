@@ -295,6 +295,11 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             emit requestError(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {}, errorCb);
             return;
         }
+        else if (errorCode == QNetworkReply::ContentNotFoundError)
+        {
+            emit requestError(ATProto::ATProtoErrorMsg::NOT_FOUND, {}, errorCb);
+            return;
+        }
 
         QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(std::move(errorMsg), std::move(json), errorCb);

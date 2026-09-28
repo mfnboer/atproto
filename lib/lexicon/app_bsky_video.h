@@ -84,7 +84,7 @@ struct StartUploadOutput
 struct UploadPartOutput
 {
     int mPartNumnber = 0;
-    int mSizeInBytes = 0;
+    int mSizeBytes = 0;
 
     using SharedPtr = std::shared_ptr<UploadPartOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
