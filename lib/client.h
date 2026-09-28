@@ -944,8 +944,8 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
-    void uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(std::shared_ptr<QIODevice> blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(std::shared_ptr<QIODevice> blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief videoStartUpload
@@ -969,7 +969,7 @@ public:
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
 
-    void videoUploadPart(QIODevice* blob,
+    void videoUploadPart(std::shared_ptr<QIODevice> blob,
                          const QString& serviceAuthToken, const QString& jobId, int partNumber,
                          const VideoUploadPartOutputCb& successCb, const ErrorCb& errorCb);
 

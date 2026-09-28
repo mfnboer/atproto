@@ -83,7 +83,7 @@ struct StartUploadOutput
 // app.bsky.video.uploadPart#output
 struct UploadPartOutput
 {
-    int mPartNumnber = 0;
+    int mPartNumber = 0;
     int mSizeBytes = 0;
 
     using SharedPtr = std::shared_ptr<UploadPartOutput>;

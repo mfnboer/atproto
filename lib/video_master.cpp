@@ -16,7 +16,13 @@ VideoMaster::VideoMaster(Client& client) :
 {
 }
 
-void VideoMaster::serialUpload(QIODevice* ioDevice,
+VideoMaster::~VideoMaster()
+{
+    if (isParallelUploadInProgress())
+        abortParallelUpload({}, {});
+}
+
+void VideoMaster::serialUpload(std::shared_ptr<QIODevice> ioDevice,
                                const UploadSuccessCb& successCb, const ErrorCb& errorCb,
                                const ProgressCb& progressCb)
 {
@@ -37,7 +43,7 @@ void VideoMaster::serialUpload(QIODevice* ioDevice,
     startSerialUpload(ioDevice);
 }
 
-void VideoMaster::startSerialUpload(QIODevice* ioDevice)
+void VideoMaster::startSerialUpload(std::shared_ptr<QIODevice> ioDevice)
 {
     mClient.uploadVideo(ioDevice,
         [this, presence=getPresence()](ATProto::AppBskyVideo::JobStatus::SharedPtr output){
@@ -135,11 +141,11 @@ void VideoMaster::parallelUpload(const QString& fileName, std::optional<int> dur
 void VideoMaster::fallbackToSerialUpload()
 {
     qDebug() << mFileName << "fall back to serial upload";
-    mSerialFallbackFile = std::make_unique<QFile>(mFileName);
+    mSerialFallbackFile = std::make_shared<QFile>(mFileName);
 
     if (mSerialFallbackFile->open(QFile::ReadOnly))
     {
-        startSerialUpload(mSerialFallbackFile.get());
+        startSerialUpload(mSerialFallbackFile);
     }
     else
     {
@@ -154,13 +160,12 @@ void VideoMaster::uploadParts()
     {
         int partNumber = mNextPartIndex + 1;
         qDebug() << mFileName << "upload part:" << partNumber;
-        auto* part = mFileSlices[mNextPartIndex].get();
+        auto part = mFileSlices[mNextPartIndex];
 
         if (!part->open(QFile::ReadOnly))
         {
             qWarning() << mFileName << "failed to open file, error:" << part->errorString();
-
-            mClient.videoAbortUpload(mServiceAuthToken, mJobId, {}, {});
+            abortParallelUpload({}, {});
             failUpload(ATProtoErrorMsg::UPLOAD_ERROR, part->errorString());
             return;
         }
@@ -174,12 +179,9 @@ void VideoMaster::uploadParts()
                 if (!presence)
                     return;
 
-                qDebug() << mFileName << "part uploaded:" << output->mPartNumnber << "size:" << output->mSizeBytes;
+                qDebug() << mFileName << "part uploaded:" << output->mPartNumber << "size:" << output->mSizeBytes;
                 mBytesUploaded += output->mSizeBytes;
-                const int index = output->mPartNumnber - 1;
-
-                if (index >= 0 && index < (int)mFileSlices.size())
-                    mFileSlices[index]->close();
+                closePart(output->mPartNumber);
 
                 if (mUploadProgressCb)
                     mUploadProgressCb(STATUS_UPLOADING, (mBytesUploaded / (double)mFileSize) * 100);
@@ -200,10 +202,46 @@ void VideoMaster::uploadParts()
                 return;
 
             qWarning() << mFileName << "upload part:" << partNumber << "failed:" << error << " - " << message;
-            mClient.videoAbortUpload(mServiceAuthToken, mJobId, {}, {});
+            --mPartsUploading;
+            closePart(partNumber);
+            abortParallelUpload({}, {});
             failUpload(error, message);
         });
     }
+}
+
+void VideoMaster::closePart(int partNumber)
+{
+    qDebug() << mFileName << "close part:" << partNumber;
+    const int index = partNumber - 1;
+
+    if (index >= 0 && index < (int)mFileSlices.size())
+        mFileSlices[index]->close();
+    else
+        qWarning() << mFileName << "part number out of bounds:" << partNumber << "parts:" << mFileSlices.size();
+}
+
+bool VideoMaster::isParallelUploadInProgress() const
+{
+    return mStarted && !mFileSlices.empty() && !mJobId.isEmpty() && !mServiceAuthToken.isEmpty();
+}
+
+void VideoMaster::abortParallelUpload(const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << mFileName << "abort upload";
+
+    mClient.videoAbortUpload(mServiceAuthToken, mJobId,
+        [this, presence=getPresence(), successCb](AppBskyVideo::AbortUploadOutput::SharedPtr){
+            if (!presence)
+                return;
+
+            mFileSlices.clear();
+            finish();
+
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 void VideoMaster::finishUpload()
@@ -226,6 +264,7 @@ void VideoMaster::finishUpload()
                 return;
 
             qWarning() << mFileName << "finish upload failed:" << error << " - " << message;
+            mFileSlices.clear();
             failUpload(error, message);
         });
 }
@@ -237,9 +276,11 @@ void VideoMaster::checkVideoUploadStatus(AppBskyVideo::JobStatus::SharedPtr jobS
     switch (jobStatus->mState)
     {
     case AppBskyVideo::JobStatusState::JOB_STATE_COMPLETED:
+        mFileSlices.clear();
+
         if (jobStatus->mBlob)
         {
-            closeFiles();
+            finish();
 
             if (mUploadSuccessCb)
                 mUploadSuccessCb(jobStatus->mBlob);
@@ -252,6 +293,7 @@ void VideoMaster::checkVideoUploadStatus(AppBskyVideo::JobStatus::SharedPtr jobS
 
         break;
     case AppBskyVideo::JobStatusState::JOB_STATE_FAILED:
+        mFileSlices.clear();
         failUpload(jobStatus->mError.value_or(ATProtoErrorMsg::UPLOAD_ERROR), jobStatus->mMessage.value_or("Job failed"));
         break;
     case AppBskyVideo::JobStatusState::JOB_STATE_INPROG:
@@ -293,6 +335,8 @@ void VideoMaster::getVideoUploadStatus()
 
 bool VideoMaster::sliceFile(int partCount, int partSize)
 {
+    mFileSlices.clear();
+
     if (partCount <= 0)
     {
         qWarning() << mFileName << "invalid part count:" << partCount;
@@ -305,12 +349,11 @@ bool VideoMaster::sliceFile(int partCount, int partSize)
         return false;
     }
 
-    mFileSlices.clear();
     int start = 0;
 
     for (int i = 0; i < partCount; ++ i)
     {
-        auto slice = std::make_unique<FileSlice>(mFileName, start, partSize);
+        auto slice = std::make_shared<FileSlice>(mFileName, start, partSize);
         mFileSlices.emplace_back(std::move(slice));
         start += partSize;
     }
@@ -329,13 +372,13 @@ void VideoMaster::failUpload(const QString& error, const QString& message)
         return;
     }
 
-    closeFiles();
+    finish();
 
     if (mUploadErrorCb)
         mUploadErrorCb(error, message);
 }
 
-void VideoMaster::closeFiles()
+void VideoMaster::finish()
 {
     mDone = true;
     const auto endTime = std::chrono::high_resolution_clock::now();
@@ -352,9 +395,6 @@ void VideoMaster::closeFiles()
         const auto totalDurationSecs = (endTime - mStartTime) / 1s;
         qDebug() << mFileName << "upload:" << uploadDurationSecs << "s" << "processing:" << processingDurationSecs << "s" << "total:" << totalDurationSecs << "s";
     }
-
-    for (auto& file : mFileSlices)
-        file->close();
 }
 
 }

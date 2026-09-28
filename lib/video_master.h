@@ -21,8 +21,9 @@ public:
     static const QString STATUS_UPLOADING;
 
     explicit VideoMaster(Client& client);
+    ~VideoMaster();
 
-    void serialUpload(QIODevice* ioDevice,
+    void serialUpload(std::shared_ptr<QIODevice> ioDevice,
                       const UploadSuccessCb& successCb, const ErrorCb& errorCb,
                       const ProgressCb& progressCb);
 
@@ -33,8 +34,10 @@ public:
 
     void abortParallelUpload(const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    bool isParallelUploadInProgress() const;
+
 private:
-    void startSerialUpload(QIODevice* ioDevice);
+    void startSerialUpload(std::shared_ptr<QIODevice> ioDevice);
     void fallbackToSerialUpload();
     void uploadParts();
     void finishUpload();
@@ -42,14 +45,15 @@ private:
     void getVideoUploadStatus();
     bool sliceFile(int partCount, int partSize);
     void failUpload(const QString& error, const QString& message);
-    void closeFiles();
+    void closePart(int partNumber);
+    void finish();
 
     Client& mClient;
     bool mStarted = false;
     bool mDone = false;
     QString mFileName;
     qint64 mFileSize = 0;
-    std::vector<std::unique_ptr<FileSlice>> mFileSlices;
+    std::vector<std::shared_ptr<FileSlice>> mFileSlices;
     int mNextPartIndex = 0;
     int mPartsUploading = 0;
     qint64 mBytesUploaded = 0;
@@ -60,7 +64,7 @@ private:
     QString mServiceAuthToken;
     std::chrono::time_point<std::chrono::high_resolution_clock> mStartTime;
     std::chrono::time_point<std::chrono::high_resolution_clock> mProcessingStartTime;
-    std::unique_ptr<QFile> mSerialFallbackFile;
+    std::shared_ptr<QFile> mSerialFallbackFile;
     QObject mPresence;
 };
 

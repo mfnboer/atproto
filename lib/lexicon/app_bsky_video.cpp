@@ -95,7 +95,7 @@ UploadPartOutput::SharedPtr UploadPartOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_shared<UploadPartOutput>();
     const XJsonObject xjson(json);
-    output->mPartNumnber = xjson.getRequiredInt("partNumber");
+    output->mPartNumber = xjson.getRequiredInt("partNumber");
     output->mSizeBytes = xjson.getRequiredInt("sizeBytes");
     return output;
 }
