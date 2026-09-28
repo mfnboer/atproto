@@ -823,68 +823,6 @@ void PostMaster::addVideoToPost(AppBskyFeed::Record::Post& post, Blob::SharedPtr
     }
 }
 
-void PostMaster::addVideoToPost(AppBskyFeed::Record::Post::SharedPtr post, const AppBskyVideo::JobStatus& jobStatus,
-                                int width, int height, const QString& altText, bool isGif,
-                                const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
-{
-    switch (jobStatus.mState)
-    {
-    case AppBskyVideo::JobStatusState::JOB_STATE_COMPLETED:
-    {
-        if (jobStatus.mBlob)
-        {
-            addVideoToPost(*post, jobStatus.mBlob, width, height, altText, isGif);
-
-            if (successCb)
-                successCb();
-        }
-        else
-        {
-            qWarning() << "Blob missing from job status";
-            if (errorCb)
-                errorCb("UpdloadError", "Video blob missing");
-        }
-
-        break;
-    }
-    case AppBskyVideo::JobStatusState::JOB_STATE_FAILED:
-        if (errorCb)
-            errorCb(jobStatus.mError.value_or("UploadError"), jobStatus.mMessage.value_or("Job failed"));
-
-        break;
-    case AppBskyVideo::JobStatusState::JOB_STATE_INPROG:
-        qDebug() << "Upload in progress, job:" << jobStatus.mJobId << "progress:" << jobStatus.mProgress.value_or(-1);
-
-        if (progressCb)
-        {
-            const QString status = jobStatus.mRawState.startsWith("JOB_STATE_") ? jobStatus.mRawState.sliced(10) : jobStatus.mRawState;
-            progressCb(status, jobStatus.mProgress);
-        }
-
-        QTimer::singleShot(1500, &mPresence, [this, post, jobId=jobStatus.mJobId, width, height, altText, isGif, successCb, errorCb, progressCb]{
-            checkVideoUploadStatus(post, jobId, width, height, altText, isGif, successCb, errorCb, progressCb); });
-        break;
-    }
-}
-
-void PostMaster::checkVideoUploadStatus(AppBskyFeed::Record::Post::SharedPtr post, const QString jobId, int width, int height, const QString& altText,
-                                        bool isGif, const SuccessCb& successCb, const ErrorCb& errorCb, const ProgressCb& progressCb)
-{
-    mClient.getVideoJobStatus(jobId,
-        [this, presence=getPresence(), post, width, height, altText, isGif, successCb, errorCb, progressCb](AppBskyVideo::JobStatusOutput::SharedPtr output){
-            if (!presence)
-                return;
-
-            addVideoToPost(post, *output->mJobStatus, width, height, altText, isGif, successCb, errorCb, progressCb);
-        },
-        [errorCb](const QString& err, const QString& msg){
-            qDebug() << err << " - " << msg;
-
-            if (errorCb)
-                errorCb(err, msg);
-        });
-}
-
 void PostMaster::sendInteractionShowMoreLikeThis(const QString& postUri, const std::optional<QString>& feedUri, const QString& feedDid, const QString& feedContext,
                                      const SuccessCb& successCb, const ErrorCb& errorCb)
 {

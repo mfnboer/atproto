@@ -83,7 +83,9 @@ public:
 
     // Internal stack errors
     SHARED_CONST(QString, DPOP_NONCE_MISSING, QStringLiteral("DpopNonceMissing"));
+    SHARED_CONST(QString, FILE_ERROR, QStringLiteral("FileError"));
     SHARED_CONST(QString, PDS_NOT_FOUND, QStringLiteral("PdsNotFound"));
+    SHARED_CONST(QString, UPLOAD_ERROR, QStringLiteral("UploadError"));
     SHARED_CONST(QString, XRPC_TIMEOUT, QStringLiteral("XrpcTimeout"));
 
     static bool isRecordNotFound(const QString& error)

@@ -28,7 +28,7 @@ class NetworkThread : public QThread
 {
     Q_OBJECT
 public:
-    using DataType = std::variant<QByteArray, QIODevice*>;
+    using DataType = std::variant<QByteArray, std::shared_ptr<QIODevice>>;
     using Params = QList<QPair<QString, QString>>;
     using ErrorCb = std::function<void(const QString& err, const QJsonDocument& json)>;
     using SuccessJsonCb = std::function<void(const QJsonDocument& json)>;

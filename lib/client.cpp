@@ -2317,7 +2317,7 @@ void Client::getServiceAuthForVideoUpload(const ErrorCb& errorCb, std::function<
         errorCb);
 }
 
-void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(std::shared_ptr<QIODevice> blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     auto uploadFunc = [this, blob, successCb, errorCb](const QString& token){
         uploadVideo(blob, token, successCb, errorCb);
@@ -2326,7 +2326,7 @@ void Client::uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, 
     getServiceAuthForVideoUpload(errorCb, uploadFunc);
 }
 
-void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
+void Client::uploadVideo(std::shared_ptr<QIODevice> blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
     const QString name = QUuid::createUuid().toString(QUuid::WithoutBraces);
     qDebug() << "Upload video:" << name << "size:" << blob->size();
@@ -2392,27 +2392,27 @@ void Client::uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const
         serviceAuthToken, true);
 }
 
-void Client::videoStartUpload(int sizeInBytes, const QString& mimeType,
+void Client::videoStartUpload(qint64 sizeBytes, const QString& mimeType,
                       const std::optional<QString>& name, std::optional<int> durationMs,
                       std::optional<int> width, std::optional<int> height,
                       const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb)
 {
-    auto uploadFunc = [this, sizeInBytes, mimeType, name, durationMs, width, height, successCb, errorCb]
+    auto uploadFunc = [this, sizeBytes, mimeType, name, durationMs, width, height, successCb, errorCb]
         (const QString& token){
-            videoStartUpload(token, sizeInBytes, mimeType, name, durationMs, width, height, successCb, errorCb);
+            videoStartUpload(token, sizeBytes, mimeType, name, durationMs, width, height, successCb, errorCb);
         };
 
     getServiceAuthForVideoUpload(errorCb, uploadFunc);
 }
 
 void Client::videoStartUpload(const QString& serviceAuthToken,
-                      int sizeInBytes, const QString& mimeType,
+                      qint64 sizeBytes, const QString& mimeType,
                       const std::optional<QString>& name, std::optional<int> durationMs,
                       std::optional<int> width, std::optional<int> height,
                       const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
-    json.insert("sizeInBytes", sizeInBytes);
+    json.insert("sizeBytes", sizeBytes);
     json.insert("mimeType", mimeType);
     XJsonObject::insertOptionalJsonValue(json, "name", name);
     XJsonObject::insertOptionalJsonValue(json, "durationMs", durationMs);
@@ -2442,7 +2442,7 @@ void Client::videoStartUpload(const QString& serviceAuthToken,
         serviceAuthToken, true);
 }
 
-void Client::videoUploadPart(QIODevice* blob,
+void Client::videoUploadPart(std::shared_ptr<QIODevice> blob,
                              const QString& serviceAuthToken, const QString& jobId, int partNumber,
                              const VideoUploadPartOutputCb& successCb, const ErrorCb& errorCb)
 {
@@ -2506,7 +2506,7 @@ void Client::videoFinishUpload(const QString& serviceAuthToken, const QString& j
 void Client::videoAbortUpload(const QString& serviceAuthToken, const QString& jobId,
                                const VideoAbortUploadOutputCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Aboort upload:" << jobId;
+    qDebug() << "Abort upload:" << jobId;
     QJsonObject json;
     json.insert("jobId", jobId);
 

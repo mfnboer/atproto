@@ -23,7 +23,7 @@ static bool isEmpty(const NetworkThread::DataType& data)
     }
     else
     {
-        auto* ioDevice = std::get<QIODevice*>(data);
+        auto ioDevice = std::get<std::shared_ptr<QIODevice>>(data);
         return ioDevice->atEnd();
     }
 }
@@ -159,8 +159,8 @@ void NetworkThread::sendRequest(Request& request, const CallbackType& successCb,
         }
         else
         {
-            auto* ioDevice = std::get<QIODevice*>(request.mData);
-            reply = mNetwork->post(request.mXrpcRequest, ioDevice);
+            auto ioDevice = std::get<std::shared_ptr<QIODevice>>(request.mData);
+            reply = mNetwork->post(request.mXrpcRequest, ioDevice.get());
         }
     }
     else
@@ -293,6 +293,11 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
         if (errorCode == QNetworkReply::OperationCanceledError)
         {
             emit requestError(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {}, errorCb);
+            return;
+        }
+        else if (errorCode == QNetworkReply::ContentNotFoundError)
+        {
+            emit requestError(ATProto::ATProtoErrorMsg::NOT_FOUND, {}, errorCb);
             return;
         }
 

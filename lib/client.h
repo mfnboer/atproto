@@ -944,12 +944,12 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void uploadVideo(QIODevice* blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
-    void uploadVideo(QIODevice* blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(std::shared_ptr<QIODevice> blob, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
+    void uploadVideo(std::shared_ptr<QIODevice> blob, const QString& serviceAuthToken, const VideoUploadOutputCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief videoStartUpload
-     * @param sizeInBytes
+     * @param sizeBytes
      * @param mimeType
      * @param name
      * @param durationMs
@@ -958,18 +958,18 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void videoStartUpload(int sizeInBytes, const QString& mimeType,
+    void videoStartUpload(qint64 sizeBytes, const QString& mimeType,
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
 
     void videoStartUpload(const QString& serviceAuthToken,
-                          int sizeInBytes, const QString& mimeType,
+                          qint64 sizeBytes, const QString& mimeType,
                           const std::optional<QString>& name, std::optional<int> durationMs,
                           std::optional<int> width, std::optional<int> height,
                           const VideoStartUploadOputCb& successCb, const ErrorCb& errorCb);
 
-    void videoUploadPart(QIODevice* blob,
+    void videoUploadPart(std::shared_ptr<QIODevice> blob,
                          const QString& serviceAuthToken, const QString& jobId, int partNumber,
                          const VideoUploadPartOutputCb& successCb, const ErrorCb& errorCb);
 
