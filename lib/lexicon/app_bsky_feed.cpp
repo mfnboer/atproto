@@ -504,6 +504,7 @@ OutputFeed::SharedPtr OutputFeed::fromJson(const QJsonObject& json)
     auto outputFeed = std::make_shared<OutputFeed>();
     XJsonObject xjson(json);
     outputFeed->mCursor = xjson.getOptionalString("cursor");
+    outputFeed->mStartCursor = xjson.getOptionalString("startCursor");
     outputFeed->mFeed = xjson.getRequiredVector<FeedViewPost>("feed");
     return outputFeed;
 }

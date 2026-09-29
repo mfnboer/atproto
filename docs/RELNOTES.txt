@@ -2,6 +2,8 @@ next
 ====
 * VideoMaster for serial and parallel video uploads
 * opThreadPostIndex, opThreadPostCount
+* sort parameter on getQuotes
+* since and startCursor on getTimeline, getListFeed
 
 6.14
 ====

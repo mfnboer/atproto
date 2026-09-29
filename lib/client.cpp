@@ -1016,11 +1016,13 @@ void Client::getActorLikes(const QString& user, std::optional<int> limit, const 
 }
 
 void Client::getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+                         const std::optional<QString>& since,
                          const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params;
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "since", since);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);
@@ -1061,13 +1063,15 @@ void Client::getFeed(const QString& feed, std::optional<int> limit, const std::o
         authToken());
 }
 
-void Client::getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+void Client::getListFeed(const QString& list, std::optional<int> limit,
+                         const std::optional<QString>& cursor, const std::optional<QString>& since,
                          const QStringList& acceptLanguages,
                          const GetFeedSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"list", list}};
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "since", since);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLanguageHeader(httpHeaders, acceptLanguages);
@@ -1203,12 +1207,14 @@ void Client::getPosts(const std::vector<QString>& uris,
 }
 
 void Client::getQuotes(const QString& uri, const std::optional<QString>& cid, std::optional<int> limit,
-                       const std::optional<QString>& cursor, const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb)
+                       const std::optional<QString>& cursor, const std::optional<QString>& sort,
+                       const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params{{"uri", uri}};
     addOptionalStringParam(params, "cid", cid);
     addOptionalIntParam(params, "limit", limit, 1, 100);
     addOptionalStringParam(params, "cursor", cursor);
+    addOptionalStringParam(params, "sort", sort);
 
     Xrpc::NetworkThread::Params httpHeaders;
     addAcceptLabelersHeader(httpHeaders);

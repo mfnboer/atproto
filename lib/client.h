@@ -459,10 +459,12 @@ public:
      * @brief getTimeline
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param since Return only items newer than the position identified by this cursor value
      * @param successCb
      * @param errorCb
      */
     void getTimeline(std::optional<int> limit, const std::optional<QString>& cursor,
+                     const std::optional<QString>& since,
                      const GetTimelineSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -483,11 +485,13 @@ public:
      * @param list list at-uri
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param since Return only items newer than the position identified by this cursor value
      * @param acceptLanguages add HTTP Accept-Language if languages are set
      * @param successCb
      * @param errorCb
      */
-    void getListFeed(const QString& list, std::optional<int> limit, const std::optional<QString>& cursor,
+    void getListFeed(const QString& list, std::optional<int> limit,
+                     const std::optional<QString>& cursor, const std::optional<QString>& since,
                      const QStringList& acceptLanguages,
                      const GetFeedSuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -546,11 +550,13 @@ public:
      * @param cid
      * @param limit min=1 max=100 default=50
      * @param cursor
+     * @param sort "latest" (default), "top"=most likes first
      * @param successCb
      * @param errorCb
      */
     void getQuotes(const QString& uri, const std::optional<QString>& cid, std::optional<int> limit,
-                   const std::optional<QString>& cursor, const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb);
+                   const std::optional<QString>& cursor, const std::optional<QString>& sort,
+                   const GetQuotesSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief searchPosts

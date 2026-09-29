@@ -213,6 +213,7 @@ using PostFeed = FeedViewPost::List;
 struct OutputFeed
 {
     std::optional<QString> mCursor;
+    std::optional<QString> mStartCursor; // only listFeed and timeline
     PostFeed mFeed;
 
     using SharedPtr = std::shared_ptr<OutputFeed>;
