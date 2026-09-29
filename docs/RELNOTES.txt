@@ -1,6 +1,7 @@
 next
 ====
 * VideoMaster for serial and parallel video uploads
+* opThreadPostIndex, opThreadPostCount
 
 6.14
 ====

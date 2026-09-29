@@ -193,6 +193,8 @@ struct FeedViewPost
 {
     PostView::SharedPtr mPost; // required
     ReplyRef::SharedPtr mReply;
+    std::optional<int> mOpThreadPostIndex; // The 1-indexed position of this post within the contiguous OP thread. Only present when this post is part of the OP thread.
+    std::optional<int> mOpThreadPostCount; // The total number of posts in the contiguous OP thread that this post belongs to. Only present when this post is part of the OP thread.
     std::optional<std::variant<ReasonRepost::SharedPtr, ReasonPin::SharedPtr>> mReason;
     std::optional<QString> mFeedContext;
 

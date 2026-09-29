@@ -479,6 +479,8 @@ QJsonObject FeedViewPost::toJson() const
     QJsonObject json;
     json.insert("post", mPost->toJson());
     XJsonObject::insertOptionalJsonObject<ReplyRef>(json, "reply", mReply);
+    XJsonObject::insertOptionalJsonValue(json, "opThreadPostIndex", mOpThreadPostIndex);
+    XJsonObject::insertOptionalJsonValue(json, "opThreadPostCount", mOpThreadPostCount);
     XJsonObject::insertOptionalVariant(json, "reason", mReason);
     XJsonObject::insertOptionalJsonValue(json, "feedContext", mFeedContext);
     return json;
@@ -490,6 +492,8 @@ FeedViewPost::SharedPtr FeedViewPost::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     feedViewPost->mPost = xjson.getRequiredObject<PostView>("post");
     feedViewPost->mReply = xjson.getOptionalObject<ReplyRef>("reply");
+    feedViewPost->mOpThreadPostIndex = xjson.getOptionalInt("opThreadPostIndex");
+    feedViewPost->mOpThreadPostCount = xjson.getOptionalInt("opThreadPostCount");
     feedViewPost->mReason = xjson.getOptionalVariant<ReasonRepost, ReasonPin>("reason");
     feedViewPost->mFeedContext = xjson.getOptionalString("feedContext");
     return feedViewPost;
