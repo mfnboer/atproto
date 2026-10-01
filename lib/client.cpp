@@ -70,6 +70,22 @@ static void addStringListParam(Xrpc::NetworkThread::Params& params, const QStrin
         params.append({name, str});
 }
 
+ServiceInfo::ServiceInfo(const QString& name, const QString& service) :
+    mName(name),
+    mService(service)
+{
+}
+
+const std::vector<ServiceInfo> Client::SERIVCE_APP_VIEW_LIST =
+{
+    { "PDS chooses (default)", "" },
+    { "Blacksky", "did:web:api.blacksky.community#bsky_appview" },
+    { "Bluesky", "did:web:api.bsky.app#bsky_appview" },
+    { "Eurosky", "did:web:api.eurosky.network#bsky_appview" }
+};
+
+const QString Client::SERVICE_APP_VIEW = Client::SERIVCE_APP_VIEW_LIST[0].mService;
+
 Client::SharedPtr Client::createPublicApiClient(QObject* parent)
 {
     auto xrpc = std::make_unique<Xrpc::Client>(PUBLIC_API_HOST);

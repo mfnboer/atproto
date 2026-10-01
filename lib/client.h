@@ -38,6 +38,21 @@ private:
     QString mMsg;
 };
 
+class ServiceInfo
+{
+    Q_GADGET
+    Q_PROPERTY(QString name MEMBER mName CONSTANT FINAL)
+    Q_PROPERTY(QString service MEMBER mService CONSTANT FINAL)
+    QML_VALUE_TYPE(serviceinfo)
+
+public:
+    ServiceInfo() = default;
+    ServiceInfo(const QString& name, const QString& service);
+
+    QString mName;
+    QString mService;
+};
+
 class Client : public QObject, public Presence
 {
 public:
@@ -154,7 +169,8 @@ public:
     static constexpr int MAX_TRENDS = 25;
     static constexpr int MAX_CONVO_MEMBERS = 10;
 
-    static constexpr const char* SERVICE_APP_VIEW = "";
+    static const std::vector<ServiceInfo> SERIVCE_APP_VIEW_LIST;
+    static const QString SERVICE_APP_VIEW;
     static constexpr const char* SERVICE_CHAT = "did:web:api.bsky.chat#bsky_chat";
     static constexpr const char* SERVICE_VIDEO_DID = "did:web:video.bsky.app";
     static constexpr const char* SERVICE_VIDEO_HOST = "https://video.bsky.app";
