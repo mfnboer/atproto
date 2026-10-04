@@ -28,6 +28,8 @@ public:
     using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using GetListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using RenameListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using CreateStarterPackSuccessCb = std::function<void(const QString& starterPackUri, const QString& starterPackCid, const QString& listUri, const QString& listCid)>;
+    using UpdateStarterPackSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using GetVerificationsSuccessCb = std::function<void(VerificationsOuput::SharedPtr)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
@@ -57,6 +59,7 @@ public:
                     const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
                     Blob::SharedPtr avatar, bool updateAvatar,
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
+    void deleteList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb);
 
     void addUserToList(const QString& listUri, const QString& did,
                        const AddListUserSuccessCb& successCb, const ErrorCb& errorCb);
@@ -77,6 +80,21 @@ public:
                           AppBskyGraph::ListPurpose purpose, const std::optional<QString>& cursor,
                           const RenameListSuccessCb& successCb, const ErrorCb& errorCb,
                           int maxPages = 10);
+
+    void createStarterPack(const QString& name,
+                           const QString& description,
+                           const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                           const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+
+    void updateStarterPack(const QString& starterPackUri, const QString& name, const std::optional<QString>& description,
+                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                    const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void deleteStarterPack(const QString& starterPackUri,
+                           const SuccessCb& successCb, const ErrorCb& errorCb);
+    void addFeedToStarterPack(const QString& starterPackUri, const QString& feedUri,
+                              const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void removeFeedFromStarterPack(const QString& starterPackUri, const QString& feedUri,
+                                   const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getVerifications
@@ -102,6 +120,21 @@ private:
                     const UpdateListSuccessCb& successCb, const ErrorCb& errorCb);
     void batchDeleteListUsers(const QString& listUri, const std::optional<QString>& cursor,
                               const SuccessCb& successCb, const ErrorCb& errorCb, int page = 0);
+    void createStarterPack(const QString& name,
+                           const QString& description,
+                           const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                           const QString& listUri, const QString& listCid,
+                           const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void createStarterPack(const AppBskyGraph::StarterPack& starterPack,
+                           const QString& listUri, const QString& listCid,
+                           const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateStarterPack(AppBskyGraph::StarterPack::SharedPtr starterPack, const QString& rkey, const QString& description,
+                           const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                           const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateStarterPack(const AppBskyGraph::StarterPack& starterPack, const QString& rkey,
+                           const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+    void deleteStarterPack(const QString& starterPackUri, const AppBskyGraph::StarterPack& starterPack,
+                           const SuccessCb& successCb, const ErrorCb& errorCb);
     void getVerificationsContinue(const QString& issuerDid, bool addVerificationsAsValid,
                                   const ATProto::ComATProtoRepo::Record::List& verificationRecords,
                                   const std::optional<QString>& cursor,
@@ -115,6 +148,7 @@ private:
     RepoMaster mRepoMaster;
     std::unordered_map<QString, Blob::SharedPtr> mRKeyBlobMap;
     std::unordered_map<QString, AppBskyGraph::List::SharedPtr> mRKeyListMap;
+    std::unordered_map<QString, AppBskyGraph::StarterPack::SharedPtr> mRKeyStarterPackMap;
     QObject mPresence;
 };
 

@@ -109,6 +109,7 @@ void GraphMaster::updateList(const QString& listUri, const QString& name, const 
                              const UpdateListSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const auto atUri = ATUri::createAtUri(listUri, mPresence, errorCb);
+
     if (!atUri.isValid())
         return;
 
@@ -203,6 +204,30 @@ void GraphMaster::updateList(const AppBskyGraph::List& list, const QString& rkey
                 successCb(strongRef->mUri, strongRef->mCid);
         },
         [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::deleteList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    batchDeleteAllUsersFromList(listUri,
+        [this, presence=getPresence(), listUri, successCb, errorCb]{
+            undo(listUri,
+                [successCb]{
+                    if (successCb)
+                        successCb();
+                },
+                [errorCb](const QString& error, const QString& msg){
+                    qDebug() << "Delete list failed:" << error << " - " << msg;
+
+                    if (errorCb)
+                        errorCb(error, msg);
+                });
+        },
+        [errorCb](const QString& error, const QString& msg){
+            qDebug() << "Delete list users failed:" << error << " - " << msg;
+
             if (errorCb)
                 errorCb(error, msg);
         });
@@ -414,6 +439,276 @@ void GraphMaster::renameListByName(const QString& did, const QString& oldName, c
         },
         errorCb,
         maxPages);
+}
+
+void GraphMaster::createStarterPack(const QString& name,
+                                    const QString& description,
+                                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                                    const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    createList(AppBskyGraph::ListPurpose::REFERENCE_LIST, name, {}, {}, nullptr, {},
+        [this, presence=getPresence(), name, description, embeddedLinks, successCb, errorCb](const QString& uri, const QString& cid){
+            if (!presence)
+                return;
+
+            createStarterPack(name, description, embeddedLinks, uri, cid, successCb, errorCb);
+        },
+        [presence=getPresence(), errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::createStarterPack(const QString& name,
+                       const QString& description,
+                       const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                        const QString& listUri, const QString& listCid,
+                       const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    auto starterPack = std::make_shared<AppBskyGraph::StarterPack>();
+    starterPack->mName = name;
+    starterPack->mCreatedAt = QDateTime::currentDateTimeUtc();
+    starterPack->mList = listUri;
+    auto facets = RichTextMaster::parseFacets(description);
+    RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
+
+    mRichTextMaster.resolveFacets(description, facets, 0, true,
+        [this, presence=getPresence(), starterPack, listUri, listCid, successCb, errorCb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
+            if (!presence)
+                return;
+
+            if (!richText.isEmpty())
+            {
+                starterPack->mDescription = richText;
+                starterPack->mDescriptionFacets = std::move(resolvedFacets);
+            }
+
+            createStarterPack(*starterPack, listUri, listCid, successCb, errorCb);
+        });
+}
+
+void GraphMaster::createStarterPack(const AppBskyGraph::StarterPack& starterPack,
+                                    const QString& listUri, const QString& listCid,
+                                    const CreateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto starterPackJson = starterPack.toJson();
+    qDebug() << "Create starter pack:" << starterPackJson;
+    const QString& repo = mClient.getSessionDid();
+    const QString collection = AppBskyGraph::StarterPack::TYPE;
+
+    mClient.createRecord(repo, collection, {}, starterPackJson, {},
+        [successCb, listUri, listCid](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid, listUri, listCid);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::updateStarterPack(const QString& starterPackUri, const QString& name, const std::optional<QString>& description,
+                                    const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                                    const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(starterPackUri, mPresence, errorCb);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, presence=getPresence(), atUri, name, description, embeddedLinks, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
+            if (!presence)
+                return;
+
+            try {
+                auto starterPack = AppBskyGraph::StarterPack::fromJson(record->mValue);
+                starterPack->mName = name;
+
+                if (description && starterPack->mDescription.value_or("") != *description)
+                    updateStarterPack(std::move(starterPack), atUri.getRkey(), *description, embeddedLinks, successCb, errorCb);
+                else
+                    updateStarterPack(*starterPack, atUri.getRkey(), successCb, errorCb);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::updateStarterPack(AppBskyGraph::StarterPack::SharedPtr starterPack, const QString& rkey, const QString& description,
+                       const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks,
+                       const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    auto facets = RichTextMaster::parseFacets(description);
+    RichTextMaster::insertEmbeddedLinksToFacets(embeddedLinks, facets);
+    mRKeyStarterPackMap[rkey] = std::move(starterPack);
+
+    mRichTextMaster.resolveFacets(description, facets, 0, true,
+        [this, presence=getPresence(), rkey, successCb, errorCb](const QString& richText, AppBskyRichtext::Facet::List resolvedFacets){
+            if (!presence)
+                return;
+
+            auto sp = std::move(mRKeyStarterPackMap[rkey]);
+            mRKeyStarterPackMap.erase(rkey);
+
+            Q_ASSERT(sp);
+            if (!sp) {
+                qWarning() << "Starter pack not stored:" << rkey;
+
+                if (errorCb)
+                    errorCb("InternalError", "Internal error: starter pack not stored");
+
+                return;
+            }
+
+            if (!richText.isEmpty())
+            {
+                sp->mDescription = richText;
+                sp->mDescriptionFacets = std::move(resolvedFacets);
+            }
+            else
+            {
+                sp->mDescription.reset();
+                sp->mDescriptionFacets.clear();
+            }
+
+            updateStarterPack(*sp, rkey, successCb, errorCb);
+        });
+}
+
+void GraphMaster::updateStarterPack(const AppBskyGraph::StarterPack& starterPack, const QString& rkey,
+                       const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto starterPackJson = starterPack.toJson();
+    qDebug() << "Update starter pack:" << starterPackJson;
+    const QString& repo = mClient.getSessionDid();
+    const QString collection = AppBskyGraph::StarterPack::TYPE;
+
+    mClient.putRecord(repo, collection, rkey, starterPackJson, {},
+        [successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::deleteStarterPack(const QString& starterPackUri,
+                                    const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(starterPackUri, mPresence, errorCb);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, presence=getPresence(), starterPackUri, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
+            if (!presence)
+                return;
+
+            try {
+                auto starterPack = AppBskyGraph::StarterPack::fromJson(record->mValue);
+                deleteStarterPack(starterPackUri, *starterPack, successCb, errorCb);
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::deleteStarterPack(const QString& starterPackUri, const AppBskyGraph::StarterPack& starterPack,
+                                    const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    deleteList(starterPack.mList,
+        [this, presence=getPresence(), starterPackUri, successCb, errorCb]{
+            if (!presence)
+                return;
+
+            undo(starterPackUri, successCb, errorCb);
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::addFeedToStarterPack(const QString& starterPackUri, const QString& feedUri,
+                                       const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(starterPackUri, mPresence, errorCb);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, presence=getPresence(), atUri, feedUri, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
+            if (!presence)
+                return;
+
+            try {
+                auto starterPack = AppBskyGraph::StarterPack::fromJson(record->mValue);
+                auto item = std::make_shared<AppBskyGraph::StarterPackFeedItem>();
+                item->mUri = feedUri;
+                starterPack->mFeeds.push_back(item);
+                updateStarterPack(*starterPack, atUri.getRkey(), successCb, errorCb);
+
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
+}
+
+void GraphMaster::removeFeedFromStarterPack(const QString& starterPackUri, const QString& feedUri,
+                                            const UpdateStarterPackSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    const auto atUri = ATUri::createAtUri(starterPackUri, mPresence, errorCb);
+
+    if (!atUri.isValid())
+        return;
+
+    mClient.getRecord(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        [this, presence=getPresence(), atUri, feedUri, successCb, errorCb](ComATProtoRepo::Record::SharedPtr record){
+            if (!presence)
+                return;
+
+            try {
+                auto starterPack = AppBskyGraph::StarterPack::fromJson(record->mValue);
+                std::erase_if(starterPack->mFeeds, [feedUri](const auto& item){ return item->mUri == feedUri; });
+                updateStarterPack(*starterPack, atUri.getRkey(), successCb, errorCb);
+
+            } catch (InvalidJsonException& e) {
+                qWarning() << e.msg();
+
+                if (errorCb)
+                    errorCb("InvalidJsonException", e.msg());
+            }
+        },
+        [errorCb](const QString& error, const QString& msg) {
+            if (errorCb)
+                errorCb(error, msg);
+        });
 }
 
 void GraphMaster::getVerifications(const QString& issuerDid, bool addVerificationsAsValid,

@@ -5,6 +5,7 @@ next
 * sort parameter on getQuotes
 * since and startCursor on getTimeline, getListFeed
 * List of knonw appviews
+* List and starter pack operations
 
 6.14
 ====
