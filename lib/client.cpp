@@ -2787,7 +2787,7 @@ void Client::deleteRecord(const QString& repo, const QString& collection, const 
 
 void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes,
                          std::optional<bool> validate,
-                         const SuccessCb& successCb, const ErrorCb& errorCb)
+                         const ApplyWritesSuccesCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
     json.insert("repo", repo);
@@ -2808,10 +2808,20 @@ void Client::applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesL
     qDebug() << "Apply writes:" << jsonDoc;
 
     mXrpc->post("com.atproto.repo.applyWrites", jsonDoc, {},
-        [successCb](const QJsonDocument& reply){
+        [this, presence=getPresence(), successCb, errorCb](const QJsonDocument& reply){
+            if (!presence)
+                return;
+
             qDebug() << "Apply writes:" << reply;
-            if (successCb)
-                successCb();
+
+            try {
+                auto output = ComATProtoRepo::ApplyWritesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
         },
         failure(errorCb),
         authToken());

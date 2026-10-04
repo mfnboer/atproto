@@ -34,6 +34,57 @@ void GraphMaster::follow(const QString& did,
     createRecord<AppBskyGraph::Follow>(did, successCb, errorCb);
 }
 
+void GraphMaster::followAll(const std::vector<QString> dids,
+                            ComATProtoRepo::StrongRef::SharedPtr via,
+                            const RecordListSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    ATProto::ComATProtoRepo::ApplyWritesList writes;
+    writes.reserve(dids.size());
+
+    for (const auto& did : dids)
+    {
+        AppBskyGraph::Follow follow;
+        follow.mSubject = did;
+        follow.mCreatedAt = QDateTime::currentDateTimeUtc();
+        follow.mVia = via;
+
+        auto create = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesCreate>();
+        create->mCollection = AppBskyGraph::Follow::TYPE;
+        create->mValue = follow.toJson();
+        writes.push_back(std::move(create));
+    }
+
+    const QString& repo = mClient.getSessionDid();
+
+    mClient.applyWrites(repo, writes, {},
+        [successCb, presence=getPresence()](ComATProtoRepo::ApplyWritesOutput::SharedPtr output){
+            if (!presence)
+                return;
+
+            ComATProtoRepo::StrongRef::List refs;
+
+            for (const auto& result : output->mResults)
+            {
+                if (holdsNonNull<ComATProtoRepo::ApplyWritesCreateResult::SharedPtr>(result))
+                {
+                    const auto& createResult = std::get<ComATProtoRepo::ApplyWritesCreateResult::SharedPtr>(result);
+                    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
+                    ref->mUri = createResult->mUri;
+                    ref->mCid = createResult->mCid;
+                    refs.push_back(std::move(ref));
+                }
+                else
+                {
+                    qWarning() << "Result missing";
+                }
+            }
+
+            if (successCb)
+                successCb(refs);
+        },
+        errorCb);
+}
+
 void GraphMaster::block(const QString& did,
                         const RecordSuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -277,22 +328,14 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
     const QString& repo = mClient.getSessionDid();
 
     mClient.applyWrites(repo, writes, {},
-        [successCb, presence=getPresence()] {
+        [successCb, presence=getPresence()](auto) {
             if (!presence)
                 return;
 
             if (successCb)
                 successCb();
         },
-        [errorCb, presence=getPresence()](const QString& error, const QString& msg) {
-            if (!presence)
-                return;
-
-            qDebug() << "Failed to create records:" << error << "-" << msg;
-
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
 }
 
 void GraphMaster::batchDeleteAllUsersFromList(const QString& listUri,
@@ -357,7 +400,7 @@ void GraphMaster::batchDeleteListUsers(const QString& listUri, const std::option
             const QString repo = mClient.getSessionDid();
 
             mClient.applyWrites(repo, writes, false,
-                [this, presence=getPresence(), listUri, newCursor, successCb, errorCb, page]{
+                [this, presence=getPresence(), listUri, newCursor, successCb, errorCb, page](auto){
                     if (!presence)
                         return;
 

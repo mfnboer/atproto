@@ -23,6 +23,7 @@ public:
     };
 
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
+    using RecordListSuccessCb = std::function<void(const ComATProtoRepo::StrongRef::List& refs)>;
     using CreateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using UpdateListSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using AddListUserSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
@@ -42,6 +43,10 @@ public:
 
     void follow(const QString& did,
                 const RecordSuccessCb& successCb, const ErrorCb& errorCb);
+    void followAll(const std::vector<QString> dids,
+                   ComATProtoRepo::StrongRef::SharedPtr via,
+                   const RecordListSuccessCb& successCb, const ErrorCb& errorCb);
+
     void block(const QString& did,
                const RecordSuccessCb& successCb, const ErrorCb& errorCb);
     void listBlock(const QString& listUri,

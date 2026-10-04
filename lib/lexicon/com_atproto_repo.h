@@ -7,6 +7,17 @@
 
 namespace ATProto::ComATProtoRepo {
 
+
+// com.atproto.repo.defs#commitMeta
+struct CommitMeta
+{
+    QString mCid;
+    QString mRev;
+
+    using SharedPtr = std::shared_ptr<CommitMeta>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // com.atproto.repo.strongRef
 struct StrongRef
 {
@@ -61,9 +72,10 @@ struct ApplyWritesCreate
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ApplyWritesCreate>;
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#create";
 };
 
-// com.atproto.repo.applyWrites.defs#update
+// com.atproto.repo.applyWrites#update
 struct ApplyWritesUpdate
 {
     QString mCollection;
@@ -73,9 +85,10 @@ struct ApplyWritesUpdate
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ApplyWritesUpdate>;
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#update";
 };
 
-// com.atproto.repo.applyWrites.defs#delete
+// com.atproto.repo.applyWrites#delete
 struct ApplyWritesDelete
 {
     QString mCollection;
@@ -84,9 +97,55 @@ struct ApplyWritesDelete
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ApplyWritesDelete>;
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#delete";
 };
 
 using ApplyWritesType = std::variant<ApplyWritesCreate::SharedPtr, ApplyWritesUpdate::SharedPtr, ApplyWritesDelete::SharedPtr>;
 using ApplyWritesList = std::vector<ApplyWritesType>;
+
+// com.atproto.repo.applyWrites#createResult
+struct ApplyWritesCreateResult
+{
+    QString mUri;
+    QString mCid;
+    std::optional<QString> mValidationStatus;
+
+    using SharedPtr = std::shared_ptr<ApplyWritesCreateResult>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#createResult";
+};
+
+// com.atproto.repo.applyWrites#updateResult
+struct ApplyWritesUpdateResult
+{
+    QString mUri;
+    QString mCid;
+    std::optional<QString> mValidationStatus;
+
+    using SharedPtr = std::shared_ptr<ApplyWritesUpdateResult>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#updateResult";
+};
+
+// com.atproto.repo.applyWrites#deleteResult
+struct ApplyWritesDeleteResult
+{
+    using SharedPtr = std::shared_ptr<ApplyWritesDeleteResult>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "com.atproto.repo.applyWrites#deleteResult";
+};
+
+using ApplyWritesResultType = std::variant<ApplyWritesCreateResult::SharedPtr, ApplyWritesUpdateResult::SharedPtr, ApplyWritesDeleteResult::SharedPtr>;
+using ApplyWritesResultList = std::vector<ApplyWritesResultType>;
+
+// com.atproto.repo.applyWrites#output
+struct ApplyWritesOutput
+{
+    CommitMeta::SharedPtr mCommit; // optional
+    ApplyWritesResultList mResults; // optional
+
+    using SharedPtr = std::shared_ptr<ApplyWritesOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
 
 }

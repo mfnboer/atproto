@@ -5,6 +5,15 @@
 
 namespace ATProto::ComATProtoRepo {
 
+CommitMeta::SharedPtr CommitMeta::fromJson(const QJsonObject& json)
+{
+    auto commit = std::make_shared<CommitMeta>();
+    const XJsonObject xjson(json);
+    commit->mCid = xjson.getRequiredString("cid");
+    commit->mRev = xjson.getRequiredString("rev");
+    return commit;
+}
+
 QJsonObject StrongRef::toJson() const
 {
     QJsonObject json;
@@ -53,7 +62,7 @@ ListRecordsOutput::SharedPtr ListRecordsOutput::fromJson(const QJsonObject& json
 QJsonObject ApplyWritesCreate::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "com.atproto.repo.applyWrites#create");
+    json.insert("$type", TYPE);
     json.insert("collection", mCollection);
     XJsonObject::insertOptionalJsonValue(json, "rkey", mRKey);
     json.insert("value", mValue);
@@ -63,7 +72,7 @@ QJsonObject ApplyWritesCreate::toJson() const
 QJsonObject ApplyWritesUpdate::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "com.atproto.repo.applyWrites#update");
+    json.insert("$type", TYPE);
     json.insert("collection", mCollection);
     json.insert("rkey", mRKey);
     json.insert("value", mValue);
@@ -73,10 +82,50 @@ QJsonObject ApplyWritesUpdate::toJson() const
 QJsonObject ApplyWritesDelete::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "com.atproto.repo.applyWrites#delete");
+    json.insert("$type", TYPE);
     json.insert("collection", mCollection);
     json.insert("rkey", mRKey);
     return json;
+}
+
+ApplyWritesCreateResult::SharedPtr ApplyWritesCreateResult::fromJson(const QJsonObject& json)
+{
+    auto result = std::make_shared<ApplyWritesCreateResult>();
+    const XJsonObject xjson(json);
+    result->mUri = xjson.getRequiredString("uri");
+    result->mCid = xjson.getRequiredString("cid");
+    result->mValidationStatus = xjson.getOptionalString("validationStatus");
+    return result;
+}
+
+ApplyWritesUpdateResult::SharedPtr ApplyWritesUpdateResult::fromJson(const QJsonObject& json)
+{
+    auto result = std::make_shared<ApplyWritesUpdateResult>();
+    const XJsonObject xjson(json);
+    result->mUri = xjson.getRequiredString("uri");
+    result->mCid = xjson.getRequiredString("cid");
+    result->mValidationStatus = xjson.getOptionalString("validationStatus");
+    return result;
+}
+
+ApplyWritesDeleteResult::SharedPtr ApplyWritesDeleteResult::fromJson(const QJsonObject&)
+{
+    auto result = std::make_shared<ApplyWritesDeleteResult>();
+    return result;
+}
+
+ApplyWritesOutput::SharedPtr ApplyWritesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<ApplyWritesOutput>();
+    const XJsonObject xjson(json);
+    output->mCommit = xjson.getOptionalObject<CommitMeta>("commit");
+
+    output->mResults = xjson.getOptionalVariantList<
+        ApplyWritesCreateResult,
+        ApplyWritesUpdateResult,
+        ApplyWritesDeleteResult>("results");
+
+    return output;
 }
 
 }

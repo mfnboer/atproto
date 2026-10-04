@@ -91,6 +91,7 @@ public:
     using ListRecordsSuccessCb = std::function<void(ComATProtoRepo::ListRecordsOutput::SharedPtr)>;
     using CreateRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
     using PutRecordSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
+    using ApplyWritesSuccesCb = std::function<void(ComATProtoRepo::ApplyWritesOutput::SharedPtr)>;
     using UnreadCountSuccessCb = std::function<void(int)>;
     using NotificationsSuccessCb = std::function<void(AppBskyNotification::ListNotificationsOutput::SharedPtr)>;
     using NotificationPreferencesSuccessCb = std::function<void(AppBskyNotification::GetPreferencesOutput::SharedPtr)>;
@@ -1088,7 +1089,7 @@ public:
      */
     void applyWrites(const QString& repo, const ComATProtoRepo::ApplyWritesList& writes,
                      std::optional<bool> validate,
-                     const SuccessCb& successCb, const ErrorCb& errorCb);
+                     const ApplyWritesSuccesCb& successCb, const ErrorCb& errorCb);
 
     // com.atproto.sync
 

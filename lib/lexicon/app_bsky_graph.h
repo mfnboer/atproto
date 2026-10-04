@@ -255,6 +255,7 @@ struct StarterPack
     std::optional<QString> mDescription; // max_graphemes=300 max_bytes=3000
     AppBskyRichtext::Facet::List mDescriptionFacets;
     QString mList; // at-uri
+    static constexpr int MAX_FEEDS = 3;
     StarterPackFeedItem::List mFeeds;
     QDateTime mCreatedAt;
 
