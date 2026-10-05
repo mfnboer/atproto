@@ -142,6 +142,7 @@ QJsonObject ListViewBasic::toJson() const
     json.insert("name", mName);
     json.insert("purpose", mRawPurpose);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonValue(json, "listItemCount", mListItemCount);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalJsonObject<ListViewerState>(json, "viewer", mViewer);
     XJsonObject::insertOptionalDateTime(json, "indexedAt", mIndexedAt);
@@ -159,6 +160,7 @@ ListViewBasic::SharedPtr ListViewBasic::fromJson(const QJsonObject& json)
     listView->mRawPurpose = xjson.getRequiredString("purpose");
     listView->mPurpose = stringToListPurpose(listView->mRawPurpose);
     listView->mAvatar = xjson.getOptionalString("avatar");
+    listView->mListItemCount = xjson.getOptionalInt("listItemCount");
     ComATProtoLabel::getLabels(listView->mLabels, json);
     listView->mViewer = xjson.getOptionalObject<ListViewerState>("viewer");
     listView->mIndexedAt = xjson.getOptionalDateTime("indexedAt");
@@ -176,6 +178,7 @@ QJsonObject ListView::toJson() const
     json.insert("purpose", listPurposeToString(mPurpose));
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     XJsonObject::insertOptionalJsonValue(json, "avatar", mAvatar);
+    XJsonObject::insertOptionalJsonValue(json, "listItemCount", mListItemCount);
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "descriptionFacets", mDescriptionFacets);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalJsonObject<ListViewerState>(json, "viewer", mViewer);
@@ -196,6 +199,7 @@ ListView::SharedPtr ListView::fromJson(const QJsonObject& json)
     listView->mDescription = xjson.getOptionalString("description");
     listView->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
     listView->mAvatar = xjson.getOptionalString("avatar");
+    listView->mListItemCount = xjson.getOptionalInt("listItemCount");
     ComATProtoLabel::getLabels(listView->mLabels, json);
     listView->mViewer = xjson.getOptionalObject<ListViewerState>("viewer");
     listView->mIndexedAt = xjson.getOptionalDateTime("indexedAt");
@@ -384,6 +388,15 @@ StarterPack::SharedPtr StarterPack::fromJson(const QJsonObject& json)
     return starterPack;
 }
 
+QString StarterPackViewBasic::getName() const
+{
+    if (!holdsNonNull<StarterPack::SharedPtr>(mRecord))
+        return {};
+
+    auto starterPack = std::get<StarterPack::SharedPtr>(mRecord);
+    return starterPack->mName;
+}
+
 QJsonObject StarterPackViewBasic::toJson() const
 {
     QJsonObject json;
@@ -392,9 +405,9 @@ QJsonObject StarterPackViewBasic::toJson() const
     json.insert("cid", mCid);
     json.insert("record", XJsonObject::variantToJsonObject(mRecord));
     json.insert("creator", mCreator->toJson());
-    XJsonObject::insertOptionalJsonValue(json, "listItemCount", mListItemCount, 0);
-    XJsonObject::insertOptionalJsonValue(json, "joinedWeekCount", mJoinedWeekCount, 0);
-    XJsonObject::insertOptionalJsonValue(json, "joinedAllTimeCount", mJoinedAllTimeCount, 0);
+    XJsonObject::insertOptionalJsonValue(json, "listItemCount", mListItemCount);
+    XJsonObject::insertOptionalJsonValue(json, "joinedWeekCount", mJoinedWeekCount);
+    XJsonObject::insertOptionalJsonValue(json, "joinedAllTimeCount", mJoinedAllTimeCount);
     XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     json.insert("indexedAt", mIndexedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
@@ -408,12 +421,21 @@ StarterPackViewBasic::SharedPtr StarterPackViewBasic::fromJson(const QJsonObject
     view->mCid = xjson.getRequiredString("cid");
     view->mRecord = xjson.getRequiredVariant<StarterPack>("record");
     view->mCreator = xjson.getRequiredObject<AppBskyActor::ProfileViewBasic>("creator");
-    view->mListItemCount = xjson.getOptionalInt("listItemCount", 0);
-    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount", 0);
-    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount", 0);
+    view->mListItemCount = xjson.getOptionalInt("listItemCount");
+    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount");
+    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount");
     ComATProtoLabel::getLabels(view->mLabels, json);
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return view;
+}
+
+QString StarterPackView::getName() const
+{
+    if (!holdsNonNull<StarterPack::SharedPtr>(mRecord))
+        return {};
+
+    auto starterPack = std::get<StarterPack::SharedPtr>(mRecord);
+    return starterPack->mName;
 }
 
 StarterPackView::SharedPtr StarterPackView::fromJson(const QJsonObject& json)
@@ -427,8 +449,8 @@ StarterPackView::SharedPtr StarterPackView::fromJson(const QJsonObject& json)
     view->mList = xjson.getOptionalObject<ListViewBasic>("list");
     view->mListItemsSample = xjson.getOptionalVector<ListItemView>("listItemsSample");
     view->mFeeds = xjson.getOptionalVector<AppBskyFeed::GeneratorView>("feeds");
-    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount", 0);
-    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount", 0);
+    view->mJoinedWeekCount = xjson.getOptionalInt("joinedWeekCount");
+    view->mJoinedAllTimeCount = xjson.getOptionalInt("joinedAllTimeCount");
     ComATProtoLabel::getLabels(view->mLabels, json);
     view->mIndexedAt = xjson.getRequiredDateTime("indexedAt");
     return view;

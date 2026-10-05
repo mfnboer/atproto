@@ -91,10 +91,12 @@ struct StarterPackView
     ListViewBasic::SharedPtr mList; // optional
     ListItemView::List mListItemsSample;
     AppBskyFeed::GeneratorView::List mFeeds;
-    int mJoinedWeekCount = 0;
-    int mJoinedAllTimeCount = 0;
+    std::optional<int> mJoinedWeekCount;
+    std::optional<int> mJoinedAllTimeCount;
     ComATProtoLabel::Label::List mLabels;
     QDateTime mIndexedAt;
+
+    QString getName() const;
 
     using SharedPtr = std::shared_ptr<StarterPackView>;
     using List = std::vector<SharedPtr>;

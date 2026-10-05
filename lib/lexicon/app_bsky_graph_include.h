@@ -38,6 +38,7 @@ struct ListViewBasic
     ListPurpose mPurpose = ListPurpose::UNKNOWN;
     QString mRawPurpose;
     std::optional<QString> mAvatar;
+    std::optional<int> mListItemCount;
     ComATProtoLabel::Label::List mLabels;
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;

@@ -106,6 +106,7 @@ struct ListView
     std::optional<QString> mDescription; // max 300 graphemes, 3000 bytes
     AppBskyRichtext::Facet::List mDescriptionFacets;
     std::optional<QString> mAvatar;
+    std::optional<int> mListItemCount;
     ComATProtoLabel::Label::List mLabels;
     ListViewerState::SharedPtr mViewer; // optional
     std::optional<QDateTime> mIndexedAt;
@@ -273,12 +274,13 @@ struct StarterPackViewBasic
     QString mCid;
     std::variant<StarterPack::SharedPtr> mRecord; // null variant for unknown type
     AppBskyActor::ProfileViewBasic::SharedPtr mCreator;
-    int mListItemCount = 0;
-    int mJoinedWeekCount = 0;
-    int mJoinedAllTimeCount = 0;
+    std::optional<int> mListItemCount;
+    std::optional<int> mJoinedWeekCount;
+    std::optional<int> mJoinedAllTimeCount;
     ComATProtoLabel::Label::List mLabels;
     QDateTime mIndexedAt;
 
+    QString getName() const;
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<StarterPackViewBasic>;
