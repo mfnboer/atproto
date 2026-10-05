@@ -51,6 +51,8 @@ public:
                const RecordSuccessCb& successCb, const ErrorCb& errorCb);
     void listBlock(const QString& listUri,
                    const RecordSuccessCb& successCb, const ErrorCb& errorCb);
+    void referenceListOptOut(const QString& listUri,
+                             const RecordSuccessCb& successCb, const ErrorCb& errorCb);
     void undo(const QString& uri,
               const SuccessCb& successCb, const ErrorCb& errorCb);
 

@@ -120,6 +120,7 @@ QJsonObject ListViewerState::toJson() const
     QJsonObject json;
     XJsonObject::insertOptionalJsonValue(json, "muted", mMuted, false);
     XJsonObject::insertOptionalJsonValue(json, "blocked", mBlocked);
+    XJsonObject::insertOptionalJsonValue(json, "referenceListOptOut", mReferenceListOutput);
 
     return json;
 }

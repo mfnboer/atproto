@@ -97,6 +97,12 @@ void GraphMaster::listBlock(const QString& listUri,
     createRecord<AppBskyGraph::ListBlock>(listUri, successCb, errorCb);
 }
 
+void GraphMaster::referenceListOptOut(const QString& listUri,
+                                      const RecordSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    createRecord<AppBskyGraph::ReferenceListOptOut>(listUri, successCb, errorCb);
+}
+
 void GraphMaster::undo(const QString& uri,
                        const Client::SuccessCb& successCb, const ErrorCb& errorCb)
 {

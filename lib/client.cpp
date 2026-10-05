@@ -1989,7 +1989,7 @@ void Client::getStarterpacksWithMembership(const QString& actor,
     addAcceptLabelersHeader(httpHeaders);
     addAtprotoProxyHeader(httpHeaders, mServiceAppView);
 
-    mXrpc->get("app.bsky.graph.getStarterpacksWithMembership", params, httpHeaders,
+    mXrpc->get("app.bsky.graph.getStarterPacksWithMembership", params, httpHeaders,
         [successCb](AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr output){
             qDebug() << "getStarterPacksWithMembership:" << output->mStarterPacksWithMembership.size();
 
