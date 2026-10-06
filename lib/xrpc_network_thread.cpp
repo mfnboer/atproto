@@ -613,6 +613,13 @@ struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::Su
     static constexpr auto sEmitFun = &NetworkThread::requestSuccessGetStarterPacksWithMembershipOutput;
 };
 
+template<typename T>
+struct FromJson<T, typename std::enable_if_t<std::is_same_v<T, NetworkThread::SuccessSearhStarterPacksV2OutputCb>>>
+{
+    using ReplyType = ATProto::AppBskyGraph::SearchStarterPacksV2Output;
+    static constexpr auto sEmitFun = &NetworkThread::requestSuccessSearchStarterPacksV2Output;
+};
+
 
 // app.bsky.notification
 

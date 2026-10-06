@@ -1,5 +1,6 @@
 next
 ====
+* searchStarterPacksV2
 * VideoMaster for serial and parallel video uploads
 * opThreadPostIndex, opThreadPostCount
 * sort parameter on getQuotes

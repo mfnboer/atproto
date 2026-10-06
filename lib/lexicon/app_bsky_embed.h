@@ -133,6 +133,17 @@ struct GetStarterPacksWithMembershipOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.graph.searchStarterPacksV2#output
+struct SearchStarterPacksV2Output
+{
+    std::optional<QString> mCursor;
+    std::optional<int> mHitsTotal;
+    StarterPackView::List mStarterPacks;
+
+    using SharedPtr = std::shared_ptr<SearchStarterPacksV2Output>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
 
 namespace ATProto::AppBskyEmbed {

@@ -82,6 +82,7 @@ public:
     using GetStarterPackSuccessCb = std::function<void(AppBskyGraph::StarterPackView::SharedPtr)>;
     using GetStarterPacksSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksOutput::SharedPtr)>;
     using GetStarterPacksWithMembershipSuccessCb = std::function<void(AppBskyGraph::GetStarterPacksWithMembershipOutput::SharedPtr)>;
+    using SearchStaterPacks2V2SuccessCb = std::function<void(AppBskyGraph::SearchStarterPacksV2Output::SharedPtr)>;
     using GetAccountInviteCodesSuccessCb = std::function<void(ComATProtoServer::GetAccountInviteCodesOutput::SharedPtr)>;
     using GetServiceAuthSuccessCb = std::function<void(ComATProtoServer::GetServiceAuthOutput::SharedPtr)>;
     using RequestEmailUpdateSuccessCb = std::function<void(ComATProtoServer::RequestEmailUpdateOutput::SharedPtr)>;
@@ -855,6 +856,17 @@ public:
      * @param errorCb
      */
     void getStarterPack(const QString& starterPack, const GetStarterPackSuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief searchStarterPacksV2
+     * @param q
+     * @param limit min=1 default = 25 max=100
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void searchStarterPacksV2(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                              const SearchStaterPacks2V2SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief getSuggestedFollows

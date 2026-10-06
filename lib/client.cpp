@@ -2017,6 +2017,28 @@ void Client::getStarterPack(const QString& starterPack, const GetStarterPackSucc
         authToken());
 }
 
+void Client::searchStarterPacksV2(const QString& q, std::optional<int> limit, const std::optional<QString>& cursor,
+                                  const SearchStaterPacks2V2SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{"q", q}};
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAcceptLabelersHeader(httpHeaders);
+    addAtprotoProxyHeader(httpHeaders, mServiceAppView);
+
+    mXrpc->get("app.bsky.graph.searchStarterPacksV2", params, httpHeaders,
+        [successCb](AppBskyGraph::SearchStarterPacksV2Output::SharedPtr output){
+            qDebug() << "searchStarterPacksV2:" << output->mStarterPacks.size();
+
+            if (successCb)
+                successCb(std::move(output));
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::muteActorList(const QString& listUri, const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject jsonObj;

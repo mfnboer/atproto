@@ -492,6 +492,16 @@ GetStarterPacksWithMembershipOutput::SharedPtr GetStarterPacksWithMembershipOutp
     return output;
 }
 
+SearchStarterPacksV2Output::SharedPtr SearchStarterPacksV2Output::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<SearchStarterPacksV2Output>();
+    XJsonObject xjson(json);
+    output->mCursor = xjson.getOptionalString("cursor");
+    output->mHitsTotal = xjson.getOptionalInt("hitsTotal");
+    output->mStarterPacks = xjson.getRequiredVector<StarterPackView>("starterPacks");
+    return output;
+}
+
 QJsonObject Verification::toJson() const
 {
     QJsonObject json(mJson);
