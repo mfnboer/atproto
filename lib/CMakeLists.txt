@@ -26,7 +26,7 @@ endif()
 include_directories(lexicon)
 
 qt_add_qml_module(libatproto
-    VERSION 6.14
+    VERSION 6.15
     URI atproto.lib
     IMPORT_PATH .
     SOURCES
