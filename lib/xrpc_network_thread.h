@@ -386,6 +386,8 @@ private:
     QUrl buildUrl(const QString& service, const Params& params, const QString& pds = {}) const;
     void setUserAgentHeader(QNetworkRequest& request) const;
     void setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const;
+    void setAuthorizationDpop(Request& request, const QString& accessJwt) const;
+    void setAuthorizationBearer(Request& request, const QString& accessJwt) const;
     void setRawHeaders(QNetworkRequest& request, const Params& params) const;
 
     void setAccessJwt(const QString &jwt);

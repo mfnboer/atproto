@@ -790,12 +790,15 @@ bool NetworkThread::resendRequest(Request request, const CallbackType& successCb
     ++request.mResendCount;
     qDebug() << "Resend:" << requestUrl << "count:" << request.mResendCount;
 
+    // NOTE: accessJwt may have been changed by resendRequestWithNewToken
     if (request.mXrpcRequest.hasRawHeader("DPoP"))
     {
         // A new DPoP proof must be created, otherwise the resend will be seen as DPoP proof replay
-        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-            request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mPdsDpopNonce);
-        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+        setAuthorizationDpop(request, request.mAccessJwt);
+    }
+    else if (request.mXrpcRequest.hasRawHeader("Authorization"))
+    {
+        setAuthorizationBearer(request, request.mAccessJwt);
     }
 
     sendRequest(request, successCb, errorCb);
@@ -809,14 +812,19 @@ bool NetworkThread::resendRequestWithNewToken(Request request, const CallbackTyp
     // to stop.
     qDebug() << "New token resend:" << request.mXrpcRequest.url();
 
-    if (!mAccessJwt.isEmpty() && request.mAccessJwt == mAccessJwt)
+    if (!request.mAccessJwt.isEmpty())
     {
-        qWarning() << "There is no new token:" << request.mXrpcRequest.url();
-        qDebug() << "Request:" << request.mXrpcRequest.url() << "token:" << request.mAccessJwt;
-        return false;
+        if (!mAccessJwt.isEmpty() && request.mAccessJwt == mAccessJwt)
+        {
+            qWarning() << "There is no new token:" << request.mXrpcRequest.url();
+            qDebug() << "Request:" << request.mXrpcRequest.url() << "token:" << request.mAccessJwt;
+            return false;
+        }
+
+        qDebug() << "New access token";
+        request.mAccessJwt = mAccessJwt;
     }
 
-    request.mAccessJwt = mAccessJwt;
     return resendRequest(request, successCb, errorCb);
 }
 
@@ -833,10 +841,7 @@ bool NetworkThread::resendWithNewDpopNonce(Request request, const CallbackType& 
 
     ++request.mDpopResendCount;
     qDebug() << "DPoP resend:" << requestUrl << "count:" << request.mDpopResendCount;
-    const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-        request.mIsPost ? "POST" : "GET", requestUrl.toString(), request.mAccessJwt, mPdsDpopNonce);
-    request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
-
+    setAuthorizationDpop(request, request.mAccessJwt);
     sendRequest(request, successCb, errorCb);
     return true;
 }
@@ -904,22 +909,28 @@ void NetworkThread::setUserAgentHeader(QNetworkRequest& request) const
 void NetworkThread::setAuthorization(Request& request, const QString& accessJwt, bool isServiceAuthToken) const
 {
     if (mOAuth && !isServiceAuthToken)
-    {
-        const QUrl requestUrl = request.mXrpcRequest.url();
-        const QString dpopProof = mDpopKey.buildPdsDPoPProof(
-            request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mPdsDpopNonce);
-
-        QString auth = QString("DPoP %1").arg(accessJwt);
-        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
-        request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
-    }
+        setAuthorizationDpop(request, accessJwt);
     else
-    {
-        QString auth = QString("Bearer %1").arg(accessJwt);
-        request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
-    }
+        setAuthorizationBearer(request, accessJwt);
 
     request.mAccessJwt = accessJwt;
+}
+
+void NetworkThread::setAuthorizationDpop(Request& request, const QString& accessJwt) const
+{
+    const QUrl requestUrl = request.mXrpcRequest.url();
+    const QString dpopProof = mDpopKey.buildPdsDPoPProof(
+        request.mIsPost ? "POST" : "GET", requestUrl.toString(), accessJwt, mPdsDpopNonce);
+
+    QString auth = QString("DPoP %1").arg(accessJwt);
+    request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
+    request.mXrpcRequest.setRawHeader("DPoP", dpopProof.toUtf8());
+}
+
+void NetworkThread::setAuthorizationBearer(Request& request, const QString& accessJwt) const
+{
+    QString auth = QString("Bearer %1").arg(accessJwt);
+    request.mXrpcRequest.setRawHeader("Authorization", auth.toUtf8());
 }
 
 void NetworkThread::setRawHeaders(QNetworkRequest& request, const Params& params) const
