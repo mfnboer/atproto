@@ -300,6 +300,24 @@ struct GetProfilesOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.link
+struct Link
+{
+    QString mUri;
+    std::optional<QString> mTitle;
+    Blob::SharedPtr mIcon; // optional
+    static constexpr int MAX_BYTES_ICON = 100'000;
+    QDateTime mCreatedAt;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<Link>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.actor.link";
+};
+
 // app.bsky.actor.profile
 struct Profile
 {
@@ -312,7 +330,11 @@ struct Profile
     Blob::SharedPtr mBanner; // optional
     static constexpr int MAX_BYTES_BANNER = 1'000'000;
     ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    ComATProtoRepo::StrongRef::SharedPtr mJoinedViaStarterPack; // optional
     ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
+    ComATProtoRepo::StrongRef::List mLinks; // optional
+    static constexpr int MAX_LINKS = 10;
+    std::optional<QDateTime> mCreatedAt;
     QJsonObject mJson;
 
     QJsonObject toJson() const;

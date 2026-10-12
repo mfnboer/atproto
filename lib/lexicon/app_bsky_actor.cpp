@@ -440,6 +440,29 @@ GetProfilesOutput::SharedPtr GetProfilesOutput::fromJson(const QJsonObject& json
     return output;
 }
 
+QJsonObject Link::toJson() const
+{
+    QJsonObject json(mJson);
+    json.insert("$type", TYPE);
+    json.insert("uri", mUri);
+    XJsonObject::insertOptionalJsonValue(json, "title", mTitle);
+    XJsonObject::insertOptionalJsonObject<Blob>(json, "icon", mIcon);
+    json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
+    return json;
+}
+
+Link::SharedPtr Link::fromJson(const QJsonObject& json)
+{
+    auto link = std::make_shared<Link>();
+    XJsonObject xjson(json);
+    link->mJson = json;
+    link->mUri = xjson.getRequiredString("uri");
+    link->mTitle = xjson.getOptionalString("title");
+    link->mIcon = xjson.getOptionalObject<Blob>("icon");
+    link->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return link;
+}
+
 QJsonObject Profile::toJson() const
 {
     QJsonObject json(mJson);
@@ -451,7 +474,10 @@ QJsonObject Profile::toJson() const
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
     XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "joinedViaStarterPack", mJoinedViaStarterPack);
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "pinnedPost", mPinndedPost);
+    XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "links", mLinks);
+    XJsonObject::insertOptionalDateTime(json, "createdAt", mCreatedAt);
     return json;
 }
 
@@ -467,7 +493,10 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
     profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
     profile->mBanner = xjson.getOptionalObject<Blob>("banner");
     profile->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    profile->mJoinedViaStarterPack = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("joinedViaStarterPack");
     profile->mPinndedPost = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
+    profile->mLinks = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("links");
+    profile->mCreatedAt = xjson.getOptionalDateTime("createdAt");
     return profile;
 }
 

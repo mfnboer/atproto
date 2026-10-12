@@ -177,6 +177,7 @@ struct ListItem
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<ListItem>;
+    using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
     static constexpr char const* TYPE = "app.bsky.graph.listitem";
 };

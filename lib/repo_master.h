@@ -2,6 +2,7 @@
 // License: GPLv3
 #pragma once
 #include "client.h"
+#include "at_uri.h"
 #include "presence.h"
 
 namespace ATProto {
@@ -14,10 +15,15 @@ public:
 
     explicit RepoMaster(Client& client);
 
-    template <typename Entity, typename EntitySuccessCb>
+    template <typename Entity>
     void getRecord(const QString& repo, const QString& collection, const QString& rkey,
                    const std::optional<QString>& cid,
-                   const EntitySuccessCb& successCb, const ErrorCb& errorCb);
+                   const std::function<void(typename Entity::SharedPtr)>& successCb,
+                   const ErrorCb& errorCb);
+
+    template <typename Entity>
+    void getRecords(const std::vector<QString>& uris,
+                    const std::function<void(typename Entity::List)>& successCb);
 
     template <typename Entity>
     void updateRecord(const QString& repo, const QString& collection, const QString& rkey,
@@ -31,10 +37,11 @@ private:
     Client& mClient;
 };
 
-template <typename Entity, typename EntitySuccessCb>
+template <typename Entity>
 inline void RepoMaster::getRecord(const QString& repo, const QString& collection, const QString& rkey,
                                   const std::optional<QString>& cid,
-                                  const EntitySuccessCb& successCb, const ErrorCb& errorCb)
+                                  const std::function<void(typename Entity::SharedPtr)>& successCb,
+                                  const ErrorCb& errorCb)
 {
     qDebug() << "Get record:" << repo << "collection:" << collection << "rkey:" << rkey << "cid:" << cid.value_or("");
     mClient.getRecord(repo, collection, rkey, cid,
@@ -59,6 +66,50 @@ inline void RepoMaster::getRecord(const QString& repo, const QString& collection
             if (errorCb)
                 errorCb(err, msg);
         });
+}
+
+template <typename Entity>
+inline void RepoMaster::getRecords(const std::vector<QString>& uris,
+                                   const std::function<void(typename Entity::List)>& successCb)
+{
+    if (uris.empty())
+    {
+        qDebug() << "No records to get";
+
+        if (successCb)
+            QTimer::singleShot(0, [successCb]{ successCb({}); });
+
+        return;
+    }
+
+    auto todo = std::make_shared<int>(uris.size());
+    auto records = std::make_shared<typename Entity::List>();
+    records->reserve(uris.size());
+
+    for (const auto& uri : uris)
+    {
+        const ATUri atUri(uri);
+
+        getRecord<Entity>(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+            [todo, records, successCb](auto record){
+                records->push_back(record);
+
+                if (--*todo > 0)
+                    return;
+
+                if (successCb)
+                    successCb(*records);
+            },
+            [uri, todo, records, successCb](const QString& err, const QString& msg) {
+                qDebug() << "Failed to get record:" << uri << err << "-" << msg;
+
+                if (--*todo > 0)
+                    return;
+
+                if (successCb)
+                    successCb(*records);
+            });
+    }
 }
 
 template <typename Entity>
