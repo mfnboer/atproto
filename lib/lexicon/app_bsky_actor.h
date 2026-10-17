@@ -217,6 +217,23 @@ struct ProfileAssociated
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// app.bsky.actor.defs#profileLinkView
+struct ProfileLinkView
+{
+    QString mUri;
+    QString mCid;
+    QString mUrl;
+    std::optional<QString> mTitle;
+    std::optional<QString> mIcon;
+    ComATProtoLabel::Label::List mLabels;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ProfileLinkView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // app.bsky.actor.defs#profileViewBasic
 struct ProfileViewBasic
 {
@@ -283,6 +300,7 @@ struct ProfileViewDetailed
     ViewerState::SharedPtr mViewer; // optional
     ComATProtoLabel::Label::List mLabels;
     ComATProtoRepo::StrongRef::SharedPtr mPinnedPost; // optional
+    ProfileLinkView::List mLinks; // optional
     VerificationState::SharedPtr mVerification; // optional
     StatusView::SharedPtr mStatus; // optional
 
@@ -308,6 +326,8 @@ struct Link
     Blob::SharedPtr mIcon; // optional
     static constexpr int MAX_BYTES_ICON = 100'000;
     QDateTime mCreatedAt;
+    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+
     QJsonObject mJson;
 
     QJsonObject toJson() const;

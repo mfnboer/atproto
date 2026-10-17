@@ -339,6 +339,31 @@ ProfileAssociated::SharedPtr ProfileAssociated::fromJson(const QJsonObject& json
     return associated;
 }
 
+QJsonObject ProfileLinkView::toJson() const
+{
+    QJsonObject json;
+    json.insert("uri", mUri);
+    json.insert("cid", mCid);
+    json.insert("url", mUrl);
+    XJsonObject::insertOptionalJsonValue(json, "title", mTitle);
+    XJsonObject::insertOptionalJsonValue(json, "icon", mIcon);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
+    return json;
+}
+
+ProfileLinkView::SharedPtr ProfileLinkView::fromJson(const QJsonObject& json)
+{
+    XJsonObject xjson(json);
+    auto view = std::make_shared<ProfileLinkView>();
+    view->mUri = xjson.getRequiredString("uri");
+    view->mCid = xjson.getRequiredString("cid");
+    view->mUrl = xjson.getRequiredString("url");
+    view->mTitle = xjson.getOptionalString("title");
+    view->mIcon = xjson.getOptionalString("icon");
+    ComATProtoLabel::getLabels(view->mLabels, json);
+    return view;
+}
+
 QJsonObject ProfileViewBasic::toJson() const
 {
     QJsonObject json;
@@ -427,6 +452,7 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mViewer = root.getOptionalObject<ViewerState>("viewer");
     ComATProtoLabel::getLabels(profile->mLabels, json);
     profile->mPinnedPost = root.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
+    profile->mLinks = root.getOptionalVector<ProfileLinkView>("links");
     profile->mVerification = root.getOptionalObject<VerificationState>("verification");
     profile->mStatus = root.getOptionalObject<StatusView>("status");
     return profile;
@@ -448,6 +474,7 @@ QJsonObject Link::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "title", mTitle);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "icon", mIcon);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
+    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
     return json;
 }
 
@@ -460,6 +487,7 @@ Link::SharedPtr Link::fromJson(const QJsonObject& json)
     link->mTitle = xjson.getOptionalString("title");
     link->mIcon = xjson.getOptionalObject<Blob>("icon");
     link->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    link->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
     return link;
 }
 
