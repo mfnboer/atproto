@@ -1,4 +1,4 @@
-next
+6.16
 ====
 * app.bsky.actor.link
 * RepoMaster::getRecords
