@@ -16,9 +16,23 @@ static QNetworkAccessManager* makeNetwork(int networkTransferTimeoutMs, QObject*
 
 Client::Client(const QString& host, int networkTransferTimeoutMs, const QString& pdsDpopNonce) :
     mNetwork(makeNetwork(networkTransferTimeoutMs, this)),
-    mPlcDirectoryClient(mNetwork.get()),
-    mIdentityResolver(mNetwork.get()),
+    mPlcDirectoryClient(mNetwork),
+    mIdentityResolver(mNetwork),
     mNetworkThread(new NetworkThread(networkTransferTimeoutMs, pdsDpopNonce))
+{
+    init(host, networkTransferTimeoutMs);
+}
+
+Client::Client(QNetworkAccessManager* network, const QString& host, const QString& pdsDpopNonce) :
+    mNetwork(network),
+    mPlcDirectoryClient(mNetwork),
+    mIdentityResolver(mNetwork),
+    mNetworkThread(new NetworkThread(network->transferTimeout(), pdsDpopNonce))
+{
+    init(host, network->transferTimeout());
+}
+
+void Client::init(const QString& host, int networkTransferTimeoutMs)
 {
     qDebug() << "Host:" << host;
     qDebug() << "Network transfer timeout:" << networkTransferTimeoutMs;

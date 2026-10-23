@@ -1,3 +1,7 @@
+next
+====
+* QNetworkAccessManager injection
+
 6.16
 ====
 * app.bsky.actor.link

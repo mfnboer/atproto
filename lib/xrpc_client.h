@@ -28,6 +28,7 @@ public:
     // If handle to DID resolution via DNS fails, then createSession will be sent to host.
     // pdsDpopNonce is the last received nonce from previous session (OPTIONAL)
     explicit Client(const QString& host = {}, int networkTransferTimeoutMs = DEFAULT_TIMEOUT_MS, const QString& pdsDpopNonce = {});
+    explicit Client(QNetworkAccessManager* network, const QString& host = {}, const QString& pdsDpopNonce = {});
 
     ~Client();
 
@@ -100,13 +101,14 @@ signals:
     void authDpopNonceChanged(QString nonce);
 
 private:
+    void init(const QString& host, int networkTransferTimeoutMs);
     template<typename CallbackType, typename ArgType>
     void doCallback(ArgType arg, CallbackType cb);
 
     QString mPDS;
     QString mDid; // PDS is set for this DID
     bool mOAuthEnabled = false;
-    std::unique_ptr<QNetworkAccessManager> mNetwork;
+    QNetworkAccessManager* mNetwork;
     ATProto::PlcDirectoryClient mPlcDirectoryClient;
     ATProto::IdentityResolver mIdentityResolver;
     std::unique_ptr<NetworkThread> mNetworkThread;
