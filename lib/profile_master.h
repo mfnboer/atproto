@@ -11,10 +11,24 @@ namespace ATProto {
 class ProfileMaster : public Presence
 {
 public:
+    struct Link
+    {
+        QString mUri;
+        QString mCid;
+        AppBskyActor::Link::SharedPtr mLink;
+        bool mHasNewIcon = false;
+        bool mUpdate = false;
+        bool mFailed = false;
+        bool mNew = false;
+
+        using List = std::vector<Link>;
+    };
+
     using ProfileCb = std::function<void(AppBskyActor::Profile::SharedPtr)>;
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using StatusCb = std::function<void(AppBskyActor::Status::SharedPtr)>;
     using ContentVisibilityDeclarationCb = std::function<void(AppBskyActor::ContentVisibilityDeclaration::SharedPtr)>;
+    using LinkSuccessCb = std::function<void(bool partial)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -43,6 +57,11 @@ public:
                        const SuccessCb& successCb, const ErrorCb& errorCb);
     void clearPinnedPost(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    void updateLinks(const QString& did, const Link::List links,
+                     const LinkSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateLinks(const QString& did, const Link::List links, const AppBskyActor::Profile& profile,
+                     const LinkSuccessCb& successCb, const ErrorCb& errorCb);
+
     void getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb);
     void updateStatus(const QString& did, const AppBskyActor::Status& status,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -52,11 +71,26 @@ public:
     void updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    // TODO: used?
+    void createLink(const QString& url, const QString& title, Blob::SharedPtr icon,
+                    const RecordSuccessCb& successCb, const ErrorCb& errorCb);
+    void updateLink(const AppBskyActor::Link& link, const QString& rkey,
+                    const SuccessCb& successCb, const ErrorCb& errorCb);
+    void removeLink(const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb);
+
 private:
     bool addLabel(AppBskyActor::Profile& profile, const QString& label) const;
     bool removeLabel(AppBskyActor::Profile& profile, const QString& label) const;
     bool setPinnedPost(AppBskyActor::Profile& profile, const QString& uri, const QString& cid) const;
     bool clearPinnedPost(AppBskyActor::Profile& profile) const;
+
+    void updateLinksCreateUpdateRecords(const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+                                        const LinkSuccessCb& successCb, const ErrorCb& errorCb, int index = 0);
+    void updateLinksDeleteRecords(const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+                                  const LinkSuccessCb& successCb, const ErrorCb& errorCb,
+                                  std::unordered_map<QString, ComATProtoRepo::StrongRef::SharedPtr> deleteUris);
+    void updateLinksInProfile(const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+                              const LinkSuccessCb& successCb, const ErrorCb& errorCb);
 
     Client& mClient;
     RepoMaster mRepoMaster;

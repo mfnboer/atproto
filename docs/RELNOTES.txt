@@ -1,6 +1,7 @@
 next
 ====
 * QNetworkAccessManager injection
+* Profile link utilities and fixes
 
 6.16
 ====

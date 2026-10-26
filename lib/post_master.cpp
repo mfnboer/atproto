@@ -573,7 +573,12 @@ void PostMaster::getPostgate(const QString& postUri, const PostgateCb& successCb
         return;
 
     mRepoMaster.getRecord<AppBskyFeed::Postgate>(
-        atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {}, successCb, errorCb);
+        atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 AppBskyFeed::PostReplyRef::SharedPtr PostMaster::createReplyRef(const QString& replyToUri, const QString& replyToCid,

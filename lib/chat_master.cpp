@@ -20,7 +20,12 @@ void ChatMaster::getDeclaration(const QString& did, const DeclarationCb& success
 {
     qDebug() << "Get declatration" << did;
     mRepoMaster.getRecord<ChatBskyActor::Declaration>(
-        did, ATUri::COLLECTION_CHAT_ACTOR_DECLARATION, DECLARATION_KEY, {}, successCb, errorCb);
+        did, ATUri::COLLECTION_CHAT_ACTOR_DECLARATION, DECLARATION_KEY, {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 void ChatMaster::updateDeclaration(const QString& did, const ChatBskyActor::Declaration& declaration,

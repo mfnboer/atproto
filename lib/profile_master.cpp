@@ -35,7 +35,12 @@ ProfileMaster::ProfileMaster(Client& client) :
 void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get profile:" << did;
-    mRepoMaster.getRecord<AppBskyActor::Profile>(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {}, successCb, errorCb);
+    mRepoMaster.getRecord<AppBskyActor::Profile>(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
@@ -81,10 +86,7 @@ void ProfileMaster::updateProfile(const QString& did, const QString& name, const
 
             updateProfile(did, *profile, successCb, errorCb);
         },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
 }
 
 bool ProfileMaster::addLabel(AppBskyActor::Profile& profile, const QString& label) const
@@ -265,10 +267,282 @@ bool ProfileMaster::clearPinnedPost(AppBskyActor::Profile& profile) const
     return true;
 }
 
+void ProfileMaster::updateLinks(const QString& did, const Link::List links,
+                                const LinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Update links:" << did;
+    getProfile(did,
+               [this, presence=getPresence(), did, links, successCb, errorCb](auto&& profile){
+            if (!presence)
+                return;
+
+            updateLinks(did, links, *profile, successCb, errorCb);
+        },
+        errorCb);
+}
+
+void ProfileMaster::updateLinks(const QString& did, const Link::List links, const AppBskyActor::Profile& profile,
+                 const LinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    std::vector<QString> updateLinkUris;
+    std::unordered_map<QString, Link> updateLinks;
+
+    for (const auto& link : links)
+    {
+        if (link.mUpdate)
+        {
+            updateLinkUris.push_back(link.mUri);
+            updateLinks[link.mUri] = link;
+        }
+    }
+
+    if (updateLinkUris.empty())
+    {
+        updateLinksCreateUpdateRecords(did, links, profile, false, successCb, errorCb);
+        return;
+    }
+
+    mRepoMaster.getRecords<AppBskyActor::Link>(updateLinkUris,
+        [this, presence=getPresence(), updateLinks, did, links, profile, successCb, errorCb](auto linkRecords){
+            if (!presence)
+                return;
+
+            if (linkRecords.size() != updateLinks.size())
+            {
+                qWarning() << "Could not get all links to update:" << updateLinks.size() << "got:" << linkRecords.size();
+
+                if (errorCb)
+                {
+                    errorCb(ATProtoErrorMsg::RECORD_NOT_FOUND, "Could not get records to update");
+                    return;
+                }
+            }
+
+            bool partial = false;
+
+            for (const auto& linkRecord : linkRecords)
+            {
+                AppBskyActor::Link::SharedPtr currentLink = linkRecord->mEntity;
+
+                if (!updateLinks.contains(linkRecord->mUri))
+                {
+                    qWarning() << "Uri missing:" << linkRecord->mUri;
+                    partial = true;
+                    continue;
+                }
+
+                auto& updateLink = updateLinks.at(linkRecord->mUri);
+                updateLink.mLink->mCreatedAt = currentLink->mCreatedAt;
+                updateLink.mLink->mJson = currentLink->mJson;
+
+                if (!updateLink.mHasNewIcon)
+                    updateLink.mLink->mIcon = currentLink->mIcon;
+            }
+
+            updateLinksCreateUpdateRecords(did, links, profile, partial, successCb, errorCb);
+        });
+}
+
+void ProfileMaster::updateLinksCreateUpdateRecords(
+    const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+    const LinkSuccessCb& successCb, const ErrorCb& errorCb, int index)
+{
+    if (index >= (int)links.size())
+    {
+        std::unordered_map<QString, ComATProtoRepo::StrongRef::SharedPtr> deleteUris; // uri -> ref
+
+        for (const auto& link : profile.mLinks)
+            deleteUris[link->mUri] = link;
+
+        for (const auto& link : links)
+            deleteUris.erase(link.mUri);
+
+        updateLinksDeleteRecords(did, links, profile, partial, successCb, errorCb, std::move(deleteUris));
+        return;
+    }
+
+    const auto& link = links[index];
+
+    if (link.mUri.isEmpty())
+    {
+        mRepoMaster.createRecord(did, AppBskyActor::Link::TYPE, *link.mLink,
+            [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index](ComATProtoRepo::StrongRef::SharedPtr ref){
+                if (!presence)
+                    return;
+
+                Link::List newLinks = links;
+                auto& newLink = newLinks[index];
+                newLink.mUri = ref->mUri;
+                newLink.mCid = ref->mCid;
+                newLink.mNew = true;
+
+                qDebug() << "Created link:" << newLink.mLink->mUrl << "did:" << did;
+                updateLinksCreateUpdateRecords(did, newLinks, profile, partial, successCb, errorCb, index + 1);
+            },
+            [this, presence=getPresence(), did, links, profile, successCb, errorCb, index](const QString& error, const QString& msg){
+                if (!presence)
+                    return;
+
+                Link::List newLinks = links;
+                auto& newLink = newLinks[index];
+                newLink.mFailed = true;
+
+                qWarning() << "Failed to create link:" << error << "-" << msg << "link:" << newLink.mLink->mUrl << "did:" << did;
+                updateLinksCreateUpdateRecords(did, newLinks, profile, true, successCb, errorCb, index + 1);
+            });
+    }
+    else if (link.mUpdate)
+    {
+        const bool updating = mRepoMaster.updateRecordByUri(did, AppBskyActor::Link::TYPE, link.mUri, *link.mLink,
+            [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index]{
+                if (!presence)
+                    return;
+
+                qDebug() << "Updated link:" << links[index].mLink->mUrl << "did:" << did;
+                updateLinksCreateUpdateRecords(did, links, profile, partial, successCb, errorCb, index + 1);
+            },
+            [this, presence=getPresence(), did, links, profile, successCb, errorCb, index](const QString& error, const QString& msg){
+                if (!presence)
+                    return;
+
+                Link::List newLinks = links;
+                auto& newLink = newLinks[index];
+                newLink.mFailed = true;
+
+                qWarning() << "Failed to update link:" << error << "-" << msg << "link:" << newLink.mLink->mUrl << "did:" << did;
+                updateLinksCreateUpdateRecords(did, newLinks, profile, true, successCb, errorCb, index + 1);
+            });
+
+        if (!updating)
+        {
+            Link::List newLinks = links;
+            auto& newLink = newLinks[index];
+            newLink.mFailed = true;
+
+            qWarning() << "Failed to update link: invalid uri, link:" << newLink.mLink->mUrl << "did:" << did;
+            updateLinksCreateUpdateRecords(did, newLinks, profile, true, successCb, errorCb, index + 1);
+        }
+    }
+    else
+    {
+        qDebug() << "No change link:" << links[index].mLink->mUrl << "did:" << did;
+        updateLinksCreateUpdateRecords(did, links, profile, partial, successCb, errorCb, index + 1);
+    }
+}
+
+void ProfileMaster::updateLinksDeleteRecords(
+    const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+    const LinkSuccessCb& successCb, const ErrorCb& errorCb,
+    std::unordered_map<QString, ComATProtoRepo::StrongRef::SharedPtr> deleteUris)
+{
+    qDebug() << "Delete link records:" << did << "count:" << deleteUris.size();
+
+    if (deleteUris.empty())
+    {
+        updateLinksInProfile(did, links, profile, partial, successCb, errorCb);
+        return;
+    }
+
+    const auto ref = deleteUris.begin()->second;
+    deleteUris.erase(deleteUris.begin());
+    qDebug() << "Delete link record:" << did << "uri:" << ref->mUri << "cid:" << ref->mCid;
+
+    const bool deleting = mRepoMaster.deleteRecordByUri(did, AppBskyActor::Link::TYPE, ref->mUri,
+        [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, deleteUris, ref]{
+            if (!presence)
+                return;
+
+            qDebug() << "Deleted link:" << ref->mUri << "cid:" << ref->mCid << "did:" << did;
+            updateLinksDeleteRecords(did, links, profile, partial, successCb, errorCb, deleteUris);
+        },
+        [this, presence=getPresence(), did, links, profile, successCb, errorCb, deleteUris, ref](const QString& error, const QString& msg){
+            if (!presence)
+                return;
+
+            qWarning() << "Failed to delete link:" << error << "-" << msg << "uri:" << ref->mUri << "cid:" << ref->mCid << "did:" << did;
+            Link::List newLinks = links;
+            Link link;
+            link.mUri = ref->mUri;
+            link.mCid = ref->mCid;
+            link.mFailed = true; // Link without a Link record is a failed delete
+            newLinks.push_back(link);
+            updateLinksDeleteRecords(did, newLinks, profile, true, successCb, errorCb, deleteUris);
+        });
+
+    if (!deleting)
+    {
+        qWarning() << "Failed to delete link: invalid uri, uri:" << ref->mUri << "cid:" << ref->mCid << "did:" << did;
+        Link::List newLinks = links;
+        Link link;
+        link.mUri = ref->mUri;
+        link.mCid = ref->mCid;
+        link.mFailed = true; // Link without a Link record is a failed delete
+        newLinks.push_back(link);
+        updateLinksDeleteRecords(did, newLinks, profile, true, successCb, errorCb, deleteUris);
+    }
+}
+
+void ProfileMaster::updateLinksInProfile(const QString& did, const Link::List links, const AppBskyActor::Profile& profile, bool partial,
+                                         const LinkSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Update links in profile:" << did << "links:" << links.size() << "partial:" << partial;
+    ComATProtoRepo::StrongRef::List linkRefs;
+    linkRefs.reserve(links.size());
+
+    for (const auto& link : links)
+    {
+        if (!link.mUri.isEmpty() && !link.mCid.isEmpty())
+        {
+            qDebug() << "Add link:" << link.mUri << "cid:" << link.mCid;
+            auto ref = RepoMaster::makeStrongRef(link.mUri, link.mCid);
+            linkRefs.push_back(ref);
+        }
+    }
+
+    AppBskyActor::Profile newProfile = profile;
+    newProfile.mLinks = linkRefs;
+
+    updateProfile(did, newProfile,
+        [partial, successCb]{
+            if (successCb)
+                successCb(partial);
+        },
+        [this, presence=getPresence(), did, links, errorCb](const QString& error, const QString& message){
+            if (!presence)
+                return;
+
+            qWarning() << "Failed to update profile links:" << error << '-' << message;
+            ComATProtoRepo::ApplyWritesList writes;
+
+            for (const auto& link : links)
+            {
+                if (link.mNew)
+                {
+                    qDebug() << "Undo link:" << link.mUri << "did:" << did;
+                    RepoMaster::addDeleteByUri(writes, link.mUri);
+                }
+            }
+
+            if (!writes.empty())
+            {
+                // Try to delete just created records. If that fails there is nothing we can do.
+                mClient.applyWrites(did, writes, {}, {}, {});
+            }
+
+            if (errorCb)
+                errorCb(error, message);
+        });
+}
+
 void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get status:" << did;
-    mRepoMaster.getRecord<AppBskyActor::Status>(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {}, successCb, errorCb);
+    mRepoMaster.getRecord<AppBskyActor::Status>(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status& status,
@@ -287,7 +561,12 @@ void ProfileMaster::getContentVisibilityDeclaration(const QString& did, const Co
     qDebug() << "Get content visibility declatration" << did;
     mRepoMaster.getRecord<AppBskyActor::ContentVisibilityDeclaration>(
         did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
-        CONTENT_VISIBILITY_DECLARATION_KEY, {}, successCb, errorCb);
+        CONTENT_VISIBILITY_DECLARATION_KEY, {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 void ProfileMaster::updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
@@ -295,6 +574,37 @@ void ProfileMaster::updateContentVisibilityDeclaration(const QString& did, const
 {
     mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
                              CONTENT_VISIBILITY_DECLARATION_KEY, declaration, successCb, errorCb);
+}
+
+void ProfileMaster::createLink(const QString& url, const QString& title, Blob::SharedPtr icon,
+                               const RecordSuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Create link:" << url << "title:" << title;
+    AppBskyActor::Link record;
+    record.mUrl = url;
+    setOptionalString(record.mTitle, title);
+    record.mIcon = icon;
+    record.mCreatedAt = QDateTime::currentDateTimeUtc();
+
+    mRepoMaster.createRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, record,
+        [successCb](auto strongRef){
+            if (successCb)
+                successCb(strongRef->mUri, strongRef->mCid);
+        },
+        errorCb);
+}
+
+void ProfileMaster::updateLink(const AppBskyActor::Link& link, const QString& rkey,
+                               const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Update link:" << link.mUrl << "title:" << link.mTitle << "rkey:" << rkey;
+    mRepoMaster.updateRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, rkey, link, successCb, errorCb);
+}
+
+void ProfileMaster::removeLink(const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    qDebug() << "Remove link:" << rkey;
+    mRepoMaster.deleteRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, rkey, successCb, errorCb);
 }
 
 }

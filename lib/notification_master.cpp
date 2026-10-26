@@ -18,7 +18,12 @@ void NotificationMaster::getDeclaration(const QString& did, const DeclarationCb&
 {
     qDebug() << "Get declatration" << did;
     mRepoMaster.getRecord<AppBskyNotification::Declaration>(
-        did, AppBskyNotification::Declaration::TYPE, DECLARATION_KEY, {}, successCb, errorCb);
+        did, AppBskyNotification::Declaration::TYPE, DECLARATION_KEY, {},
+        [successCb](auto record){
+            if (successCb)
+                successCb(record->mEntity);
+        },
+        errorCb);
 }
 
 void NotificationMaster::updateDeclaration(const QString& did, const AppBskyNotification::Declaration& declaration,

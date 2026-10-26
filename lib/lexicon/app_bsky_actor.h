@@ -321,8 +321,10 @@ struct GetProfilesOutput
 // app.bsky.actor.link
 struct Link
 {
-    QString mUri;
+    QString mUrl;
     std::optional<QString> mTitle;
+    static constexpr int MAX_GRAPHEMES_TITLE = 40;
+    static constexpr int MAX_BYTES_TITLE = 320;
     Blob::SharedPtr mIcon; // optional
     static constexpr int MAX_BYTES_ICON = 100'000;
     QDateTime mCreatedAt;

@@ -470,7 +470,7 @@ QJsonObject Link::toJson() const
 {
     QJsonObject json(mJson);
     json.insert("$type", TYPE);
-    json.insert("uri", mUri);
+    json.insert("url", mUrl);
     XJsonObject::insertOptionalJsonValue(json, "title", mTitle);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "icon", mIcon);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
@@ -483,7 +483,7 @@ Link::SharedPtr Link::fromJson(const QJsonObject& json)
     auto link = std::make_shared<Link>();
     XJsonObject xjson(json);
     link->mJson = json;
-    link->mUri = xjson.getRequiredString("uri");
+    link->mUrl = xjson.getRequiredString("url");
     link->mTitle = xjson.getOptionalString("title");
     link->mIcon = xjson.getOptionalObject<Blob>("icon");
     link->mCreatedAt = xjson.getRequiredDateTime("createdAt");

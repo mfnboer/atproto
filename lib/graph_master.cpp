@@ -47,11 +47,7 @@ void GraphMaster::followAll(const std::vector<QString> dids,
         follow.mSubject = did;
         follow.mCreatedAt = QDateTime::currentDateTimeUtc();
         follow.mVia = via;
-
-        auto create = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesCreate>();
-        create->mCollection = AppBskyGraph::Follow::TYPE;
-        create->mValue = follow.toJson();
-        writes.push_back(std::move(create));
+        RepoMaster::addCreate(writes, follow);
     }
 
     const QString& repo = mClient.getSessionDid();
@@ -307,10 +303,7 @@ void GraphMaster::addUserToList(const QString& listUri, const QString& did,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
 }
 
 void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList& dids,
@@ -325,10 +318,7 @@ void GraphMaster::batchAddUsersToList(const QString& listUri, const QStringList&
         record.mSubject = did;
         record.mList = listUri;
         record.mCreatedAt = QDateTime::currentDateTimeUtc();
-        auto create = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesCreate>();
-        create->mCollection = AppBskyGraph::ListItem::TYPE;
-        create->mValue = record.toJson();
-        writes.push_back(std::move(create));
+        RepoMaster::addCreate(writes, record);
     }
 
     const QString& repo = mClient.getSessionDid();
