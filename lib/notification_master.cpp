@@ -17,8 +17,7 @@ NotificationMaster::NotificationMaster(Client& client) :
 void NotificationMaster::getDeclaration(const QString& did, const DeclarationCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get declatration" << did;
-    mRepoMaster.getRecord<AppBskyNotification::Declaration>(
-        did, AppBskyNotification::Declaration::TYPE, DECLARATION_KEY, {},
+    mRepoMaster.getRecord<AppBskyNotification::Declaration>(did, DECLARATION_KEY, {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -29,7 +28,7 @@ void NotificationMaster::getDeclaration(const QString& did, const DeclarationCb&
 void NotificationMaster::updateDeclaration(const QString& did, const AppBskyNotification::Declaration& declaration,
                                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, AppBskyNotification::Declaration::TYPE, DECLARATION_KEY, declaration, successCb, errorCb);
+    mRepoMaster.updateRecord(did, DECLARATION_KEY, declaration, successCb, errorCb);
 }
 
 }

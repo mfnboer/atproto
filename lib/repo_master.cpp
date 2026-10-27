@@ -40,5 +40,21 @@ ComATProtoRepo::StrongRef::SharedPtr RepoMaster::makeStrongRef(const QString& ur
     return ref;
 }
 
+bool RepoMaster::addDeleteByUri(ComATProtoRepo::ApplyWritesList& writes, const QString& uri)
+{
+    const ATUri atUri(uri);
+
+    if (!atUri.isValid())
+    {
+        qWarning() << "Invalid uri:" << uri;
+        return false;
+    }
+
+    auto remove = std::make_shared<ComATProtoRepo::ApplyWritesDelete>();
+    remove->mCollection = atUri.getCollection();
+    remove->mRKey = atUri.getRkey();
+    writes.push_back(std::move(remove));
+    return true;
+}
 
 }

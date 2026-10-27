@@ -28,7 +28,7 @@ public:
     explicit RepoMaster(Client& client);
 
     template <typename Entity>
-    void getRecord(const QString& repo, const QString& collection, const QString& rkey,
+    void getRecord(const QString& repo, const QString& rkey,
                    const std::optional<QString>& cid,
                    const std::function<void(typename Record<Entity>::SharedPtr)>& successCb,
                    const ErrorCb& errorCb);
@@ -37,18 +37,17 @@ public:
     void getRecords(const std::vector<QString>& uris,
                     const std::function<void(typename Record<Entity>::List)>& successCb);
 
-    // TODO: collection not needed -> collection = Entity::TYPE
     template <typename Entity>
-    void createRecord(const QString& repo, const QString& collection, const Entity& entity,
+    void createRecord(const QString& repo, const Entity& entity,
                       const CreateSuccessCb& successCb, const ErrorCb& errorCb);
 
     template <typename Entity>
-    void updateRecord(const QString& repo, const QString& collection, const QString& rkey,
+    void updateRecord(const QString& repo, const QString& rkey,
                       const Entity& entity,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     template <typename Entity>
-    bool updateRecordByUri(const QString& repo, const QString& collection, const QString& uri,
+    bool updateRecordByUri(const QString& repo, const QString& uri,
                            const Entity& entity,
                            const SuccessCb& successCb, const ErrorCb& errorCb);
 
@@ -79,13 +78,13 @@ private:
 };
 
 template <typename Entity>
-inline void RepoMaster::getRecord(const QString& repo, const QString& collection, const QString& rkey,
+inline void RepoMaster::getRecord(const QString& repo, const QString& rkey,
                                   const std::optional<QString>& cid,
                                   const std::function<void(typename Record<Entity>::SharedPtr)>& successCb,
                                   const ErrorCb& errorCb)
 {
-    qDebug() << "Get record:" << repo << "collection:" << collection << "rkey:" << rkey << "cid:" << cid.value_or("");
-    mClient.getRecord(repo, collection, rkey, cid,
+    qDebug() << "Get record:" << repo << "collection:" << Entity::TYPE << "rkey:" << rkey << "cid:" << cid.value_or("");
+    mClient.getRecord(repo, Entity::TYPE, rkey, cid,
         [successCb, errorCb](ComATProtoRepo::Record::SharedPtr record) {
             qDebug() << "Got record:" << record->mValue;
 
@@ -134,7 +133,7 @@ inline void RepoMaster::getRecords(const std::vector<QString>& uris,
     {
         const ATUri atUri(uri);
 
-        getRecord<Entity>(atUri.getAuthority(), atUri.getCollection(), atUri.getRkey(), {},
+        getRecord<Entity>(atUri.getAuthority(), atUri.getRkey(), {},
             [todo, records, successCb](auto record){
                 records->push_back(record);
 
@@ -157,20 +156,20 @@ inline void RepoMaster::getRecords(const std::vector<QString>& uris,
 }
 
 template <typename Entity>
-inline void RepoMaster::createRecord(const QString& repo, const QString& collection, const Entity& entity,
+inline void RepoMaster::createRecord(const QString& repo, const Entity& entity,
                                      const CreateSuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Create record:" << repo << "collection:" << collection;
-    mClient.createRecord(repo, collection, {}, entity.toJson(), {}, successCb, errorCb);
+    qDebug() << "Create record:" << repo << "collection:" << Entity::TYPE;
+    mClient.createRecord(repo, Entity::TYPE, {}, entity.toJson(), {}, successCb, errorCb);
 }
 
 template <typename Entity>
-inline void RepoMaster::updateRecord(const QString& repo, const QString& collection, const QString& rkey,
+inline void RepoMaster::updateRecord(const QString& repo, const QString& rkey,
                                      const Entity& entity,
                                      const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    qDebug() << "Update record:" << repo << "collection:" << collection << "rkey:" << rkey;
-    mClient.putRecord(repo, collection, rkey, entity.toJson(), {},
+    qDebug() << "Update record:" << repo << "collection:" << Entity::TYPE << "rkey:" << rkey;
+    mClient.putRecord(repo, Entity::TYPE, rkey, entity.toJson(), {},
         [successCb](auto){
             if (successCb)
                 successCb();
@@ -179,7 +178,7 @@ inline void RepoMaster::updateRecord(const QString& repo, const QString& collect
 }
 
 template <typename Entity>
-bool RepoMaster::updateRecordByUri(const QString& repo, const QString& collection, const QString& uri,
+bool RepoMaster::updateRecordByUri(const QString& repo, const QString& uri,
                                    const Entity& entity,
                                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
@@ -191,7 +190,7 @@ bool RepoMaster::updateRecordByUri(const QString& repo, const QString& collectio
         return false;
     }
 
-    updateRecord(repo, collection, atUri.getRkey(), entity, successCb, errorCb);
+    updateRecord(repo, atUri.getRkey(), entity, successCb, errorCb);
     return true;
 }
 
@@ -236,23 +235,6 @@ inline void RepoMaster::addDelete(ComATProtoRepo::ApplyWritesList& writes, const
     remove->mCollection = Entity::TYPE;
     remove->mRKey = rkey;
     writes.push_back(std::move(remove));
-}
-
-inline bool RepoMaster::addDeleteByUri(ComATProtoRepo::ApplyWritesList& writes, const QString& uri)
-{
-    const ATUri atUri(uri);
-
-    if (!atUri.isValid())
-    {
-        qWarning() << "Invalid uri:" << uri;
-        return false;
-    }
-
-    auto remove = std::make_shared<ComATProtoRepo::ApplyWritesDelete>();
-    remove->mCollection = atUri.getCollection();
-    remove->mRKey = atUri.getRkey();
-    writes.push_back(std::move(remove));
-    return true;
 }
 
 }

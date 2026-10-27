@@ -19,8 +19,7 @@ ChatMaster::ChatMaster(Client& client) :
 void ChatMaster::getDeclaration(const QString& did, const DeclarationCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get declatration" << did;
-    mRepoMaster.getRecord<ChatBskyActor::Declaration>(
-        did, ATUri::COLLECTION_CHAT_ACTOR_DECLARATION, DECLARATION_KEY, {},
+    mRepoMaster.getRecord<ChatBskyActor::Declaration>(did, DECLARATION_KEY, {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -31,7 +30,7 @@ void ChatMaster::getDeclaration(const QString& did, const DeclarationCb& success
 void ChatMaster::updateDeclaration(const QString& did, const ChatBskyActor::Declaration& declaration,
                                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, ATUri::COLLECTION_CHAT_ACTOR_DECLARATION, DECLARATION_KEY, declaration, successCb, errorCb);
+    mRepoMaster.updateRecord(did, DECLARATION_KEY, declaration, successCb, errorCb);
 }
 
 void ChatMaster::createMessage(const QString& text, const std::vector<RichTextMaster::ParsedMatch>& embeddedLinks, const MessageCreatedCb& cb)
@@ -58,9 +57,7 @@ void ChatMaster::addReplyToRefToMessage(ChatBskyConvo::MessageInput& message, co
 
 void ChatMaster::addQuoteToMessage(ChatBskyConvo::MessageInput& message, const QString& quoteUri, const QString& quoteCid)
 {
-    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
-    ref->mUri = quoteUri;
-    ref->mCid = quoteCid;
+    auto ref = RepoMaster::makeStrongRef(quoteUri, quoteCid);
 
     Q_ASSERT(!message.mEmbed);
     auto record = std::make_shared<AppBskyEmbed::Record>();

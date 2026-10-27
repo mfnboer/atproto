@@ -11,24 +11,29 @@ namespace ATProto {
 class ProfileMaster : public Presence
 {
 public:
-    struct Link
+    class Link
     {
+    public:
+        using List = std::vector<Link>;
+
         QString mUri;
         QString mCid;
         AppBskyActor::Link::SharedPtr mLink;
         bool mHasNewIcon = false;
         bool mUpdate = false;
-        bool mFailed = false;
-        bool mNew = false;
 
-        using List = std::vector<Link>;
+    private:
+        bool mFailed = false; // Set to true when updating or creating failed
+        bool mNew = false;    // Set tp true when creating succeeded
+
+        friend class ProfileMaster;
     };
 
     using ProfileCb = std::function<void(AppBskyActor::Profile::SharedPtr)>;
     using RecordSuccessCb = std::function<void(const QString& uri, const QString& cid)>;
     using StatusCb = std::function<void(AppBskyActor::Status::SharedPtr)>;
     using ContentVisibilityDeclarationCb = std::function<void(AppBskyActor::ContentVisibilityDeclaration::SharedPtr)>;
-    using LinkSuccessCb = std::function<void(bool partial)>;
+    using LinkSuccessCb = std::function<void(bool partial,ComATProtoRepo::StrongRef::List)>;
     using SuccessCb = Client::SuccessCb;
     using ErrorCb = Client::ErrorCb;
 
@@ -70,13 +75,6 @@ public:
     void getContentVisibilityDeclaration(const QString& did, const ContentVisibilityDeclarationCb& successCb, const ErrorCb& errorCb);
     void updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
                            const SuccessCb& successCb, const ErrorCb& errorCb);
-
-    // TODO: used?
-    void createLink(const QString& url, const QString& title, Blob::SharedPtr icon,
-                    const RecordSuccessCb& successCb, const ErrorCb& errorCb);
-    void updateLink(const AppBskyActor::Link& link, const QString& rkey,
-                    const SuccessCb& successCb, const ErrorCb& errorCb);
-    void removeLink(const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb);
 
 private:
     bool addLabel(AppBskyActor::Profile& profile, const QString& label) const;

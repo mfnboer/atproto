@@ -64,9 +64,7 @@ void GraphMaster::followAll(const std::vector<QString> dids,
                 if (holdsNonNull<ComATProtoRepo::ApplyWritesCreateResult::SharedPtr>(result))
                 {
                     const auto& createResult = std::get<ComATProtoRepo::ApplyWritesCreateResult::SharedPtr>(result);
-                    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
-                    ref->mUri = createResult->mUri;
-                    ref->mCid = createResult->mCid;
+                    auto ref = RepoMaster::makeStrongRef(createResult->mUri, createResult->mCid);
                     refs.push_back(std::move(ref));
                 }
                 else
@@ -364,20 +362,7 @@ void GraphMaster::batchDeleteListUsers(const QString& listUri, const std::option
             ATProto::ComATProtoRepo::ApplyWritesList writes;
 
             for (const auto& listItem : output->mItems)
-            {
-                const ATProto::ATUri atUri(listItem->mUri);
-
-                if (!atUri.isValid())
-                {
-                    qWarning() << "Invalid list item URI:" << listItem->mUri;
-                    continue;
-                }
-
-                auto deleteRecord = std::make_shared<ATProto::ComATProtoRepo::ApplyWritesDelete>();
-                deleteRecord->mCollection = atUri.getCollection();
-                deleteRecord->mRKey = atUri.getRkey();
-                writes.push_back(std::move(deleteRecord));
-            }
+                RepoMaster::addDeleteByUri(writes, listItem->mUri);
 
             const auto newCursor = output->mCursor;
 

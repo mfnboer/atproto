@@ -190,17 +190,11 @@ void PostMaster::repost(const QString& uri, const QString& cid,
         return;
 
     AppBskyFeed::Repost repost;
-    repost.mSubject = std::make_shared<ComATProtoRepo::StrongRef>();
-    repost.mSubject->mUri = uri;
-    repost.mSubject->mCid = cid;
+    repost.mSubject = RepoMaster::makeStrongRef(uri, cid);
     repost.mCreatedAt = QDateTime::currentDateTimeUtc();
 
     if (!viaUri.isEmpty())
-    {
-        repost.mVia = std::make_shared<ComATProtoRepo::StrongRef>();
-        repost.mVia->mUri = viaUri;
-        repost.mVia->mCid = viaCid;
-    }
+        repost.mVia = RepoMaster::makeStrongRef(viaUri, viaCid);
 
     const auto repostJson = repost.toJson();
     const QString& repo = mClient.getSessionDid();
@@ -210,10 +204,7 @@ void PostMaster::repost(const QString& uri, const QString& cid,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
 }
 
 void PostMaster::like(const QString& uri, const QString& cid,
@@ -225,17 +216,11 @@ void PostMaster::like(const QString& uri, const QString& cid,
         return;
 
     AppBskyFeed::Like like;
-    like.mSubject = std::make_shared<ComATProtoRepo::StrongRef>();
-    like.mSubject->mUri = uri;
-    like.mSubject->mCid = cid;
+    like.mSubject = RepoMaster::makeStrongRef(uri, cid);
     like.mCreatedAt = QDateTime::currentDateTimeUtc();
 
     if (!viaUri.isEmpty())
-    {
-        like.mVia = std::make_shared<ComATProtoRepo::StrongRef>();
-        like.mVia->mUri = viaUri;
-        like.mVia->mCid = viaCid;
-    }
+        like.mVia = RepoMaster::makeStrongRef(viaUri, viaCid);
 
     const auto likeJson = like.toJson();
     const QString& repo = mClient.getSessionDid();
@@ -245,10 +230,7 @@ void PostMaster::like(const QString& uri, const QString& cid,
             if (successCb)
                 successCb(strongRef->mUri, strongRef->mCid);
         },
-        [errorCb](const QString& error, const QString& msg) {
-            if (errorCb)
-                errorCb(error, msg);
-        });
+        errorCb);
 }
 
 void PostMaster::undo(const QString& uri,
@@ -572,8 +554,7 @@ void PostMaster::getPostgate(const QString& postUri, const PostgateCb& successCb
     if (!atUri.isValid())
         return;
 
-    mRepoMaster.getRecord<AppBskyFeed::Postgate>(
-        atUri.getAuthority(), AppBskyFeed::Postgate::TYPE, atUri.getRkey(), {},
+    mRepoMaster.getRecord<AppBskyFeed::Postgate>(atUri.getAuthority(), atUri.getRkey(), {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -640,9 +621,7 @@ void PostMaster::createPost(const QString& text, const QString& language,
 
 void PostMaster::addQuoteToPost(AppBskyFeed::Record::Post& post, const QString& quoteUri, const QString& quoteCid)
 {
-    auto ref = std::make_shared<ComATProtoRepo::StrongRef>();
-    ref->mUri = quoteUri;
-    ref->mCid = quoteCid;
+    auto ref = RepoMaster::makeStrongRef(quoteUri, quoteCid);
 
     Q_ASSERT(!post.mEmbed);
     post.mEmbed = std::make_shared<AppBskyEmbed::Record>();

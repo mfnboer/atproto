@@ -35,7 +35,7 @@ ProfileMaster::ProfileMaster(Client& client) :
 void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get profile:" << did;
-    mRepoMaster.getRecord<AppBskyActor::Profile>(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, {},
+    mRepoMaster.getRecord<AppBskyActor::Profile>(did, PROFILE_KEY, {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -46,7 +46,7 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_PROFILE, PROFILE_KEY, profile, successCb, errorCb);
+    mRepoMaster.updateRecord(did, PROFILE_KEY, profile, successCb, errorCb);
 }
 
 void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
@@ -249,9 +249,7 @@ bool ProfileMaster::setPinnedPost(AppBskyActor::Profile& profile, const QString&
         return false;
     }
 
-    profile.mPinndedPost = std::make_shared<ComATProtoRepo::StrongRef>();
-    profile.mPinndedPost->mUri = uri;
-    profile.mPinndedPost->mCid = cid;
+    profile.mPinndedPost = RepoMaster::makeStrongRef(uri, cid);
     return true;
 }
 
@@ -272,7 +270,7 @@ void ProfileMaster::updateLinks(const QString& did, const Link::List links,
 {
     qDebug() << "Update links:" << did;
     getProfile(did,
-               [this, presence=getPresence(), did, links, successCb, errorCb](auto&& profile){
+        [this, presence=getPresence(), did, links, successCb, errorCb](auto&& profile){
             if (!presence)
                 return;
 
@@ -312,13 +310,10 @@ void ProfileMaster::updateLinks(const QString& did, const Link::List links, cons
                 qWarning() << "Could not get all links to update:" << updateLinks.size() << "got:" << linkRecords.size();
 
                 if (errorCb)
-                {
                     errorCb(ATProtoErrorMsg::RECORD_NOT_FOUND, "Could not get records to update");
-                    return;
-                }
-            }
 
-            bool partial = false;
+                return;
+            }
 
             for (const auto& linkRecord : linkRecords)
             {
@@ -327,19 +322,27 @@ void ProfileMaster::updateLinks(const QString& did, const Link::List links, cons
                 if (!updateLinks.contains(linkRecord->mUri))
                 {
                     qWarning() << "Uri missing:" << linkRecord->mUri;
-                    partial = true;
-                    continue;
+
+                    if (errorCb)
+                        errorCb(ATProtoErrorMsg::RECORD_NOT_FOUND, "Could not get records to update");
+
+                    return;
                 }
 
+                // Do not update created-at timestamp.
+                // Copy json to persist unsupported fields
                 auto& updateLink = updateLinks.at(linkRecord->mUri);
                 updateLink.mLink->mCreatedAt = currentLink->mCreatedAt;
                 updateLink.mLink->mJson = currentLink->mJson;
+
+                // We do not support setting of labels on a link. Keep whatever was set.
+                updateLink.mLink->mLabels = currentLink->mLabels;
 
                 if (!updateLink.mHasNewIcon)
                     updateLink.mLink->mIcon = currentLink->mIcon;
             }
 
-            updateLinksCreateUpdateRecords(did, links, profile, partial, successCb, errorCb);
+            updateLinksCreateUpdateRecords(did, links, profile, false, successCb, errorCb);
         });
 }
 
@@ -365,7 +368,7 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
 
     if (link.mUri.isEmpty())
     {
-        mRepoMaster.createRecord(did, AppBskyActor::Link::TYPE, *link.mLink,
+        mRepoMaster.createRecord(did, *link.mLink,
             [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index](ComATProtoRepo::StrongRef::SharedPtr ref){
                 if (!presence)
                     return;
@@ -383,6 +386,17 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
                 if (!presence)
                     return;
 
+                // Fail on first error, assuming the rest has a high likelyhood to fail.
+                // Later on we will continue with partial success as previous succesful changes
+                // can (probably) not be rolled back.
+                if (index == 0)
+                {
+                    if (errorCb)
+                        errorCb(error, msg);
+
+                    return;
+                }
+
                 Link::List newLinks = links;
                 auto& newLink = newLinks[index];
                 newLink.mFailed = true;
@@ -393,7 +407,7 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
     }
     else if (link.mUpdate)
     {
-        const bool updating = mRepoMaster.updateRecordByUri(did, AppBskyActor::Link::TYPE, link.mUri, *link.mLink,
+        const bool updating = mRepoMaster.updateRecordByUri(did, link.mUri, *link.mLink,
             [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index]{
                 if (!presence)
                     return;
@@ -405,6 +419,14 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
                 if (!presence)
                     return;
 
+                if (index == 0)
+                {
+                    if (errorCb)
+                        errorCb(error, msg);
+
+                    return;
+                }
+
                 Link::List newLinks = links;
                 auto& newLink = newLinks[index];
                 newLink.mFailed = true;
@@ -414,7 +436,7 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
             });
 
         if (!updating)
-        {
+        {   
             Link::List newLinks = links;
             auto& newLink = newLinks[index];
             newLink.mFailed = true;
@@ -492,10 +514,10 @@ void ProfileMaster::updateLinksInProfile(const QString& did, const Link::List li
     for (const auto& link : links)
     {
         if (!link.mUri.isEmpty() && !link.mCid.isEmpty())
-        {
+        {   
             qDebug() << "Add link:" << link.mUri << "cid:" << link.mCid;
             auto ref = RepoMaster::makeStrongRef(link.mUri, link.mCid);
-            linkRefs.push_back(ref);
+            linkRefs.push_back(std::move(ref));
         }
     }
 
@@ -503,9 +525,9 @@ void ProfileMaster::updateLinksInProfile(const QString& did, const Link::List li
     newProfile.mLinks = linkRefs;
 
     updateProfile(did, newProfile,
-        [partial, successCb]{
+        [partial, linkRefs, successCb]{
             if (successCb)
-                successCb(partial);
+                successCb(partial, linkRefs);
         },
         [this, presence=getPresence(), did, links, errorCb](const QString& error, const QString& message){
             if (!presence)
@@ -537,7 +559,7 @@ void ProfileMaster::updateLinksInProfile(const QString& did, const Link::List li
 void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Get status:" << did;
-    mRepoMaster.getRecord<AppBskyActor::Status>(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, {},
+    mRepoMaster.getRecord<AppBskyActor::Status>(did, STATUS_KEY, {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -548,7 +570,7 @@ void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, con
 void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status& status,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_STATUS, STATUS_KEY, status, successCb, errorCb);
+    mRepoMaster.updateRecord(did, STATUS_KEY, status, successCb, errorCb);
 }
 
 void ProfileMaster::deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -560,8 +582,7 @@ void ProfileMaster::getContentVisibilityDeclaration(const QString& did, const Co
 {
     qDebug() << "Get content visibility declatration" << did;
     mRepoMaster.getRecord<AppBskyActor::ContentVisibilityDeclaration>(
-        did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
-        CONTENT_VISIBILITY_DECLARATION_KEY, {},
+        did, CONTENT_VISIBILITY_DECLARATION_KEY, {},
         [successCb](auto record){
             if (successCb)
                 successCb(record->mEntity);
@@ -572,39 +593,7 @@ void ProfileMaster::getContentVisibilityDeclaration(const QString& did, const Co
 void ProfileMaster::updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
                                         const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, ATUri::COLLECTION_ACTOR_CONTENT_VISIBILITY_DECLARATION,
-                             CONTENT_VISIBILITY_DECLARATION_KEY, declaration, successCb, errorCb);
-}
-
-void ProfileMaster::createLink(const QString& url, const QString& title, Blob::SharedPtr icon,
-                               const RecordSuccessCb& successCb, const ErrorCb& errorCb)
-{
-    qDebug() << "Create link:" << url << "title:" << title;
-    AppBskyActor::Link record;
-    record.mUrl = url;
-    setOptionalString(record.mTitle, title);
-    record.mIcon = icon;
-    record.mCreatedAt = QDateTime::currentDateTimeUtc();
-
-    mRepoMaster.createRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, record,
-        [successCb](auto strongRef){
-            if (successCb)
-                successCb(strongRef->mUri, strongRef->mCid);
-        },
-        errorCb);
-}
-
-void ProfileMaster::updateLink(const AppBskyActor::Link& link, const QString& rkey,
-                               const SuccessCb& successCb, const ErrorCb& errorCb)
-{
-    qDebug() << "Update link:" << link.mUrl << "title:" << link.mTitle << "rkey:" << rkey;
-    mRepoMaster.updateRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, rkey, link, successCb, errorCb);
-}
-
-void ProfileMaster::removeLink(const QString& rkey, const SuccessCb& successCb, const ErrorCb& errorCb)
-{
-    qDebug() << "Remove link:" << rkey;
-    mRepoMaster.deleteRecord(mClient.getSessionDid(), AppBskyActor::Link::TYPE, rkey, successCb, errorCb);
+    mRepoMaster.updateRecord(did, CONTENT_VISIBILITY_DECLARATION_KEY, declaration, successCb, errorCb);
 }
 
 }
