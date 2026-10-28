@@ -24,6 +24,7 @@ public:
     using ErrorCb = Client::ErrorCb;
     using SuccessCb = Client::SuccessCb;
     using CreateSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
+    using UpdateSuccessCb = std::function<void(ComATProtoRepo::StrongRef::SharedPtr)>;
 
     explicit RepoMaster(Client& client);
 
@@ -44,12 +45,12 @@ public:
     template <typename Entity>
     void updateRecord(const QString& repo, const QString& rkey,
                       const Entity& entity,
-                      const SuccessCb& successCb, const ErrorCb& errorCb);
+                      const UpdateSuccessCb& successCb, const ErrorCb& errorCb);
 
     template <typename Entity>
     bool updateRecordByUri(const QString& repo, const QString& uri,
                            const Entity& entity,
-                           const SuccessCb& successCb, const ErrorCb& errorCb);
+                           const UpdateSuccessCb& successCb, const ErrorCb& errorCb);
 
     void deleteRecord(const QString& repo, const QString& collection, const QString& rkey,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
@@ -166,21 +167,16 @@ inline void RepoMaster::createRecord(const QString& repo, const Entity& entity,
 template <typename Entity>
 inline void RepoMaster::updateRecord(const QString& repo, const QString& rkey,
                                      const Entity& entity,
-                                     const SuccessCb& successCb, const ErrorCb& errorCb)
+                                     const UpdateSuccessCb& successCb, const ErrorCb& errorCb)
 {
     qDebug() << "Update record:" << repo << "collection:" << Entity::TYPE << "rkey:" << rkey;
-    mClient.putRecord(repo, Entity::TYPE, rkey, entity.toJson(), {},
-        [successCb](auto){
-            if (successCb)
-                successCb();
-        },
-        errorCb);
+    mClient.putRecord(repo, Entity::TYPE, rkey, entity.toJson(), {}, successCb, errorCb);
 }
 
 template <typename Entity>
 bool RepoMaster::updateRecordByUri(const QString& repo, const QString& uri,
                                    const Entity& entity,
-                                   const SuccessCb& successCb, const ErrorCb& errorCb)
+                                   const UpdateSuccessCb& successCb, const ErrorCb& errorCb)
 {
     const ATUri atUri(uri);
 

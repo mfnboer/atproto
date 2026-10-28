@@ -28,7 +28,12 @@ void NotificationMaster::getDeclaration(const QString& did, const DeclarationCb&
 void NotificationMaster::updateDeclaration(const QString& did, const AppBskyNotification::Declaration& declaration,
                                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, DECLARATION_KEY, declaration, successCb, errorCb);
+    mRepoMaster.updateRecord(did, DECLARATION_KEY, declaration,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 }

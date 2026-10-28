@@ -46,7 +46,12 @@ void ProfileMaster::getProfile(const QString& did, const ProfileCb& successCb, c
 void ProfileMaster::updateProfile(const QString& did, const AppBskyActor::Profile& profile,
                    const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, PROFILE_KEY, profile, successCb, errorCb);
+    mRepoMaster.updateRecord(did, PROFILE_KEY, profile,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 void ProfileMaster::updateProfile(const QString& did, const QString& name, const QString& description,
@@ -408,12 +413,22 @@ void ProfileMaster::updateLinksCreateUpdateRecords(
     else if (link.mUpdate)
     {
         const bool updating = mRepoMaster.updateRecordByUri(did, link.mUri, *link.mLink,
-            [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index]{
+            [this, presence=getPresence(), did, links, profile, partial, successCb, errorCb, index](ComATProtoRepo::StrongRef::SharedPtr ref){
                 if (!presence)
                     return;
 
+                // Content is updated, so CID changes.
+                Link::List newLinks = links;
+                auto& newLink = newLinks[index];
+
                 qDebug() << "Updated link:" << links[index].mLink->mUrl << "did:" << did;
-                updateLinksCreateUpdateRecords(did, links, profile, partial, successCb, errorCb, index + 1);
+                qDebug() << "link:" << newLink.mUri << newLink.mCid << "updated:" << ref->mUri << ref->mCid;
+
+                Q_ASSERT(newLink.mUri == ref->mUri);
+                newLink.mUri = ref->mUri;
+                newLink.mCid = ref->mCid;
+
+                updateLinksCreateUpdateRecords(did, newLinks, profile, partial, successCb, errorCb, index + 1);
             },
             [this, presence=getPresence(), did, links, profile, successCb, errorCb, index](const QString& error, const QString& msg){
                 if (!presence)
@@ -570,7 +585,12 @@ void ProfileMaster::getStatus(const QString& did, const StatusCb& successCb, con
 void ProfileMaster::updateStatus(const QString& did, const AppBskyActor::Status& status,
                   const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, STATUS_KEY, status, successCb, errorCb);
+    mRepoMaster.updateRecord(did, STATUS_KEY, status,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 void ProfileMaster::deleteStatus(const QString& did, const SuccessCb& successCb, const ErrorCb& errorCb)
@@ -593,7 +613,12 @@ void ProfileMaster::getContentVisibilityDeclaration(const QString& did, const Co
 void ProfileMaster::updateContentVisibilityDeclaration(const QString& did, const AppBskyActor::ContentVisibilityDeclaration& declaration,
                                         const SuccessCb& successCb, const ErrorCb& errorCb)
 {
-    mRepoMaster.updateRecord(did, CONTENT_VISIBILITY_DECLARATION_KEY, declaration, successCb, errorCb);
+    mRepoMaster.updateRecord(did, CONTENT_VISIBILITY_DECLARATION_KEY, declaration,
+        [successCb](auto){
+            if (successCb)
+                successCb();
+        },
+        errorCb);
 }
 
 }

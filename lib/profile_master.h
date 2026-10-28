@@ -24,7 +24,7 @@ public:
 
     private:
         bool mFailed = false; // Set to true when updating or creating failed
-        bool mNew = false;    // Set tp true when creating succeeded
+        bool mNew = false;    // Set to true when creating succeeded
 
         friend class ProfileMaster;
     };
