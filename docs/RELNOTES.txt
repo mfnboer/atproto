@@ -2,6 +2,7 @@ next
 ====
 * QNetworkAccessManager injection
 * Profile link utilities and fixes
+* bridgyOriginalUrl
 
 6.16
 ====

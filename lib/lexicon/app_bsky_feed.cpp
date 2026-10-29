@@ -327,6 +327,7 @@ QJsonObject Record::Post::toJson() const
 
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     XJsonObject::insertOptionalJsonValue(json, "bridgyOriginalText", mBridgyOriginalText);
+    XJsonObject::insertOptionalJsonValue(json, "bridgyOriginalUrl", mBridgyOriginalUrl);
     return json;
 }
 
@@ -349,6 +350,7 @@ Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
     post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     post->mBridgyOriginalText = xjson.getOptionalString("bridgyOriginalText");
+    post->mBridgyOriginalUrl = xjson.getOptionalString("bridgyOriginalUrl");
     post->mJson = json;
     return post;
 }
