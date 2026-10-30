@@ -1,4 +1,4 @@
-next
+6.17
 ====
 * QNetworkAccessManager injection
 * Profile link utilities and fixes
