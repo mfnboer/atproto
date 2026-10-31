@@ -634,14 +634,16 @@ void PostMaster::addLabelsToPost(AppBskyFeed::Record::Post& post, const QStringL
     if (labels.isEmpty())
         return;
 
-    if (!post.mLabels)
+    if (!post.mLabels || !ATProto::holdsNonNull<ComATProtoLabel::SelfLabels::SharedPtr>(*post.mLabels))
         post.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
+
+    auto& postLabels = std::get<ComATProtoLabel::SelfLabels::SharedPtr>(*post.mLabels);
 
     for (const auto& label : labels)
     {
         auto l = std::make_shared<ComATProtoLabel::SelfLabel>();
         l->mVal = label;
-        post.mLabels->mValues.push_back(std::move(l));
+        postLabels->mValues.push_back(std::move(l));
     }
 }
 

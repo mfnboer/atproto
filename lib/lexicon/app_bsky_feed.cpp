@@ -320,7 +320,7 @@ QJsonObject Record::Post::toJson() const
     XJsonObject::insertOptionalArray<AppBskyRichtext::Facet>(json, "facets", mFacets);
     XJsonObject::insertOptionalJsonObject<PostReplyRef>(json, "reply", mReply);
     XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
-    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalVariant(json, "labels", mLabels);
 
     if (!mLanguages.empty())
         json.insert("langs", XJsonObject::toJsonArray(mLanguages));
@@ -346,7 +346,7 @@ Record::Post::SharedPtr Record::Post::fromJson(const QJsonObject& json)
         AppBskyEmbed::Record,
         AppBskyEmbed::RecordWithMedia,
         UnknownVariant>("embed");
-    post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    post->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
     post->mLanguages = xjson.getOptionalStringVector("langs");
     post->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     post->mBridgyOriginalText = xjson.getOptionalString("bridgyOriginalText");

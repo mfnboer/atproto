@@ -137,7 +137,7 @@ QJsonObject DraftPost::toJson() const
     QJsonObject json(mJson);
     json.insert("$type", TYPE);
     json.insert("text", mText);
-    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalVariant(json, "labels", mLabels);
     XJsonObject::insertOptionalArray<DraftEmbedImage>(json, "embedImages", mEmbedImages);
     XJsonObject::insertOptionalJsonObject<DraftEmbedGallery>(json, "embedGallery", mEmbedGallery);
     XJsonObject::insertOptionalArray<DraftEmbedVideo>(json, "embedVideos", mEmbedVideos);
@@ -151,7 +151,7 @@ DraftPost::SharedPtr DraftPost::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     auto post = std::make_shared<DraftPost>();
     post->mText = xjson.getRequiredString("text");
-    post->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    post->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
     post->mEmbedImages = xjson.getOptionalVector<DraftEmbedImage>("embedImages");
     post->mEmbedGallery = xjson.getOptionalObject<DraftEmbedGallery>("embedGallery");
     post->mEmbedVideos = xjson.getOptionalVector<DraftEmbedVideo>("embedVideos");

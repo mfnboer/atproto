@@ -120,7 +120,7 @@ struct DraftEmbedRecord
 struct DraftPost
 {
     QString mText;
-    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels;
     DraftEmbedImage::List mEmbedImages; // optional max=4
     DraftEmbedGallery::SharedPtr mEmbedGallery; // optional
     DraftEmbedVideo::List mEmbedVideos; // optional max=1

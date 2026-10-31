@@ -231,7 +231,7 @@ QJsonObject List::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     json.insert("descriptionFacets", XJsonObject::toJsonArray<AppBskyRichtext::Facet>(mDescriptionFacets));
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
-    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalVariant(json, "labels", mLabels);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
     return json;
 }
@@ -247,7 +247,7 @@ List::SharedPtr List::fromJson(const QJsonObject& json)
     list->mDescription = xjson.getOptionalString("description");
     list->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
     list->mAvatar = xjson.getOptionalObject<Blob>("avatar");
-    list->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    list->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
     list->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     return list;
 }

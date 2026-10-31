@@ -141,7 +141,7 @@ struct List
     AppBskyRichtext::Facet::List mDescriptionFacets;
     Blob::SharedPtr mAvatar; // optional
     static constexpr int MAX_BYTES_AVATAR = 1'000'000;
-    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels; // optional
     QDateTime mCreatedAt;
     QJsonObject mJson;
 

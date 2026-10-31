@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "lexicon.h"
 #include <QJsonObject>
 #include <QtQmlIntegration>
 
@@ -42,14 +43,16 @@ struct SelfLabel
 
 // com.atproto.label.defs#selfLabels
 struct SelfLabels
-{
+{   
     SelfLabel::List mValues; // max 10
     QJsonObject mJson;
 
     QJsonObject toJson() const;
 
     using SharedPtr = std::shared_ptr<SelfLabels>;
+    using Variant = std::variant<SelfLabels::SharedPtr, UnknownVariant::SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "com.atproto.label.defs#selfLabels";
 };
 
 // com.atproto.label.defs#labelValueDefinitionStrings

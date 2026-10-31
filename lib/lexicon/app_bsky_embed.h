@@ -484,7 +484,7 @@ struct Post
     AppBskyRichtext::Facet::List mFacets;
     PostReplyRef::SharedPtr mReply; // optional
     std::optional<EmbedType> mEmbed;
-    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels;
     std::vector<QString> mLanguages;
     QDateTime mCreatedAt;
 

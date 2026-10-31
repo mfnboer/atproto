@@ -474,7 +474,7 @@ QJsonObject Link::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "title", mTitle);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "icon", mIcon);
     json.insert("createdAt", mCreatedAt.toUTC().toString(Qt::ISODateWithMs));
-    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalVariant(json, "labels", mLabels);
     return json;
 }
 
@@ -487,7 +487,7 @@ Link::SharedPtr Link::fromJson(const QJsonObject& json)
     link->mTitle = xjson.getOptionalString("title");
     link->mIcon = xjson.getOptionalObject<Blob>("icon");
     link->mCreatedAt = xjson.getRequiredDateTime("createdAt");
-    link->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    link->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
     return link;
 }
 
@@ -501,7 +501,7 @@ QJsonObject Profile::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "website", mWebsite);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
-    XJsonObject::insertOptionalJsonObject<ComATProtoLabel::SelfLabels>(json, "labels", mLabels);
+    XJsonObject::insertOptionalVariant(json, "labels", mLabels);
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "joinedViaStarterPack", mJoinedViaStarterPack);
     XJsonObject::insertOptionalJsonObject<ComATProtoRepo::StrongRef>(json, "pinnedPost", mPinndedPost);
     XJsonObject::insertOptionalArray<ComATProtoRepo::StrongRef>(json, "links", mLinks);
@@ -520,7 +520,7 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
     profile->mWebsite = xjson.getOptionalString("website");
     profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
     profile->mBanner = xjson.getOptionalObject<Blob>("banner");
-    profile->mLabels = xjson.getOptionalObject<ComATProtoLabel::SelfLabels>("labels");
+    profile->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
     profile->mJoinedViaStarterPack = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("joinedViaStarterPack");
     profile->mPinndedPost = xjson.getOptionalObject<ComATProtoRepo::StrongRef>("pinnedPost");
     profile->mLinks = xjson.getOptionalVector<ComATProtoRepo::StrongRef>("links");

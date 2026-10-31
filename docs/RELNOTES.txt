@@ -1,3 +1,7 @@
+next
+====
+* Change SelfLabels fiels to variants to comply with lexicon
+
 6.17
 ====
 * QNetworkAccessManager injection

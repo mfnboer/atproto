@@ -328,7 +328,7 @@ struct Link
     Blob::SharedPtr mIcon; // optional
     static constexpr int MAX_BYTES_ICON = 100'000;
     QDateTime mCreatedAt;
-    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels;
 
     QJsonObject mJson;
 
@@ -351,7 +351,7 @@ struct Profile
     static constexpr int MAX_BYTES_AVATAR = 1'000'000;
     Blob::SharedPtr mBanner; // optional
     static constexpr int MAX_BYTES_BANNER = 1'000'000;
-    ComATProtoLabel::SelfLabels::SharedPtr mLabels; // optional
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels;
     ComATProtoRepo::StrongRef::SharedPtr mJoinedViaStarterPack; // optional
     ComATProtoRepo::StrongRef::SharedPtr mPinndedPost; // optional
     ComATProtoRepo::StrongRef::List mLinks; // optional

@@ -96,10 +96,10 @@ void ProfileMaster::updateProfile(const QString& did, const QString& name, const
 
 bool ProfileMaster::addLabel(AppBskyActor::Profile& profile, const QString& label) const
 {
-    if (!profile.mLabels)
+    if (!profile.mLabels || !ATProto::holdsNonNull<ComATProtoLabel::SelfLabels::SharedPtr>(*profile.mLabels))
         profile.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
 
-    auto& labels = profile.mLabels->mValues;
+    auto& labels = std::get<ComATProtoLabel::SelfLabels::SharedPtr>(*profile.mLabels)->mValues;
     auto it = std::find_if(labels.begin(), labels.end(),
                            [label](const auto& l){ return l->mVal == label; });
 
@@ -143,10 +143,10 @@ void ProfileMaster::addSelfLabel(const QString& did, const QString& label,
 
 bool ProfileMaster::removeLabel(AppBskyActor::Profile& profile, const QString& label) const
 {
-    if (!profile.mLabels)
-        profile.mLabels = std::make_shared<ComATProtoLabel::SelfLabels>();
+    if (!profile.mLabels || !ATProto::holdsNonNull<ComATProtoLabel::SelfLabels::SharedPtr>(*profile.mLabels))
+        return false;
 
-    auto& labels = profile.mLabels->mValues;
+    auto& labels = std::get<ComATProtoLabel::SelfLabels::SharedPtr>(*profile.mLabels)->mValues;
     auto it = std::find_if(labels.begin(), labels.end(),
                            [label](const auto& l){ return l->mVal == label; });
 
