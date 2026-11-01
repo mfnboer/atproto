@@ -7,6 +7,7 @@
 #include "com_atproto_label.h"
 #include "com_atproto_repo.h"
 #include "lexicon.h"
+#include "string_enum.h"
 #include <QJsonDocument>
 #include <unordered_set>
 
@@ -52,25 +53,21 @@ struct VerificationView
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-enum class VerifiedStatus
+enum class VerifiedStatusEnum
 {
     VALID,
     INVALID,
     NONE,
     UNKNOWN
 };
-
-VerifiedStatus stringToVerifiedStatus(const QString& str);
-QString verifiedStatusToString(VerifiedStatus status, const QString& unknown);
+using VerifiedStatus = StringEnum<VerifiedStatusEnum, VerifiedStatusEnum::UNKNOWN>;
 
 // app.bsky.actor.defs#verificationState
 struct VerificationState
 {
     VerificationView::List mVerifications;
-    QString mRawVerifiedStatus;
-    VerifiedStatus mVerifiedStatus = VerifiedStatus::UNKNOWN;
-    QString mRawTrustedVerifierStatus;
-    VerifiedStatus mTrustedVerifierStatus = VerifiedStatus::UNKNOWN;
+    VerifiedStatus mVerifiedStatus = VerifiedStatusEnum::UNKNOWN;
+    VerifiedStatus mTrustedVerifierStatus = VerifiedStatusEnum::UNKNOWN;
 
     QJsonObject toJson() const;
 

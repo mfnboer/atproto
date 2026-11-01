@@ -132,6 +132,7 @@ qt_add_qml_module(libatproto
         SOURCES file_slice.cpp
         SOURCES video_master.h
         SOURCES video_master.cpp
+        SOURCES string_enum.h
 )
 
 if (ANDROID)

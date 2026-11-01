@@ -1,6 +1,7 @@
 next
 ====
-* Change SelfLabels fiels to variants to comply with lexicon
+* next Change SelfLabels fiels to variants to comply with lexicon
+* Refactor enums
 
 6.17
 ====

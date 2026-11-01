@@ -92,6 +92,12 @@ public:
     std::optional<QJsonObject> getOptionalJsonObject(const QString& key) const;
     std::optional<QJsonArray> getOptionalArray(const QString& key) const;
 
+    template<class Enum>
+    Enum getRequiredEnum(const QString& key) const;
+
+    template<class Enum>
+    std::optional<Enum> getOptionalEnum(const QString& key) const;
+
     template<class ObjType>
     typename ObjType::SharedPtr getRequiredObject(const QString& key) const;
 
@@ -175,6 +181,22 @@ void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key
         json.insert(key, value->toJson());
     else
         json.remove(key);
+}
+
+template<class Enum>
+Enum XJsonObject::getRequiredEnum(const QString& key) const
+{
+    const QString str = getRequiredString(key);
+    return Enum::fromString(str);
+}
+
+template<class Enum>
+std::optional<Enum> XJsonObject::getOptionalEnum(const QString& key) const
+{
+    if (mObject.contains(key))
+        return getRequiredEnum<Enum>(key);
+
+    return {};
 }
 
 template<class ObjType>

@@ -5,6 +5,17 @@
 #include "../xjson.h"
 #include <unordered_map>
 
+namespace ATProto {
+
+template<>
+std::unordered_map<QString, AppBskyActor::VerifiedStatusEnum> AppBskyActor::VerifiedStatus::sStringToEnumMap = {
+    { "valid", AppBskyActor::VerifiedStatusEnum::VALID },
+    { "invalid", AppBskyActor::VerifiedStatusEnum::INVALID },
+    { "none", AppBskyActor::VerifiedStatusEnum::NONE }
+};
+
+}
+
 namespace ATProto::AppBskyActor {
 
 AllowIncomingType stringToAllowIncomingType(const QString& str)
@@ -64,28 +75,6 @@ QString allowSubscriptionsTypeToString(AllowSubscriptionsType allowSubscriptions
     return enumToString(allowSubscriptions, mapping, "none");
 }
 
-VerifiedStatus stringToVerifiedStatus(const QString& str)
-{
-    static const std::unordered_map<QString, VerifiedStatus> mapping = {
-        { "valid", VerifiedStatus::VALID },
-        { "invalid", VerifiedStatus::INVALID },
-        { "none", VerifiedStatus::NONE }
-    };
-
-    return stringToEnum(str, mapping, VerifiedStatus::UNKNOWN);
-}
-
-QString verifiedStatusToString(VerifiedStatus status, const QString& unknown)
-{
-    static const std::unordered_map<VerifiedStatus, QString> mapping = {
-        { VerifiedStatus::VALID, "valid" },
-        { VerifiedStatus::INVALID, "invalid" },
-        { VerifiedStatus::NONE, "none" }
-    };
-
-    return enumToString(status, mapping, unknown);
-}
-
 QJsonObject ContentVisibilityDeclaration::toJson() const
 {
     QJsonObject json(mJson);
@@ -132,8 +121,8 @@ QJsonObject VerificationState::toJson() const
 {
     QJsonObject json;
     json.insert("verifications", XJsonObject::toJsonArray<VerificationView>(mVerifications));
-    json.insert("verifiedStatus", verifiedStatusToString(mVerifiedStatus, mRawVerifiedStatus));
-    json.insert("trustedVerifierStatus", verifiedStatusToString(mTrustedVerifierStatus, mRawTrustedVerifierStatus));
+    json.insert("verifiedStatus", mVerifiedStatus.toString());
+    json.insert("trustedVerifierStatus", mTrustedVerifierStatus.toString());
     return json;
 }
 
@@ -142,10 +131,8 @@ VerificationState::SharedPtr VerificationState::fromJson(const QJsonObject& json
     auto verificationState = std::make_shared<VerificationState>();
     XJsonObject xjson(json);
     verificationState->mVerifications = xjson.getRequiredVector<VerificationView>("verifications");
-    verificationState->mRawVerifiedStatus = xjson.getRequiredString("verifiedStatus");
-    verificationState->mVerifiedStatus = stringToVerifiedStatus(verificationState->mRawVerifiedStatus);
-    verificationState->mRawTrustedVerifierStatus = xjson.getRequiredString("trustedVerifierStatus");
-    verificationState->mTrustedVerifierStatus = stringToVerifiedStatus(verificationState->mRawTrustedVerifierStatus);
+    verificationState->mVerifiedStatus = xjson.getRequiredEnum<VerifiedStatus>("verifiedStatus");
+    verificationState->mTrustedVerifierStatus = xjson.getRequiredEnum<VerifiedStatus>("trustedVerifierStatus");
     return verificationState;
 }
 

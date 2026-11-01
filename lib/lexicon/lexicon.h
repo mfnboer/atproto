@@ -144,6 +144,20 @@ QString enumToString(EnumType value, const std::unordered_map<EnumType, QString>
     return unknown;
 }
 
+template <typename EnumType>
+QString enumToString(EnumType value, const std::unordered_map<QString, EnumType>& mapping, const QString& unknown = "")
+{
+    for (const auto& [k, v] : mapping)
+    {
+        if (v == value)
+            return k;
+    }
+
+    qWarning() << "Cannot convert value to string:" << int(value) << "for type:" << typeid(EnumType).name();
+    Q_ASSERT(!unknown.isEmpty());
+    return unknown;
+}
+
 struct Blob {
     QString mRefLink; // may not be present in old-style blobs, instead cid is present
     QString mMimeType;
