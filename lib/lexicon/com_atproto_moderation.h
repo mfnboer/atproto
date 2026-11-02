@@ -82,6 +82,8 @@ enum class ReasonType
 std::vector<ReasonType> getCategoryReasons(CategoryType category);
 
 QString reasonTypeToString(ReasonType reason);
+ReasonType stringToReasonType(const QString& str);
 QString reasonTypeToTitle(ReasonType reason);
+QString reasonStringToTitle(const QString& str);
 
 }

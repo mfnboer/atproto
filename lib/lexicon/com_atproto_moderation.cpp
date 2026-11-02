@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "com_atproto_moderation.h"
+#include "lexicon.h"
 #include <QObject>
 #include <map>
 
@@ -58,116 +59,72 @@ QString categoryTypeToDescription(CategoryType category)
     return "UNKNOWN";
 }
 
+static const std::unordered_map<QString, ReasonType> stringReasonMap = {
+    { "com.atproto.moderation.defs#reasonSpam", ReasonType::SPAM },
+    { "com.atproto.moderation.defs#reasonViolation", ReasonType::VIOLATION },
+    { "com.atproto.moderation.defs#reasonMisleading", ReasonType::MISLEADING },
+    { "com.atproto.moderation.defs#reasonSexual", ReasonType::SEXUAL },
+    { "com.atproto.moderation.defs#reasonRude", ReasonType::RUDE },
+    { "com.atproto.moderation.defs#reasonOther", ReasonType::OTHER },
+    { "com.atproto.moderation.defs#reasonAppeal", ReasonType::APPEAL },
+
+    { "tools.ozone.report.defs#reasonAppeal", ReasonType::OZONE_APPEAL },
+    { "tools.ozone.report.defs#reasonOther", ReasonType::OZONE_OTHER },
+
+    { "tools.ozone.report.defs#reasonViolenceAnimal", ReasonType::OZONE_VIOLENCE_ANIMAL },
+    { "tools.ozone.report.defs#reasonViolenceThreats", ReasonType::OZONE_VIOLENCE_THREATS },
+    { "tools.ozone.report.defs#reasonViolenceGraphicContent", ReasonType::OZONE_VIOLENCE_GRAPHIC_CONTENT },
+    { "tools.ozone.report.defs#reasonViolenceGlorification", ReasonType::OZONE_VIOLENCE_GLORIFICATION },
+    { "tools.ozone.report.defs#reasonViolenceExtremistContent", ReasonType::OZONE_VIOLENCE_EXTREMIST_CONTENT },
+    { "tools.ozone.report.defs#reasonViolenceTrafficking", ReasonType::OZONE_VIOLENCE_TRAFFICKING },
+    { "tools.ozone.report.defs#reasonViolenceOther", ReasonType::OZONE_VIOLENCE_OTHER },
+
+    { "tools.ozone.report.defs#reasonSexualAbuseContent", ReasonType::OZONE_SEXUAL_ABUSE_CONTENT },
+    { "tools.ozone.report.defs#reasonSexualNCII", ReasonType::OZONE_SEXUAL_NCII },
+    { "tools.ozone.report.defs#reasonSexualDeepFake", ReasonType::OZONE_SEXUAL_DEEP_FAKE },
+    { "tools.ozone.report.defs#reasonSexualAnimal", ReasonType::OZONE_SEXUAL_ANIMAL },
+    { "tools.ozone.report.defs#reasonSexualUnlabeled", ReasonType::OZONE_SEXUAL_UNLABELED },
+    { "tools.ozone.report.defs#reasonSexualOther", ReasonType::OZONE_SEXUAL_OTHER },
+
+    { "tools.ozone.report.defs#reasonChildSafetyCSAM", ReasonType::OZONE_CHILD_SAFETY_CSAM },
+    { "tools.ozone.report.defs#reasonChildSafetyGroom", ReasonType::OZONE_CHILD_SAFETY_GROOM },
+    { "tools.ozone.report.defs#reasonChildSafetyPrivacy", ReasonType::OZONE_CHILD_SAFETY_PRIVACY },
+    { "tools.ozone.report.defs#reasonChildSafetyHarassment", ReasonType::OZONE_CHILD_SAFETY_HARASSMENT },
+    { "tools.ozone.report.defs#reasonChildSafetyOther", ReasonType::OZONE_CHILD_SAFETY_OTHER },
+
+    { "tools.ozone.report.defs#reasonHarassmentTroll", ReasonType::OZONE_HARASSMENT_TROLL },
+    { "tools.ozone.report.defs#reasonHarassmentTargeted", ReasonType::OZONE_HARASSMENT_TARGETED },
+    { "tools.ozone.report.defs#reasonHarassmentHateSpeech", ReasonType::OZONE_HARASSMENT_HATE_SPEECH },
+    { "tools.ozone.report.defs#reasonHarassmentDoxxing", ReasonType::OZONE_HARASSMENT_DOXXING },
+    { "tools.ozone.report.defs#reasonHarassmentOther", ReasonType::OZONE_HARASSMENT_OTHER },
+
+    { "tools.ozone.report.defs#reasonMisleadingBot", ReasonType::OZONE_MISLEADING_BOT },
+    { "tools.ozone.report.defs#reasonMisleadingImpersonation", ReasonType::OZONE_MISLEADING_IMPERSONATION },
+    { "tools.ozone.report.defs#reasonMisleadingSpam", ReasonType::OZONE_MISLEADING_SPAM },
+    { "tools.ozone.report.defs#reasonMisleadingScam", ReasonType::OZONE_MISLEADING_SCAM },
+    { "tools.ozone.report.defs#reasonMisleadingElections", ReasonType::OZONE_MISLEADING_ELECTIONS },
+    { "tools.ozone.report.defs#reasonMisleadingOther", ReasonType::OZONE_MISLEADING_OTHER },
+
+    { "tools.ozone.report.defs#reasonRuleSecurity", ReasonType::OZONE_RULE_SITE_SECURITY },
+    { "tools.ozone.report.defs#reasonProhibitedSales", ReasonType::OZONE_RULE_PROHIBITED_SALES },
+    { "tools.ozone.report.defs#reasonRuleBanEvasion", ReasonType::OZONE_RULE_BAN_EVASION },
+    { "tools.ozone.report.defs#reasonRuleOther", ReasonType::OZONE_RULE_OTHER },
+
+    { "tools.ozone.report.defs#reasonSelfHarmContent", ReasonType::OZONE_SELF_HARM_CONTENT },
+    { "tools.ozone.report.defs#reasonSelfHarmED", ReasonType::OZONE_SELF_HARM_ED },
+    { "tools.ozone.report.defs#reasonSelfHarmStunts", ReasonType::OZONE_SELF_HARM_STUNTS },
+    { "tools.ozone.report.defs#reasonSelfHarmSubstances", ReasonType::OZONE_SELF_HARM_SUBSTANCES },
+    { "tools.ozone.report.defs#reasonSelfHarmOther", ReasonType::OZONE_SELF_HARM_OTHER }
+};
+
 QString reasonTypeToString(ReasonType reason)
 {
-    switch (reason)
-    {
-    case ReasonType::SPAM:
-        return "com.atproto.moderation.defs#reasonSpam";
-    case ReasonType::VIOLATION:
-        return "com.atproto.moderation.defs#reasonViolation";
-    case ReasonType::MISLEADING:
-        return "com.atproto.moderation.defs#reasonMisleading";
-    case ReasonType::SEXUAL:
-        return "com.atproto.moderation.defs#reasonSexual";
-    case ReasonType::RUDE:
-        return "com.atproto.moderation.defs#reasonRude";
-    case ReasonType::OTHER:
-        return "com.atproto.moderation.defs#reasonOther";
-    case ReasonType::APPEAL:
-        return "com.atproto.moderation.defs#reasonAppeal";
+    return enumToString(reason, stringReasonMap, "UKNOWN");
+}
 
-    case ReasonType::OZONE_APPEAL:
-        return "tools.ozone.report.defs#reasonAppeal";
-    case ReasonType::OZONE_OTHER:
-        return "tools.ozone.report.defs#reasonOther";
-
-    case ReasonType::OZONE_VIOLENCE_ANIMAL:
-        return "tools.ozone.report.defs#reasonViolenceAnimal";
-    case ReasonType::OZONE_VIOLENCE_THREATS:
-        return "tools.ozone.report.defs#reasonViolenceThreats";
-    case ReasonType::OZONE_VIOLENCE_GRAPHIC_CONTENT:
-        return "tools.ozone.report.defs#reasonViolenceGraphicContent";
-    case ReasonType::OZONE_VIOLENCE_GLORIFICATION:
-        return "tools.ozone.report.defs#reasonViolenceGlorification";
-    case ReasonType::OZONE_VIOLENCE_EXTREMIST_CONTENT:
-        return "tools.ozone.report.defs#reasonViolenceExtremistContent";
-    case ReasonType::OZONE_VIOLENCE_TRAFFICKING:
-        return "tools.ozone.report.defs#reasonViolenceTrafficking";
-    case ReasonType::OZONE_VIOLENCE_OTHER:
-        return "tools.ozone.report.defs#reasonViolenceOther";
-
-    case ReasonType::OZONE_SEXUAL_ABUSE_CONTENT:
-        return "tools.ozone.report.defs#reasonSexualAbuseContent";
-    case ReasonType::OZONE_SEXUAL_NCII:
-        return "tools.ozone.report.defs#reasonSexualNCII";
-    case ReasonType::OZONE_SEXUAL_DEEP_FAKE:
-        return "tools.ozone.report.defs#reasonSexualDeepFake";
-    case ReasonType::OZONE_SEXUAL_ANIMAL:
-        return "tools.ozone.report.defs#reasonSexualAnimal";
-    case ReasonType::OZONE_SEXUAL_UNLABELED:
-        return "tools.ozone.report.defs#reasonSexualUnlabeled";
-    case ReasonType::OZONE_SEXUAL_OTHER:
-        return "tools.ozone.report.defs#reasonSexualOther";
-
-    case ReasonType::OZONE_CHILD_SAFETY_CSAM:
-        return "tools.ozone.report.defs#reasonChildSafetyCSAM";
-    case ReasonType::OZONE_CHILD_SAFETY_GROOM:
-        return "tools.ozone.report.defs#reasonChildSafetyGroom";
-    case ReasonType::OZONE_CHILD_SAFETY_PRIVACY:
-        return "tools.ozone.report.defs#reasonChildSafetyPrivacy";
-    case ReasonType::OZONE_CHILD_SAFETY_HARASSMENT:
-        return "tools.ozone.report.defs#reasonChildSafetyHarassment";
-    case ReasonType::OZONE_CHILD_SAFETY_OTHER:
-        return "tools.ozone.report.defs#reasonChildSafetyOhter";
-
-    case ReasonType::OZONE_HARASSMENT_TROLL:
-        return "tools.ozone.report.defs#reasonHarassmentTroll";
-    case ReasonType::OZONE_HARASSMENT_TARGETED:
-        return "tools.ozone.report.defs#reasonHarassmentTargeted";
-    case ReasonType::OZONE_HARASSMENT_HATE_SPEECH:
-        return "tools.ozone.report.defs#reasonHarassmentHateSpeech";
-    case ReasonType::OZONE_HARASSMENT_DOXXING:
-        return "tools.ozone.report.defs#reasonHarassmentDoxxing";
-    case ReasonType::OZONE_HARASSMENT_OTHER:
-        return "tools.ozone.report.defs#reasonHarassmentOther";
-
-    case ReasonType::OZONE_MISLEADING_BOT:
-        return "tools.ozone.report.defs#reasonMisleadingBot";
-    case ReasonType::OZONE_MISLEADING_IMPERSONATION:
-        return "tools.ozone.report.defs#reasonMisleadingImpersonation";
-    case ReasonType::OZONE_MISLEADING_SPAM:
-        return "tools.ozone.report.defs#reasonMisleadingSpam";
-    case ReasonType::OZONE_MISLEADING_SCAM:
-        return "tools.ozone.report.defs#reasonMisleadingScam";
-    case ReasonType::OZONE_MISLEADING_ELECTIONS:
-        return "tools.ozone.report.defs#reasonMisleadingElections";
-    case ReasonType::OZONE_MISLEADING_OTHER:
-        return "tools.ozone.report.defs#reasonMisleadingOther";
-
-    case ReasonType::OZONE_RULE_SITE_SECURITY:
-        return "tools.ozone.report.defs#reasonRuleSecurity";
-    case ReasonType::OZONE_RULE_PROHIBITED_SALES:
-        return "tools.ozone.report.defs#reasonProhibitedSales";
-    case ReasonType::OZONE_RULE_BAN_EVASION:
-        return "tools.ozone.report.defs#reasonRuleBanEvasion";
-    case ReasonType::OZONE_RULE_OTHER:
-        return "tools.ozone.report.defs#reasonRuleOther";
-
-    case ReasonType::OZONE_SELF_HARM_CONTENT:
-        return "tools.ozone.report.defs#reasonSelfHarmContent";
-    case ReasonType::OZONE_SELF_HARM_ED:
-        return "tools.ozone.report.defs#reasonSelfHarmED";
-    case ReasonType::OZONE_SELF_HARM_STUNTS:
-        return "tools.ozone.report.defs#reasonSelfHarmStunts";
-    case ReasonType::OZONE_SELF_HARM_SUBSTANCES:
-        return "tools.ozone.report.defs#reasonSelfHarmSubstances";
-    case ReasonType::OZONE_SELF_HARM_OTHER:
-        return "tools.ozone.report.defs#reasonSelfHarmOther";
-    }
-
-    Q_ASSERT(false);
-    return "UNKNOWN";
+ReasonType stringToReasonType(const QString& str)
+{
+    return stringToEnum(str, stringReasonMap, ReasonType::OZONE_OTHER);
 }
 
 std::vector<ReasonType> getCategoryReasons(CategoryType category)
@@ -369,6 +326,11 @@ QString reasonTypeToTitle(ReasonType reason)
 
     Q_ASSERT(false);
     return "UNKNOWN";
+}
+
+QString reasonStringToTitle(const QString& str)
+{
+    return reasonTypeToTitle(stringToReasonType(str));
 }
 
 }

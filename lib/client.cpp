@@ -4135,7 +4135,7 @@ void Client::putChatNotificationPreferences(const ChatBskyNotification::ChatPref
 
 void Client::ozoneInboxListReports(const std::optional<QString>& filter, const std::optional<QString>& sortField,
                            const std::optional<QString>& sortDirection, std::optional<int> limit,
-                           std::optional<QString>& cursor,
+                           const std::optional<QString>& cursor,
                            const OzoneInboxReportCb& successCb, const ErrorCb& errorCb)
 {
     Xrpc::NetworkThread::Params params;

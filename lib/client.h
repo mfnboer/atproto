@@ -180,7 +180,9 @@ public:
     static constexpr const char* SERVICE_VIDEO_DID = "did:web:video.bsky.app";
     static constexpr const char* SERVICE_VIDEO_HOST = "https://video.bsky.app";
     static constexpr const char* PUBLIC_API_HOST = "https://public.api.bsky.app";
-    static constexpr const char* SERVICE_MODERATION = "did:plc:ar7c4by46qjdydhdevvrndac#atproto_labelezr";
+
+    // moderation.bsky.app
+    static constexpr const char* SERVICE_MODERATION = "did:plc:ar7c4by46qjdydhdevvrndac#atproto_labeler";
 
     static SharedPtr createPublicApiClient(QObject* parent = nullptr);
 
@@ -1603,7 +1605,7 @@ public:
      */
     void ozoneInboxListReports(const std::optional<QString>& filter, const std::optional<QString>& sortField,
                                const std::optional<QString>& sortDirection, std::optional<int> limit,
-                               std::optional<QString>& cursor,
+                               const std::optional<QString>& cursor,
                                const OzoneInboxReportCb& successCb, const ErrorCb& errorCb);
 
     // oauth
