@@ -133,6 +133,10 @@ qt_add_qml_module(libatproto
         SOURCES video_master.h
         SOURCES video_master.cpp
         SOURCES string_enum.h
+        SOURCES lexicon/com_atproto_admin.h
+        SOURCES lexicon/com_atproto_admin.cpp
+        SOURCES lexicon/tools_ozone_inbox.h
+        SOURCES lexicon/tools_ozone_inbox.cpp
 )
 
 if (ANDROID)

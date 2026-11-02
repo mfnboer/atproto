@@ -20,6 +20,7 @@
 #include "lexicon/com_atproto_moderation.h"
 #include "lexicon/com_atproto_repo.h"
 #include "lexicon/com_atproto_server.h"
+#include "lexicon/tools_ozone_inbox.h"
 #include <QException>
 #include <QObject>
 
@@ -144,6 +145,8 @@ public:
 
     using ChatNotificationPreferencesSuccessCb = std::function<void(ChatBskyNotification::GetPreferencesOutput::SharedPtr)>;
 
+    using OzoneInboxReportCb = std::function<void(ToolsOzoneInbox::ListReportsOutput::SharedPtr)>;
+
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
 
@@ -177,6 +180,7 @@ public:
     static constexpr const char* SERVICE_VIDEO_DID = "did:web:video.bsky.app";
     static constexpr const char* SERVICE_VIDEO_HOST = "https://video.bsky.app";
     static constexpr const char* PUBLIC_API_HOST = "https://public.api.bsky.app";
+    static constexpr const char* SERVICE_MODERATION = "did:plc:ar7c4by46qjdydhdevvrndac#atproto_labelezr";
 
     static SharedPtr createPublicApiClient(QObject* parent = nullptr);
 
@@ -1585,6 +1589,23 @@ public:
                             const ChatBskyNotification::ChatPreference::SharedPtr& chatRequest,
                             const ChatNotificationPreferencesSuccessCb& successCb, const ErrorCb& errorCb);
 
+    // tools.ozone.inbox
+
+    /**
+     * @brief ozoneInboxListReports
+     * @param filter ToolsOzoneInbox::ReportsFilter
+     * @param sortField ToolsOzoneInbox::ReportsSortField
+     * @param sortDirection ToolsOzoneInbox::ReportsSortDirection
+     * @param limit min=1 max=100 default=50
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxListReports(const std::optional<QString>& filter, const std::optional<QString>& sortField,
+                               const std::optional<QString>& sortDirection, std::optional<int> limit,
+                               std::optional<QString>& cursor,
+                               const OzoneInboxReportCb& successCb, const ErrorCb& errorCb);
+
     // oauth
 
     /**
@@ -1705,6 +1726,7 @@ private:
     QString mServiceChat{SERVICE_CHAT};
     QString mServiceDidVideo{SERVICE_VIDEO_DID};
     QString mServiceHostVideo{SERVICE_VIDEO_HOST};
+    QString mServiceModeration{SERVICE_MODERATION};
 };
 
 }

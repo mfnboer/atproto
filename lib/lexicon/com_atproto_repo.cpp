@@ -17,7 +17,7 @@ CommitMeta::SharedPtr CommitMeta::fromJson(const QJsonObject& json)
 QJsonObject StrongRef::toJson() const
 {
     QJsonObject json;
-    json.insert("$type", "com.atproto.repo.strongRef");
+    json.insert("$type", TYPE);
     json.insert("uri", mUri);
     json.insert("cid", mCid);
     return json;

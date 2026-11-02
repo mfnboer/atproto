@@ -1,8 +1,8 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #include "client.h"
-#include "at_uri.h"
 #include "xjson.h"
+#include "lexicon/com_atproto_admin.h"
 #include "lexicon/com_atproto_identity.h"
 #include "lexicon/lexicon.h"
 #include <QTimer>
@@ -2859,10 +2859,9 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
     if (!reason.isEmpty())
         json.insert("reason", reason);
 
-    QJsonObject jsonRepoRef;
-    jsonRepoRef.insert("$type", "com.atproto.admin.defs#repoRef");
-    jsonRepoRef.insert("did", did);
-    json.insert("subject", jsonRepoRef);
+    ComATProtoAdmin::RepoRef repoRef;
+    repoRef.mDid = did;
+    json.insert("subject", repoRef.toJson());
 
     QJsonDocument jsonDoc;
     jsonDoc.setObject(json);
@@ -4127,6 +4126,39 @@ void Client::putChatNotificationPreferences(const ChatBskyNotification::ChatPref
                 if (successCb)
                     successCb(std::move(output));
             } catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::ozoneInboxListReports(const std::optional<QString>& filter, const std::optional<QString>& sortField,
+                           const std::optional<QString>& sortDirection, std::optional<int> limit,
+                           std::optional<QString>& cursor,
+                           const OzoneInboxReportCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params;
+    addOptionalStringParam(params, "filter", filter);
+    addOptionalStringParam(params, "sortField", sortField);
+    addOptionalStringParam(params, "sortDirection", sortDirection);
+    addOptionalIntParam(params, "limit", limit, 1, 100);
+    addOptionalStringParam(params, "cursor", cursor);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->get("tools.ozone.inbox.listReports", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "ozoneInboxListReports ok";
+
+            try {
+                auto output = ToolsOzoneInbox::ListReportsOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            }
+            catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
             }
         },

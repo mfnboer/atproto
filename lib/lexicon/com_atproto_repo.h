@@ -7,7 +7,6 @@
 
 namespace ATProto::ComATProtoRepo {
 
-
 // com.atproto.repo.defs#commitMeta
 struct CommitMeta
 {
@@ -29,6 +28,7 @@ struct StrongRef
     using SharedPtr = std::shared_ptr<StrongRef>;
     using List = std::vector<SharedPtr>;
     static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "com.atproto.repo.strongRef";
 };
 
 // com.atproto.repo.uploadBlob#output

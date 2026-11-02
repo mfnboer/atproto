@@ -1,5 +1,6 @@
 next
 ====
+* tools.ozone.inbox
 * next Change SelfLabels fiels to variants to comply with lexicon
 * Refactor enums
 
