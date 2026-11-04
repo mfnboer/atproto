@@ -93,6 +93,7 @@ struct ReportView
         AppBskyFeed::Generator::SharedPtr,
         AppBskyGraph::StarterPack::SharedPtr,
         AppBskyActor::Status::SharedPtr,
+        AppBskyActor::Link::SharedPtr,
         UnknownVariant::SharedPtr>;
 
     QString mSrc; // DID of moderation service

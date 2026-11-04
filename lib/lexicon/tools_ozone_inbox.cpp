@@ -50,6 +50,7 @@ ReportView::SharedPtr ReportView::fromJson(const QJsonObject& json)
                                              AppBskyFeed::Generator,
                                              AppBskyGraph::StarterPack,
                                              AppBskyActor::Status,
+                                             AppBskyActor::Link,
                                              UnknownVariant>("record");
     view->mStatus = xjson.getRequiredEnum<ReportStatus>("status");
     view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
