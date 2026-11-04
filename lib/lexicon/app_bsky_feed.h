@@ -281,6 +281,25 @@ struct Repost
     static constexpr char const* TYPE = "app.bsky.feed.repost";
 };
 
+// app.bsky.feed.generator
+struct Generator
+{
+    QString mDid;
+    QString mDisplayName;
+    std::optional<QString> mDescription;
+    AppBskyRichtext::Facet::List mDescriptionFacets; // optional
+    Blob::SharedPtr mAvatar; // optional
+    std::optional<bool> mAcceptsInteraction;
+    std::optional<ComATProtoLabel::SelfLabels::Variant> mLabels;
+    std::optional<ContentMode> mContentMode;
+    std::optional<QString> mRawContentMode;
+    QDateTime mCreatedAt;
+
+    using SharedPtr = std::shared_ptr<Generator>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "app.bsky.feed.generator";
+};
+
 // app.bsky.feed.getLikes#like
 struct GetLikesLike
 {

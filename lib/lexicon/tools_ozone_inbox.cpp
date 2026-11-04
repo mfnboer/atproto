@@ -18,6 +18,13 @@ std::unordered_map<QString, ToolsOzoneInbox::ReportStatusEnum> ToolsOzoneInbox::
     { "resolved", ToolsOzoneInbox::ReportStatusEnum::RESOLVED }
 };
 
+template<>
+std::unordered_map<QString, ToolsOzoneInbox::ResolutionOutcomeEnum> ToolsOzoneInbox::ResolutionOutcome::sStringToEnumMap = {
+    { "actionTaken", ToolsOzoneInbox::ResolutionOutcomeEnum::ACTION_TAKEN },
+    { "noAction", ToolsOzoneInbox::ResolutionOutcomeEnum::NO_ACTION },
+    { "other", ToolsOzoneInbox::ResolutionOutcomeEnum::OTHER }
+};
+
 }
 
 namespace ATProto::ToolsOzoneInbox {
@@ -28,7 +35,7 @@ ReportView::SharedPtr ReportView::fromJson(const QJsonObject& json)
     XJsonObject xjson(json);
     view->mSrc = xjson.getRequiredString("src");
     view->mId = xjson.getRequiredInt("id");
-    view->mIsRead = xjson.getRequiredBool("isRead");
+    view->mIsRead = xjson.getOptionalBool("isRead", true);
     view->mReasonType = xjson.getRequiredString("reasonType");
     view->mReason = xjson.getOptionalString("reason");
     view->mLastActionTaken = xjson.getOptionalString("lastActionTaken");
@@ -36,7 +43,14 @@ ReportView::SharedPtr ReportView::fromJson(const QJsonObject& json)
     view->mSubject = xjson.getRequiredVariant<ComATProtoAdmin::RepoRef,
                                               ComATProtoRepo::StrongRef,
                                               ChatBskyConvo::MessageRef,
-                                              ChatBskyConvo::ConvoRef>("subject");
+                                              ChatBskyConvo::ConvoRef,
+                                              UnknownVariant>("subject");
+    view->mRecord = xjson.getOptionalVariant<AppBskyFeed::Record::Post,
+                                             AppBskyGraph::List,
+                                             AppBskyFeed::Generator,
+                                             AppBskyGraph::StarterPack,
+                                             AppBskyActor::Status,
+                                             UnknownVariant>("record");
     view->mStatus = xjson.getRequiredEnum<ReportStatus>("status");
     view->mCreatedAt = xjson.getRequiredDateTime("createdAt");
     view->mUpdatedAt = xjson.getRequiredDateTime("updatedAt");
@@ -49,6 +63,26 @@ ListReportsOutput::SharedPtr ListReportsOutput::fromJson(const QJsonObject& json
     XJsonObject xjson(json);
     output->mCursor = xjson.getOptionalString("cursor");
     output->mReports = xjson.getRequiredVector<ReportView>("reports");
+    return output;
+}
+
+ResolutionView::SharedPtr ResolutionView::fromJson(const QJsonObject& json)
+{
+    auto view = std::make_shared<ResolutionView>();
+    XJsonObject xjson(json);
+    view->mOutcome = xjson.getRequiredEnum<ResolutionOutcome>("outcome");
+    view->mActionTaken = xjson.getOptionalString("actionTaken");
+    view->mScope = xjson.getOptionalEnum<ReportScope>("scope");
+    view->mResolvedAt = xjson.getRequiredDateTime("resolvedAt");
+    return view;
+}
+
+GetReportOutput::SharedPtr GetReportOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetReportOutput>();
+    XJsonObject xjson(json);
+    output->mReport = xjson.getRequiredObject<ReportView>("report");
+    output->mResolution = xjson.getOptionalObject<ResolutionView>("resolution");
     return output;
 }
 

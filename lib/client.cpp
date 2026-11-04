@@ -4166,6 +4166,31 @@ void Client::ozoneInboxListReports(const std::optional<QString>& filter, const s
         authToken());
 }
 
+void Client::ozoneInboxGetReport(int id, const OzoneGetReportCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params params{{ "id", QString::number(id) }};
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->get("tools.ozone.inbox.getReport", params, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "ozoneGetReport ok:" << reply.toJson();
+
+            try {
+                auto output = ToolsOzoneInbox::GetReportOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {

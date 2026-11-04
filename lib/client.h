@@ -146,6 +146,7 @@ public:
     using ChatNotificationPreferencesSuccessCb = std::function<void(ChatBskyNotification::GetPreferencesOutput::SharedPtr)>;
 
     using OzoneInboxReportCb = std::function<void(ToolsOzoneInbox::ListReportsOutput::SharedPtr)>;
+    using OzoneGetReportCb = std::function<void(ToolsOzoneInbox::GetReportOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1607,6 +1608,14 @@ public:
                                const std::optional<QString>& sortDirection, std::optional<int> limit,
                                const std::optional<QString>& cursor,
                                const OzoneInboxReportCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneGetReport
+     * @param id
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxGetReport(int id, const OzoneGetReportCb& successCb, const ErrorCb& errorCb);
 
     // oauth
 

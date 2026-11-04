@@ -648,6 +648,21 @@ Repost::SharedPtr Repost::fromJson(const QJsonObject& json)
     return repost;
 }
 
+Generator::SharedPtr Generator::fromJson(const QJsonObject& json)
+{
+    auto generator = std::make_shared<Generator>();
+    const XJsonObject xjson(json);
+    generator->mDid = xjson.getRequiredString("did");
+    generator->mDisplayName = xjson.getRequiredString("displayName");
+    generator->mDescription = xjson.getOptionalString("description");
+    generator->mDescriptionFacets = xjson.getOptionalVector<AppBskyRichtext::Facet>("descriptionFacets");
+    generator->mAvatar = xjson.getOptionalObject<Blob>("avatart");
+    generator->mAcceptsInteraction = xjson.getOptionalBool("acceptsInteraction");
+    generator->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");
+    generator->mCreatedAt = xjson.getRequiredDateTime("createdAt");
+    return generator;
+}
+
 GetLikesLike::SharedPtr GetLikesLike::fromJson(const QJsonObject& json)
 {
     auto like = std::make_shared<GetLikesLike>();

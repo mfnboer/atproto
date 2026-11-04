@@ -1,6 +1,10 @@
 // Copyright (C) 2026 Michel de Boer
 // License: GPLv3
 #pragma once
+#include "app_bsky_actor.h"
+#include "app_bsky_embed.h"
+#include "app_bsky_feed.h"
+#include "app_bsky_graph.h"
 #include "chat_bsky_convo.h"
 #include "com_atproto_admin.h"
 #include "com_atproto_repo.h"
@@ -63,6 +67,15 @@ enum class ReportStatusEnum
 };
 using ReportStatus = StringEnum<ReportStatusEnum, ReportStatusEnum::UNKNOWN>;
 
+enum ResolutionOutcomeEnum
+{
+    ACTION_TAKEN,
+    NO_ACTION,
+    OTHER,
+    UNKNOWN
+};
+using ResolutionOutcome = StringEnum<ResolutionOutcomeEnum, ResolutionOutcomeEnum::UNKNOWN>;
+
 // tools.ozone.inbox.listReports#reportView
 // tools.ozone.inbox.getReport#reportView
 struct ReportView
@@ -71,16 +84,26 @@ struct ReportView
         ComATProtoAdmin::RepoRef::SharedPtr,
         ComATProtoRepo::StrongRef::SharedPtr,
         ChatBskyConvo::MessageRef::SharedPtr,
-        ChatBskyConvo::ConvoRef::SharedPtr>;
+        ChatBskyConvo::ConvoRef::SharedPtr,
+        UnknownVariant::SharedPtr>;
+
+    using RecordType = std::variant<
+        AppBskyFeed::Record::Post::SharedPtr,
+        AppBskyGraph::List::SharedPtr,
+        AppBskyFeed::Generator::SharedPtr,
+        AppBskyGraph::StarterPack::SharedPtr,
+        AppBskyActor::Status::SharedPtr,
+        UnknownVariant::SharedPtr>;
 
     QString mSrc; // DID of moderation service
     int mId = -1; // report ID
-    bool mIsRead = false;
+    bool mIsRead = false; // only listReports
     QString mReasonType;
     std::optional<QString> mReason;
-    std::optional<QString> mLastActionTaken; // only listReports
-    std::optional<ReportScope> mScope; // only listReports
+    std::optional<QString> mLastActionTaken; // only listReports (optional)
+    std::optional<ReportScope> mScope; // only listReports (optional)
     SubjectType mSubject;
+    std::optional<RecordType> mRecord; // only getReport (optional)
     ReportStatus mStatus;
     QDateTime mCreatedAt;
     QDateTime mUpdatedAt;
@@ -97,6 +120,28 @@ struct ListReportsOutput
     ReportView::List mReports;
 
     using SharedPtr = std::shared_ptr<ListReportsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.getReport#resolutionView
+struct ResolutionView
+{
+    ResolutionOutcome mOutcome;
+    std::optional<QString> mActionTaken;
+    std::optional<ReportScope> mScope;
+    QDateTime mResolvedAt;
+
+    using SharedPtr = std::shared_ptr<ResolutionView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.getReport#output
+struct GetReportOutput
+{
+    ReportView::SharedPtr mReport;
+    ResolutionView::SharedPtr mResolution; // optional
+
+    using SharedPtr = std::shared_ptr<GetReportOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
