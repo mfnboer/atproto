@@ -50,6 +50,18 @@ struct ReportsSortDirection : public QObject
     SHARED_CONST(QString, UPDATED_AT, QStringLiteral("desc"));
 };
 
+struct OzoneInboxSection : public QObject
+{
+    Q_OBJECT
+    QML_UNCREATABLE("Class only exposes constants to QML.")
+    QML_ELEMENT
+    QML_SINGLETON
+
+    SHARED_CONST(QString, REPORTS, QStringLiteral("reports"));
+    SHARED_CONST(QString, SUBJECTS, QStringLiteral("subjects"));
+    SHARED_CONST(QString, ACCOUNT_STATUS, QStringLiteral("accountStatus"));
+};
+
 enum class ReportScopeEnum
 {
     NETWORK,

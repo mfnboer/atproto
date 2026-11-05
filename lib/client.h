@@ -1617,6 +1617,16 @@ public:
      */
     void ozoneInboxGetReport(int id, const OzoneGetReportCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief ozoneInboxUpdateSeen
+     * @param sections ToolsOzoneInbox::OzoneInboxSection
+     * @param seenAt
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxUpdateSeen(const std::vector<QString>& sections, const std::optional<QDateTime>& seenAt,
+                              const SuccessCb& successCb, const ErrorCb& errorCb);
+
     // oauth
 
     /**
@@ -1651,7 +1661,7 @@ public:
     /**
      * @brief oauthResumeSession refresh the tokens from the session and resume
      * @param session
-     * * @param scopeCheck optional check on presence of scope, if not present "invalid_token" with error is raised
+     * @param scopeCheck optional check on presence of scope, if not present "invalid_token" with error is raised
      * @param successCb
      * @param errorCb
      * @param authDpopNonce last received nonce from previous session (OPTIONAL)

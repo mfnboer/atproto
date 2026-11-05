@@ -4191,6 +4191,26 @@ void Client::ozoneInboxGetReport(int id, const OzoneGetReportCb& successCb, cons
         authToken());
 }
 
+void Client::ozoneInboxUpdateSeen(const std::vector<QString>& sections, const std::optional<QDateTime>& seenAt,
+                                  const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("sections", XJsonObject::toJsonArray(sections));
+    XJsonObject::insertOptionalDateTime(json, "seenAt", seenAt);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->post("tools.ozone.inbox.updateSeen", QJsonDocument{json}, httpHeaders,
+        [successCb](const QJsonDocument& reply){
+            qDebug() << "Updated ozone inbox seen:" << reply;
+            if (successCb)
+                successCb();
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {
