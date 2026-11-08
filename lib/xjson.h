@@ -92,11 +92,11 @@ public:
     std::optional<QJsonObject> getOptionalJsonObject(const QString& key) const;
     std::optional<QJsonArray> getOptionalArray(const QString& key) const;
 
-    template<class Enum>
-    Enum getRequiredEnum(const QString& key) const;
+    template<class EnumType>
+    EnumType getRequiredEnum(const QString& key) const;
 
-    template<class Enum>
-    std::optional<Enum> getOptionalEnum(const QString& key) const;
+    template<class EnumType>
+    std::optional<EnumType> getOptionalEnum(const QString& key) const;
 
     template<class ObjType>
     typename ObjType::SharedPtr getRequiredObject(const QString& key) const;
@@ -114,6 +114,12 @@ public:
     std::vector<QString> getOptionalStringVector(const QString& key) const;
     QStringList getRequiredStringList(const QString& key) const;
     QStringList getOptionalStringList(const QString& key) const;
+
+    template<typename EnumType>
+    std::vector<EnumType> getRequiredEnumVector(const QString& key) const;
+
+    template<typename EnumType>
+    std::vector<EnumType> getOptionalEnumVector(const QString& key) const;
 
     template<typename... Types>
     static std::variant<typename Types::SharedPtr...> toVariant(const QJsonObject& json);
@@ -183,18 +189,18 @@ void XJsonObject::insertOptionalJsonObject(QJsonObject& json, const QString& key
         json.remove(key);
 }
 
-template<class Enum>
-Enum XJsonObject::getRequiredEnum(const QString& key) const
+template<class EnumType>
+EnumType XJsonObject::getRequiredEnum(const QString& key) const
 {
     const QString str = getRequiredString(key);
-    return Enum::fromString(str);
+    return EnumType::fromString(str);
 }
 
-template<class Enum>
-std::optional<Enum> XJsonObject::getOptionalEnum(const QString& key) const
+template<class EnumType>
+std::optional<EnumType> XJsonObject::getOptionalEnum(const QString& key) const
 {
     if (mObject.contains(key))
-        return getRequiredEnum<Enum>(key);
+        return getRequiredEnum<EnumType>(key);
 
     return {};
 }
@@ -243,28 +249,41 @@ std::vector<typename ElemType::SharedPtr> XJsonObject::getRequiredVector(const Q
 template<class ElemType>
 std::vector<typename ElemType::SharedPtr> XJsonObject::getOptionalVector(const QString& key) const
 {
-    std::vector<typename ElemType::SharedPtr> result;
-    const auto jsonArray = getOptionalArray(key);
+    if (!mObject.contains(key))
+        return {};
 
-    if (!jsonArray)
-        return result;
+    return getRequiredVector<ElemType>(key);
+}
 
-    result.reserve(jsonArray->size());
+template<typename EnumType>
+std::vector<EnumType> XJsonObject::getRequiredEnumVector(const QString& key) const
+{
+    std::vector<EnumType> result;
+    const auto jsonArray = getRequiredArray(key);
+    result.reserve(jsonArray.size());
 
-    for (const auto& json : *jsonArray)
+    for (const auto& strJson : jsonArray)
     {
-        if (!json.isObject())
+        if (!strJson.isString())
         {
-            qWarning() << "PROTO ERROR invalid array element: not an object, key:" << key;
-            qInfo() << json;
-            throw InvalidJsonException("PROTO ERROR invalid element: " + key);
+            qWarning() << "Invalid string vector:" << key << "in json:" << mObject;
+            throw InvalidJsonException("Invalid string vector: " + key);
         }
 
-        typename ElemType::SharedPtr elem = ElemType::fromJson(json.toObject());
-        result.push_back(std::move(elem));
+        auto value = EnumType::fromString(strJson.toString());
+        result.push_back(value);
     }
 
     return result;
+}
+
+template<typename EnumType>
+std::vector<EnumType> XJsonObject::getOptionalEnumVector(const QString& key) const
+{
+    if (!mObject.contains(key))
+        return {};
+
+    return getRequiredEnumVector<EnumType>(key);
 }
 
 #define VARIANT_CASE(i) \

@@ -333,4 +333,16 @@ QString reasonStringToTitle(const QString& str)
     return reasonTypeToTitle(stringToReasonType(str));
 }
 
+QJsonObject ModTool::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("name", mName);
+
+    if (mMeta)
+        json.insert("meta", *mMeta);
+
+    return json;
+}
+
 }

@@ -1,6 +1,7 @@
 // Copyright (C) 2023 Michel de Boer
 // License: GPLv3
 #pragma once
+#include <QJsonObject>
 #include <QString>
 
 namespace ATProto::ComATProtoModeration {
@@ -85,5 +86,16 @@ QString reasonTypeToString(ReasonType reason);
 ReasonType stringToReasonType(const QString& str);
 QString reasonTypeToTitle(ReasonType reason);
 QString reasonStringToTitle(const QString& str);
+
+struct ModTool
+{
+    QString mName;
+    std::optional<QJsonObject> mMeta;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<ModTool>;
+    static constexpr char const* TYPE = "com.atproto.moderation.createReport#modTool";
+};
 
 }

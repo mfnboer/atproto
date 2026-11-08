@@ -145,8 +145,10 @@ public:
 
     using ChatNotificationPreferencesSuccessCb = std::function<void(ChatBskyNotification::GetPreferencesOutput::SharedPtr)>;
 
-    using OzoneInboxReportCb = std::function<void(ToolsOzoneInbox::ListReportsOutput::SharedPtr)>;
-    using OzoneGetReportCb = std::function<void(ToolsOzoneInbox::GetReportOutput::SharedPtr)>;
+    using OzoneInboxReportsCb = std::function<void(ToolsOzoneInbox::ListReportsOutput::SharedPtr)>;
+    using OzoneInboxGetReportCb = std::function<void(ToolsOzoneInbox::GetReportOutput::SharedPtr)>;
+    using OzoneInboxActionedSubjectsCb = std::function<void(ToolsOzoneInbox::ListActionedSubjectsOutput::SharedPtr)>;
+    using OzoneInboxGetActionedSubjectCb = std::function<void(ToolsOzoneInbox::SubjectViewDetail::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1137,6 +1139,7 @@ public:
      */
     void reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
                       const QString& reason, const std::optional<QString>& labelerDid,
+                      const std::optional<QString> modToolName,
                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -1152,6 +1155,7 @@ public:
     void reportPostOrFeed(const QString& uri, const QString& cid,
                           ComATProtoModeration::ReasonType reasonType,
                           const QString& reason, const std::optional<QString>& labelerDid,
+                          const std::optional<QString> modToolName,
                           const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
@@ -1166,6 +1170,7 @@ public:
      */
     void reportDirectMessage(const QString& did, const QString& convoId, const QString& messageId,
                              ComATProtoModeration::ReasonType reasonType, const QString& reason,
+                             const std::optional<QString> modToolName,
                              const SuccessCb& successCb, const ErrorCb& errorCb);
 
     // app.bsky.unspecced
@@ -1596,9 +1601,9 @@ public:
 
     /**
      * @brief ozoneInboxListReports
-     * @param filter ToolsOzoneInbox::ReportsFilter
-     * @param sortField ToolsOzoneInbox::ReportsSortField
-     * @param sortDirection ToolsOzoneInbox::ReportsSortDirection
+     * @param filter ToolsOzoneInbox::OzoneInboxFilter
+     * @param sortField ToolsOzoneInbox::OzoneInboxSortField
+     * @param sortDirection ToolsOzoneInbox::OzoneInboxSortDirection
      * @param limit min=1 max=100 default=50
      * @param cursor
      * @param successCb
@@ -1607,7 +1612,7 @@ public:
     void ozoneInboxListReports(const std::optional<QString>& filter, const std::optional<QString>& sortField,
                                const std::optional<QString>& sortDirection, std::optional<int> limit,
                                const std::optional<QString>& cursor,
-                               const OzoneInboxReportCb& successCb, const ErrorCb& errorCb);
+                               const OzoneInboxReportsCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief ozoneGetReport
@@ -1615,7 +1620,7 @@ public:
      * @param successCb
      * @param errorCb
      */
-    void ozoneInboxGetReport(int id, const OzoneGetReportCb& successCb, const ErrorCb& errorCb);
+    void ozoneInboxGetReport(int id, const OzoneInboxGetReportCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief ozoneInboxUpdateSeen
@@ -1626,6 +1631,35 @@ public:
      */
     void ozoneInboxUpdateSeen(const std::vector<QString>& sections, const std::optional<QDateTime>& seenAt,
                               const SuccessCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxListActionedSubjects
+     * @param filter ToolsOzoneInbox::OzoneInboxFilter
+     * @param sortField ToolsOzoneInbox::OzoneInboxSortField
+     * @param sortDirection ToolsOzoneInbox::OzoneInboxSortDirection
+     * @param limit
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxListActionedSubjects(
+        const std::optional<QString>& filter, const std::optional<QString>& sortField,
+        const std::optional<QString>& sortDirection, std::optional<int> limit,
+        const std::optional<QString>& cursor,
+        const OzoneInboxActionedSubjectsCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxGetActionedSubject
+     * @param subject DID or at-uri
+     * @param limit
+     * @param cursor
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxGetActionedSubject(QString subject, std::optional<int> limit,
+                                      const std::optional<QString>& cursor,
+                                      const OzoneInboxGetActionedSubjectCb& successCb,
+                                      const ErrorCb& errorCb);
 
     // oauth
 

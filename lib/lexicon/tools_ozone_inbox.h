@@ -15,7 +15,7 @@
 
 namespace ATProto::ToolsOzoneInbox {
 
-struct ReportsFilter : public QObject
+struct OzoneInboxFilter : public QObject
 {
     Q_OBJECT
     QML_UNCREATABLE("Class only exposes constants to QML.")
@@ -28,7 +28,7 @@ struct ReportsFilter : public QObject
     SHARED_CONST(QString, UNREAD, QStringLiteral("unread"));
 };
 
-struct ReportsSortField : public QObject
+struct OzoneInboxSortField : public QObject
 {
     Q_OBJECT
     QML_UNCREATABLE("Class only exposes constants to QML.")
@@ -39,7 +39,7 @@ struct ReportsSortField : public QObject
     SHARED_CONST(QString, UPDATED_AT, QStringLiteral("updated_at"));
 };
 
-struct ReportsSortDirection : public QObject
+struct OzoneInboxSortDirection : public QObject
 {
     Q_OBJECT
     QML_UNCREATABLE("Class only exposes constants to QML.")
@@ -79,7 +79,7 @@ enum class ReportStatusEnum
 };
 using ReportStatus = StringEnum<ReportStatusEnum, ReportStatusEnum::UNKNOWN>;
 
-enum ResolutionOutcomeEnum
+enum class ResolutionOutcomeEnum
 {
     ACTION_TAKEN,
     NO_ACTION,
@@ -126,16 +126,6 @@ struct ReportView
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
-// tools.ozone.inbox.listReports#output
-struct ListReportsOutput
-{
-    std::optional<QString> mCursor;
-    ReportView::List mReports;
-
-    using SharedPtr = std::shared_ptr<ListReportsOutput>;
-    static SharedPtr fromJson(const QJsonObject& json);
-};
-
 // tools.ozone.inbox.getReport#resolutionView
 struct ResolutionView
 {
@@ -148,6 +138,180 @@ struct ResolutionView
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+enum class EnforcementStateEnum
+{
+    NONE,
+    LABELED,
+    REMOVED,
+    SUSPENDED,
+    TAKENDOWN,
+    UNKNOWN
+};
+using EnforcementState = StringEnum<EnforcementStateEnum, EnforcementStateEnum::UNKNOWN>;
+
+// tools.ozone.inbox.defs#enformentView
+struct EnforcementView
+{
+    EnforcementState mState;
+    std::optional<ReportScope> mScope;
+    std::optional<QDateTime> mExpiresAt;
+    QStringList mLabels; // optional
+
+    using SharedPtr = std::shared_ptr<EnforcementView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+enum class AppealStateEnum
+{
+    NONE,
+    PENDING,
+    RESOLVED,
+    SUPERSEDED,
+    EXPIRED,
+    UNKNOWN
+};
+using AppealState = StringEnum<AppealStateEnum, AppealStateEnum::UNKNOWN>;
+
+enum class AppealOutcomeEnum
+{
+    APPROVED,
+    DENIED,
+    UNKNOWN
+};
+using AppealOutcome = StringEnum<AppealOutcomeEnum, AppealOutcomeEnum::UNKNOWN>;
+
+enum class SubjectActionEnum
+{
+    APPEAL,
+    UNKNOWN
+};
+using SubjectAction = StringEnum<SubjectActionEnum, SubjectActionEnum::UNKNOWN>;
+
+// tools.ozone.inbox.defs#appealView
+struct AppealView
+{
+    AppealState mState;
+    std::optional<QDateTime> mAppealedAt;
+    std::optional<QDateTime> mResolvedAt;
+    std::optional<AppealOutcome> mOutcome;
+    std::optional<QDateTime> mAppealableUntil;
+
+    using SharedPtr = std::shared_ptr<AppealView>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.defs#policyView
+struct PolicyView
+{
+    QString mKey;
+    QString mDisplayName;
+    QString mLink; // uri
+
+    using SharedPtr = std::shared_ptr<PolicyView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.defs#actionView
+struct ActionView
+{
+    int mId;
+    QString mType;
+    std::optional<ReportScope> mScope;
+    QDateTime mCreatedAt;
+    std::optional<QDateTime> mReversedAt;
+    std::optional<QDateTime> mExpiresAt;
+    QStringList mLabels; // optional
+    PolicyView::List mPolicies; // optional
+
+    using SharedPtr = std::shared_ptr<ActionView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.defs#subjectView
+struct SubjectView
+{
+    using SubjectType = std::variant<
+        ComATProtoAdmin::RepoRef::SharedPtr,
+        ComATProtoRepo::StrongRef::SharedPtr,
+        UnknownVariant::SharedPtr>;
+
+    QString mSrc; // DID of moderator
+    SubjectType mSubject;
+    EnforcementView::SharedPtr mEnforcement;
+    AppealView::SharedPtr mAppeal; // optional
+    std::vector<SubjectAction> mAvailableActions; // optional
+    ActionView::SharedPtr mLatestAction; // optional
+    std::optional<int> mActionCount;
+    QDateTime mCreatedAt;
+    QDateTime mUpdatedAt;
+    bool mIsRead = true;
+
+    using SharedPtr = std::shared_ptr<SubjectView>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.defs#accountPreview
+struct AccountPreview
+{
+    using ProfileType = std::variant<
+        AppBskyActor::Profile::SharedPtr,
+        UnknownVariant::SharedPtr>;
+
+    std::optional<QString> mHandle;
+    std::optional<ProfileType> mProfile;
+
+    using SharedPtr = std::shared_ptr<AccountPreview>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+struct ReportsSummary
+{
+    QStringList mReasonTypes;
+    QDateTime mFirstReportedOn;
+    QDateTime mLastReportedOn;
+
+    using SharedPtr = std::shared_ptr<ReportsSummary>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.defs#subjectViewDetail
+struct SubjectViewDetail
+{
+    using SubjectType = SubjectView::SubjectType;
+    using RecordType = ReportView::RecordType;
+
+    QString mSrc; // DID of moderator
+    bool mIsRead = true;
+    SubjectType mSubject;
+    std::optional<RecordType> mRecord;
+    AccountPreview::SharedPtr mAccount; // optional
+    EnforcementView::SharedPtr mEnforcement;
+    AppealView::SharedPtr mAppeal; // optional
+    std::vector<SubjectAction> mAvailableActions; // optional
+    ActionView::List mActions;
+    std::optional<QString> mCursor;
+    ReportsSummary::SharedPtr mReports; // optional
+    QDateTime mCreatedAt;
+    QDateTime mUpdatedAt;
+
+    using SharedPtr = std::shared_ptr<SubjectViewDetail>;
+    using List = std::vector<SharedPtr>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.listReports#output
+struct ListReportsOutput
+{
+    std::optional<QString> mCursor;
+    ReportView::List mReports;
+
+    using SharedPtr = std::shared_ptr<ListReportsOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 // tools.ozone.inbox.getReport#output
 struct GetReportOutput
 {
@@ -155,6 +319,16 @@ struct GetReportOutput
     ResolutionView::SharedPtr mResolution; // optional
 
     using SharedPtr = std::shared_ptr<GetReportOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.listActionedSubjects#output
+struct ListActionedSubjectsOutput
+{
+    std::optional<QString> mCursor;
+    SubjectView::List mSubjects;
+
+    using SharedPtr = std::shared_ptr<ListActionedSubjectsOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
