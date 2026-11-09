@@ -273,6 +273,7 @@ GetAccountStatusOutput::SharedPtr GetAccountStatusOutput::fromJson(const QJsonOb
     XJsonObject xjson(json);
     output->mSrc = xjson.getRequiredString("src");
     output->mStanding = xjson.getRequiredEnum<AccountStanding>("standing");
+    output->mHasActiveStrikes = xjson.getOptionalBool("hasActiveStrikes", false);
     output->mUpdatedAt = xjson.getRequiredDateTime("updatedAt");
     return output;
 }

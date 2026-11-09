@@ -377,6 +377,7 @@ struct GetAccountStatusOutput
 {
     QString mSrc; // DID of moderator
     AccountStanding mStanding;
+    bool mHasActiveStrikes = false;
     QDateTime mUpdatedAt;
 
     using SharedPtr = std::shared_ptr<GetAccountStatusOutput>;

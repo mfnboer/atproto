@@ -11,7 +11,10 @@ class StringEnum
 {
 public:
     StringEnum() = default;
-    StringEnum(EnumType value) : mValue{value} {}
+    StringEnum(EnumType value, const QString& rawValue = {}) :
+        mValue{value},
+        mRawValue(rawValue)
+    {}
 
     operator EnumType() const { return mValue; }
     operator int() const { return int(mValue); }
@@ -23,12 +26,12 @@ public:
 
     static StringEnum fromString(const QString& str)
     {
-        return stringToEnum(str, sStringToEnumMap, unknownValue);
+        return StringEnum{ stringToEnum(str, sStringToEnumMap, unknownValue), str };
     }
 
     QString toString() const
     {
-        return enumToString(mValue, sStringToEnumMap);
+        return enumToString(mValue, sStringToEnumMap, mRawValue);
     }
 
     static std::unordered_map<QString, EnumType> sStringToEnumMap;
