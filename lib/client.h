@@ -150,6 +150,7 @@ public:
     using OzoneInboxActionedSubjectsCb = std::function<void(ToolsOzoneInbox::ListActionedSubjectsOutput::SharedPtr)>;
     using OzoneInboxGetActionedSubjectCb = std::function<void(ToolsOzoneInbox::SubjectViewDetail::SharedPtr)>;
     using OzoneInboxSubjectCb = std::function<void(ToolsOzoneInbox::SubjectView::SharedPtr)>;
+    using OzoneInboxAccountStatusCb = std::function<void(ToolsOzoneInbox::GetAccountStatusOutput::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1674,6 +1675,13 @@ public:
         const std::optional<ToolsOzoneInbox::AppealActionType>& action,
         const std::optional<QString>& reason, const std::optional<QString>& modToolName,
         const OzoneInboxSubjectCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxGetAccountStatus
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxGetAccountStatus(const OzoneInboxAccountStatusCb& successCb, const ErrorCb& errorCb);
 
     // oauth
 

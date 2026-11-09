@@ -54,6 +54,13 @@ std::unordered_map<QString, ToolsOzoneInbox::SubjectActionEnum> ToolsOzoneInbox:
     { "appeal", ToolsOzoneInbox::SubjectActionEnum::APPEAL }
 };
 
+template<>
+std::unordered_map<QString, ToolsOzoneInbox::AccountStandingEnum> ToolsOzoneInbox::AccountStanding::sStringToEnumMap = {
+    { "good", ToolsOzoneInbox::AccountStandingEnum::GOOD },
+    { "warning", ToolsOzoneInbox::AccountStandingEnum::WARNING },
+    { "atRisk", ToolsOzoneInbox::AccountStandingEnum::AT_RISK }
+};
+
 }
 
 namespace ATProto::ToolsOzoneInbox {
@@ -258,6 +265,16 @@ QJsonObject AppealTakedownRef::toJson() const
     QJsonObject json;
     json.insert("$type", TYPE);
     return json;
+}
+
+GetAccountStatusOutput::SharedPtr GetAccountStatusOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<GetAccountStatusOutput>();
+    XJsonObject xjson(json);
+    output->mSrc = xjson.getRequiredString("src");
+    output->mStanding = xjson.getRequiredEnum<AccountStanding>("standing");
+    output->mUpdatedAt = xjson.getRequiredDateTime("updatedAt");
+    return output;
 }
 
 }

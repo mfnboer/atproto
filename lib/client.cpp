@@ -4327,6 +4327,29 @@ void Client::ozoneInboxAppealActionedSubject(
         authToken());
 }
 
+void Client::ozoneInboxGetAccountStatus(const OzoneInboxAccountStatusCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->get("tools.ozone.inbox.getAccountStatus", {}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "ozoneInboxGetAccountStatus ok:" << reply;
+
+            try {
+                auto output = ToolsOzoneInbox::GetAccountStatusOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {

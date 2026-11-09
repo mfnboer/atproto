@@ -363,4 +363,24 @@ struct AppealTakedownRef
 using AppealActionType = std::variant<AppealActionRef, AppealLabelRef, AppealTakedownRef>;
 using AppealSubjectType = std::variant<ComATProtoAdmin::RepoRef, ComATProtoRepo::StrongRef>;
 
+enum class AccountStandingEnum
+{
+    GOOD,
+    WARNING,
+    AT_RISK,
+    UNKNOWN
+};
+using AccountStanding = StringEnum<AccountStandingEnum, AccountStandingEnum::UNKNOWN>;
+
+//  tools.ozone.inbox.getAccountStat#output
+struct GetAccountStatusOutput
+{
+    QString mSrc; // DID of moderator
+    AccountStanding mStanding;
+    QDateTime mUpdatedAt;
+
+    using SharedPtr = std::shared_ptr<GetAccountStatusOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
 }
