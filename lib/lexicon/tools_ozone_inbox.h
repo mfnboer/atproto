@@ -332,4 +332,35 @@ struct ListActionedSubjectsOutput
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// tools.ozone.inbox.appealActionedSubject#actionRef
+struct AppealActionRef
+{
+    int mId;
+
+    QJsonObject toJson() const;
+
+    static constexpr char const* TYPE = "tools.ozone.inbox.appealActionedSubject#actionRef";
+};
+
+// tools.ozone.inbox.appealActionedSubject#labelRef
+struct AppealLabelRef
+{
+    QString mVal;
+
+    QJsonObject toJson() const;
+
+    static constexpr char const* TYPE = "tools.ozone.inbox.appealActionedSubject#labelRef";
+};
+
+// tools.ozone.inbox.appealActionedSubject#takedownRef
+struct AppealTakedownRef
+{
+    QJsonObject toJson() const;
+
+    static constexpr char const* TYPE = "tools.ozone.inbox.appealActionedSubject#takedownRef";
+};
+
+using AppealActionType = std::variant<AppealActionRef, AppealLabelRef, AppealTakedownRef>;
+using AppealSubjectType = std::variant<ComATProtoAdmin::RepoRef, ComATProtoRepo::StrongRef>;
+
 }

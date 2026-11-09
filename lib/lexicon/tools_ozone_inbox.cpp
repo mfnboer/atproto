@@ -237,4 +237,27 @@ ListActionedSubjectsOutput::SharedPtr ListActionedSubjectsOutput::fromJson(const
     return output;
 }
 
+QJsonObject AppealActionRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("id", mId);
+    return json;
+}
+
+QJsonObject AppealLabelRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    json.insert("val", mVal);
+    return json;
+}
+
+QJsonObject AppealTakedownRef::toJson() const
+{
+    QJsonObject json;
+    json.insert("$type", TYPE);
+    return json;
+}
+
 }

@@ -2861,7 +2861,7 @@ static void insertOptionalModTool(QJsonObject& json, const std::optional<QString
 
 void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType reasonType,
                           const QString& reason, const std::optional<QString>& labelerDid,
-                          const std::optional<QString> modToolName,
+                          const std::optional<QString>& modToolName,
                           const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
@@ -2899,7 +2899,7 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
 void Client::reportPostOrFeed(const QString& uri, const QString& cid,
                               ComATProtoModeration::ReasonType reasonType,
                               const QString& reason, const std::optional<QString>& labelerDid,
-                              const std::optional<QString> modToolName,
+                              const std::optional<QString>& modToolName,
                               const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
@@ -2937,7 +2937,7 @@ void Client::reportPostOrFeed(const QString& uri, const QString& cid,
 
 void Client::reportDirectMessage(const QString& did, const QString& convoId, const QString& messageId,
                                  ComATProtoModeration::ReasonType reasonType, const QString& reason,
-                                 const std::optional<QString> modToolName,
+                                 const std::optional<QString>& modToolName,
                                  const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
@@ -4282,6 +4282,42 @@ void Client::ozoneInboxGetActionedSubject(QString subject, std::optional<int> li
 
                 if (successCb)
                     successCb(std::move(output));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::ozoneInboxAppealActionedSubject(
+    const ToolsOzoneInbox::AppealSubjectType& subject,
+    const std::optional<ToolsOzoneInbox::AppealActionType>& action,
+    const std::optional<QString>& reason, const std::optional<QString>& modToolName,
+    const OzoneInboxSubjectCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("subject", std::visit([](auto&& ref){ return ref.toJson(); }, subject));
+
+    if (action)
+        json.insert("action", std::visit([](auto&& ref){ return ref.toJson(); }, *action));
+
+    XJsonObject::insertOptionalJsonValue(json, "reason", reason);
+    insertOptionalModTool(json, modToolName);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->post("tools.ozone.inbox.appealActionedSubject", QJsonDocument{json}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "Appeal actioned subject ok:" << reply;
+
+            try {
+                auto subjectView = ToolsOzoneInbox::SubjectView::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(subjectView));
             }
             catch (InvalidJsonException& e) {
                 invalidJsonError(e, errorCb);
