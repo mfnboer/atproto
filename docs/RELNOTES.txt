@@ -1,7 +1,8 @@
 next
 ====
 * tools.ozone.inbox
-* next Change SelfLabels fiels to variants to comply with lexicon
+* Changed SelfLabels fields to variants to comply with lexicon
+* allow +, -, %, & in hashtags
 * Refactor enums
 
 6.17

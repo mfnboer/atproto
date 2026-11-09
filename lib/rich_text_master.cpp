@@ -8,7 +8,7 @@
 
 namespace ATProto {
 
-static constexpr char const* RE_HASHTAG = R"(#(?:[^[:punct:][:space:]]|_)+)";
+static constexpr char const* RE_HASHTAG = R"(#(?:[^[:punct:][:space:]]|_|\+|\-|&|%)+)";
 static constexpr char const* RE_CASHTAG = R"(\$[a-zA-Z][a-zA-Z0-9_]*)";
 static constexpr int MAX_CASHTAG_LEN = 6; // including $-symbol
 
