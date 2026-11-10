@@ -385,3 +385,10 @@ struct GetAccountStatusOutput
 };
 
 }
+
+namespace ATProto {
+
+template<>
+std::unordered_map<QString, ToolsOzoneInbox::AccountStandingEnum> ToolsOzoneInbox::AccountStanding::sStringToEnumMap;
+
+}

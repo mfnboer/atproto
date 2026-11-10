@@ -10,6 +10,8 @@ template <typename EnumType, EnumType unknownValue>
 class StringEnum
 {
 public:
+    static std::unordered_map<QString, EnumType> sStringToEnumMap;
+
     StringEnum() = default;
     StringEnum(EnumType value, const QString& rawValue = {}) :
         mValue{value},
@@ -33,8 +35,6 @@ public:
     {
         return enumToString(mValue, sStringToEnumMap, mRawValue);
     }
-
-    static std::unordered_map<QString, EnumType> sStringToEnumMap;
 
 private:
     EnumType mValue = EnumType(0);
