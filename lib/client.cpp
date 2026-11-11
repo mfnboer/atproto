@@ -4350,6 +4350,82 @@ void Client::ozoneInboxGetAccountStatus(const OzoneInboxAccountStatusCb& success
         authToken());
 }
 
+void Client::ozoneInboxGetUnreadCounts(const OzoneInboxUnreadCountCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->get("tools.ozone.inbox.getUnreadCount", {}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "ozoneInboxGetUnreadCounts ok:" << reply;
+
+            try {
+                auto output = ToolsOzoneInbox::UnreadCountOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output->mUnreadCounts));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::ozoneInboxGetNotificationPreferences(const OzoneInboxNotificationPreferencesCb& successCb, const ErrorCb& errorCb)
+{
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->get("tools.ozone.inbox.getNotificationPreferences", {}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "getNotificationPreferences ok:" << reply;
+
+            try {
+                auto output = ToolsOzoneInbox::NotificationPreferencesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output->mPreferences));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
+void Client::ozoneInboxPutNotificationPreferences(
+    std::optional<bool> reports, std::optional<bool> account, std::optional<bool> labels,
+    const OzoneInboxNotificationPreferencesCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "reports", reports);
+    XJsonObject::insertOptionalJsonValue(json, "account", account);
+    XJsonObject::insertOptionalJsonValue(json, "labels", labels);
+
+    Xrpc::NetworkThread::Params httpHeaders;
+    addAtprotoProxyHeader(httpHeaders, mServiceModeration);
+
+    mXrpc->post("tools.ozone.inbox.putNotificationPreferences", QJsonDocument{json}, httpHeaders,
+        [this, successCb, errorCb](const QJsonDocument& reply){
+            qDebug() << "putNotificationPreferences ok:" << reply;
+
+            try {
+                auto output = ToolsOzoneInbox::NotificationPreferencesOutput::fromJson(reply.object());
+
+                if (successCb)
+                    successCb(std::move(output->mPreferences));
+            }
+            catch (InvalidJsonException& e) {
+                invalidJsonError(e, errorCb);
+            }
+        },
+        failure(errorCb),
+        authToken());
+}
+
 void Client::oauthLogin(const QString& handle, const QString& did, const QString& clientId, const QString& redirectUrl, const QStringList& scope,
                         const OAuthLoginSuccessCb& successCb, const OAuthErrorCb& errorCb)
 {

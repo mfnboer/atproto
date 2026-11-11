@@ -22,6 +22,7 @@ struct OzoneInboxFilter : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
+public:
     SHARED_CONST(QString, ALL, QStringLiteral("all"));
     SHARED_CONST(QString, PENDING, QStringLiteral("pending"));
     SHARED_CONST(QString, RESOLVED, QStringLiteral("resolve"));
@@ -35,6 +36,7 @@ struct OzoneInboxSortField : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
+public:
     SHARED_CONST(QString, CREATED_AT, QStringLiteral("created_at"));
     SHARED_CONST(QString, UPDATED_AT, QStringLiteral("updated_at"));
 };
@@ -46,6 +48,7 @@ struct OzoneInboxSortDirection : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
+public:
     SHARED_CONST(QString, CREATED_AT, QStringLiteral("asc"));
     SHARED_CONST(QString, UPDATED_AT, QStringLiteral("desc"));
 };
@@ -57,6 +60,7 @@ struct OzoneInboxSection : public QObject
     QML_ELEMENT
     QML_SINGLETON
 
+public:
     SHARED_CONST(QString, REPORTS, QStringLiteral("reports"));
     SHARED_CONST(QString, SUBJECTS, QStringLiteral("subjects"));
     SHARED_CONST(QString, ACCOUNT_STATUS, QStringLiteral("accountStatus"));
@@ -302,6 +306,21 @@ struct SubjectViewDetail
     static SharedPtr fromJson(const QJsonObject& json);
 };
 
+// tools.ozone.inbox.defs#notificationPreferences
+struct NotificationPreferences
+{
+    bool mReports = true;
+    bool mAccount = true;
+    bool mLabels = true;
+    QJsonObject mJson;
+
+    QJsonObject toJson() const;
+
+    using SharedPtr = std::shared_ptr<NotificationPreferences>;
+    static SharedPtr fromJson(const QJsonObject& json);
+    static constexpr char const* TYPE = "tools.ozone.inbox.defs#notificationPreferences";
+};
+
 // tools.ozone.inbox.listReports#output
 struct ListReportsOutput
 {
@@ -381,6 +400,37 @@ struct GetAccountStatusOutput
     QDateTime mUpdatedAt;
 
     using SharedPtr = std::shared_ptr<GetAccountStatusOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.getUnreadCount#unreadCounts
+struct UnreadCounts
+{
+    int mTotal = 0;
+    std::optional<int> mReports;
+    std::optional<int> mSubjects;
+    std::optional<int> mAccountStatus;
+
+    using SharedPtr = std::shared_ptr<UnreadCounts>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.getUnreadCount#output
+struct UnreadCountOutput
+{
+    UnreadCounts::SharedPtr mUnreadCounts;
+
+    using SharedPtr = std::shared_ptr<UnreadCountOutput>;
+    static SharedPtr fromJson(const QJsonObject& json);
+};
+
+// tools.ozone.inbox.getNotificationPreferences#output
+// tools.ozone.inbox.putNotificationPreferences#output
+struct NotificationPreferencesOutput
+{
+    NotificationPreferences::SharedPtr mPreferences;
+
+    using SharedPtr = std::shared_ptr<NotificationPreferencesOutput>;
     static SharedPtr fromJson(const QJsonObject& json);
 };
 

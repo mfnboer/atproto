@@ -151,6 +151,8 @@ public:
     using OzoneInboxGetActionedSubjectCb = std::function<void(ToolsOzoneInbox::SubjectViewDetail::SharedPtr)>;
     using OzoneInboxSubjectCb = std::function<void(ToolsOzoneInbox::SubjectView::SharedPtr)>;
     using OzoneInboxAccountStatusCb = std::function<void(ToolsOzoneInbox::GetAccountStatusOutput::SharedPtr)>;
+    using OzoneInboxUnreadCountCb = std::function<void(ToolsOzoneInbox::UnreadCounts::SharedPtr)>;
+    using OzoneInboxNotificationPreferencesCb = std::function<void(ToolsOzoneInbox::NotificationPreferences::SharedPtr)>;
 
     using ErrorCb = std::function<void(const QString& error, const QString& message)>;
     using ResumeAndRefreshSessionErrorCb = std::function<void(const QString& error, const QString& message, const QString& accessJwt, const QString& refreshJwt)>;
@@ -1682,6 +1684,32 @@ public:
      * @param errorCb
      */
     void ozoneInboxGetAccountStatus(const OzoneInboxAccountStatusCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxGetUnreadCounts
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxGetUnreadCounts(const OzoneInboxUnreadCountCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxGetNotificationPreferences
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxGetNotificationPreferences(const OzoneInboxNotificationPreferencesCb& successCb, const ErrorCb& errorCb);
+
+    /**
+     * @brief ozoneInboxPutNotificationPreferences
+     * @param reports
+     * @param account
+     * @param labels
+     * @param successCb
+     * @param errorCb
+     */
+    void ozoneInboxPutNotificationPreferences(
+        std::optional<bool> reports, std::optional<bool> account, std::optional<bool> labels,
+        const OzoneInboxNotificationPreferencesCb& successCb, const ErrorCb& errorCb);
 
     // oauth
 

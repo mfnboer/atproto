@@ -217,6 +217,26 @@ SubjectViewDetail::SharedPtr SubjectViewDetail::fromJson(const QJsonObject& json
     return view;
 }
 
+QJsonObject NotificationPreferences::toJson() const
+{
+    QJsonObject json{mJson};
+    json.insert("$type", TYPE);
+    json.insert("reports", mReports);
+    json.insert("account", mAccount);
+    json.insert("labels", mLabels);
+    return json;
+}
+
+NotificationPreferences::SharedPtr NotificationPreferences::fromJson(const QJsonObject& json)
+{
+    auto prefs = std::make_shared<NotificationPreferences>();
+    XJsonObject xjson(json);
+    prefs->mReports = xjson.getRequiredBool("reports");
+    prefs->mAccount = xjson.getRequiredBool("account");
+    prefs->mLabels = xjson.getRequiredBool("labels");
+    return prefs;
+}
+
 ListReportsOutput::SharedPtr ListReportsOutput::fromJson(const QJsonObject& json)
 {
     auto output = std::make_shared<ListReportsOutput>();
@@ -275,6 +295,33 @@ GetAccountStatusOutput::SharedPtr GetAccountStatusOutput::fromJson(const QJsonOb
     output->mStanding = xjson.getRequiredEnum<AccountStanding>("standing");
     output->mHasActiveStrikes = xjson.getOptionalBool("hasActiveStrikes", false);
     output->mUpdatedAt = xjson.getRequiredDateTime("updatedAt");
+    return output;
+}
+
+UnreadCounts::SharedPtr UnreadCounts::fromJson(const QJsonObject& json)
+{
+    auto counts = std::make_shared<UnreadCounts>();
+    XJsonObject xjson(json);
+    counts->mTotal = xjson.getRequiredInt("total");
+    counts->mReports = xjson.getOptionalInt("reports");
+    counts->mSubjects = xjson.getOptionalInt("subjects");
+    counts->mAccountStatus = xjson.getOptionalInt("accountStatus");
+    return counts;
+}
+
+UnreadCountOutput::SharedPtr UnreadCountOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<UnreadCountOutput>();
+    XJsonObject xjson(json);
+    output->mUnreadCounts = xjson.getRequiredObject<UnreadCounts>("unreadCounts");
+    return output;
+}
+
+NotificationPreferencesOutput::SharedPtr NotificationPreferencesOutput::fromJson(const QJsonObject& json)
+{
+    auto output = std::make_shared<NotificationPreferencesOutput>();
+    XJsonObject xjson(json);
+    output->mPreferences = xjson.getRequiredObject<NotificationPreferences>("preferences");
     return output;
 }
 
