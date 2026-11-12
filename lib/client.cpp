@@ -2896,11 +2896,11 @@ void Client::reportAuthor(const QString& did, ComATProtoModeration::ReasonType r
         authToken());
 }
 
-void Client::reportPostOrFeed(const QString& uri, const QString& cid,
-                              ComATProtoModeration::ReasonType reasonType,
-                              const QString& reason, const std::optional<QString>& labelerDid,
-                              const std::optional<QString>& modToolName,
-                              const SuccessCb& successCb, const ErrorCb& errorCb)
+void Client::reportRecord(const QString& uri, const QString& cid,
+                          ComATProtoModeration::ReasonType reasonType,
+                          const QString& reason, const std::optional<QString>& labelerDid,
+                          const std::optional<QString>& modToolName,
+                          const SuccessCb& successCb, const ErrorCb& errorCb)
 {
     QJsonObject json;
     json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
@@ -2922,12 +2922,12 @@ void Client::reportPostOrFeed(const QString& uri, const QString& cid,
     if (labelerDid)
         addAtprotoProxyHeader(httpHeaders, *labelerDid, SERVICE_KEY_ATPROTO_LABELER);
 
-    qDebug() << "Report post or feed:" << jsonDoc;
+    qDebug() << "Report record:" << jsonDoc;
     qDebug() << "HTTP headers:" << httpHeaders;
 
     mXrpc->post("com.atproto.moderation.createReport", jsonDoc, httpHeaders,
         [successCb](const QJsonDocument& reply){
-            qDebug() <<"Reported post or feed:" << reply;
+            qDebug() <<"Reported record:" << reply;
             if (successCb)
                 successCb();
         },

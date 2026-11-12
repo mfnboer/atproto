@@ -142,10 +142,13 @@ struct StatusView
 {
     using EmbedType = std::variant<std::shared_ptr<AppBskyEmbed::ExternalView>>;
 
+    std::optional<QString> mUri;
+    std::optional<QString> mCid;
     QString mRawStatus;
     ActorStatus mStatus = ActorStatus::UNKNOWN;
     QJsonObject mRecord;
     std::optional<EmbedType> mEmbed;
+    ComATProtoLabel::Label::List mLabels;
     std::optional<QDateTime> mExpiresAt;
     std::optional<bool> mIsActive;
 

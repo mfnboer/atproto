@@ -236,9 +236,12 @@ Status::SharedPtr Status::fromJson(const QJsonObject& json)
 QJsonObject StatusView::toJson() const
 {
     QJsonObject json;
+    XJsonObject::insertOptionalJsonValue(json, "uri", mUri);
+    XJsonObject::insertOptionalJsonValue(json, "cid", mCid);
     json.insert("status", actorStatusToString(mStatus, mRawStatus));
     json.insert("record", mRecord);
     XJsonObject::insertOptionalVariant(json, "embed", mEmbed);
+    XJsonObject::insertOptionalArray<ComATProtoLabel::Label>(json, "labels", mLabels);
     XJsonObject::insertOptionalDateTime(json, "expiresAt", mExpiresAt);
     XJsonObject::insertOptionalJsonValue(json, "isActive", mIsActive);
     return json;
@@ -248,10 +251,13 @@ StatusView::SharedPtr StatusView::fromJson(const QJsonObject& json)
 {
     auto view = std::make_shared<StatusView>();
     XJsonObject xjson(json);
+    view->mUri = xjson.getOptionalString("uri");
+    view->mCid = xjson.getOptionalString("cid");
     view->mRawStatus = xjson.getRequiredString("status");
     view->mStatus = stringToActorStatus(view->mRawStatus);
     view->mRecord = xjson.getRequiredJsonObject("record");
     view->mEmbed = xjson.getOptionalVariant<AppBskyEmbed::ExternalView>("embed");
+    ComATProtoLabel::getLabels(view->mLabels, json);
     view->mExpiresAt = xjson.getOptionalDateTime("expiresAt");
     view->mIsActive = xjson.getOptionalBool("isActive");
     return view;

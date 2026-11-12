@@ -1147,20 +1147,20 @@ public:
                       const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
-     * @brief reportPostOrFeed
-     * @param uri post or feed at-uri
-     * @param cid
+     * @brief reportRecord
+     * @param uri record uri, e.g. post or feed at-uri
+     * @param cid record cid
      * @param reasonType
      * @param reason
      * @param labelerDid if set, then send the report to this labeler
      * @param successCb
      * @param errorCb
      */
-    void reportPostOrFeed(const QString& uri, const QString& cid,
-                          ComATProtoModeration::ReasonType reasonType,
-                          const QString& reason, const std::optional<QString>& labelerDid,
-                          const std::optional<QString>& modToolName,
-                          const SuccessCb& successCb, const ErrorCb& errorCb);
+    void reportRecord(const QString& uri, const QString& cid,
+                      ComATProtoModeration::ReasonType reasonType,
+                      const QString& reason, const std::optional<QString>& labelerDid,
+                      const std::optional<QString>& modToolName,
+                      const SuccessCb& successCb, const ErrorCb& errorCb);
 
     /**
      * @brief reportDirectMessage
