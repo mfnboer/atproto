@@ -4191,7 +4191,7 @@ void Client::ozoneInboxGetReport(int id, const OzoneInboxGetReportCb& successCb,
 
     mXrpc->get("tools.ozone.inbox.getReport", params, httpHeaders,
         [this, successCb, errorCb](const QJsonDocument& reply){
-            qDebug() << "ozoneGetReport ok:" << reply.toJson();
+            qDebug() << "ozoneGetReport ok:" << reply;
 
             try {
                 auto output = ToolsOzoneInbox::GetReportOutput::fromJson(reply.object());
