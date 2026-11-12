@@ -426,7 +426,6 @@ ProfileViewDetailed::SharedPtr ProfileViewDetailed::fromJson(const QJsonObject& 
     profile->mHandle = root.getRequiredString("handle");
     profile->mDisplayName = root.getOptionalString("displayName");
     profile->mPronouns = root.getOptionalString("pronouns");
-    profile->mWebsite = root.getOptionalString("website");
     profile->mAvatar = root.getOptionalString("avatar");
     profile->mBanner = root.getOptionalString("banner");
     profile->mDescription = root.getOptionalString("description");
@@ -485,7 +484,6 @@ QJsonObject Profile::toJson() const
     XJsonObject::insertOptionalJsonValue(json, "displayName", mDisplayName);
     XJsonObject::insertOptionalJsonValue(json, "description", mDescription);
     XJsonObject::insertOptionalJsonValue(json, "pronouns", mPronouns);
-    XJsonObject::insertOptionalJsonValue(json, "website", mWebsite);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "avatar", mAvatar);
     XJsonObject::insertOptionalJsonObject<Blob>(json, "banner", mBanner);
     XJsonObject::insertOptionalVariant(json, "labels", mLabels);
@@ -504,7 +502,6 @@ Profile::SharedPtr Profile::fromJson(const QJsonObject& json)
     profile->mDisplayName = xjson.getOptionalString("displayName");
     profile->mDescription = xjson.getOptionalString("description");
     profile->mPronouns = xjson.getOptionalString("pronouns");
-    profile->mWebsite = xjson.getOptionalString("website");
     profile->mAvatar = xjson.getOptionalObject<Blob>("avatar");
     profile->mBanner = xjson.getOptionalObject<Blob>("banner");
     profile->mLabels = xjson.getOptionalVariant<ComATProtoLabel::SelfLabels, UnknownVariant>("labels");

@@ -1,6 +1,7 @@
 next
 ====
 * tools.ozone.inbox
+* Removed website field from profile
 * Changed SelfLabels fields to variants to comply with lexicon
 * allow +, -, %, & in hashtags
 * Refactor enums

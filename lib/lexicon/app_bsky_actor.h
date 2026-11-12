@@ -284,7 +284,6 @@ struct ProfileViewDetailed
     QString mHandle;
     std::optional<QString> mDisplayName; // max 64 graphemes, 640 bytes
     std::optional<QString> mPronouns; // max 20 graphemes, 200 bytes
-    std::optional<QString> mWebsite; // URL
     std::optional<QString> mAvatar; // URL
     std::optional<QString> mBanner; // URL
     std::optional<QString> mDescription; // max 256 graphemes, 2560 bytes
@@ -343,7 +342,6 @@ struct Profile
     std::optional<QString> mDisplayName;
     std::optional<QString> mDescription;
     std::optional<QString> mPronouns;
-    std::optional<QString> mWebsite;
     Blob::SharedPtr mAvatar; // optional
     static constexpr int MAX_BYTES_AVATAR = 1'000'000;
     Blob::SharedPtr mBanner; // optional
