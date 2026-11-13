@@ -207,6 +207,9 @@ public:
     const QString& getServiceDidVideo() const { return mServiceDidVideo; }
     void setServiceDidVideo(const QString& did);
 
+    const QString& getServiceModeration() const { return mServiceModeration; }
+    void setServiceModeration(const QString& service);
+
     void setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce);
 
     // The callback function will be called immediately after receiving new

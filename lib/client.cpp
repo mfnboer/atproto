@@ -128,6 +128,12 @@ void Client::setServiceDidVideo(const QString& did)
     mServiceDidVideo = did;
 }
 
+void Client::setServiceModeration(const QString& service)
+{
+    qDebug() << "Service moderation:" << service << getSessionDid();;
+    mServiceModeration = service;
+}
+
 void Client::setDpopNonces(const QString& pdsDpopNonce, const QString& authDpopNonce)
 {
     qDebug() << "pdsDpopNonce:" << pdsDpopNonce << "authDpopNonce:" << authDpopNonce;
