@@ -2952,6 +2952,9 @@ void Client::reportDirectMessage(const QString& did, const QString& convoId, con
     if (!reason.isEmpty())
         json.insert("reason", reason);
 
+    // Note: the lexicon for com.atproto.moderation.createReport only specifies
+    // com.atproto.admin.defs#repoRef and com.atproto.repo.strongRef as subject, but the
+    // union is open to accept this message ref.
     ChatBskyConvo::MessageRef ref;
     ref.mDid = did;
     ref.mConvoId = convoId;
@@ -2970,6 +2973,39 @@ void Client::reportDirectMessage(const QString& did, const QString& convoId, con
         },
         failure(errorCb),
         authToken());
+}
+
+void Client::reportChatConvo(const QString& did, const QString& convoId,
+                             ComATProtoModeration::ReasonType reasonType, const QString& reason,
+                             const std::optional<QString>& modToolName,
+                             const SuccessCb& successCb, const ErrorCb& errorCb)
+{
+    QJsonObject json;
+    json.insert("reasonType", ComATProtoModeration::reasonTypeToString(reasonType));
+
+    if (!reason.isEmpty())
+        json.insert("reason", reason);
+
+    // Note: the lexicon for com.atproto.moderation.createReport only specifies
+    // com.atproto.admin.defs#repoRef and com.atproto.repo.strongRef as subject, but the
+    // union is open to accept this convo ref.
+    ChatBskyConvo::ConvoRef ref;
+    ref.mDid = did;
+    ref.mConvoId = convoId;
+    json.insert("subject", ref.toJson());
+    insertOptionalModTool(json, modToolName);
+    QJsonDocument jsonDoc(json);
+
+    qDebug() << "Report chat convo:" << jsonDoc;
+
+    mXrpc->post("com.atproto.moderation.createReport", jsonDoc, {},
+                [successCb](const QJsonDocument& reply){
+                    qDebug() <<"Reported chat convo:" << reply;
+                    if (successCb)
+                        successCb();
+                },
+                failure(errorCb),
+                authToken());
 }
 
 void Client::getPopularFeedGenerators(const std::optional<QString>& q, std::optional<int> limit,

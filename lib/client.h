@@ -1180,6 +1180,21 @@ public:
                              const std::optional<QString>& modToolName,
                              const SuccessCb& successCb, const ErrorCb& errorCb);
 
+    /**
+     * @brief reportChatConvo
+     * @param did
+     * @param convoId
+     * @param reasonType
+     * @param reason
+     * @param modToolName
+     * @param successCb
+     * @param errorCb
+     */
+    void reportChatConvo(const QString& did, const QString& convoId,
+                         ComATProtoModeration::ReasonType reasonType, const QString& reason,
+                         const std::optional<QString>& modToolName,
+                         const SuccessCb& successCb, const ErrorCb& errorCb);
+
     // app.bsky.unspecced
 
     /**
