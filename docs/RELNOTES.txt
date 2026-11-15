@@ -1,4 +1,4 @@
-next
+6.18
 ====
 * tools.ozone.inbox
 * Removed website field from profile
