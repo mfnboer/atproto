@@ -440,7 +440,8 @@ struct Interaction
         InteractionRepost,
         InteractionReply,
         InteractionQuote,
-        InteractionShare
+        InteractionShare,
+        InteractionFollow
     };
     static QString eventTypeToString(EventType eventType);
 

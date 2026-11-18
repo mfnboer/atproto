@@ -1,3 +1,7 @@
+next
+====
+* app.bsky.feed.defs#interactionFollow
+
 6.18
 ====
 * tools.ozone.inbox

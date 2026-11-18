@@ -864,7 +864,8 @@ QString Interaction::eventTypeToString(EventType eventType)
         { EventType::InteractionRepost, "app.bsky.feed.defs#interactionRepost" },
         { EventType::InteractionReply, "app.bsky.feed.defs#interactionReply" },
         { EventType::InteractionQuote, "app.bsky.feed.defs#interactionQuote" },
-        { EventType::InteractionShare, "app.bsky.feed.defs#interactionShare" }
+        { EventType::InteractionShare, "app.bsky.feed.defs#interactionShare" },
+        { EventType::InteractionFollow, "app.bsky.feed.defs#interactionFollow" }
     };
 
     const auto it = mapping.find(eventType);
