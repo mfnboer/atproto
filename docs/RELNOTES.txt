@@ -1,6 +1,7 @@
 next
 ====
 * app.bsky.feed.defs#interactionFollow
+* Bug fix for record not found
 
 6.18
 ====

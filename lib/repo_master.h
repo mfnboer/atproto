@@ -105,7 +105,7 @@ inline void RepoMaster::getRecord(const QString& repo, const QString& rkey,
             }
         },
         [errorCb](const QString& err, const QString& msg) {
-            qDebug() << "Failed to get profile:" << err << "-" << msg;
+            qDebug() << "Failed to get record:" << err << "-" << msg;
 
             if (errorCb)
                 errorCb(err, msg);

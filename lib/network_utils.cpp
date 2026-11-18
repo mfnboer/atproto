@@ -105,14 +105,19 @@ static std::pair<QString, std::unordered_map<QString, QString>> parseWwwAuthenti
     return { scheme, params };
 }
 
-static bool hasError(const QByteArray& replyData, const std::function<bool(const QString&)>& errorCheck)
+bool NetworkUtils::hasError(const QByteArray& replyData, const std::function<bool(const QString&)>& errorCheck)
 {
     const QJsonDocument json(QJsonDocument::fromJson(replyData));
-    qDebug() << "body:" << json;
+    return hasError(json, errorCheck);
+}
 
-    if (json.isObject())
+bool NetworkUtils::hasError(const QJsonDocument& replyJson, const std::function<bool(const QString& error)>& errorCheck)
+{
+    qDebug() << "body:" << replyJson;
+
+    if (replyJson.isObject())
     {
-        const auto jsonObject = json.object();
+        const auto jsonObject = replyJson.object();
         const XJsonObject xjson(jsonObject);
         const auto errorField = xjson.getOptionalString("error");
 
@@ -133,12 +138,23 @@ bool NetworkUtils::isInvalidTokenError(const QByteArray& replyData)
     return hasError(replyData, isTokenFailure);
 }
 
+bool NetworkUtils::isInvalidTokenError(const QJsonDocument& replyJson)
+{
+    return hasError(replyJson, isTokenFailure);
+}
+
 static bool isDpopError(const QString& error)
 {
     return error == "use_dpop_nonce" || error == "invalid_dpop_proof";
 }
 
 bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data)
+{
+    const QJsonDocument json(QJsonDocument::fromJson(data));
+    return isDpopNonceError(reply, json);
+}
+
+bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QJsonDocument& replyJson)
 {
     const QVariant status = reply->attribute(QNetworkRequest::HttpStatusCodeAttribute);
 
@@ -160,7 +176,7 @@ bool NetworkUtils::isDpopNonceError(QNetworkReply* reply, const QByteArray& data
             return true;
     }
 
-    return hasError(data, isDpopError);
+    return hasError(replyJson, isDpopError);
 }
 
 bool NetworkUtils::hasDpopNonce(QNetworkReply* reply)

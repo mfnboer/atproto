@@ -210,13 +210,14 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
     else if (!*errorHandled)
     {
         *errorHandled = true;
+        QJsonDocument json(QJsonDocument::fromJson(data));
 
         if (mustResend(errorCode))
         {
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
-        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, json))
         {
             if (hasDpopNonce)
             {
@@ -230,13 +231,12 @@ void NetworkThread::replyFinished(const Request& request, QNetworkReply* reply,
                 return;
             }
         }
-        else if (ATProto::NetworkUtils::isInvalidTokenError(data))
+        else if (ATProto::NetworkUtils::isInvalidTokenError(json))
         {
             if (resendRequestWithNewToken(request, successCb, errorCb))
                 return;
         }
 
-        QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(reply->errorString(), std::move(json), errorCb);
     }
     else
@@ -257,6 +257,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
     {
         *errorHandled = true;
         const auto data = reply->readAll();
+        const QJsonDocument json(QJsonDocument::fromJson(data));
 
         if (errorCode == QNetworkReply::OperationCanceledError)
             reply->disconnect();
@@ -268,7 +269,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             if (resendRequest(request, successCb, errorCb))
                 return;
         }
-        else if (ATProto::NetworkUtils::isDpopNonceError(reply, data))
+        else if (ATProto::NetworkUtils::isDpopNonceError(reply, json))
         {
             if (ATProto::NetworkUtils::hasDpopNonce(reply))
             {
@@ -284,7 +285,7 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
                 return;
             }
         }
-        else if (ATProto::NetworkUtils::isInvalidTokenError(data))
+        else if (ATProto::NetworkUtils::isInvalidTokenError(json))
         {
             if (resendRequestWithNewToken(request, successCb, errorCb))
                 return;
@@ -295,13 +296,12 @@ void NetworkThread::networkError(const Request& request, QNetworkReply* reply, Q
             emit requestError(ATProto::ATProtoErrorMsg::XRPC_TIMEOUT, {}, errorCb);
             return;
         }
-        else if (errorCode == QNetworkReply::ContentNotFoundError)
-        {
+        else if (errorCode == QNetworkReply::ContentNotFoundError && !ATProto::NetworkUtils::hasError(json))
+        {   
             emit requestError(ATProto::ATProtoErrorMsg::NOT_FOUND, {}, errorCb);
             return;
         }
 
-        QJsonDocument json(QJsonDocument::fromJson(data));
         emit requestError(std::move(errorMsg), std::move(json), errorCb);
     }
     else
