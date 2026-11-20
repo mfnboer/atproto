@@ -1,5 +1,6 @@
 next
 ====
+* Set Bluesky as default appview
 * app.bsky.feed.defs#interactionFollow
 * Bug fix for record not found
 

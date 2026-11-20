@@ -78,10 +78,10 @@ ServiceInfo::ServiceInfo(const QString& name, const QString& service) :
 
 const std::vector<ServiceInfo> Client::SERIVCE_APP_VIEW_LIST =
 {
-    { "PDS chooses (default)", "" },
+    { "Bluesky (default)", "did:web:api.bsky.app#bsky_appview" },
     { "Blacksky", "did:web:api.blacksky.community#bsky_appview" },
-    { "Bluesky", "did:web:api.bsky.app#bsky_appview" },
-    { "Eurosky", "did:web:api.eurosky.network#bsky_appview" }
+    { "Eurosky", "did:web:api.eurosky.network#bsky_appview" },
+    { "PDS chooses", "" }
 };
 
 const QString Client::SERVICE_APP_VIEW = Client::SERIVCE_APP_VIEW_LIST[0].mService;
